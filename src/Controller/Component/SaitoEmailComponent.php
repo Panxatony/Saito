@@ -51,11 +51,13 @@ class SaitoEmailComponent extends Component
         $params += $defaults;
 
         $from = new SaitoEmailContact($params['sender']);
+        $systemFrom = new SaitoEmailContact('system');
         $to = new SaitoEmailContact($params['recipient']);
 
         $email = new Email('saito');
         $email->setEmailFormat('text')
-            ->setFrom($from->toCake())
+            ->setFrom($systemFrom->toCake())
+            ->setReplyTo($from->toCake())
             ->setTo($to->toCake())
             ->setSubject($params['subject'])
             ->viewBuilder()->setTemplate($params['template']);

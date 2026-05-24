@@ -21,6 +21,10 @@ $this->end();
                         'type' => 'email',
                     ]
                 );
+                // Honeypot field: hidden from users, bots fill it in
+                echo '<div aria-hidden="true" style="position:absolute;left:-9999px;visibility:hidden;">';
+                echo $this->Form->control('website', ['label' => 'Website', 'tabindex' => -1, 'autocomplete' => 'off']);
+                echo '</div>';
             }
             echo $this->element('contacts/contacts-core');
             echo $this->Form->end();

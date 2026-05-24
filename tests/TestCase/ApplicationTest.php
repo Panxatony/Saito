@@ -30,7 +30,7 @@ class ApplicationTest extends SaitoTestCase
     /** @var Application */
     private $application;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 

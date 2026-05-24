@@ -28,6 +28,7 @@ class ContactFormOwner extends ContactForm
     {
         $schema = parent::_buildSchema($schema);
         $schema->addField('sender_contact', 'string');
+        $schema->addField('website', 'string');
 
         return $schema;
     }
@@ -47,6 +48,15 @@ class ContactFormOwner extends ContactForm
                 'isEmail' => [
                     'rule' => ['email', true],
                     'message' => __('error_email_not-valid'),
+                ],
+            ])
+            ->allowEmpty('website')
+            ->add('website', [
+                'honeypot' => [
+                    'rule' => function ($value) {
+                        return empty($value);
+                    },
+                    'message' => __('error_subject_empty'),
                 ],
             ]);
 

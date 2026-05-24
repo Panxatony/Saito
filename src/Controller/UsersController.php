@@ -28,7 +28,6 @@ use Saito\Exception\SaitoForbiddenException;
 use Saito\User\Blocker\ManualBlocker;
 use Saito\User\Permission\Permissions;
 use Saito\User\Permission\ResourceAI;
-use Siezi\SimpleCaptcha\Model\Validation\SimpleCaptchaValidator;
 use Stopwatch\Lib\Stopwatch;
 
 /**
@@ -39,7 +38,6 @@ class UsersController extends AppController
     public $helpers = [
         'SpectrumColorpicker.SpectrumColorpicker',
         'Posting',
-        'Siezi/SimpleCaptcha.SimpleCaptcha',
         'Text',
     ];
 
@@ -170,7 +168,10 @@ class UsersController extends AppController
         $user = $this->Users->newEntity();
         $this->set('user', $user);
 
+        $session = $this->request->getSession();
+
         if (!$this->request->is('post')) {
+            $session->write('Register.formLoadTime', time());
             $logout = $this->_logoutAndComeHereAgain();
             if ($logout) {
                 return $logout;
@@ -181,6 +182,16 @@ class UsersController extends AppController
 
         $data = $this->request->getData();
 
+        // Bot protection: honeypot field must be empty, form must have been
+        // open for at least 5 seconds (bots submit instantly).
+        $formLoadTime = (int)$session->read('Register.formLoadTime');
+        if (!empty($data['url']) || $formLoadTime === 0 || (time() - $formLoadTime) < 5) {
+            $this->set('user', $this->Users->newEntity());
+
+            return;
+        }
+        $session->delete('Register.formLoadTime');
+
         if (!$tosRequired) {
             $data['tos_confirm'] = true;
         }
@@ -189,11 +200,7 @@ class UsersController extends AppController
             return;
         }
 
-        $validator = new SimpleCaptchaValidator();
-        $errors = $validator->errors($this->request->getData());
-
         $user = $this->Users->register($data);
-        $user->setErrors($errors);
 
         $errors = $user->getErrors();
         if (!empty($errors)) {
@@ -518,7 +525,29 @@ class UsersController extends AppController
 
         if ($this->request->is('post') || $this->request->is('put')) {
             $data = $this->request->getData();
-            $patched = $this->Users->patchEntity($user, $data);
+            $allowedFields = [
+                'username',
+                'user_email',
+                'user_real_name',
+                'user_hp',
+                'user_place',
+                'profile',
+                'signature',
+                'user_sort_last_answer',
+                'user_automaticaly_mark_as_read',
+                'user_signatures_hide',
+                'user_signatures_images_hide',
+                'user_forum_refresh_time',
+                'user_theme',
+                'user_color_new_postings',
+                'user_color_old_postings',
+                'user_color_actual_posting',
+                'inline_view_on_click',
+                'user_show_thread_collapsed',
+                'personal_messages',
+                'user_category_override',
+            ];
+            $patched = $this->Users->patchEntity($user, $data, ['fields' => $allowedFields]);
             $errors = $patched->getErrors();
             if (empty($errors) && $this->Users->save($patched)) {
                 return $this->redirect(['action' => 'view', $id]);

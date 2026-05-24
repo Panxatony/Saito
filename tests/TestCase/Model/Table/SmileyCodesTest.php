@@ -38,13 +38,13 @@ class SmileyCodeTest extends SaitoTableTestCase
         $this->Table->save($Entity);
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->Table->clearCache();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->Table->clearCache();
         parent::tearDown();

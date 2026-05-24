@@ -19,6 +19,10 @@ Stopwatch::start('layout/disclaimer.ctp');
                             <?= h(__('s.rss.t')) ?>
                         </a>
                     </li>
+                    <li>
+                       <a href="https://macnemo.de/impressum.html">Impressum</a>
+                    </li>
+                     
                 </ul>
             </div>
             <div class="disclaimer-card">

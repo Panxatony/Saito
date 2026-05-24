@@ -45,7 +45,7 @@ abstract class IntegrationTestCase extends TestCase
     /**
      * {@inheritDoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->disableErrorHandlerMiddleware();
         $this->setUpSaito();
@@ -56,7 +56,7 @@ abstract class IntegrationTestCase extends TestCase
     /**
      * {@inheritDoc}
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         // This will restore the Config. Leave it after parent::tearDown() or

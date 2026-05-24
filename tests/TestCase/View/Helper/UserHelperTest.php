@@ -15,7 +15,7 @@ class CurrencyRendererHelperTest extends TestCase
      */
     public $helper = null;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $View = new View();

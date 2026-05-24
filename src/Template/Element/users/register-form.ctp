@@ -7,14 +7,10 @@ echo $this->Form->create(
     ['url' => ['action' => 'register'], 'id' => 'registerForm']
 );
 echo $this->element('users/register-form-core');
-echo $this->SimpleCaptcha->control(
-    [
-        'class' => 'form-control mb-3',
-        'required' => true,
-        'div' => ['class' => 'form-group'],
-        'tabindex' => 10,
-    ]
-);
+// Honeypot field: invisible to users, bots fill it in
+echo '<div aria-hidden="true" style="position:absolute;left:-9999px;visibility:hidden;">';
+echo $this->Form->control('url', ['label' => 'Website', 'tabindex' => -1, 'autocomplete' => 'off']);
+echo '</div>';
 
 if (Configure::read('Saito.Settings.tos_enabled')) {
     $tosUrl = Configure::read('Saito.Settings.tos_url');

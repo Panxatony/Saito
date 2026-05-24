@@ -136,10 +136,10 @@ class SettingsTableTest extends SaitoTableTestCase
             ['name' => 'subject_maxlength', 'value' => $max + 1]
         );
         $this->assertArrayHasKey('subjectMaxLength', $entity->getError('value'));
-        $this->assertContains((string)$max, $entity->getError('value')['subjectMaxLength']);
+        $this->assertStringContainsString((string)$max, $entity->getError('value')['subjectMaxLength']);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->Table->clearCache();
         parent::tearDown();

@@ -65,7 +65,8 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertResponseCode(200);
         $response = json_decode((string)$this->_response->getBody(), true);
 
-        $this->assertArraySubset(['pid' => 1, 'tid' => 1], $response['data']['attributes']);
+        $this->assertEquals(1, $response['data']['attributes']['pid']);
+        $this->assertEquals(1, $response['data']['attributes']['tid']);
 
         $latestEntry = $EntriesTable->find()->order(['id' => 'desc'])->first();
         $this->assertEquals($expectedId, $latestEntry->get('id'));
@@ -240,7 +241,8 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertResponseCode(200);
         $response = json_decode((string)$this->_response->getBody(), true);
 
-        $this->assertArraySubset(['pid' => 1, 'tid' => 1], $response['data']['attributes']);
+        $this->assertEquals(1, $response['data']['attributes']['pid']);
+        $this->assertEquals(1, $response['data']['attributes']['tid']);
 
         $EntriesTable = TableRegistry::get('Entries');
         $posting = $EntriesTable->get(2);

@@ -530,13 +530,10 @@ class EntriesController extends AppController
         if ($this->CurrentUser->isLoggedIn()) {
             // Only logged in users see the answering buttons if they …
             if (
-// … directly on entries/view but not inline
-                ($this->request->getParam('action') === 'view' && !$this->request->is('ajax'))
+                // … directly on entries/view (full page or inline)
+                $this->request->getParam('action') === 'view'
                 // … directly in entries/mix
                 || $this->request->getParam('action') === 'mix'
-                // … inline viewing … on entries/index.
-                || ($this->Referer->wasController('entries')
-                    && $this->Referer->wasAction('index'))
             ) {
                 $showAnsweringPanel = true;
             }

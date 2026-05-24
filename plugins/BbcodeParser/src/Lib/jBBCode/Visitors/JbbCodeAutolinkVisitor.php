@@ -108,20 +108,18 @@ class JbbCodeAutolinkVisitor extends JbbCodeTextVisitor
     protected function autolink(string $string): string
     {
         $replace = function (array $matches): string {
-            /// don't link locally
+            // don't link locally
             if (strpos($matches['element'], 'file://') !== false) {
                 return $matches['element'];
             }
 
-            /// exclude punctuation at end of sentence from URLs
+            // exclude punctuation at end of sentence from URLs
             $ignoredEndChars = implode('|', [',', '\?', ',', '\.', '\)', '!']);
             preg_match(
                 '/(?P<element>.*?)(?P<suffix>' . $ignoredEndChars . ')?$/',
                 $matches['element'],
                 $m
             );
-
-            /// exclude ignored end chars if paired in URL foo.com/bar_(baz)
             if (!empty($m['suffix'])) {
                 $ignoredIfNotPaired = [
                     ['open' => '(', 'close' => ')'],
@@ -135,7 +133,7 @@ class JbbCodeAutolinkVisitor extends JbbCodeTextVisitor
                 }
             }
 
-            /// keep ['element'] and ['suffix'] and include ['prefix']; (array) for phpstan
+            // keep ['element'] and ['suffix'] and include ['prefix']; (array) for phpstan
             $matches = (array)($m + $matches);
 
             if (strpos($matches['element'], '://') === false) {

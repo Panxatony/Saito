@@ -1,0 +1,70 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Saito - The Threaded Web Forum
+ *
+ * @copyright Copyright (c) the Saito Project Developers
+ * @link https://github.com/Schlaefer/Saito
+ * @license http://opensource.org/licenses/MIT
+ */
+
+namespace App\Database\Type;
+
+use Cake\Database\Driver;
+use Cake\Database\Type;
+use PDO;
+
+/**
+ * Column type for avatar upload fields.
+ *
+ * Preserves the $_FILES array through ORM marshaling so that validation rules
+ * and the AvatarBehavior can access it. The behavior always replaces the array
+ * with the final filename string before the SQL INSERT/UPDATE runs.
+ */
+class AvatarFileType extends Type
+{
+    public function marshal($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (string)$value;
+    }
+
+    public function toPHP($value, Driver $driver)
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (string)$value;
+    }
+
+    public function toDatabase($value, Driver $driver)
+    {
+        if (is_array($value)) {
+            // Behavior did not run — should not happen in practice
+            return null;
+        }
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (string)$value;
+    }
+
+    public function toStatement($value, Driver $driver)
+    {
+        if ($value === null) {
+            return PDO::PARAM_NULL;
+        }
+
+        return PDO::PARAM_STR;
+    }
+}

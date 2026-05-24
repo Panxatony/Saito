@@ -40,11 +40,6 @@ class UploadsTable extends AppTable
      */
     public const FILENAME_MAXLENGTH = 191;
 
-    /**
-     * Uploader Configuration
-     *
-     * @var \ImageUploader\Lib\UploaderConfig
-     */
     protected $UploaderConfig;
 
     /**
@@ -56,7 +51,6 @@ class UploadsTable extends AppTable
         $this->setEntityClass(Upload::class);
 
         $this->belongsTo('Users', ['foreignKey' => 'user_id']);
-
         $this->UploaderConfig = Configure::read('Saito.Settings.uploader');
     }
 
@@ -264,7 +258,6 @@ class UploadsTable extends AppTable
      * @param File $file file to resize
      * @param int $target size in bytes
      * @return void
-     * @throws \RuntimeException on resizing error
      */
     private function resize(File $file, int $target): void
     {

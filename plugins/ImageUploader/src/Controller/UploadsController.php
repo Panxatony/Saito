@@ -17,6 +17,7 @@ use Api\Error\Exception\GenericApiException;
 use App\Model\Entity\User;
 use Cake\Cache\Cache;
 use Cake\Utility\Security;
+use ImageUploader\Lib\MimeType;
 use ImageUploader\Model\Entity\Upload;
 use ImageUploader\Model\Table\UploadsTable;
 use Saito\Exception\SaitoForbiddenException;
@@ -96,8 +97,16 @@ class UploadsController extends ApiAppController
             );
         }
 
-        $parts = explode('.', $submitted['name']);
-        $ext = array_pop($parts);
+        // Determine extension from server-detected MIME type, never from user-supplied filename
+        try {
+            $mime = MimeType::get($submitted['tmp_name'], $submitted['name']);
+        } catch (\RuntimeException $e) {
+            throw new GenericApiException(__d('image_uploader', 'add.failure'));
+        }
+        $ext = self::mimeToExtension($mime);
+        if ($ext === null) {
+            throw new GenericApiException(__d('image_uploader', 'add.failure'));
+        }
         $name = $this->CurrentUser->getId() .
                 '_' .
                 substr(Security::hash($submitted['name'], 'sha256'), 32) .
@@ -119,6 +128,30 @@ class UploadsController extends ApiAppController
         }
 
         $this->set('image', $document);
+    }
+
+    /**
+     * Maps a server-detected MIME type to a safe, whitelisted file extension.
+     *
+     * Returns null for any MIME type not in the whitelist, causing the upload to be rejected.
+     *
+     * @param string $mime Server-determined MIME type
+     * @return string|null Safe extension, or null if the type is not allowed
+     */
+    private static function mimeToExtension(string $mime): ?string
+    {
+        $map = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/gif'  => 'gif',
+            'video/mp4'  => 'mp4',
+            'audio/mpeg' => 'mp3',
+            'audio/ogg'  => 'ogg',
+            'video/ogg'  => 'ogv',
+            'video/webm' => 'webm',
+        ];
+
+        return $map[$mime] ?? null;
     }
 
     /**

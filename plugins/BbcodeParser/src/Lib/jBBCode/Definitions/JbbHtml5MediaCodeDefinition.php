@@ -35,7 +35,7 @@ class Html5Audio extends CodeDefinition
         }
 
         // Better: preload='metadata'. But Safari 12 doesn't support it.
-        return "<audio src='$content' controls='controls' preload='auto' x-webkit-airplay='allow'></audio>";
+        return "<audio src='" . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . "' controls='controls' preload='auto' x-webkit-airplay='allow'></audio>";
     }
 }
 
@@ -67,7 +67,7 @@ class Html5Video extends CodeDefinition
 
         // Better: preload='metadata'. But Safari 12 doesn't support it and
         // only shows a blank preview.
-        return "<video src='$content' controls='controls' preload='auto' x-webkit-airplay='allow'></video>";
+        return "<video src='" . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . "' controls='controls' preload='auto' x-webkit-airplay='allow'></video>";
     }
 }
 

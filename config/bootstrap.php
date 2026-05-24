@@ -229,3 +229,4 @@ include Cake\Core\App::path('Lib')[0] . 'BaseFunctions.php';
  * Add custom Database-types
  */
 Type::map('serialize', 'App\Database\Type\SerializeType');
+Type::map('avatar.file', 'App\Database\Type\AvatarFileType');

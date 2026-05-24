@@ -171,7 +171,7 @@ class Iframe extends CodeDefinition
 
         $atrStr = '';
         foreach ($attributes as $attributeName => $attributeValue) {
-            $atrStr .= "$attributeName=\"$attributeValue\" ";
+            $atrStr .= htmlspecialchars($attributeName, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars($attributeValue, ENT_QUOTES, 'UTF-8') . '" ';
         }
         $atrStr = rtrim($atrStr);
 
@@ -281,9 +281,12 @@ class Flash extends Iframe
             }
         }
 
-        $out = '<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="' . $width . '" height="' . $height . '">
-									<param name="movie" value="' . $url . '"></param>
-									<embed src="' . $url . '" width="' . $width . '" height="' . $height . '" type="application/x-shockwave-flash" wmode="opaque" style="width:' . $width . 'px; height:' . $height . 'px;" id="VideoPlayback" flashvars=""> </embed> </object>';
+        $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+        $safeWidth = htmlspecialchars($width, ENT_QUOTES, 'UTF-8');
+        // $height is already constrained to digits by the regex (?<height>\d+)
+        $out = '<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="' . $safeWidth . '" height="' . $height . '">
+									<param name="movie" value="' . $safeUrl . '"></param>
+									<embed src="' . $safeUrl . '" width="' . $safeWidth . '" height="' . $height . '" type="application/x-shockwave-flash" wmode="opaque" style="width:' . $safeWidth . 'px; height:' . $height . 'px;" id="VideoPlayback" flashvars=""> </embed> </object>';
 
         return $out;
     }

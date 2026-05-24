@@ -74,22 +74,10 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
 
         $time = time();
 
-        $this->ReadPostings->LastRefresh->expects($this->at(0))
+        $this->ReadPostings->LastRefresh->expects($this->exactly(4))
             ->method('isNewerThan')
-            ->with($time)
-            ->will($this->returnValue(null));
-        $this->ReadPostings->LastRefresh->expects($this->at(1))
-            ->method('isNewerThan')
-            ->with($time + 1)
-            ->will($this->returnValue(null));
-        $this->ReadPostings->LastRefresh->expects($this->at(2))
-            ->method('isNewerThan')
-            ->with($time + 2)
-            ->will($this->returnValue(true));
-        $this->ReadPostings->LastRefresh->expects($this->at(3))
-            ->method('isNewerThan')
-            ->with($time + 3)
-            ->will($this->returnValue(false));
+            ->withConsecutive([$time], [$time + 1], [$time + 2], [$time + 3])
+            ->willReturnOnConsecutiveCalls(null, null, true, false);
 
         $this->assertTrue($this->ReadPostings->isRead(1, $time));
         $this->assertFalse($this->ReadPostings->isRead(2, $time + 1));
@@ -135,18 +123,10 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
             ->will($this->returnValue([1 => 1, 2 => 1]));
 
         $time = time();
-        $this->ReadPostings->LastRefresh->expects($this->at(0))
+        $this->ReadPostings->LastRefresh->expects($this->exactly(3))
             ->method('isNewerThan')
-            ->with($time)
-            ->will($this->returnValue(false));
-        $this->ReadPostings->LastRefresh->expects($this->at(1))
-            ->method('isNewerThan')
-            ->with($time + 1)
-            ->will($this->returnValue(true));
-        $this->ReadPostings->LastRefresh->expects($this->at(2))
-            ->method('isNewerThan')
-            ->with($time + 2)
-            ->will($this->returnValue(false));
+            ->withConsecutive([$time], [$time + 1], [$time + 2])
+            ->willReturnOnConsecutiveCalls(false, true, false);
 
         /*
          * 1: already stored, will be stored again but not twice
@@ -175,7 +155,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
     {
         $this->mock();
 
-        $this->ReadPostings->LastRefresh->expects($this->at(0))
+        $this->ReadPostings->LastRefresh->expects($this->once())
             ->method('isNewerThan')
             ->will($this->returnValue(false));
         $this->ReadPostings->Cookie->expects($this->once())
@@ -233,7 +213,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         );
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->ReadPostings->delete();
         unset($this->ReadPostings);

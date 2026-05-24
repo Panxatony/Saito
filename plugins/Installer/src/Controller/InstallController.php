@@ -42,6 +42,16 @@ class InstallController extends AppController
     public function beforeFilter(\Cake\Event\Event $event)
     {
         $this->set('titleForLayout', __d('installer', 'title'));
+
+        // Block installer if the forum is already installed (db_version is set)
+        try {
+            $dbVersion = (new DbVersion($this->loadModel('Settings')))->get();
+            if (!empty($dbVersion)) {
+                return $this->redirect('/');
+            }
+        } catch (\Throwable $e) {
+            // Settings table doesn't exist yet — fresh installation, proceed normally
+        }
     }
 
     /**

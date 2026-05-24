@@ -27,7 +27,7 @@
         ) {
             $navCenter = $this->fetch('headerSubnavCenter');
             if (empty($navCenter)) {
-                $navCenter = $this->Layout->pageHeading($titleForPage);
+                $navCenter = $this->Layout->pageHeading($titleForPage ?? '');
             }
         }
 

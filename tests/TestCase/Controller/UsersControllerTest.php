@@ -196,6 +196,7 @@ class UsersControllerTest extends IntegrationTestCase
             ->will($this->throwException(new Exception));
         */
 
+        $this->session(['Register.formLoadTime' => time() - 30]);
         $this->post('users/register', $data);
         $this->assertResponseContains('Sending Confirmation Email Failed');
 
@@ -313,6 +314,7 @@ class UsersControllerTest extends IntegrationTestCase
         $exists = $Users->exists(['username' => 'NewUser1']);
         $this->assertFalse($exists);
 
+        $this->session(['Register.formLoadTime' => time() - 30]);
         $this->post('users/register', $data);
 
         /*
@@ -320,7 +322,7 @@ class UsersControllerTest extends IntegrationTestCase
          */
         $transporter = $this->mockMailTransporter();
         $transporter
-            ->expects($this->at(0))
+            ->expects($this->once())
             ->method('send')
             ->with(
                 $this->callback(
@@ -339,7 +341,7 @@ class UsersControllerTest extends IntegrationTestCase
                             ->first();
                         $id = $user->get('id');
                         $activate = $user->get('activate_code');
-                        $this->assertContains(
+                        $this->assertStringContainsString(
                             "/users/rs/$id?c=$activate",
                             implode(' ', $email->message())
                         );
@@ -350,6 +352,7 @@ class UsersControllerTest extends IntegrationTestCase
             );
 
         $data['tos_confirm'] = '1';
+        $this->session(['Register.formLoadTime' => time() - 30]);
         $this->post('users/register', $data);
 
         $exists = $Users->exists(
@@ -376,6 +379,7 @@ class UsersControllerTest extends IntegrationTestCase
             'password' => 'NewUser1spassword',
             'password_confirm' => 'NewUser1spassword',
         ];
+        $this->session(['Register.formLoadTime' => time() - 30]);
         $this->post('users/register', $data);
 
         $exists = $Users->exists(
@@ -406,6 +410,7 @@ class UsersControllerTest extends IntegrationTestCase
         $before = $Users->find()->count();
         $this->assertGreaterThan(0, $before);
 
+        $this->session(['Register.formLoadTime' => time() - 30]);
         $this->post('users/register', $data);
 
         $after = $Users->find()->count();

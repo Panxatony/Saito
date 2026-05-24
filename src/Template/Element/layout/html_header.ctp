@@ -1,4 +1,4 @@
-<title><?= h($titleForLayout) ?></title>
+<title><?= h($titleForLayout ?? '') ?></title>
 <?php
 echo $this->Html->charset();
 echo $this->fetch('meta');

@@ -33,7 +33,6 @@ use Cake\Validation\Validator;
 use DateTimeInterface;
 use Saito\App\Registry;
 use Saito\User\Permission\Permissions;
-use Saito\User\Upload\AvatarFilenameListener;
 use Stopwatch\Lib\Stopwatch;
 
 /**
@@ -81,20 +80,16 @@ class UsersTable extends AppTable
 
         $avatarRootDir = Configure::read('Saito.Settings.uploadDirectory');
         $this->addBehavior(
-            'Proffer.Proffer',
+            'AvatarBehavior',
             [
-                'avatar' => [ // The name of your upload field (filename)
-                    'root' => $avatarRootDir,
-                    'dir' => 'avatar_dir', // field for upload directory
-                    'thumbnailSizes' => [
-                        'square' => ['w' => 100, 'h' => 100],
-                    ],
-                    // Options are Imagick, Gd or Gmagick
-                    'thumbnailMethod' => 'Gd',
+                'field' => 'avatar',
+                'dirField' => 'avatar_dir',
+                'root' => $avatarRootDir,
+                'thumbnailSizes' => [
+                    'square' => ['w' => 100, 'h' => 100],
                 ],
             ]
         );
-        $this->getEventManager()->on(new AvatarFilenameListener($avatarRootDir));
 
         $this->hasOne(
             'UserOnline',
@@ -147,10 +142,6 @@ class UsersTable extends AppTable
         );
 
         $validator
-            ->setProvider(
-                'proffer',
-                'Proffer\Model\Validation\ProfferRules'
-            )
             ->allowEmpty('avatar_dir')
             ->allowEmpty('avatar')
             ->add(
@@ -181,18 +172,22 @@ class UsersTable extends AppTable
                 'avatar',
                 'avatar-dimension',
                 [
-                    'rule' => [
-                        'dimensions',
-                        [
-                            'min' => ['w' => 100, 'h' => 100],
-                            'max' => ['w' => 1500, 'h' => 1500],
-                        ],
-                    ],
+                    'rule' => function ($value) {
+                        if (!is_array($value) || empty($value['tmp_name'])) {
+                            return true;
+                        }
+                        $size = @getimagesize($value['tmp_name']);
+                        if (!$size) {
+                            return false;
+                        }
+                        [$w, $h] = $size;
+
+                        return $w >= 100 && $h >= 100 && $w <= 1500 && $h <= 1500;
+                    },
                     'message' => __(
                         'user.avatar.error.dimension',
                         ['100x100', '1500x1500']
                     ),
-                    'provider' => 'proffer',
                 ]
             );
 
@@ -381,7 +376,7 @@ class UsersTable extends AppTable
      */
     protected function _initializeSchema(TableSchema $table)
     {
-        $table->setColumnType('avatar', 'proffer.file');
+        $table->setColumnType('avatar', 'avatar.file');
         $table->setColumnType('user_category_custom', 'serialize');
 
         return $table;

@@ -35,7 +35,7 @@ class CategoriesControllerTest extends IntegrationTestCase
         'app.UserOnline',
     ];
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         foreach (['Entries', 'Categories'] as $table) {
@@ -113,7 +113,8 @@ class CategoriesControllerTest extends IntegrationTestCase
 
         $targetCategories = $this->viewVariable('targetCategories');
         $this->assertCount(4, $targetCategories);
-        $this->assertArraySubset([4 => 'Offtopic', 5 => 'Trash'], $targetCategories);
+        $this->assertEquals('Offtopic', $targetCategories[4]);
+        $this->assertEquals('Trash', $targetCategories[5]);
     }
 
     /**

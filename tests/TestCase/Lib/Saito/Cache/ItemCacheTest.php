@@ -27,7 +27,7 @@ class ItemCacheMock extends ItemCache
 class ItemCacheTest extends SaitoTestCase
 {
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->_setupItemCache();
@@ -35,7 +35,7 @@ class ItemCacheTest extends SaitoTestCase
         $this->time = time();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         $this->_cleanUp();

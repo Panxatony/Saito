@@ -30,51 +30,40 @@ class ContactsControllerTestCase extends IntegrationTestCase
         ];
 
         $transproter = $this->mockMailTransporter();
-        $transproter->expects($this->exactly(2))->method('send');
-        // cc mail
-        $transproter
-            ->expects($this->at(0))
+        $transproter->expects($this->exactly(2))
             ->method('send')
-            ->with(
-                $this->callback(
-                    function (Email $email) {
-                        $this->assertEquals(
-                            $email->getFrom(),
-                            ['system@example.com' => 'macnemo']
-                        );
-                        $this->assertEquals(
-                            $email->getTo(),
-                            ['fo3@example.com' => 'fo3@example.com']
-                        );
-                        $this->assertEmpty($email->getSender());
+            ->withConsecutive(
+                // cc mail
+                [$this->callback(function (Email $email) {
+                    $this->assertEquals(
+                        $email->getFrom(),
+                        ['system@example.com' => 'macnemo']
+                    );
+                    $this->assertEquals(
+                        $email->getTo(),
+                        ['fo3@example.com' => 'fo3@example.com']
+                    );
+                    $this->assertEmpty($email->getSender());
 
-                        return true;
-                    }
-                )
-            );
-        // main mail
-        $transproter
-            ->expects($this->at(1))
-            ->method('send')
-            ->with(
-                $this->callback(
-                    function (Email $email) {
-                        $this->assertEquals(
-                            $email->getFrom(),
-                            ['fo3@example.com' => 'fo3@example.com']
-                        );
-                        $this->assertEquals(
-                            $email->getTo(),
-                            ['contact@example.com' => 'macnemo']
-                        );
-                        $this->assertEquals(
-                            $email->getSender(),
-                            ['system@example.com' => 'macnemo']
-                        );
+                    return true;
+                })],
+                // main mail
+                [$this->callback(function (Email $email) {
+                    $this->assertEquals(
+                        $email->getFrom(),
+                        ['fo3@example.com' => 'fo3@example.com']
+                    );
+                    $this->assertEquals(
+                        $email->getTo(),
+                        ['contact@example.com' => 'macnemo']
+                    );
+                    $this->assertEquals(
+                        $email->getSender(),
+                        ['system@example.com' => 'macnemo']
+                    );
 
-                        return true;
-                    }
-                )
+                    return true;
+                })]
             );
         $this->post('/contacts/owner', $data);
     }
@@ -138,9 +127,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
         $this->mockSecurity();
         $transproter = $this->mockMailTransporter();
 
-        $transproter->expects($this->once())->method('send');
-        $transproter
-            ->expects($this->at(0))
+        $transproter->expects($this->once())
             ->method('send')
             ->with(
                 $this->callback(
@@ -157,7 +144,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
                             $email->getSender(),
                             ['system@example.com' => 'macnemo']
                         );
-                        $this->assertContains(
+                        $this->assertStringContainsString(
                             'message-text',
                             $email->message('text')
                         );
@@ -187,9 +174,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
         $this->_loginUser(3);
 
         $transproter = $this->mockMailTransporter();
-        $transproter->expects($this->once())->method('send');
-        $transproter
-            ->expects($this->at(0))
+        $transproter->expects($this->once())
             ->method('send')
             ->with(
                 $this->callback(

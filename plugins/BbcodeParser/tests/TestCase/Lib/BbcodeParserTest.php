@@ -139,9 +139,9 @@ class BbcodeParserTest extends SaitoTestCase
     {
         $input = '[img=]foo.png[/img]';
         $result = $this->_Parser->parse($input, ['multimedia' => true]);
-        $this->assertContains('<img src', $result);
+        $this->assertStringContainsString('<img src', $result);
         $result = $this->_Parser->parse($input, ['multimedia' => false]);
-        $this->assertNotContains('<img src', $result);
+        $this->assertStringNotContainsString('<img src', $result);
     }
 
     public function testLink()
@@ -357,7 +357,7 @@ class BbcodeParserTest extends SaitoTestCase
         // don't hash code
         $input = '[code]#2234[/code]';
         $result = $this->_Parser->parse($input);
-        $this->assertNotContains('>#2234</a>', $result);
+        $this->assertStringNotContainsString('>#2234</a>', $result);
 
         // not a valid hash
         $input = '#2234t';
@@ -384,7 +384,7 @@ class BbcodeParserTest extends SaitoTestCase
 
         $input = '[code]@Alice[/code]';
         $result = $this->_Parser->parse($input);
-        $this->assertNotContains('>@Alice</a>', $result);
+        $this->assertStringNotContainsString('>@Alice</a>', $result);
     }
 
     public function testAtLinkKnownUsersLinebreak()
@@ -582,12 +582,12 @@ EOF;
         $input = '[code]http://heise.de/foobar[/code]';
         $needle = 'heise.de/foobar</a>';
         $result = $this->_Parser->parse($input);
-        $this->assertNotContains($result, $needle);
+        $this->assertStringNotContainsString($needle, $result);
 
         // no autolink in [url]
         $input = '[url=http://a.com/]http://b.de/[/url]';
         $result = $this->_Parser->parse($input);
-        $this->assertRegExp(
+        $this->assertMatchesRegularExpression(
             '#href=["\']http://a.com/["\'][^>]*?>http://b.de/#',
             $result
         );
@@ -598,7 +598,7 @@ EOF;
         $result = $this->_Parser->parse($input);
         // $this->assertEquals($expected, $result);
         // @bogus weak test
-        $this->assertRegExp('/^text .*href=".* test$/sm', $result);
+        $this->assertMatchesRegularExpression('/^text .*href=".* test$/sm', $result);
 
         //# in list
         $input = <<<EOF
@@ -785,7 +785,7 @@ EOF;
             $input,
             ['video_domains_allowed' => 'youtube | vimeo']
         );
-        $this->assertNotRegExp($pattern, $result);
+        $this->assertDoesNotMatchRegularExpression($pattern, $result);
     }
 
     public function testIframeAllDomainsAllowed()
@@ -796,7 +796,7 @@ EOF;
         $expected = 'src="http://www.youtubescam.com/embed/HdoW3t_WorU';
         $this->MarkupSettings->setSingle('video_domains_allowed', '*');
         $result = $this->_Parser->parse($input);
-        $this->assertContains($expected, $result);
+        $this->assertStringContainsString($expected, $result);
     }
 
     public function testIframeNoDomainAllowed()
@@ -809,7 +809,7 @@ EOF;
             $input,
             ['video_domains_allowed' => '']
         );
-        $this->assertNotRegExp($expected, $result);
+        $this->assertDoesNotMatchRegularExpression($expected, $result);
     }
 
     public function testExternalImageAbsoluteAutoLinked()
@@ -984,7 +984,7 @@ EOF;
         $input = '[url=http://heise.de][upload]test.png[/upload][/url]';
         $expected = "/richtext-linkInfo/";
         $result = $this->_Parser->parse($input);
-        $this->assertNotRegExp($expected, $result);
+        $this->assertDoesNotMatchRegularExpression($expected, $result);
     }
 
     public function testInternalImageExternallyLinked()
@@ -1099,7 +1099,7 @@ EOF;
         $input = '[code text]:)[/code]';
         $needle = '<img';
         $result = $this->_Parser->parse($input, ['cache' => false]);
-        $this->assertNotContains($needle, $result);
+        $this->assertStringNotContainsString($needle, $result);
     }
 
     public function testCodeNestedTags()
@@ -1120,7 +1120,7 @@ EOF;
         $input = "[code]\ntest\n[/code]";
         $expected = "/>test</";
         $result = $this->_Parser->parse($input);
-        $this->assertRegExp($expected, $result);
+        $this->assertMatchesRegularExpression($expected, $result);
     }
 
     public function testCodeSimple()
@@ -1128,7 +1128,7 @@ EOF;
         $input = '[code]text[/code]';
         $result = $this->_Parser->parse($input);
         $expected = 'lang="text"';
-        $this->assertContains($expected, $result);
+        $this->assertStringContainsString($expected, $result);
     }
 
     public function testCodeLangAttribute()
@@ -1136,7 +1136,7 @@ EOF;
         $input = '[code=php]text[/code]';
         $result = $this->_Parser->parse($input);
         $expected = 'lang="php"';
-        $this->assertContains($expected, $result);
+        $this->assertStringContainsString($expected, $result);
     }
 
     /**
@@ -1150,14 +1150,14 @@ EOF;
         );
         $expected = '`span class=.*?richtext-citation`';
         $result = $this->_Parser->parse($input);
-        $this->assertNotRegExp($expected, $result);
+        $this->assertDoesNotMatchRegularExpression($expected, $result);
     }
 
     public function testCodeDetaginize()
     {
         $input = '[code bash]pre http://example.com post[/code]';
         $result = $this->_Parser->parse($input);
-        $this->assertNotContains('autoLink', $result);
+        $this->assertStringNotContainsString('autoLink', $result);
     }
 
     public function testQuote()
@@ -1297,7 +1297,7 @@ EOF;
 
     /* ******************** Setup ********************** */
 
-    public function setUp()
+    public function setUp(): void
     {
         Cache::clear();
 
@@ -1406,7 +1406,7 @@ EOF;
         $this->_Parser = new Parser($ParserHelper, $this->MarkupSettings);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         if ($this->server_name) {

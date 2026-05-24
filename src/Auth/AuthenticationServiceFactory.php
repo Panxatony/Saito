@@ -35,7 +35,7 @@ class AuthenticationServiceFactory
         $service->loadIdentifier('Authentication.JwtSubject');
         $service->loadAuthenticator('Authentication.Jwt', [
             'returnPayload' => false,
-            'secretKey' => Configure::read('Security.cookieSalt'),
+            'secretKey' => Configure::read('Security.jwtSalt'),
         ]);
 
         return $service;

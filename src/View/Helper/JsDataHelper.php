@@ -110,8 +110,9 @@ class JsDataHelper extends AppHelper
         $token = $View->getRequest()->getCookie($key);
         if ($token === null) {
             // First request without CSRF cookie set yet. CSRF set as new cookie
-            // in this request.
-            $token = $View->getResponse()->getCookie($key)['value'];
+            // in this request. May be null when rendering error pages without CSRF middleware.
+            $cookie = $View->getResponse()->getCookie($key);
+            $token = $cookie['value'] ?? null;
         }
         $header = 'X-CSRF-Token';
 

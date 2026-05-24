@@ -30,14 +30,14 @@ class ResourceACTest extends SaitoTestCase
     /** @var ResourceAI */
     private $ai;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->ac = new ResourceAC();
         $this->ai = new ResourceAI();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         unset($this->ac, $this->ai);
@@ -71,12 +71,9 @@ class ResourceACTest extends SaitoTestCase
         $ac = $this->getMockBuilder(ResourceAC::class)
             ->setMethods(['onRole'])
             ->getMock();
-        $ac->expects($this->at(0))
+        $ac->expects($this->exactly(2))
             ->method('onRole')
-            ->with('user');
-        $ac->expects($this->at(1))
-            ->method('onRole')
-            ->with('mod');
+            ->withConsecutive(['user'], ['mod']);
 
         $ac->onRoles('user', 'mod');
     }

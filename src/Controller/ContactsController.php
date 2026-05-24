@@ -32,6 +32,15 @@ class ContactsController extends AppController
         parent::beforeFilter($event);
         $this->set('showDisclaimer', true);
         $this->Authentication->allowUnauthenticated(['owner']);
+
+        // SecurityComponent form tokens cause false-positives for anonymous users
+        // (session timeouts, bots). We already have CSRF + honeypot + timing protection.
+        if (
+            $this->getRequest()->getParam('action') === 'owner'
+            && $this->components()->has('Security')
+        ) {
+            $this->components()->unload('Security');
+        }
     }
 
     /**
@@ -42,6 +51,21 @@ class ContactsController extends AppController
     public function owner()
     {
         $recipient = 'contact';
+        $session = $this->request->getSession();
+
+        if ($this->request->is('get')) {
+            $session->write('Contact.formLoadTime', time());
+        }
+
+        if ($this->request->is('post') && !$this->CurrentUser->isLoggedIn()) {
+            $formLoadTime = (int)$session->read('Contact.formLoadTime');
+            if ($formLoadTime === 0 || (time() - $formLoadTime) < 5) {
+                $this->Flash->set(__('error_subject_empty'), ['element' => 'error']);
+                return $this->redirect(['action' => 'owner']);
+            }
+            $session->delete('Contact.formLoadTime');
+        }
+
         if ($this->CurrentUser->isLoggedIn()) {
             $user = $this->CurrentUser;
             $sender = $user->getId();

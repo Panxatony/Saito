@@ -482,7 +482,7 @@ class UsersTableTest extends SaitoTableTestCase
             ['table' => 'users']
         );
 
-        $this->Table->expects($this->at(1))
+        $this->Table->expects($this->atLeastOnce())
             ->method('dispatchDbEvent')
             ->with('saito.core.user.register.after');
 
@@ -638,7 +638,7 @@ class UsersTableTest extends SaitoTableTestCase
         $this->Table->patchEntity($user, ['username' => str_pad('', $max + 1, '0')]);
 
         $this->assertArrayHasKey('maxLength', $user->getError('username'));
-        $this->assertContains('191', $user->getError('username')['maxLength']);
+        $this->assertStringContainsString('191', $user->getError('username')['maxLength']);
     }
 
     public function testRenameUser()

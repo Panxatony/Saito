@@ -42,7 +42,7 @@ class UploadsControllerTest extends IntegrationTestCase
      */
     private $file;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -50,7 +50,7 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->mockMediaFile($this->file);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->file->delete();
         unset($this->file);
@@ -209,8 +209,8 @@ class UploadsControllerTest extends IntegrationTestCase
         };
         $exif = $readExif($this->file);
         $this->assertNotEmpty($exif['SectionsFound']);
-        $this->assertContains('EXIF', $exif['SectionsFound']);
-        $this->assertContains('IFD0', $exif['SectionsFound']);
+        $this->assertStringContainsString('EXIF', $exif['SectionsFound']);
+        $this->assertStringContainsString('IFD0', $exif['SectionsFound']);
 
         $this->upload($this->file);
 
@@ -222,8 +222,8 @@ class UploadsControllerTest extends IntegrationTestCase
         $upload = $Uploads->find('all')->last();
 
         $exif = $readExif($upload->get('file'));
-        $this->assertNotContains('EXIF', $exif['SectionsFound']);
-        $this->assertNotContains('IFD0', $exif['SectionsFound']);
+        $this->assertStringNotContainsString('EXIF', $exif['SectionsFound']);
+        $this->assertStringNotContainsString('IFD0', $exif['SectionsFound']);
     }
 
     public function testAddFailureMaxUploadsPerUser()
