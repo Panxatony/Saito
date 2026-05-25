@@ -242,6 +242,11 @@ foreach ($iter as $file) {
         'public function matches($other)',
         'public function matches($other): bool'
     );
+    applyPatch(
+        $file->getPathname(),
+        'public function toString()',
+        'public function toString(): string'
+    );
 }
 echo "Patched: Constraint subclasses in $constraintDir\n";
 
