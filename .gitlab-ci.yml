@@ -41,7 +41,7 @@ test:
     - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring
     # Composer (post-install-cmd automatically applies vendor patches for PHP 8 + PHPUnit 9)
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress --ignore-platform-reqs
     # Wait for MariaDB to accept connections
     - until mysql -h mariadb -u saito -psaito saito_test -e "SELECT 1" >/dev/null 2>&1; do sleep 1; done
   script:
