@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace App\Database\Type;
 
-use Cake\Database\Driver;
-use Cake\Database\Type;
+use Cake\Database\DriverInterface;
+use Cake\Database\Type\BaseType;
 use PDO;
 
 /**
@@ -23,7 +23,7 @@ use PDO;
  * and the AvatarBehavior can access it. The behavior always replaces the array
  * with the final filename string before the SQL INSERT/UPDATE runs.
  */
-class AvatarFileType extends \Cake\Database\TypeFactory
+class AvatarFileType extends BaseType
 {
     public function marshal($value)
     {
@@ -37,7 +37,7 @@ class AvatarFileType extends \Cake\Database\TypeFactory
         return (string)$value;
     }
 
-    public function toPHP($value, Driver $driver)
+    public function toPHP($value, DriverInterface $driver)
     {
         if ($value === null || $value === '') {
             return null;
@@ -46,7 +46,7 @@ class AvatarFileType extends \Cake\Database\TypeFactory
         return (string)$value;
     }
 
-    public function toDatabase($value, Driver $driver)
+    public function toDatabase($value, DriverInterface $driver)
     {
         if (is_array($value)) {
             // Behavior did not run — should not happen in practice
@@ -59,7 +59,7 @@ class AvatarFileType extends \Cake\Database\TypeFactory
         return (string)$value;
     }
 
-    public function toStatement($value, Driver $driver)
+    public function toStatement($value, DriverInterface $driver)
     {
         if ($value === null) {
             return PDO::PARAM_NULL;

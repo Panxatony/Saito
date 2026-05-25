@@ -242,9 +242,9 @@ class InstallController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function log($msg, $level = LogLevel::INFO, $context = ['saito.install'])
+    public function log(string $message, $level = LogLevel::INFO, $context = ['saito.install']): bool
     {
-        parent::log($msg, $level, $context);
+        return parent::log($message, $level, $context);
     }
 
     /**

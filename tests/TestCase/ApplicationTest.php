@@ -15,9 +15,9 @@ namespace Saito\Test;
 use App\Application;
 use Cake\Http\Client\Request;
 use GuzzleHttp\Psr7\Uri;
-use Zend\Diactoros\Request as ZendRequest;
-use Zend\Diactoros\Response;
-use Zend\Diactoros\ServerRequest;
+use Laminas\Diactoros\Request as ZendRequest;
+use Laminas\Diactoros\Response;
+use Laminas\Diactoros\ServerRequest;
 
 class ApplicationTest extends SaitoTestCase
 {
@@ -57,13 +57,9 @@ class ApplicationTest extends SaitoTestCase
 
             $provider = $this->application->getAuthenticationService($request, $response);
 
-            $authenticator = $provider->authenticators()->get('Jwt');
-            $this->assertNotEmpty($authenticator);
-
-            $authenticator = $provider->authenticators()->get('Session');
-            $this->assertEmpty($authenticator);
-            $authenticator = $provider->authenticators()->get('Cookie');
-            $this->assertEmpty($authenticator);
+            $this->assertTrue($provider->authenticators()->has('Jwt'));
+            $this->assertFalse($provider->authenticators()->has('Session'));
+            $this->assertFalse($provider->authenticators()->has('Cookie'));
         }
     }
 

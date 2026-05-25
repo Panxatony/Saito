@@ -526,7 +526,7 @@ class UsersTable extends AppTable
         \ArrayObject $options
     ) {
         if ($entity->isDirty('password')) {
-            $hashedPassword = $this->getPasswordHasher()->hash($entity->get('password'));
+            $hashedPassword = $this->getPasswordHasher()->hash((string)$entity->get('password'));
             $entity->set('password', $hashedPassword);
         }
     }

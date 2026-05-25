@@ -5,7 +5,7 @@ namespace Saito\Test\User\ReadPostings;
 use App\Model\Entity\Entry;
 use Cake\Controller\Controller;
 use Cake\Http\Response;
-use Cake\Network\Request;
+use Cake\Http\ServerRequest;
 use Saito\User\Cookie\Storage;
 use Saito\User\CurrentUser\CurrentUserFactory;
 use Saito\User\ReadPostings\ReadPostingsCookie;
@@ -190,7 +190,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
     {
         $currentUser = CurrentUserFactory::createDummy();
 
-        $request = new Request();
+        $request = new ServerRequest();
         $request->getSession()->start();
         $request->getSession()->id('test');
         $response = new Response();

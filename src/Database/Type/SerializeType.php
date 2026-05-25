@@ -12,17 +12,24 @@ declare(strict_types=1);
 
 namespace App\Database\Type;
 
-use Cake\Database\Driver;
-use Cake\Database\Type;
+use Cake\Database\DriverInterface;
+use Cake\Database\Type\BaseType;
 use PDO;
 
-class SerializeType extends \Cake\Database\TypeFactory
+class SerializeType extends BaseType
 {
+    /**
+     * {@inheritDoc}
+     */
+    public function marshal($value)
+    {
+        return $value;
+    }
 
     /**
      * {@inheritDoc}
      */
-    public function toPHP($value, Driver $driver)
+    public function toPHP($value, DriverInterface $driver)
     {
         if ($value === null) {
             return null;
@@ -37,7 +44,7 @@ class SerializeType extends \Cake\Database\TypeFactory
     /**
      * {@inheritDoc}
      */
-    public function toDatabase($value, Driver $driver)
+    public function toDatabase($value, DriverInterface $driver)
     {
         return serialize($value);
     }
@@ -45,7 +52,7 @@ class SerializeType extends \Cake\Database\TypeFactory
     /**
      * {@inheritDoc}
      */
-    public function toStatement($value, Driver $driver)
+    public function toStatement($value, DriverInterface $driver)
     {
         if ($value === null) {
             return PDO::PARAM_NULL;

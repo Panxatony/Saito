@@ -324,7 +324,7 @@ class AuthUserComponent extends Component
             // Token is valid for one day.
             'exp' => (new DateTimeImmutable($expire))->getTimestamp(),
         ];
-        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey);
+        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
         $cookie->write($jwtToken);
     }
 

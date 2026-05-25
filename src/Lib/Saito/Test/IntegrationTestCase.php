@@ -197,7 +197,7 @@ abstract class IntegrationTestCase extends TestCase
     {
         $jwtKey = Configure::read('Security.cookieSalt');
         $jwtPayload = ['sub' => $userId];
-        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey);
+        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
 
         $this->configRequest([
             'headers' => [

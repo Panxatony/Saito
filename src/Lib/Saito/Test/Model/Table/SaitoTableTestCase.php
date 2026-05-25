@@ -37,7 +37,9 @@ abstract class SaitoTableTestCase extends SaitoTestCase
         parent::setUp();
 
         TableRegistry::clear();
-        $this->Table = TableRegistry::get($this->tableClass);
+        if ($this->tableClass !== null) {
+            $this->Table = TableRegistry::get($this->tableClass);
+        }
     }
 
     /**

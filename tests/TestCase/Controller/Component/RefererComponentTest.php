@@ -29,7 +29,7 @@ class RefererComponentTest extends SaitoTestCase
     {
         parent::setUp();
         // Setup our component and fake test controller
-        $request = new ServerRequest('/users/view/5');
+        $request = new ServerRequest(['url' => '/users/view/5']);
         $response = new Response();
         $this->controller = $this->getMockBuilder('Cake\Controller\Controller')
             ->setConstructorArgs([$request, $response])
@@ -51,7 +51,7 @@ class RefererComponentTest extends SaitoTestCase
         $baseUrl = 'http://localhost';
         Configure::write('App.fullBaseUrl', $baseUrl);
 
-        $request = new ServerRequest('/users/view/5');
+        $request = new ServerRequest(['url' => '/users/view/5']);
         $webroot = $this->component->request->getAttribute('webroot');
         $this->component->request = $request;
 

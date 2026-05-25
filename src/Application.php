@@ -158,7 +158,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
      */
     public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
     {
-        $isApi = (new \Authentication\UrlChecker\StringUrlChecker())
+        $isApi = (new \Authentication\UrlChecker\DefaultUrlChecker())
             ->check($request, ['#api/v2#'], ['useRegex' => true]);
         if ($isApi) {
             return AuthenticationServiceFactory::buildJwt();
