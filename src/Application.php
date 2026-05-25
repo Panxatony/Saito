@@ -19,7 +19,7 @@ namespace App;
 
 use App\Auth\AuthenticationServiceFactory;
 use App\Middleware\SaitoBootstrapMiddleware;
-use Authentication\AuthenticationService;
+use Authentication\AuthenticationServiceInterface;
 use Authentication\AuthenticationServiceProviderInterface;
 use Authentication\Middleware\AuthenticationMiddleware;
 use Authentication\UrlChecker\DefaultUrlChecker;
@@ -156,7 +156,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
      *
      * {@inheritDoc}
      */
-    public function getAuthenticationService(ServerRequestInterface $request, ResponseInterface $response): AuthenticationService
+    public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
     {
         $isApi = (new \Authentication\UrlChecker\StringUrlChecker())
             ->check($request, ['#api/v2#'], ['useRegex' => true]);

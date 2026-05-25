@@ -53,7 +53,7 @@ class CacheSupport implements EventListenerInterface
     /**
      * {@inheritDoc}
      */
-    public function implementedEvents()
+    public function implementedEvents(): array
     {
         return ['Cmd.Cache.clear' => 'onClear'];
     }
@@ -234,7 +234,7 @@ class EntriesCacheSupportCachelet extends CacheSupportCachelet implements
     /**
      * {@inheritDoc}
      */
-    public function implementedEvents()
+    public function implementedEvents(): array
     {
         return [
             'Model.Thread.change' => 'onThreadChanged',
