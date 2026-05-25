@@ -59,6 +59,6 @@ abstract class IntegrationTestCase extends SaitoIntegrationTestCase
 
         // Tell the fixture manager that all tables are gone.
         // Usually tables are only emptied (TRUNCATE) but not deleted (DROP) between tests.
-        $this->fixtureManager->shutDown();
+        static::$fixtureManager->shutDown();
     }
 }

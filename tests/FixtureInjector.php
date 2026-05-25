@@ -37,6 +37,7 @@ class FixtureInjector implements TestListener
         }
         $this->_fixtureManager = $manager;
         $this->_fixtureManager->shutDown();
+        TestCase::$fixtureManager = $manager;
     }
 
     public function startTestSuite(TestSuite $suite): void
@@ -55,7 +56,6 @@ class FixtureInjector implements TestListener
 
     public function startTest(Test $test): void
     {
-        $test->fixtureManager = $this->_fixtureManager;
         if ($test instanceof TestCase) {
             $this->_fixtureManager->fixturize($test);
             $this->_fixtureManager->load($test);

@@ -21,7 +21,7 @@ use Authentication\PasswordHasher\DefaultPasswordHasher;
 use Authentication\PasswordHasher\PasswordHasherFactory;
 use Authentication\PasswordHasher\PasswordHasherInterface;
 use Cake\Core\Configure;
-use Cake\Database\Schema\TableSchema;
+use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Datasource\EntityInterface;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
@@ -374,12 +374,12 @@ class UsersTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    protected function _initializeSchema(TableSchema $table)
+    protected function _initializeSchema(TableSchemaInterface $schema): TableSchemaInterface
     {
-        $table->setColumnType('avatar', 'avatar.file');
-        $table->setColumnType('user_category_custom', 'serialize');
+        $schema->setColumnType('avatar', 'avatar.file');
+        $schema->setColumnType('user_category_custom', 'serialize');
 
-        return $table;
+        return $schema;
     }
 
     /**

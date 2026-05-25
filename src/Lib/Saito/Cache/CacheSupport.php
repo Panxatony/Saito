@@ -152,9 +152,9 @@ class SaitoCacheSupportCachelet extends CacheSupportCachelet
      */
     public function clear($id = null)
     {
-        Cache::clear(false, 'default');
-        Cache::clear(false, 'long');
-        Cache::clear(false, 'short');
+        Cache::clear('default');
+        Cache::clear('long');
+        Cache::clear('short');
     }
 }
 

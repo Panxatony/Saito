@@ -16,7 +16,7 @@ class SettingsSeed extends AbstractSeed
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         $data = [
             ['name' => 'autolink', 'value' => '1'],

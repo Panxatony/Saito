@@ -22,7 +22,7 @@ interface ForumsUserInterface
      * @param string $setting Setting to get.
      * @return mixed
      */
-    public function get($setting);
+    public function get(string $setting);
 
     /**
      * Set a user setting.

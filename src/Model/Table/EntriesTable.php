@@ -301,7 +301,7 @@ class EntriesTable extends AppTable
      * @throws RecordNotFoundException if record isn't found
      * @return mixed Posting
      */
-    public function get($primaryKey, $options = [])
+    public function get($primaryKey, array $options = []): \Cake\Datasource\EntityInterface
     {
         /** @var Entry */
         $result = $this->find('entry', ['complete' => true])

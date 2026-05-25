@@ -25,7 +25,6 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\MethodNotAllowedException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
-use Cake\Routing\RequestActionTrait;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Basic\BasicPostingInterface;
 use Saito\User\CurrentUser\CurrentUserInterface;
@@ -44,8 +43,6 @@ use Stopwatch\Lib\Stopwatch;
  */
 class EntriesController extends AppController
 {
-    use RequestActionTrait;
-
     public $helpers = ['Posting', 'Text'];
 
     /**
