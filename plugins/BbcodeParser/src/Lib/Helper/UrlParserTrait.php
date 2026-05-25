@@ -84,12 +84,15 @@ trait UrlParserTrait
         }
 
         // Block dangerous URL schemes (javascript:, data:, vbscript:, etc.)
-        $scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
+        // Decode HTML entities first since JBBCode pre-encodes attribute values
+        $rawUrl = html_entity_decode($url, ENT_QUOTES, 'UTF-8');
+        $scheme = strtolower((string)parse_url($rawUrl, PHP_URL_SCHEME));
         if (!in_array($scheme, ['http', 'https', 'ftp', ''], true)) {
             return '';
         }
 
-        $out = "<a href='" . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . "' class=\"richtext-link";
+        // Use the pre-encoded URL from JBBCode directly (already HTML-safe)
+        $out = "<a href='$url' class=\"richtext-link";
         if ($truncate) {
             $out .= ' truncate';
         }

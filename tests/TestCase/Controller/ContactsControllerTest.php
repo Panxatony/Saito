@@ -22,6 +22,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
     public function testContactEmailSuccessWithCc()
     {
         $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
         $data = [
             'sender_contact' => 'fo3@example.com',
             'subject' => 'subject',
@@ -105,6 +106,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
     public function testContactOwnerByAnonSendInvalidEmail()
     {
         $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
         $data = [
             'sender_contact' => 'foo',
             'subject' => 'Subject',
@@ -125,6 +127,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
     public function testContactOwnerByAnonSendSuccess()
     {
         $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
         $transproter = $this->mockMailTransporter();
 
         $transproter->expects($this->once())
@@ -233,6 +236,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
     {
         $url = '/contacts/user/3';
         $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
         $transporter = $this->mockMailTransporter();
         $transporter->expects($this->never())->method('send');
         $data = [

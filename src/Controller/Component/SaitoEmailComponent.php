@@ -56,7 +56,7 @@ class SaitoEmailComponent extends Component
 
         $email = new Email('saito');
         $email->setEmailFormat('text')
-            ->setFrom($systemFrom->toCake())
+            ->setFrom($from->toCake())
             ->setReplyTo($from->toCake())
             ->setTo($to->toCake())
             ->setSubject($params['subject'])

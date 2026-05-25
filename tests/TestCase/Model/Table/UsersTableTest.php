@@ -484,7 +484,10 @@ class UsersTableTest extends SaitoTableTestCase
 
         $this->Table->expects($this->atLeastOnce())
             ->method('dispatchDbEvent')
-            ->with('saito.core.user.register.after');
+            ->withConsecutive(
+                [$this->anything(), $this->anything()],
+                [$this->equalTo('saito.core.user.register.after'), $this->anything()]
+            );
 
         // new user
         $pw = 'test';

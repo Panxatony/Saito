@@ -80,7 +80,7 @@ class UsersTable extends AppTable
 
         $avatarRootDir = Configure::read('Saito.Settings.uploadDirectory');
         $this->addBehavior(
-            'AvatarBehavior',
+            'Avatar',
             [
                 'field' => 'avatar',
                 'dirField' => 'avatar_dir',

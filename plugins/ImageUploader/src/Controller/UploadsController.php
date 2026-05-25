@@ -141,14 +141,20 @@ class UploadsController extends ApiAppController
     private static function mimeToExtension(string $mime): ?string
     {
         $map = [
-            'image/jpeg' => 'jpg',
-            'image/png'  => 'png',
-            'image/gif'  => 'gif',
-            'video/mp4'  => 'mp4',
-            'audio/mpeg' => 'mp3',
-            'audio/ogg'  => 'ogg',
-            'video/ogg'  => 'ogv',
-            'video/webm' => 'webm',
+            'audio/mp4'      => 'mp4',
+            'audio/mpeg'     => 'mp3',
+            'audio/ogg'      => 'ogg',
+            'audio/opus'     => 'opus',
+            'audio/webm'     => 'webm',
+            'image/gif'      => 'gif',
+            'image/jpeg'     => 'jpg',
+            'image/png'      => 'png',
+            'image/svg+xml'  => 'svg',
+            'image/webp'     => 'webp',
+            'text/plain'     => 'txt',
+            'video/mp4'      => 'mp4',
+            'video/ogg'      => 'ogv',
+            'video/webm'     => 'webm',
         ];
 
         return $map[$mime] ?? null;

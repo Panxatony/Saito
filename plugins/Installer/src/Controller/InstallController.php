@@ -43,14 +43,17 @@ class InstallController extends AppController
     {
         $this->set('titleForLayout', __d('installer', 'title'));
 
-        // Block installer if the forum is already installed (db_version is set)
-        try {
-            $dbVersion = (new DbVersion($this->loadModel('Settings')))->get();
-            if (!empty($dbVersion)) {
-                return $this->redirect('/');
+        // Block installer if the forum is already installed (db_version is set).
+        // Skip check for 'connected' action which is specifically designed to handle existing DBs.
+        if ($this->request->getParam('action') !== 'connected') {
+            try {
+                $dbVersion = (new DbVersion($this->loadModel('Settings')))->get();
+                if (!empty($dbVersion)) {
+                    return $this->redirect('/');
+                }
+            } catch (\Throwable $e) {
+                // Settings table doesn't exist yet — fresh installation, proceed normally
             }
-        } catch (\Throwable $e) {
-            // Settings table doesn't exist yet — fresh installation, proceed normally
         }
     }
 
@@ -159,7 +162,7 @@ class InstallController extends AppController
 
             $this->log('Installer starting initial migrate.');
             // Initial layout
-            $this->migrations->migrate(['target' => 'Saitox5x0x0']);
+            $this->migrations->migrate(['target' => '20180620093430']);
             $this->log('Installer starting seed.');
             // The seed is meant for the initial layout
             $this->migrations->seed();
