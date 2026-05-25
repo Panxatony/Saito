@@ -252,6 +252,11 @@ foreach ($iter as $file) {
         'public function failureDescription($other)',
         'public function failureDescription($other): string'
     );
+    applyPatch(
+        $file->getPathname(),
+        'protected function failureDescription($other)',
+        'protected function failureDescription($other): string'
+    );
 }
 echo "Patched: Constraint subclasses in $constraintDir\n";
 
