@@ -47,6 +47,7 @@ use Stopwatch\Lib\Stopwatch;
  * @property TitleComponent $Title
  * @property UsersTable $Users
  */
+#[\AllowDynamicProperties]
 class AppController extends Controller
 {
     use InstanceConfigTrait;

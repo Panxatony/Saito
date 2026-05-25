@@ -21,6 +21,7 @@ use Cake\View\View;
 /**
  * App View class
  */
+#[\AllowDynamicProperties]
 class AppView extends View
 {
 

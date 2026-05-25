@@ -22,6 +22,7 @@ use Cake\View\Helper\IdGeneratorTrait;
  * @property HtmlHelper $Html
  * @property UrlHelper $Url
  */
+#[\AllowDynamicProperties]
 class AppHelper extends Helper
 {
     use IdGeneratorTrait;

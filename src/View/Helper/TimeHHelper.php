@@ -143,13 +143,13 @@ class TimeHHelper extends AppHelper
     {
         if ($timestamp > $this->_today || $timestamp > ($this->_now - 21600)) {
             // today or in the last 6 hours
-            $time = strftime("%H:%M", $timestamp);
+            $time = date('H:i', $timestamp);
         } elseif ($timestamp > ($this->_today - 64800)) {
             // yesterday but in the last 18 hours
-            $time = __('yesterday') . ' ' . strftime("%H:%M", $timestamp);
+            $time = __('yesterday') . ' ' . date('H:i', $timestamp);
         } else {
             // yesterday and 18 hours and older
-            $time = strftime("%d.%m.%Y", $timestamp);
+            $time = date('d.m.Y', $timestamp);
         }
 
         return $time;
@@ -169,7 +169,7 @@ class TimeHHelper extends AppHelper
     {
         $options += [
             'datetime' => date(DATE_RFC3339, $timestamp),
-            'title' => strftime("%F %T", $timestamp),
+            'title' => date('Y-m-d H:i:s', $timestamp),
         ];
         $attributes = [];
         foreach ($options as $attribute => $value) {

@@ -27,6 +27,7 @@ use Stopwatch\Lib\Stopwatch;
  * @property PaginatorComponent $Paginator
  * @property AuthUserComponent $AuthUser
  */
+#[\AllowDynamicProperties]
 class ThreadsComponent extends Component
 {
     public $components = ['AuthUser', 'Paginator'];

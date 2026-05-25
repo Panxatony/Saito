@@ -14,20 +14,20 @@ use Cake\Utility\Text;
         [
             'entries' => number_format(
                 $Stats->getNumberOfPostings(),
-                null,
-                null,
+                0,
+                ',',
                 '.'
             ),
             'threads' => number_format(
                 $Stats->getNumberOfThreads(),
-                null,
-                null,
+                0,
+                ',',
                 '.'
             ),
             'registered' => number_format(
                 $Stats->getNumberOfRegisteredUsers(),
-                null,
-                null,
+                0,
+                ',',
                 '.'
             ),
             'loggedin' => $loggedin,

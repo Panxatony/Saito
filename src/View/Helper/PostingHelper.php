@@ -208,7 +208,7 @@ class PostingHelper extends AppHelper
         if ($base) {
             $url .= $this->getView()->getRequest()->getAttribute('base');
         }
-        $url .= "/entries/mix/${tid}";
+        $url .= "/entries/mix/{$tid}";
         $url .= $jump ? '#' . $posting->get('id') : '';
 
         return $url;

@@ -1,4 +1,4 @@
-<?= $this->Html->docType('html5') . "\n"; ?>
+<!DOCTYPE html>
 <html>
 <head>
     <?= $this->element('layout/html_header') ?>

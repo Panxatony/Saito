@@ -38,6 +38,7 @@ use Stopwatch\Lib\Stopwatch;
  *
  * @property AuthenticationComponent $Authentication
  */
+#[\AllowDynamicProperties]
 class AuthUserComponent extends Component
 {
     use RememberTrait;
