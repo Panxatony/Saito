@@ -225,4 +225,43 @@ if ($current !== $noopStub) {
 }
 echo "Patched: $mockBuilder\n";
 
+// ── TestSuite Constraint subclasses: add ': bool' return type to matches() ────
+// PHPUnit 9 declared Constraint::matches($other): bool; CakePHP 3.10.x shipped
+// the constraint classes without return types, which is a fatal error on PHP 8.
+$constraintDir = __DIR__ . '/../vendor/cakephp/cakephp/src/TestSuite/Constraint';
+$iter = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($constraintDir, RecursiveDirectoryIterator::SKIP_DOTS),
+    RecursiveIteratorIterator::LEAVES_ONLY
+);
+foreach ($iter as $file) {
+    if ($file->getExtension() !== 'php') {
+        continue;
+    }
+    applyPatch(
+        $file->getPathname(),
+        'public function matches($other)',
+        'public function matches($other): bool'
+    );
+}
+echo "Patched: Constraint subclasses in $constraintDir\n";
+
+// ── ServerRequest.php: trim(null) deprecation on PHP 8 ───────────────────────
+$serverRequest = __DIR__ . '/../vendor/cakephp/cakephp/src/Http/ServerRequest.php';
+applyPatch($serverRequest, 'return trim($ipaddr);', 'return trim((string)$ipaddr);');
+echo "Patched: $serverRequest\n";
+
+// ── SimpleImage.php: PHP 8 GD object compatibility ───────────────────────────
+$simpleImage = __DIR__ . '/../vendor/claviska/simpleimage/src/claviska/SimpleImage.php';
+applyPatch(
+    $simpleImage,
+    "if(preg_match('/^data:(.*?);/', \$image)) {",
+    "if(preg_match('/^data:(.*?);/', (string)\$image)) {"
+);
+applyPatch(
+    $simpleImage,
+    'if($this->image !== null && get_resource_type($this->image) === \'gd\') {',
+    'if($this->image !== null && (is_resource($this->image) ? get_resource_type($this->image) === \'gd\' : true)) {'
+);
+echo "Patched: $simpleImage\n";
+
 echo "All patches applied.\n";
