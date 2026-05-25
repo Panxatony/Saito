@@ -129,7 +129,7 @@ ini_set('intl.default_locale', Configure::read('App.defaultLocale'));
  */
 $isCli = PHP_SAPI === 'cli';
 if ($isCli) {
-    (new ConsoleErrorHandler(Configure::read('Error')))->register();
+    (new \Cake\Error\ConsoleErrorHandler(Configure::read('Error')))->register();
 } else {
     (new ErrorHandler(Configure::read('Error')))->register();
 }
@@ -196,13 +196,13 @@ ServerRequest::addDetector('tablet', function ($request) {
  * locale specific date formats. For details see
  * @link https://book.cakephp.org/3.0/en/core-libraries/internationalization-and-localization.html#parsing-localized-datetime-data
  */
-Type::build('time')
+\Cake\Database\TypeFactory::build('time')
     ->useImmutable();
-Type::build('date')
+\Cake\Database\TypeFactory::build('date')
     ->useImmutable();
-Type::build('datetime')
+\Cake\Database\TypeFactory::build('datetime')
     ->useImmutable();
-Type::build('timestamp')
+\Cake\Database\TypeFactory::build('timestamp')
     ->useImmutable();
 
 /*
@@ -228,5 +228,5 @@ include Cake\Core\App::path('Lib')[0] . 'BaseFunctions.php';
 /**
  * Add custom Database-types
  */
-Type::map('serialize', 'App\Database\Type\SerializeType');
-Type::map('avatar.file', 'App\Database\Type\AvatarFileType');
+\Cake\Database\TypeFactory::map('serialize', 'App\Database\Type\SerializeType');
+\Cake\Database\TypeFactory::map('avatar.file', 'App\Database\Type\AvatarFileType');

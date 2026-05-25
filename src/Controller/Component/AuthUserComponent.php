@@ -83,7 +83,7 @@ class AuthUserComponent extends Component
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         Stopwatch::start('CurrentUser::initialize()');
 
@@ -226,7 +226,7 @@ class AuthUserComponent extends Component
     /**
      * {@inheritDoc}
      */
-    public function shutdown(Event $event)
+    public function shutdown(\Cake\Event\EventInterface $event)
     {
         $this->setJwtCookie($event->getSubject());
     }

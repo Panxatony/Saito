@@ -24,7 +24,7 @@ class ContactFormOwner extends ContactForm
      * @param \Cake\Form\Schema $schema The schema to customize.
      * @return \Cake\Form\Schema The schema to use.
      */
-    protected function _buildSchema(Schema $schema)
+    protected function _buildSchema(Schema $schema): \Cake\Form\Schema
     {
         $schema = parent::_buildSchema($schema);
         $schema->addField('sender_contact', 'string');

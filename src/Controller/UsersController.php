@@ -44,7 +44,7 @@ class UsersController extends AppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
         $this->loadComponent('Referer');
@@ -165,7 +165,7 @@ class UsersController extends AppController
         $tosRequired = Configure::read('Saito.Settings.tos_enabled');
         $this->set(compact('tosRequired'));
 
-        $user = $this->Users->newEntity();
+        $user = $this->Users->newEmptyEntity();
         $this->set('user', $user);
 
         $session = $this->request->getSession();
@@ -186,7 +186,7 @@ class UsersController extends AppController
         // open for at least 5 seconds (bots submit instantly).
         $formLoadTime = (int)$session->read('Register.formLoadTime');
         if (!empty($data['url']) || $formLoadTime === 0 || (time() - $formLoadTime) < 5) {
-            $this->set('user', $this->Users->newEntity());
+            $this->set('user', $this->Users->newEmptyEntity());
 
             return;
         }
@@ -951,7 +951,7 @@ class UsersController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
         Stopwatch::start('Users->beforeFilter()');

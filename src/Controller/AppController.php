@@ -91,7 +91,7 @@ class AppController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         Stopwatch::start('------------------- Controller -------------------');
 
@@ -130,7 +130,7 @@ class AppController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         Stopwatch::start('App->beforeFilter()');
 
@@ -159,7 +159,7 @@ class AppController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function beforeRender(Event $event)
+    public function beforeRender(\Cake\Event\EventInterface $event)
     {
         Stopwatch::start('App->beforeRender()');
         $this->Themes->set($this->CurrentUser);

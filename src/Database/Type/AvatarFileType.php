@@ -23,7 +23,7 @@ use PDO;
  * and the AvatarBehavior can access it. The behavior always replaces the array
  * with the final filename string before the SQL INSERT/UPDATE runs.
  */
-class AvatarFileType extends Type
+class AvatarFileType extends \Cake\Database\TypeFactory
 {
     public function marshal($value)
     {

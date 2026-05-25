@@ -16,7 +16,7 @@ use Cake\Database\Driver;
 use Cake\Database\Type;
 use PDO;
 
-class SerializeType extends Type
+class SerializeType extends \Cake\Database\TypeFactory
 {
 
     /**
