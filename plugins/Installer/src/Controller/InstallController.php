@@ -30,7 +30,7 @@ class InstallController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
         $this->loadComponent('Referer');
@@ -39,7 +39,7 @@ class InstallController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function beforeFilter(\Cake\Event\Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         $this->set('titleForLayout', __d('installer', 'title'));
 
@@ -193,7 +193,7 @@ class InstallController extends AppController
         $Users = TableRegistry::getTableLocator()->get('Users');
 
         if ($this->getRequest()->is('get')) {
-            $this->set('admin', $Users->newEntity());
+            $this->set('admin', $Users->newEmptyEntity());
 
             return;
         }

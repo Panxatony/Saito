@@ -54,7 +54,7 @@ class AdminHelper extends AppHelper
      */
     public function badgeForCache(string $engine): string
     {
-        $class = get_class(Cache::engine($engine));
+        $class = get_class(Cache::pool($engine));
         $class = explode('\\', $class);
         $class = str_replace('Engine', '', end($class));
 

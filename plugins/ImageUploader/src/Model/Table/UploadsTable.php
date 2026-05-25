@@ -45,7 +45,7 @@ class UploadsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->addBehavior('Timestamp');
         $this->setEntityClass(Upload::class);
@@ -57,7 +57,7 @@ class UploadsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator
             ->add('id', 'valid', ['rule' => 'numeric'])
@@ -93,7 +93,7 @@ class UploadsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function buildRules(RulesChecker $rules)
+    public function buildRules(RulesChecker $rules): \Cake\ORM\RulesChecker
     {
         $nMax = $this->UploaderConfig->getMaxNumberOfUploadsPerUser();
         $rules->add(
@@ -139,7 +139,7 @@ class UploadsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function beforeSave(Event $event, Upload $entity, \ArrayObject $options)
+    public function beforeSave(\Cake\Event\EventInterface $event, Upload $entity, \ArrayObject $options)
     {
         if (!$entity->isDirty('name') && !$entity->isDirty('document')) {
             return true;
@@ -156,7 +156,7 @@ class UploadsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function beforeDelete(Event $event, Upload $entity, \ArrayObject $options)
+    public function beforeDelete(\Cake\Event\EventInterface $event, Upload $entity, \ArrayObject $options)
     {
         if ($entity->get('file')->exists()) {
             return $entity->get('file')->delete();

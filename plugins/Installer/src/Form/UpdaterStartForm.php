@@ -22,7 +22,7 @@ class UpdaterStartForm extends Form
     /**
      * {@inheritDoc}
      */
-    protected function _buildSchema(Schema $schema)
+    protected function _buildSchema(Schema $schema): \Cake\Form\Schema
     {
         return $schema
             ->addField('dbname', ['type' => 'string'])

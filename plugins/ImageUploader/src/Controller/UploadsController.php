@@ -37,7 +37,7 @@ class UploadsController extends ApiAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
         $this->loadModel('Users');

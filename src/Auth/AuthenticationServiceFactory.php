@@ -31,8 +31,6 @@ class AuthenticationServiceFactory
     public static function buildJwt(): AuthenticationService
     {
         $service = new AuthenticationService();
-
-        $service->loadIdentifier('Authentication.JwtSubject');
         $service->loadAuthenticator('Authentication.Jwt', [
             'returnPayload' => false,
             'secretKey' => Configure::read('Security.jwtSalt'),
@@ -52,24 +50,6 @@ class AuthenticationServiceFactory
 
         $service->setConfig('queryParam', 'redirect');
         $service->setConfig('unauthenticatedRedirect', Router::url(['_name' => 'login'], false));
-
-        $service->loadIdentifier('Authentication.Password', [
-            'passwordHasher' => [
-                'className' => 'Authentication.Fallback',
-                'hashers' => [
-                    // Saito passwords (Cake default)
-                    ['className' => 'Authentication.Default'],
-                    // Mylittleforum 2 legacy passwords
-                    ['className' => Mlf2PasswordHasher::class],
-                    // Mylittleforum 1 legacy passwords
-                    ['className' => LegacyPasswordHasherSaltless::class, 'hashType' => 'md5'],
-                ],
-            ],
-            'resolver' => [
-                'className' => 'Authentication.Orm',
-                'finder' => 'profile',
-            ],
-        ]);
 
         // Authenticators are checked in order of registration.
         // Leave Session first.

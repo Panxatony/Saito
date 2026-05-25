@@ -30,7 +30,7 @@ class CategoriesController extends AdminAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
         $this->loadModel('Categories');
@@ -57,7 +57,7 @@ class CategoriesController extends AdminAppController
      */
     public function add()
     {
-        $category = $this->Categories->newEntity();
+        $category = $this->Categories->newEmptyEntity();
         if ($this->request->is('post')) {
             $category = $this->Categories->patchEntity(
                 $category,
