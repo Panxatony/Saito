@@ -34,6 +34,7 @@ test:
         git zip unzip
         libicu-dev
         libpng-dev libjpeg-dev libwebp-dev
+        libonig-dev
         default-mysql-client
     # PHP extensions required by CakePHP and the image processing library
     - docker-php-ext-configure gd --with-jpeg --with-webp
