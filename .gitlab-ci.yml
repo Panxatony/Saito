@@ -1,0 +1,50 @@
+image: php:8.2-cli
+
+stages:
+  - test
+
+variables:
+  # MariaDB service credentials (used by the mariadb service and DATABASE_TEST_URL)
+  MYSQL_ROOT_PASSWORD: root
+  MYSQL_DATABASE: saito_test
+  MYSQL_USER: saito
+  MYSQL_PASSWORD: saito
+  # CakePHP reads this to override the 'test' datasource in config/app.php
+  DATABASE_TEST_URL: "mysql://saito:saito@mariadb/saito_test?encoding=utf8mb4&timezone=UTC"
+  COMPOSER_ALLOW_SUPERUSER: "1"
+  COMPOSER_CACHE_DIR: "/tmp/composer-cache"
+
+cache:
+  key:
+    files:
+      - composer.lock
+  paths:
+    - vendor/
+    - /tmp/composer-cache/
+
+test:
+  stage: test
+  services:
+    - name: mariadb:11
+      alias: mariadb
+  before_script:
+    # System dependencies
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends
+        git zip unzip
+        libicu-dev
+        libpng-dev libjpeg-dev libwebp-dev
+        default-mysql-client
+    # PHP extensions required by CakePHP and the image processing library
+    - docker-php-ext-configure gd --with-jpeg --with-webp
+    - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring
+    # Composer (post-install-cmd automatically applies vendor patches for PHP 8 + PHPUnit 9)
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+    # Wait for MariaDB to accept connections
+    - until mysql -h mariadb -u saito -psaito saito_test -e "SELECT 1" >/dev/null 2>&1; do sleep 1; done
+  script:
+    - vendor/bin/phpunit --colors=never
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
