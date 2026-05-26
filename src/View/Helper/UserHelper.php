@@ -113,6 +113,9 @@ class UserHelper extends AppHelper
      */
     public function linkToUserProfile($user, $link = true, array $options = []): string
     {
+        if ($user === null) {
+            return '';
+        }
         $options += [
             'title' => $user->get('username'),
             'escape' => true,

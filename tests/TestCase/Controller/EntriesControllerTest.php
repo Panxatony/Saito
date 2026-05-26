@@ -749,7 +749,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testThreadLineAnon()
     {
         $this->_setJson();
-        $this->get('/entries/threadline/6');
+        $this->get('/entries/threadLine/6');
         $this->assertRedirectContains('/login');
     }
 
@@ -757,7 +757,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $this->_loginUser(3);
         $this->_setJson();
-        $this->get('/entries/threadline/6');
+        $this->get('/entries/threadLine/6');
         $this->assertRedirectContains('/login');
     }
 
@@ -765,7 +765,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $this->_loginUser(1);
         $this->_setJson();
-        $this->get('/entries/threadline/6');
+        $this->get('/entries/threadLine/6');
         $this->assertNoRedirect();
         $expected = 'Third Thread First_Subject';
         $this->assertResponseContains($expected);

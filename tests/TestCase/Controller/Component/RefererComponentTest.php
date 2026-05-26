@@ -52,10 +52,8 @@ class RefererComponentTest extends SaitoTestCase
         Configure::write('App.fullBaseUrl', $baseUrl);
 
         $request = new ServerRequest(['url' => '/users/view/5']);
-        $webroot = $this->component->request->getAttribute('webroot');
-        $this->component->request = $request;
-
-        $this->component->request = $request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/');
+        $webroot = $this->controller->getRequest()->getAttribute('webroot') ?? '/';
+        $this->controller->setRequest($request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/'));
         $event = new Event('Controller.beforeFilter', $this->controller);
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);

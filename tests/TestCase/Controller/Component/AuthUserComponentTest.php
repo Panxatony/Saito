@@ -226,14 +226,25 @@ class AuthUserComponentTest extends IntegrationTestCase
 
     private function _setup(ServerRequestInterface $request = null)
     {
+        // buildApp() needs the routes (uses Router::url(['_name' => 'login']))
+        // and so does the JWT cookie path on the component.
+        \Cake\Routing\Router::reload();
+        $app = new \App\Application(CONFIG);
+        $app->bootstrap();
+        $app->pluginBootstrap();
+        $builder = \Cake\Routing\Router::createRouteBuilder('/');
+        $app->routes($builder);
+        $app->pluginRoutes($builder);
+
         $request = $request ?: new ServerRequest();
         $response = new Response();
 
         $service = AuthenticationServiceFactory::buildApp();
-        $result = $service->authenticate($request, $response);
+        // v2 authenticate signature: only the request, returns a Result.
+        $result = $service->authenticate($request);
 
         $request = $request->withAttribute('authentication', $service);
-        $request = $request->withAttribute('authenticationResult', $result['result']);
+        $request = $request->withAttribute('authenticationResult', $result);
 
         $controller = new Controller($request, $response);
 

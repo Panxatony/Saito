@@ -288,7 +288,7 @@ class UsersControllerTest extends IntegrationTestCase
         Configure::write('Saito.Settings.tos_url', '');
         $this->get('users/register');
         $this->assertResponseContains(
-            $this->_controller->request->getAttribute('webroot') . 'pages/en/tos'
+            $this->_controller->getRequest()->getAttribute('webroot') . 'pages/en/tos'
         );
     }
 
@@ -1391,7 +1391,7 @@ class UsersControllerTest extends IntegrationTestCase
         $cookies = $this->_response->getCookieCollection();
         $cookie = $cookies->get('my_cookie');
         $this->assertTrue($cookie->isExpired());
-        $this->assertSame($this->_controller->request->getAttribute('webroot'), $cookie->getPath());
+        $this->assertSame($this->_controller->getRequest()->getAttribute('webroot'), $cookie->getPath());
 
         $this->assertRedirect('/');
     }

@@ -275,7 +275,7 @@ class EntriesTable extends AppTable
             'comparison' => 'LIKE',
             'wildcardAny' => '*',
             'wildcardOne' => '?',
-            'field' => ['subject'],
+            'fields' => ['subject'],
             'filterEmpty' => true,
         ])
         ->like('text', [
@@ -285,7 +285,7 @@ class EntriesTable extends AppTable
             'comparison' => 'LIKE',
             'wildcardAny' => '*',
             'wildcardOne' => '?',
-            'field' => ['text'],
+            'fields' => ['text'],
             'filterEmpty' => true,
         ])
         ->value('name', ['filterEmpty' => true]);

@@ -48,9 +48,10 @@ class SearchesController extends AppController
             $this->Entries->addBehavior('SaitoSearch.SaitoSearch');
         } else {
             $this->Entries->addBehavior('Search.Search');
-            $this->loadComponent('Search.Prg');
-            $this->Prg->setConfig('actions', ['advanced'], false);
-            $this->Prg->setConfig('queryStringWhitelist', [], false);
+            // friendsofcake/search v6: Search component replaces PrgComponent
+            $this->loadComponent('Search.Search');
+            $this->Search->setConfig('actions', ['advanced']);
+            $this->Search->setConfig('queryStringWhitelist', []);
         }
     }
 

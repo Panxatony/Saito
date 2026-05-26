@@ -351,11 +351,14 @@ abstract class IntegrationTestCase extends TestCase
     {
         /** @var Response $response */
         $response = $this->_response;
+        // cakephp/authentication v2 rebuilds the redirect target as
+        // `path + ? + query + fragment` (drops scheme/host), so the
+        // Location header is always a path-only URL.
         $expected = Router::url([
             '_name' => 'login',
             'plugin' => false,
             '?' => ['redirect' => $redirectUrl],
-        ], true);
+        ], false);
         $redirectHeader = $response->getHeader('Location')[0];
         $this->assertEquals($expected, $redirectHeader, $msg);
         $this->assertResponseEmpty();

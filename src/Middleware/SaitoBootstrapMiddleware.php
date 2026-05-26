@@ -43,9 +43,12 @@ class SaitoBootstrapMiddleware implements MiddlewareInterface
                 // Automatic browser favicon.ico request messes-up installer state.
                 return new Response(['status' => 503]);
             }
-            $request = $request
-                ->withAttribute('plugin', 'Installer')
-                ->withAttribute('controller', 'Install');
+            // Cake 4 reads routing fields from the 'params' attribute, not
+            // from individual attributes.
+            $params = (array)$request->getAttribute('params', []);
+            $params['plugin'] = 'Installer';
+            $params['controller'] = 'Install';
+            $request = $request->withAttribute('params', $params);
 
             return $handler->handle($request);
         } elseif (strpos($url, 'install/finished')) {
@@ -67,10 +70,11 @@ class SaitoBootstrapMiddleware implements MiddlewareInterface
             $dbVersion = Configure::read('Saito.Settings.db_version');
             $saitoVersion = Configure::read('Saito.v');
             if ($dbVersion !== $saitoVersion) {
-                $request = $request
-                    ->withAttribute('plugin', 'Installer')
-                    ->withAttribute('controller', 'Updater')
-                    ->withAttribute('action', 'start');
+                $params = (array)$request->getAttribute('params', []);
+                $params['plugin'] = 'Installer';
+                $params['controller'] = 'Updater';
+                $params['action'] = 'start';
+                $request = $request->withAttribute('params', $params);
             }
         }
 
