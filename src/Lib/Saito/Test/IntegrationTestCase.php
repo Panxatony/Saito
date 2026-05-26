@@ -219,11 +219,11 @@ abstract class IntegrationTestCase extends TestCase
      */
     protected function _loginUser($id)
     {
-        // see: http://stackoverflow.com/a/10411128/1372085
         $this->_logoutUser();
-        $userFixture = new UserFixture();
-        $users = $userFixture->records;
-        $user = $users[$id - 1];
+        // Hydrate from the DB so that schema defaults like last_refresh
+        // are populated. Fixture records only carry explicitly-set fields.
+        $Users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+        $user = $Users->get($id)->toArray();
         $this->session(['Auth' => $user]);
 
         return $user;
@@ -351,16 +351,21 @@ abstract class IntegrationTestCase extends TestCase
     {
         /** @var Response $response */
         $response = $this->_response;
-        // cakephp/authentication v2 rebuilds the redirect target as
-        // `path + ? + query + fragment` (drops scheme/host), so the
-        // Location header is always a path-only URL.
-        $expected = Router::url([
+        $redirectHeader = $response->getHeader('Location')[0];
+        // Accept both fullBase and path-only redirects (Cake-4
+        // authentication strips scheme/host when it rebuilds the
+        // target, but Controller::redirect() keeps them).
+        $expectedFull = Router::url([
+            '_name' => 'login',
+            'plugin' => false,
+            '?' => ['redirect' => $redirectUrl],
+        ], true);
+        $expectedPath = Router::url([
             '_name' => 'login',
             'plugin' => false,
             '?' => ['redirect' => $redirectUrl],
         ], false);
-        $redirectHeader = $response->getHeader('Location')[0];
-        $this->assertEquals($expected, $redirectHeader, $msg);
+        $this->assertContains($redirectHeader, [$expectedFull, $expectedPath], $msg);
         $this->assertResponseEmpty();
         $this->assertResponseCode(302);
     }

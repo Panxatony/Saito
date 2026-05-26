@@ -237,6 +237,9 @@ class AuthUserComponentTest extends IntegrationTestCase
         $app->pluginRoutes($builder);
 
         $request = $request ?: new ServerRequest();
+        // AuthUserComponent uses is('bot'), so register the detector the
+        // Detectors plugin would normally provide.
+        $request->addDetector('bot', function () { return false; });
         $response = new Response();
 
         $service = AuthenticationServiceFactory::buildApp();
