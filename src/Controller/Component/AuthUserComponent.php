@@ -166,7 +166,7 @@ class AuthUserComponent extends Component
         $this->UsersTable->UserOnline->setOffline($originalSessionId);
 
         /// password update
-        $password = (string)$this->request->getData('password');
+        $password = (string)$this->getController()->getRequest()->getData('password');
         if ($password) {
             $this->UsersTable->autoUpdatePassword($this->CurrentUser->getId(), $password);
         }
@@ -188,8 +188,19 @@ class AuthUserComponent extends Component
             return null;
         }
 
-        /** @var User User is always retrieved from ORM */
-        $user = $result->getData();
+        $data = $result->getData();
+
+        // SessionAuthenticator wraps the session payload in an ArrayObject;
+        // hydrate back to a User entity so the rest of the app keeps working
+        // with the same shape it had under Cake-3 auth.
+        if ($data instanceof User) {
+            $user = $data;
+        } else {
+            $array = $data instanceof \ArrayAccess
+                ? (array)($data instanceof \ArrayObject ? $data->getArrayCopy() : $data)
+                : (array)$data;
+            $user = new User($array, ['markNew' => false, 'markClean' => true]);
+        }
 
         $isUnactivated = $user['activate_code'] !== 0;
         $isLocked = $user['user_lock'] == true;
@@ -376,15 +387,17 @@ class AuthUserComponent extends Component
      */
     private function isAuthorized(CurrentUser $user)
     {
+        $request = $this->getController()->getRequest();
+
         /// Authorize action through resource
-        $action = $this->getController()->getRequest()->getParam('action');
+        $action = $request->getParam('action');
         if (isset($this->actionAuthorizationResources[$action])) {
             return $user->permission($this->actionAuthorizationResources[$action]);
         }
 
         /// Authorize admin area
-        $prefix = $this->request->getParam('prefix');
-        $plugin = $this->request->getParam('plugin');
+        $prefix = $request->getParam('prefix');
+        $plugin = $request->getParam('plugin');
         $isAdminRoute = ($prefix && strtolower($prefix) === 'admin')
             || ($plugin && strtolower($plugin) === 'admin');
         if ($isAdminRoute) {

@@ -137,8 +137,14 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                 Configure::read('Security.cookieSalt')
             ))
 
-            // CSRF protection (replaces the Cake-3 CsrfComponent)
-            ->add(new CsrfProtectionMiddleware(['expiry' => time() + 10800]))
+            // CSRF protection (replaces the Cake-3 CsrfComponent).
+            // API requests are JWT-authenticated and intentionally exempt.
+            ->add(
+                (new CsrfProtectionMiddleware(['expiry' => time() + 10800]))
+                    ->skipCheckCallback(function ($request) {
+                        return strpos($request->getUri()->getPath(), '/api/') !== false;
+                    })
+            )
 
             // CakePHP authentication provider
             ->insertAfter(

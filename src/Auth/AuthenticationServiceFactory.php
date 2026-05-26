@@ -31,8 +31,12 @@ class AuthenticationServiceFactory
     public static function buildJwt(): AuthenticationService
     {
         $service = new AuthenticationService();
+        // returnPayload=true: Saito does not configure an Identifier, so let
+        // the JWT payload (carrying 'sub' = user-id) be the identity. The
+        // controller layer (CurrentUser/AuthUserComponent) hydrates the
+        // actual User entity from the database when needed.
         $service->loadAuthenticator('Authentication.Jwt', [
-            'returnPayload' => false,
+            'returnPayload' => true,
             'secretKey' => Configure::read('Security.jwtSalt'),
         ]);
 
@@ -53,14 +57,9 @@ class AuthenticationServiceFactory
 
         // Authenticators are checked in order of registration.
         // Leave Session first.
-        $service->loadAuthenticator(
-            'Authentication.Session',
-            [
-                // Always check against DB. User-state (type, locked) might have
-                // changed and must be reflected immediately.
-                'identify' => true,
-            ]
-        );
+        // `identify` stays false: Saito does not configure an Identifier,
+        // so the session payload is the source of truth for the request.
+        $service->loadAuthenticator('Authentication.Session');
         $service->loadAuthenticator(
             'Authentication.Cookie',
             [

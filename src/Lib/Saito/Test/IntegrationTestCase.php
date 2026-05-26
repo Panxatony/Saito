@@ -48,6 +48,10 @@ abstract class IntegrationTestCase extends TestCase
     public function setUp(): void
     {
         $this->disableErrorHandlerMiddleware();
+        // Cake 4 enforces CSRF via middleware (not a component any more);
+        // enable token injection by default so individual tests don't
+        // each have to remember to call mockSecurity().
+        $this->enableCsrfToken();
         $this->setUpSaito();
         $this->markUpdated();
         parent::setUp();
@@ -195,7 +199,7 @@ abstract class IntegrationTestCase extends TestCase
      */
     protected function loginJwt(int $userId)
     {
-        $jwtKey = Configure::read('Security.cookieSalt');
+        $jwtKey = Configure::read('Security.jwtSalt');
         $jwtPayload = ['sub' => $userId];
         $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
 
