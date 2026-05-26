@@ -50,9 +50,10 @@ class TitleComponent extends Component
     protected function getPageTitle(Controller $controller): string
     {
         $controller = $this->getController();
-        //= title for page, shown in default.ctp in header on page
-        if (isset($controller->viewVars['titleForPage'])) {
-            return $controller->viewVars['titleForPage'];
+        $vars = $controller->viewBuilder()->getVars();
+        //= title for page, shown in default layout in header on page
+        if (isset($vars['titleForPage'])) {
+            return $vars['titleForPage'];
         }
 
         $request = $controller->getRequest();
@@ -87,8 +88,9 @@ class TitleComponent extends Component
      */
     protected function getTitleForLayout(Controller $controller, string $page, string $forum): string
     {
-        if (isset($controller->viewVars['titleForLayout'])) {
-            $layout = $controller->viewVars['titleForLayout'];
+        $vars = $controller->viewBuilder()->getVars();
+        if (isset($vars['titleForLayout'])) {
+            $layout = $vars['titleForLayout'];
         } else {
             $layout = $page;
         }

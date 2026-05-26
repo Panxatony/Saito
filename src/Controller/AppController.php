@@ -52,7 +52,14 @@ class AppController extends Controller
 {
     use InstanceConfigTrait;
 
-    public $helpers = [
+    /**
+     * View helpers.
+     *
+     * In Cake 4 the legacy `public $helpers` auto-loading was removed;
+     * helpers are applied via the ViewBuilder. The keys here are loaded
+     * by initialize() at the end of the controller bootstrap.
+     */
+    protected $viewHelpers = [
         'Form' => [
             // Bootstrap 4 CSS-class for invalid input elements
             'errorClass' => 'is-invalid',
@@ -129,6 +136,10 @@ class AppController extends Controller
         $this->loadComponent('Themes', Configure::read('Saito.themes'));
         $this->loadComponent('Flash');
         $this->loadComponent('Title');
+
+        // Cake 4: ViewBuilder is the canonical place for helpers; the old
+        // $controller->helpers auto-loading was removed in 4.4.
+        $this->viewBuilder()->setHelpers($this->viewHelpers);
     }
 
     /**

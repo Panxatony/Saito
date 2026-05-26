@@ -29,11 +29,12 @@ class JsonApiExceptionRenderer extends ExceptionRenderer
      */
     protected function _outputMessage($template)
     {
+        $vars = $this->controller->viewBuilder()->getVars();
         $data = [
             'errors' => [
                 [
-                    'title' => $this->controller->viewVars['message'],
-                    'code' => $this->controller->viewVars['code'],
+                    'title' => $vars['message'] ?? null,
+                    'code' => $vars['code'] ?? null,
                 ],
             ],
         ];

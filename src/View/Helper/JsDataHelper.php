@@ -51,7 +51,7 @@ class JsDataHelper extends AppHelper
         $js = [
             'app' => [
                 'settings' => [
-                    'autoPageReload' => (isset($View->viewVars['autoPageReload']) ? $View->viewVars['autoPageReload'] : 0),
+                    'autoPageReload' => $View->get('autoPageReload', 0),
                     'editPeriod' => (int)Configure::read(
                         'Saito.Settings.edit_period'
                     ),

@@ -15,7 +15,7 @@ namespace App\View\Helper;
 use App\Model\Entity\User;
 use Cake\View\Helper\HtmlHelper;
 use Cake\View\Helper\UrlHelper;
-use Identicon\Identicon;
+use Yzalis\Identicon\Identicon;
 use Saito\RememberTrait;
 use Saito\User\CurrentUser\CurrentUserInterface;
 use Saito\User\ForumsUserInterface;

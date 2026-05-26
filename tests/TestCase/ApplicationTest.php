@@ -34,7 +34,12 @@ class ApplicationTest extends SaitoTestCase
     {
         parent::setUp();
 
-        $this->application = new Application(__DIR__);
+        $this->application = new Application(CONFIG);
+        $this->application->bootstrap();
+        $this->application->pluginBootstrap();
+        $builder = \Cake\Routing\Router::createRouteBuilder('/');
+        $this->application->routes($builder);
+        $this->application->pluginRoutes($builder);
     }
 
     public function teardDown()
