@@ -39,18 +39,18 @@ class ContactFormOwner extends ContactForm
      * @param \Cake\Validation\Validator $validator The validator to customize.
      * @return \Cake\Validation\Validator The validator to use.
      */
-    protected function _buildValidator(Validator $validator)
+    public function validationDefault(Validator $validator): Validator
     {
-        $validator = parent::_buildValidator($validator);
+        $validator = parent::validationDefault($validator);
         $validator
-            ->notEmpty('sender_contact')
+            ->notEmptyString('sender_contact')
             ->add('sender_contact', [
                 'isEmail' => [
                     'rule' => ['email', true],
                     'message' => __('error_email_not-valid'),
                 ],
             ])
-            ->allowEmpty('website')
+            ->allowEmptyString('website')
             ->add('website', [
                 'honeypot' => [
                     'rule' => function ($value) {

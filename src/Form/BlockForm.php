@@ -38,12 +38,12 @@ class BlockForm extends Form
      * @param \Cake\Validation\Validator $validator The validator to customize.
      * @return \Cake\Validation\Validator The validator to use.
      */
-    protected function _buildValidator(Validator $validator)
+    public function validationDefault(Validator $validator): Validator
     {
         $validator
-            ->notEmpty('lockPeriod')
+            ->notEmptyString('lockPeriod')
             ->add('lockPeriod', ['isNumeric' => ['rule' => ['numeric']]])
-            ->notEmpty('lockUserId')
+            ->notEmptyString('lockUserId')
             ->add('lockUserId', ['isNumeric' => ['rule' => ['numeric']]]);
 
         return $validator;

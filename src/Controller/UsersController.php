@@ -35,18 +35,17 @@ use Stopwatch\Lib\Stopwatch;
  */
 class UsersController extends AppController
 {
-    public $helpers = [
-        'SpectrumColorpicker.SpectrumColorpicker',
-        'Posting',
-        'Text',
-    ];
-
     /**
      * {@inheritDoc}
      */
     public function initialize(): void
     {
         parent::initialize();
+        $this->viewBuilder()->addHelpers([
+            'SpectrumColorpicker.SpectrumColorpicker',
+            'Posting',
+            'Text',
+        ]);
         $this->loadComponent('Referer');
     }
 

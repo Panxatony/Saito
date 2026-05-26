@@ -139,7 +139,7 @@ class AppController extends Controller
 
         // Cake 4: ViewBuilder is the canonical place for helpers; the old
         // $controller->helpers auto-loading was removed in 4.4.
-        $this->viewBuilder()->setHelpers($this->viewHelpers);
+        $this->viewBuilder()->addHelpers($this->viewHelpers);
     }
 
     /**

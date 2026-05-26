@@ -163,7 +163,7 @@ class SearchesController extends AppController
             ->order(['Entries.id' => 'DESC']);
 
         /// Time filter
-        $time = Chronos::createFromDate($year, $month, 1);
+        $time = Chronos::createFromDate((int)$year, (int)$month, 1);
         if ($now->year !== $defaultDate->year || $now->month !== $defaultDate->month) {
             $query->where(['time >=' => $time]);
         }

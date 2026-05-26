@@ -43,14 +43,13 @@ use Stopwatch\Lib\Stopwatch;
  */
 class EntriesController extends AppController
 {
-    public $helpers = ['Posting', 'Text'];
-
     /**
      * {@inheritDoc}
      */
     public function initialize(): void
     {
         parent::initialize();
+        $this->viewBuilder()->addHelpers(['Posting', 'Text']);
 
         $this->loadComponent('Posting');
         $this->loadComponent('MarkAsRead');

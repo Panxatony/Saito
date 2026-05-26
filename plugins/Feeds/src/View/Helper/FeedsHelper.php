@@ -30,7 +30,7 @@ class FeedsHelper extends Helper
     /**
      * {@inheritDoc}
      */
-    public function beforeRender(Event $event, $viewFile)
+    public function beforeRender(\Cake\Event\EventInterface $event, $viewFile)
     {
         $this->channel = new Channel();
         $this->feed = new Feed();
@@ -53,6 +53,10 @@ class FeedsHelper extends Helper
      */
     public function getChannel(): Channel
     {
+        if ($this->channel === null) {
+            $this->beforeRender(new \Cake\Event\Event('View.beforeRender'), null);
+        }
+
         return $this->channel;
     }
 

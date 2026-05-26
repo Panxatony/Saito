@@ -1091,7 +1091,7 @@ EOF;
     {
         $input = '[file]test.txt[/file]';
         $result = $this->_Parser->parse($input);
-        $this->assertHtml($input, $result);
+        $this->assertEquals($input, $result);
     }
 
     public function testSmiliesNoSmiliesInCodeTag()

@@ -79,7 +79,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->get('/');
         $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
         $this->assertNull(
-            $this->_controller->request->getSession()->read('Auth')
+            $this->_controller->getRequest()->getSession()->read('Auth')
         );
 
         $this->mockSecurity();
@@ -89,7 +89,7 @@ class UsersControllerTest extends IntegrationTestCase
 
         $this->assertTrue($this->_controller->CurrentUser->isLoggedIn());
         $this->assertNotNull(
-            $this->_controller->request->getSession()->read('Auth')
+            $this->_controller->getRequest()->getSession()->read('Auth')
         );
 
         //# successful login redirects
@@ -923,7 +923,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->_loginUser($userToLock);
         $result = $this->get('/entries/index');
         $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
-        $this->assertNull($this->_controller->request->getSession()->read('Auth'));
+        $this->assertNull($this->_controller->getRequest()->getSession()->read('Auth'));
 
         /// Locked user can't relogin
         $this->_logoutUser();
@@ -934,7 +934,7 @@ class UsersControllerTest extends IntegrationTestCase
 
         $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
         $this->assertNull(
-            $this->_controller->request->getSession()->read('Auth')
+            $this->_controller->getRequest()->getSession()->read('Auth')
         );
     }
 
