@@ -1,0 +1,55 @@
+/******************************************************************************
+ * Macnemo Variablen
+ ******************************************************************************/
+
+$orange-lighter: #fff5cf;
+$orange: #ffa70e;
+$orange-darker: #fe5603;
+
+$body-color: #222;
+$primary: #fe5603;
+$form-bg: #ffed9e9c;
+
+$font-color-new: $body-color;
+$font-color-old: $primary;
+$font-color-current: $orange;
+
+
+/******************************************************************************
+ * Core Theme Include
+ ******************************************************************************/
+
+@import "../../../../../plugins/Bota/webroot/css/src/theme";
+
+/******************************************************************************
+ * Macnemo Anpassungen
+ ******************************************************************************/
+
+@import "_gemeinsam.scss";
+
+body {
+  background-color: #FFED9E;
+}
+
+body.headerClosed #header {
+  // For closed header
+  position: inherit;
+}
+
+#site {
+  background:
+    url('../img/bb.svg'),
+    linear-gradient(0deg, rgba(255,245,207,0) 0%,  rgba(255,237,158,1) 70%, rgba(255,237,158,1) 100%),
+    white;
+  background-repeat: no-repeat;
+  background-size: 50%, 100% 8em, 100%;
+  background-position-x: center;
+}
+
+.headerClosed #site {
+  background-size: 40%, 100% 5em, 100%;
+}
+
+#header-hero {
+  background: none;
+}

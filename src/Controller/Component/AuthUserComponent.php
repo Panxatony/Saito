@@ -190,16 +190,22 @@ class AuthUserComponent extends Component
 
         $data = $result->getData();
 
-        // SessionAuthenticator wraps the session payload in an ArrayObject;
-        // hydrate back to a User entity so the rest of the app keeps working
-        // with the same shape it had under Cake-3 auth.
         if ($data instanceof User) {
             $user = $data;
         } else {
             $array = $data instanceof \ArrayAccess
                 ? (array)($data instanceof \ArrayObject ? $data->getArrayCopy() : $data)
                 : (array)$data;
-            $user = new User($array, ['markNew' => false, 'markClean' => true]);
+            // JWT payload only carries 'sub' (the user-id); reload the full
+            // user record from the DB. The session payload already has the
+            // full user array, so we use it as-is.
+            if (isset($array['sub']) && count($array) === 1) {
+                $user = $this->UsersTable->get($array['sub']);
+            } elseif (isset($array['id']) && !isset($array['activate_code'])) {
+                $user = $this->UsersTable->get($array['id']);
+            } else {
+                $user = new User($array, ['markNew' => false, 'markClean' => true]);
+            }
         }
 
         $isUnactivated = $user['activate_code'] !== 0;

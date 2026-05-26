@@ -68,6 +68,11 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
 
         parent::bootstrap();
 
+        // Cake 4 expects templates in /templates, not /src/Template. The
+        // config/app.php still carries the Cake-3 path because that file is
+        // local (DB credentials, salts) and we don't want to touch it.
+        Configure::write('App.paths.templates', [ROOT . DS . 'templates' . DS]);
+
         if (PHP_SAPI === 'cli') {
             $this->bootstrapCli();
         }
