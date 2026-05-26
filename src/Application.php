@@ -29,6 +29,7 @@ use Cake\Core\Plugin;
 use Cake\Error\Middleware\ErrorHandlerMiddleware;
 use Cake\Event\EventManagerInterface;
 use Cake\Http\BaseApplication;
+use Cake\Http\Middleware\CsrfProtectionMiddleware;
 use Cake\Http\Middleware\EncryptedCookieMiddleware;
 use Cake\Http\Middleware\SecurityHeadersMiddleware;
 use Cake\Routing\Middleware\AssetMiddleware;
@@ -117,7 +118,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         $middlewareQueue
             // Catch any exceptions in the lower layers,
             // and make an error page/response
-            ->add(ErrorHandlerMiddleware::class)
+            ->add(new ErrorHandlerMiddleware(Configure::read('Error')))
 
             // Handle plugin/theme assets like CakePHP normally does.
             ->add(AssetMiddleware::class)
@@ -135,6 +136,9 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                 [Configure::read('Security.cookieAuthName')],
                 Configure::read('Security.cookieSalt')
             ))
+
+            // CSRF protection (replaces the Cake-3 CsrfComponent)
+            ->add(new CsrfProtectionMiddleware(['expiry' => time() + 10800]))
 
             // CakePHP authentication provider
             ->insertAfter(

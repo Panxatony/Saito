@@ -99,7 +99,9 @@ class AppController extends Controller
 
         $this->setConfig('showStopwatch', Configure::read('debug'));
 
-        if (!$this->request->is('requested')) {
+        // Cake 4 dropped requestAction sub-requests, so the previous
+        // is('requested') guard is no longer needed.
+        if (!$this->request->getSession()->started()) {
             $this->request->getSession()->start();
         }
 
@@ -107,10 +109,12 @@ class AppController extends Controller
 
         // Leave in front to have it available in all Components
         $this->loadComponent('Detectors.Detectors');
-        $this->loadComponent('Cookie');
+        // CookieComponent was removed in Cake 4; cookies go through
+        // EncryptedCookieMiddleware (see Application::middleware()).
         $this->loadComponent('Authentication.Authentication');
         $this->loadComponent('Security', ['blackHoleCallback' => 'blackhole']);
-        $this->loadComponent('Csrf', ['expiry' => time() + 10800]);
+        // CsrfComponent was removed in Cake 4; CsrfProtectionMiddleware
+        // in Application::middleware() takes its place.
         if (PHP_SAPI !== 'cli') {
             // if: The security mock in testing doesn't allow seeting cookie-name.
             $this->Csrf->setConfig('cookieName', Configure::read('Session.cookie') . '-CSRF');
