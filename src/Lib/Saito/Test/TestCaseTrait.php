@@ -143,6 +143,13 @@ trait TestCaseTrait
         $mock = $this->createMock('Cake\Mailer\Transport\DebugTransport');
         TransportFactory::drop('saito');
         TransportFactory::setConfig('saito', $mock);
+        // The 'saito' Email profile points at the 'saito' transport so
+        // `new Email('saito')` actually uses the mocked transport.
+        \Cake\Mailer\Email::drop('saito');
+        \Cake\Mailer\Email::setConfig('saito', [
+            'transport' => 'saito',
+            'from' => 'system@example.com',
+        ]);
 
         return $mock;
     }

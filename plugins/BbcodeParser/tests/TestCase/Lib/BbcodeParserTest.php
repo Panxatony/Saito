@@ -1411,10 +1411,14 @@ EOF;
         parent::tearDown();
         if ($this->server_name) {
             $_SERVER['SERVER_NAME'] = $this->server_name;
+        } else {
+            unset($_SERVER['SERVER_NAME']);
         }
 
-        if ($this->server_name) {
+        if ($this->server_port) {
             $_SERVER['SERVER_PORT'] = $this->server_port;
+        } else {
+            unset($_SERVER['SERVER_PORT']);
         }
 
         Configure::write('Saito.Settings.autolink', $this->autolink);
