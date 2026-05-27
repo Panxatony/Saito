@@ -2,6 +2,7 @@ image: php:8.2-cli
 
 stages:
   - test
+  - release
 
 variables:
   # MariaDB service credentials (used by the mariadb service and DATABASE_TEST_URL)
@@ -51,3 +52,73 @@ test:
   rules:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# ----------------------------------------------------------------------
+# Release package
+# Produces a deployable tarball on main (or any tag). The artifact
+# contains the PHP application with production dependencies installed,
+# but without dev tooling, tests, frontend sources, or local config.
+# ----------------------------------------------------------------------
+release:
+  stage: release
+  needs:
+    - test
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends
+        git zip unzip
+        libicu-dev
+        libpng-dev libjpeg-dev libwebp-dev
+        libonig-dev
+    - docker-php-ext-configure gd --with-jpeg --with-webp
+    - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    # Production install: no dev deps, optimized autoloader.
+    - composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress --ignore-platform-reqs
+  script:
+    - export RELEASE_VERSION="${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+    - export RELEASE_NAME="saito-${RELEASE_VERSION}"
+    - mkdir -p build
+    # Tar the application; exclusions cover dev/test material, local
+    # artefacts, and the build directory itself.
+    - >
+      tar czf "build/${RELEASE_NAME}.tar.gz"
+      --transform "s,^,${RELEASE_NAME}/,"
+      --exclude='./.git'
+      --exclude='./.gitlab-ci.yml'
+      --exclude='./.gitignore'
+      --exclude='./.phpunit.result.cache'
+      --exclude='./build'
+      --exclude='./dev'
+      --exclude='./docs'
+      --exclude='./frontend'
+      --exclude='./node_modules'
+      --exclude='./logs'
+      --exclude='./tmp'
+      --exclude='./tests'
+      --exclude='./pipeline-failed.log'
+      --exclude='./Gruntfile.js'
+      --exclude='./karma.conf.js'
+      --exclude='./package.json'
+      --exclude='./phpcs.xml.dist'
+      --exclude='./phpstan.neon'
+      --exclude='./phpunit.xml.dist'
+      --exclude='./tsconfig.json'
+      --exclude='./tslint.json'
+      --exclude='./webpack.config.js'
+      --exclude='./yarn.lock'
+      --exclude='./build.xml'
+      --exclude='*/tests'
+      --exclude='*.map'
+      .
+    - sha256sum "build/${RELEASE_NAME}.tar.gz" > "build/${RELEASE_NAME}.tar.gz.sha256"
+    - ls -lh build/
+  artifacts:
+    name: "saito-${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+    paths:
+      - build/saito-*.tar.gz
+      - build/saito-*.tar.gz.sha256
+    expire_in: 30 days
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "main"

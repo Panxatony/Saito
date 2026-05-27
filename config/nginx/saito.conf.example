@@ -1,0 +1,146 @@
+# Reference nginx vhost for hosting the Saito forum (CakePHP 4).
+#
+# How to use:
+#   1. Copy to /etc/nginx/sites-available/saito.conf
+#   2. Adjust:
+#        - server_name
+#        - root           (must point to <project>/webroot)
+#        - ssl_certificate / ssl_certificate_key
+#        - fastcgi_pass   (PHP-FPM socket or TCP)
+#        - client_max_body_size if you allow larger uploads
+#   3. Symlink to sites-enabled and reload:
+#        ln -s /etc/nginx/sites-available/saito.conf /etc/nginx/sites-enabled/
+#        nginx -t && systemctl reload nginx
+#
+# Assumes PHP-FPM 8.2 listening on a Unix socket. Adjust if you run
+# PHP over TCP (127.0.0.1:9000) or a different PHP version.
+
+# -------------------------------------------------------------------
+# HTTP -> HTTPS redirect
+# -------------------------------------------------------------------
+server {
+    listen 80;
+    listen [::]:80;
+    server_name forum.example.com;
+
+    # Let's Encrypt ACME challenge served over plain HTTP.
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# -------------------------------------------------------------------
+# HTTPS vhost
+# -------------------------------------------------------------------
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name forum.example.com;
+
+    # CakePHP front controller lives in /webroot.
+    root /var/www/saito/webroot;
+    index index.php;
+
+    charset utf-8;
+
+    # File upload limit. Saito's default per-file image upload limit is
+    # configured in the admin UI; align this with your PHP
+    # `upload_max_filesize` / `post_max_size`.
+    client_max_body_size 16M;
+
+    # ----------------------------------------------------------------
+    # TLS — replace with paths managed by certbot or your CA.
+    # ----------------------------------------------------------------
+    ssl_certificate     /etc/letsencrypt/live/forum.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/forum.example.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # ----------------------------------------------------------------
+    # Security headers
+    # CakePHP's SecurityHeadersMiddleware already sets some of these on
+    # PHP responses; the nginx-level ones cover static assets too.
+    # ----------------------------------------------------------------
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options    "nosniff"                              always;
+    add_header Referrer-Policy           "strict-origin-when-cross-origin"      always;
+    # X-Frame-Options is set by Saito (Configure 'Saito.X-Frame-Options'),
+    # so we don't duplicate it here.
+
+    # ----------------------------------------------------------------
+    # Long-lived caching for fingerprinted static assets.
+    # CakePHP's Asset.timestamp = 'force' adds ?<mtime> to URLs.
+    # ----------------------------------------------------------------
+    location ~* \.(?:css|js|woff2?|ttf|eot|otf|svg|ico|png|jpg|jpeg|gif|webp|avif)$ {
+        expires 30d;
+        access_log off;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # User-uploaded images live under webroot/useruploads — serve them
+    # straight from disk; never pipe through PHP.
+    location /useruploads/ {
+        expires 7d;
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # ----------------------------------------------------------------
+    # Deny access to dotfiles and source/config directories.
+    # ----------------------------------------------------------------
+    location ~ /\.(?!well-known/) {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # ----------------------------------------------------------------
+    # CakePHP routing: send everything that's not a real file to
+    # index.php (front controller).
+    # ----------------------------------------------------------------
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    # ----------------------------------------------------------------
+    # PHP-FPM
+    # ----------------------------------------------------------------
+    location ~ ^/index\.php(/|$) {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO        $fastcgi_path_info;
+        fastcgi_param HTTPS            on;
+
+        # Pass DEBUG/env knobs via fastcgi if you prefer them here over
+        # config/app.php — Cake's `env()` reads these.
+        # fastcgi_param DEBUG            false;
+
+        fastcgi_read_timeout  60s;
+        fastcgi_buffers       16 16k;
+        fastcgi_buffer_size   32k;
+    }
+
+    # Only index.php is allowed to execute — block direct hits to any
+    # other PHP file accidentally placed in the webroot.
+    location ~ \.php$ {
+        return 404;
+    }
+
+    # ----------------------------------------------------------------
+    # Logging
+    # ----------------------------------------------------------------
+    access_log /var/log/nginx/saito.access.log;
+    error_log  /var/log/nginx/saito.error.log warn;
+}
