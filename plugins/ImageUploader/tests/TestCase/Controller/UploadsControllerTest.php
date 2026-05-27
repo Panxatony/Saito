@@ -195,6 +195,10 @@ class UploadsControllerTest extends IntegrationTestCase
 
     public function testRemoveExifData()
     {
+        if (!function_exists('exif_read_data')) {
+            $this->markTestSkipped('PHP exif extension not available');
+        }
+
         $this->loginJwt(1);
         unset($this->file);
         $this->file = new File(TMP . 'tmp_exif.jpg');
