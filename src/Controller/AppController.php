@@ -122,10 +122,6 @@ class AppController extends Controller
         $this->loadComponent('Security', ['blackHoleCallback' => 'blackhole']);
         // CsrfComponent was removed in Cake 4; CsrfProtectionMiddleware
         // in Application::middleware() takes its place.
-        if (PHP_SAPI !== 'cli') {
-            // if: The security mock in testing doesn't allow seeting cookie-name.
-            $this->Csrf->setConfig('cookieName', Configure::read('Session.cookie') . '-CSRF');
-        }
         $this->loadComponent('RequestHandler', ['enableBeforeRedirect' => false]);
         $this->loadComponent('Cron.Cron');
         $this->loadComponent('CacheSupport');

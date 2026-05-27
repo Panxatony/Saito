@@ -140,7 +140,10 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             // CSRF protection (replaces the Cake-3 CsrfComponent).
             // API requests are JWT-authenticated and intentionally exempt.
             ->add(
-                (new CsrfProtectionMiddleware(['expiry' => time() + 10800]))
+                (new CsrfProtectionMiddleware([
+                    'expiry' => time() + 10800,
+                    'cookieName' => Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF',
+                ]))
                     ->skipCheckCallback(function ($request) {
                         return strpos($request->getUri()->getPath(), '/api/') !== false;
                     })
