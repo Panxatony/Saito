@@ -89,6 +89,12 @@ release:
   script:
     - export RELEASE_VERSION="${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
     - export RELEASE_NAME="saito-${RELEASE_VERSION}"
+    # Composer's post-install (App\Console\Installer::postInstall) rewrites
+    # the `__SALT__` placeholders in config/app.php with a freshly generated
+    # value. We don't want to ship a tarball with a fixed salt — restore the
+    # committed placeholder so the installer regenerates the salt on the
+    # first deploy of each install.
+    - git checkout HEAD -- config/app.php
     - mkdir -p build
     # Tar the application; exclusions cover dev/test material, local
     # artefacts, and the build directory itself.
