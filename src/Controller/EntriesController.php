@@ -195,7 +195,7 @@ class EntriesController extends AppController
 
         // inline open
         if ($this->request->is('ajax')) {
-            return $this->render('/Element/entry/view_posting');
+            return $this->render('/element/entry/view_posting');
         }
 
         // full page request
