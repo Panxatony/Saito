@@ -33,7 +33,7 @@ use Saito\RequestUpload;
  */
 class AvatarBehavior extends Behavior
 {
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'field' => 'avatar',
         'dirField' => 'avatar_dir',
         'root' => null,

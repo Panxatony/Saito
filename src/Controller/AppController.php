@@ -86,7 +86,7 @@ class AppController extends Controller
      *
      * @var array default configuration
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'showStopwatch' => false,
     ];
 

@@ -11,7 +11,7 @@ class UserIgnoreFixture extends TestFixture
      *
      * @var array
      */
-    public $fields = [
+    public array $fields = [
         'id' => [
             'type' => 'integer',
             'null' => false,
@@ -56,7 +56,7 @@ class UserIgnoreFixture extends TestFixture
      * @var array
      */
     /*
-public $records = array(
+public array $records = array(
 array(
     'id' => 1,
     'created' => '2014-08-07 17:48:57',

@@ -23,7 +23,7 @@ class FieldFilter
      *
      * @var array
      */
-    protected $_defaultConfig = [];
+    protected array $_defaultConfig = [];
 
     /**
      * filters out all fields $fields in $data

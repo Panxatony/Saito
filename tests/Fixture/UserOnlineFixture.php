@@ -18,7 +18,7 @@ class UseronlineFixture extends TestFixture
      *
      * @var array
      */
-    public $fields = [
+    public array $fields = [
         'id' => [
             'type' => 'integer',
             'null' => false,
@@ -72,7 +72,7 @@ class UseronlineFixture extends TestFixture
      * @var array
      */
     /*
-    public $records = array(
+    public array $records = array(
         array(
             'id' => 1,
             'uuid' => 'Lorem ipsum dolor sit amet',

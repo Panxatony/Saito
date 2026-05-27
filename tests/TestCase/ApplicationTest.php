@@ -21,7 +21,7 @@ use Laminas\Diactoros\ServerRequest;
 
 class ApplicationTest extends SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
     ];
 

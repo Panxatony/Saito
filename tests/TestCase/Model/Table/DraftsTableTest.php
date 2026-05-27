@@ -27,7 +27,7 @@ class DraftsTableTest extends SaitoTableTestCase
     /** @var DraftsTable */
     public $Drafts;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Draft',
     ];
 

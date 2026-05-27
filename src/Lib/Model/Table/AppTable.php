@@ -27,7 +27,7 @@ class AppTable extends Table
     }
 
     /** @var array default config for InstanceConfigTrait */
-    protected $_defaultConfig = [];
+    protected array $_defaultConfig = [];
 
     public $SharedObjects;
 

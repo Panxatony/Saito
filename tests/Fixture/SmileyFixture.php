@@ -7,7 +7,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 class SmileyFixture extends TestFixture
 {
 
-    public $fields = [
+    public array $fields = [
         'id' => [
             'type' => 'integer',
             'null' => false,
@@ -51,7 +51,7 @@ class SmileyFixture extends TestFixture
         ],
     ];
 
-    public $records = [
+    public array $records = [
         [
             'id' => 1,
             'sort' => 2,

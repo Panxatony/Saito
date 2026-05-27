@@ -23,7 +23,7 @@ use Saito\Test\IntegrationTestCase;
 
 class PostingsControllerTest extends IntegrationTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.Bookmarks.Bookmark',
         'app.Category',
         'app.Draft',

@@ -15,7 +15,7 @@ use Cake\Routing\Router;
 // threads collection
 // -------------------------------------
 
-Router::scope(
+$routes->scope(
     '/api/v2/',
     ['plugin' => 'Api'],
     function ($routes) {

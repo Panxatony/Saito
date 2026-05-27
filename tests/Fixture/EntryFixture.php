@@ -14,7 +14,7 @@ class EntryFixture extends TestFixture
         'solves' => 0,
     ];
 
-    public $fields = [
+    public array $fields = [
         'created' => [
             'type' => 'datetime',
             'null' => true,
@@ -174,7 +174,7 @@ class EntryFixture extends TestFixture
      *
      * @var type array
      */
-    public $records = [
+    public array $records = [
         // thread 1
         // -------------------------------------
         [

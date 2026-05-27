@@ -43,7 +43,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
      */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.Bookmarks.Bookmark',
         'app.Category',
         'app.Entry',

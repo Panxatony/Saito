@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Installer;
 
 use Cake\Core\BasePlugin;
+use Cake\Core\Plugin as CakePlugin;
 use Cake\Core\PluginApplicationInterface;
 
 class Plugin extends BasePlugin
@@ -24,6 +25,10 @@ class Plugin extends BasePlugin
     {
         parent::bootstrap($app);
 
-        $app->addPlugin('Migrations');
+        // In Cake 5 the Application typically loads Migrations itself via
+        // its command runner; only fall through if nobody else loaded it.
+        if (!CakePlugin::isLoaded('Migrations')) {
+            $app->addPlugin('Migrations');
+        }
     }
 }

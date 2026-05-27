@@ -46,7 +46,7 @@ class ReadPostingsCookieMock extends ReadPostingsCookie
 
 class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.User',
     ];
 

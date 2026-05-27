@@ -25,7 +25,7 @@ class SearchesControllerTest extends IntegrationTestCase
 {
 
     /** @var array Fixtures */
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',

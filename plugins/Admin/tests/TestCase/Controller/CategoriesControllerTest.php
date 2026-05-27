@@ -24,7 +24,7 @@ use Saito\Test\IntegrationTestCase;
 class CategoriesControllerTest extends IntegrationTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',

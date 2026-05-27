@@ -12,7 +12,7 @@ use Saito\Test\SaitoTestCase;
 class SmileyRenderTest extends SaitoTestCase
 {
 
-    public $fixtures = ['app.Smiley', 'app.SmileyCode'];
+    public array $fixtures = ['app.Smiley', 'app.SmileyCode'];
 
     public function setUp(): void
     {

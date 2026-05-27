@@ -8,7 +8,7 @@ use Saito\Test\IntegrationTestCase;
 class ContactsControllerTestCase extends IntegrationTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',

@@ -18,7 +18,7 @@ class UsersTableTest extends SaitoTableTestCase
      */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Draft',
         'app.Entry',

@@ -24,7 +24,7 @@ use Saito\Test\IntegrationTestCase;
 class UsersControllerTest extends IntegrationTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Setting',
         'app.User',

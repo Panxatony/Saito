@@ -17,7 +17,7 @@ use Saito\Test\IntegrationTestCase;
 
 class PostingsControllerTest extends IntegrationTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',

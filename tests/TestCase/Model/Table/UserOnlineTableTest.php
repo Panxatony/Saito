@@ -19,7 +19,7 @@ class UserOnlineTableTest extends SaitoTableTestCase
 {
     public $tableClass = 'UserOnline';
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',

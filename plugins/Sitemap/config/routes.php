@@ -15,7 +15,7 @@ use Cake\Routing\Router;
 /**
  * Routes for xml files
  */
-Router::scope(
+$routes->scope(
     '/sitemap',
     ['plugin' => 'Sitemap'],
     function ($routes) {
@@ -28,7 +28,7 @@ Router::scope(
 /**
  * Routes for admin interface
  */
-Router::prefix(
+$routes->prefix(
     'admin',
     function ($routes) {
         $routes->connect(

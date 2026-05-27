@@ -26,7 +26,7 @@ class ReadPostingsDatabaseTest extends SaitoTableTestCase
     /** @var UserReadsTable */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Entry',
         'app.UserRead',
         'app.User',

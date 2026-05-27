@@ -23,7 +23,7 @@ use Migrations\Migrations;
 class UpdaterControllerTest extends IntegrationTestCase
 {
 
-    public $fixtures = ['app.Setting', 'plugin.Installer.Phinxlog'];
+    public array $fixtures = ['app.Setting', 'plugin.Installer.Phinxlog'];
 
     /** @var File */
     protected $token;

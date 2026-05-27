@@ -6,7 +6,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class SettingFixture extends TestFixture
 {
-    public $fields = [
+    public array $fields = [
         'id' => ['type' => 'integer', 'null' => false],
         'name' => ['type' => 'string', 'null' => true, 'default' => null],
         'value' => ['type' => 'string', 'null' => true, 'default' => null],
@@ -17,7 +17,7 @@ class SettingFixture extends TestFixture
         ],
     ];
 
-    public $records = [
+    public array $records = [
         ['id' => '1', 'name' => 'autolink', 'value' => '1'],
         ['id' => '3', 'name' => 'db_version', 'value' => null],
         ['id' => '4', 'name' => 'edit_delay', 'value' => '3'],

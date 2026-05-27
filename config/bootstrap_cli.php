@@ -26,3 +26,7 @@ use Cake\Core\Configure;
 // Set logs to different files so they don't have permission conflicts.
 Configure::write('Log.debug.file', 'cli-debug');
 Configure::write('Log.error.file', 'cli-error');
+
+// Cake 5: render exceptions as plain text in the console, not HTML
+// (the default WebExceptionRenderer is set in app.php for HTTP).
+Configure::write('Error.exceptionRenderer', 'Cake\Error\Renderer\ConsoleExceptionRenderer');

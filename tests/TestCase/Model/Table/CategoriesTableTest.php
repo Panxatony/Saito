@@ -10,7 +10,7 @@ class CategoriesTableTest extends SaitoTableTestCase
 
     public $tableClass = 'Categories';
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',

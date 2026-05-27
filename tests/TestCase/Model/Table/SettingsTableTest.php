@@ -22,7 +22,7 @@ class SettingsTableTest extends SaitoTableTestCase
 
     public $tableClass = 'Settings';
 
-    public $fixtures = ['app.Setting'];
+    public array $fixtures = ['app.Setting'];
 
     public function settingsDataProvider()
     {

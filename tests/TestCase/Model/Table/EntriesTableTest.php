@@ -15,7 +15,7 @@ class EntriesTest extends SaitoTableTestCase
     /** @var EntriesTable */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.User',
         'app.UserOnline',
         'app.UserRead',

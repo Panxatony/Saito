@@ -11,7 +11,7 @@ use Saito\Test\SaitoTestCase;
 
 class EntryTest extends SaitoTestCase
 {
-    public $fixtures = ['app.Category', 'app.Entry', 'app.User'];
+    public array $fixtures = ['app.Category', 'app.Entry', 'app.User'];
 
     public function testIsRoot()
     {

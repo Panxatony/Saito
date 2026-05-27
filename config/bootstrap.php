@@ -18,6 +18,15 @@
  */
 require __DIR__ . '/paths.php';
 
+// Cake 5 no longer auto-loads the global helper functions (env(), __(),
+// __d(), pluginSplit() etc.). They live in *_global.php files that aren't
+// in cakephp/cakephp's autoload.files list, so pull them in explicitly —
+// our app and templates rely on them being globally available.
+$cakeRoot = ROOT . DS . 'vendor' . DS . 'cakephp' . DS . 'cakephp' . DS . 'src';
+require $cakeRoot . DS . 'Core' . DS . 'functions_global.php';
+require $cakeRoot . DS . 'I18n' . DS . 'functions_global.php';
+require $cakeRoot . DS . 'Utility' . DS . 'bootstrap.php';
+
 /*
  * Bootstrap CakePHP.
  *
@@ -30,19 +39,14 @@ require __DIR__ . '/paths.php';
 require CORE_PATH . 'config' . DS . 'bootstrap.php';
 
 use Cake\Cache\Cache;
-use Cake\Console\ConsoleErrorHandler;
 use Cake\Core\App;
 use Cake\Core\Configure;
 use Cake\Core\Configure\Engine\PhpConfig;
-use Cake\Core\Plugin;
-use Cake\Database\Type;
 use Cake\Datasource\ConnectionManager;
-use Cake\Error\ErrorHandler;
 use Cake\Http\ServerRequest;
 use Cake\Log\Log;
-use Cake\Mailer\Email;
+use Cake\Mailer\Mailer;
 use Cake\Mailer\TransportFactory;
-use Cake\Routing\DispatcherFactory;
 use Cake\Utility\Inflector;
 use Cake\Utility\Security;
 
@@ -102,7 +106,7 @@ try {
  */
 if (Configure::read('debug')) {
     Configure::write('Cache._cake_model_.duration', '+2 minutes');
-    Configure::write('Cache._cake_core_.duration', '+2 minutes');
+    Configure::write('Cache._cake_translations_.duration', '+2 minutes');
     // disable router cache during development
     Configure::write('Cache._cake_routes_.duration', '+2 seconds');
 }
@@ -125,21 +129,21 @@ mb_internal_encoding(Configure::read('App.encoding'));
 ini_set('intl.default_locale', Configure::read('App.defaultLocale'));
 
 /*
- * Register application error and exception handlers.
+ * Pull in CLI overrides BEFORE registering the error/exception traps so
+ * the CLI-specific exceptionRenderer (ConsoleExceptionRenderer) is in
+ * Configure when ExceptionTrap reads it during construction.
  */
 $isCli = PHP_SAPI === 'cli';
 if ($isCli) {
-    (new \Cake\Error\ConsoleErrorHandler(Configure::read('Error')))->register();
-} else {
-    (new ErrorHandler(Configure::read('Error')))->register();
+    require __DIR__ . '/bootstrap_cli.php';
 }
 
 /*
- * Include the CLI bootstrap overrides.
+ * Register application error and exception handlers via Cake 5's
+ * ErrorTrap / ExceptionTrap (the old ErrorHandler classes were removed).
  */
-if ($isCli) {
-    require __DIR__ . '/bootstrap_cli.php';
-}
+(new \Cake\Error\ErrorTrap(Configure::read('Error')))->register();
+(new \Cake\Error\ExceptionTrap(Configure::read('Error')))->register();
 
 /*
  * Set the full base URL.
@@ -163,7 +167,7 @@ if (!Configure::read('App.fullBaseUrl')) {
 Cache::setConfig(Configure::consume('Cache'));
 ConnectionManager::setConfig(Configure::consume('Datasources'));
 TransportFactory::setConfig(Configure::consume('EmailTransport'));
-Email::setConfig(Configure::consume('Email'));
+Mailer::setConfig(Configure::consume('Email'));
 Log::setConfig(Configure::consume('Log'));
 Security::setSalt(Configure::consume('Security.salt'));
 
@@ -188,22 +192,9 @@ ServerRequest::addDetector('tablet', function ($request) {
     return $detector->isTablet();
 });
 
-/*
- * Enable immutable time objects in the ORM.
- *
- * You can enable default locale format parsing by adding calls
- * to `useLocaleParser()`. This enables the automatic conversion of
- * locale specific date formats. For details see
- * @link https://book.cakephp.org/3.0/en/core-libraries/internationalization-and-localization.html#parsing-localized-datetime-data
- */
-\Cake\Database\TypeFactory::build('time')
-    ->useImmutable();
-\Cake\Database\TypeFactory::build('date')
-    ->useImmutable();
-\Cake\Database\TypeFactory::build('datetime')
-    ->useImmutable();
-\Cake\Database\TypeFactory::build('timestamp')
-    ->useImmutable();
+// Cake 5 dropped the mutable Time/Date types — the database types are
+// always immutable now, so the four ->useImmutable() calls that lived
+// here were no-ops and have been removed.
 
 /*
  * Custom Inflector rules, can be set to correctly pluralize or singularize
@@ -221,7 +212,10 @@ ServerRequest::addDetector('tablet', function ($request) {
 Inflector::rules('plural', ['/^(smil)ey$/i' => '\1ies']);
 Inflector::rules('singular', ['/^(smil)ies$/i' => '\1ey']);
 
-include Cake\Core\App::path('Lib')[0] . 'BaseFunctions.php';
+// App::path('Lib') returned [APP . 'Lib' . DS] only because Application
+// configured the 'Lib' path. In Cake 5 the App::paths surface is leaner;
+// reference the file directly instead.
+include APP . 'Lib' . DS . 'BaseFunctions.php';
 
 \Cake\Event\EventManager::instance()->on(\Saito\Event\SaitoEventManager::getInstance());
 

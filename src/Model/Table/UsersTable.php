@@ -56,7 +56,7 @@ class UsersTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'user_name_disallowed_chars' => ['\'', ';', '&', '<', '>'],
     ];
 

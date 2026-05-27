@@ -18,7 +18,7 @@ use Saito\User\CurrentUser\CurrentUserFactory;
  */
 class ThreadsComponentTest extends SaitoTableTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',

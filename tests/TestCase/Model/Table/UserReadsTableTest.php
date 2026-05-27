@@ -18,7 +18,7 @@ class UserReadsTableTest extends SaitoTableTestCase
      *
      * @var array
      */
-    public $fixtures = [
+    public array $fixtures = [
         'app.UserRead',
         'app.User',
         'app.UserOnline',

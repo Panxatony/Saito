@@ -35,7 +35,7 @@ class AuthUserComponentTest extends IntegrationTestCase
     /**
      * {@inheritDoc}
      */
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',

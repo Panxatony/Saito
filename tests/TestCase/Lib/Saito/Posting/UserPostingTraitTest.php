@@ -30,7 +30,7 @@ class UserPostingTraitTest extends SaitoTestCase
 {
     public $editPeriod = 20;
 
-    public $fixtures = ['app.Category'];
+    public array $fixtures = ['app.Category'];
 
     /** @var UserPostingTraitClassMock */
     private $Mock;

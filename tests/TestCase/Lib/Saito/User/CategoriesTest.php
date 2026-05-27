@@ -10,7 +10,7 @@ use Saito\User\CurrentUser\CurrentUserFactory;
  */
 class CategoriesTest extends SaitoTestCase
 {
-    public $fixtures = ['app.Category', 'app.User'];
+    public array $fixtures = ['app.Category', 'app.User'];
 
     public function setUp(): void
     {

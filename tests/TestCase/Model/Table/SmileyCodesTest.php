@@ -11,7 +11,7 @@ class SmileyCodeTest extends SaitoTableTestCase
 {
     public $tableClass = 'SmileyCodes';
 
-    public $fixtures = ['app.Smiley', 'app.SmileyCode'];
+    public array $fixtures = ['app.Smiley', 'app.SmileyCode'];
 
     public function testCacheClearAfterDelete()
     {

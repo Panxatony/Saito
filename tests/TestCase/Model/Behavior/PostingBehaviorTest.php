@@ -19,7 +19,7 @@ class PostingBehaviorTest extends SaitoTableTestCase
     /** @var EntriesTable */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',

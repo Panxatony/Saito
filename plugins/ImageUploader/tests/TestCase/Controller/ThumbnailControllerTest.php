@@ -23,7 +23,7 @@ use Saito\Test\IntegrationTestCase;
 
 class ThumbnailControllerTest extends IntegrationTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Setting',
         'plugin.ImageUploader.Uploads',
     ];

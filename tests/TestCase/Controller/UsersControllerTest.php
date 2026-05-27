@@ -16,7 +16,7 @@ use Saito\User\Permission\ResourceAC;
 
 class UsersControllerTest extends IntegrationTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Draft',
         'app.Entry',

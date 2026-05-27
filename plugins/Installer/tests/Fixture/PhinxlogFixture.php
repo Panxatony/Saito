@@ -17,7 +17,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 class PhinxlogFixture extends TestFixture
 {
 
-    public $fields = [
+    public array $fields = [
         'version' => [
             'type' => 'integer',
             'null' => false,
@@ -50,5 +50,5 @@ class PhinxlogFixture extends TestFixture
         ],
     ];
 
-    public $records = [];
+    public array $records = [];
 }

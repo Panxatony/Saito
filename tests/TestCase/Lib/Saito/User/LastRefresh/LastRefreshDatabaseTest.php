@@ -7,7 +7,7 @@ use Saito\User\CurrentUser\CurrentUserFactory;
 
 class LastRefreshDatabaseTest extends SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.User',
         'app.UserRead',
     ];

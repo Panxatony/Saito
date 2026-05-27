@@ -16,7 +16,7 @@ use Saito\User\CurrentUser\CurrentUserFactory;
 
 class PostingComponentTest extends SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Draft',
         'app.Entry',

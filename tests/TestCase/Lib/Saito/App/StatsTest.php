@@ -9,7 +9,7 @@ use Saito\Test\SaitoTestCase;
 class StatsTest extends SaitoTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.UserOnline',

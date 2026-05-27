@@ -20,7 +20,7 @@ use Saito\User\SaitoUser;
 
 class ResourceACTest extends SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
     ];
 

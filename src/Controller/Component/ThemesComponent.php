@@ -26,7 +26,7 @@ class ThemesComponent extends Component
      *
      * @var array
      */
-    protected $_defaultConfig = [];
+    protected array $_defaultConfig = [];
 
     /**
      * {@inheritDoc}

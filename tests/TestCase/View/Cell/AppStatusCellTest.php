@@ -13,7 +13,7 @@ use Saito\Test\SaitoTestCase;
 class AppStatusCellTest extends SaitoTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.UserOnline',

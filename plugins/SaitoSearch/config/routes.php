@@ -13,7 +13,7 @@ declare(strict_types=1);
 use Cake\Routing\RouteBuilder;
 use Cake\Routing\Router;
 
-Router::plugin(
+$routes->plugin(
     'SaitoSearch',
     ['path' => '/searches'],
     function (RouteBuilder $routes) {

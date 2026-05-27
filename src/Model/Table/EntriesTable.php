@@ -69,7 +69,7 @@ class EntriesTable extends AppTable
         'category' => ['type' => 'value'],
     ];
 
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'subject_maxlength' => 100,
     ];
 

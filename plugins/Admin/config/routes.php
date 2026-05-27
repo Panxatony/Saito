@@ -15,7 +15,7 @@ use Cake\Routing\Router;
 /**
  * Routes for Admin-Area
  */
-Router::scope(
+$routes->scope(
     '/admin',
     ['plugin' => 'Admin'],
     function ($routes) {
