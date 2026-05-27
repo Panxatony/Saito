@@ -13,7 +13,7 @@ declare(strict_types=1);
 $config = [
     'Saito' =>
         [
-            'v' => '5.7.1',
+            'v' => '6.0.0-alpha',
             'saitoHomepage' => 'https://saito.siezi.com/',
         ],
 ];
