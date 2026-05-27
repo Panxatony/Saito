@@ -108,10 +108,14 @@ server {
 
     # ----------------------------------------------------------------
     # CakePHP routing: send everything that's not a real file to
-    # index.php (front controller).
+    # index.php (front controller). Do NOT include `$uri/` — Cake's
+    # `plugin assets symlink` creates webroot/<plugin> symlinks (e.g.
+    # webroot/admin -> plugins/Admin/webroot), and `$uri/` would make
+    # nginx try to serve those directories with autoindex (-> 403)
+    # instead of letting Cake route /admin/ to AdminsController.
     # ----------------------------------------------------------------
     location / {
-        try_files $uri $uri/ /index.php?$args;
+        try_files $uri /index.php?$args;
     }
 
     # ----------------------------------------------------------------
