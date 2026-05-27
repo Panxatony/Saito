@@ -139,7 +139,6 @@ release:
       --exclude='./yarn.lock'
       --exclude='./build.xml'
       --exclude='*/tests'
-      --exclude='*.map'
       .
     - sha256sum "build/${RELEASE_NAME}.tar.gz" > "build/${RELEASE_NAME}.tar.gz.sha256"
     - ls -lh build/

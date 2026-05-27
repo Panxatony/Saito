@@ -18,12 +18,13 @@ module.exports = function (grunt) {
             ],
             dest: './webroot/js/',
           },
-          // CSS
+          // CSS (+ sourcemap so DevTools have something to load instead of 404)
           {
             expand: true,
             flatten: true,
             src: [
               './node_modules/bootstrap/dist/css/bootstrap.min.css',
+              './node_modules/bootstrap/dist/css/bootstrap.min.css.map',
             ],
             dest: './webroot/css/stylesheets/',
           },
