@@ -75,7 +75,7 @@ class RefererComponentTest extends SaitoTestCase
         $this->assertTrue($this->component->wasAction('index'));
         $this->assertFalse($this->component->wasAction('view'));
 
-        $this->component->request = $request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/entries/view');
+        $this->controller->setRequest($request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/entries/view'));
         $event = new Event('Controller.beforeFilter', $this->controller);
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);
@@ -87,7 +87,7 @@ class RefererComponentTest extends SaitoTestCase
         $this->assertTrue($this->component->wasAction('view'));
         $this->assertFalse($this->component->wasAction('index'));
 
-        $this->component->request = $request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/some/');
+        $this->controller->setRequest($request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/some/'));
         $event = new Event('Controller.beforeFilter', $this->controller);
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);
@@ -99,7 +99,7 @@ class RefererComponentTest extends SaitoTestCase
         $this->assertTrue($this->component->wasAction('index'));
 
         //* external referer
-        $this->component->request = $request->withEnv('HTTP_REFERER', 'http://heise.de/foobar/baz.html');
+        $this->controller->setRequest($request->withEnv('HTTP_REFERER', 'http://heise.de/foobar/baz.html'));
         $event = new Event('Controller.beforeFilter', $this->controller);
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);

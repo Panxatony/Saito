@@ -162,14 +162,18 @@ class AuthUserComponentTest extends IntegrationTestCase
 
         $session = $this->getMockBuilder(Session::class)
             ->disableOriginalConstructor()
-            ->setMethods(['read'])
+            ->setMethods(['read', 'check', 'write', 'renew', 'destroy', 'id', 'start'])
             ->getMock();
         $session->expects($this->atLeastOnce())
            ->method('read')
-           ->with('Auth')
-           ->will($this->returnValue([
-               'username' => 'Ulysses',
-           ]));
+           ->willReturnCallback(function ($key) {
+               return $key === 'Auth' ? ['username' => 'Ulysses'] : null;
+           });
+        // SessionAuthenticator::persistIdentity()/clearIdentity() call
+        // check()/renew()/write()/destroy() when AuthenticationComponent
+        // setIdentity() is called from login().
+        $session->method('check')->willReturn(true);
+        $session->method('id')->willReturn('test-session-id');
 
         $request = $request->withAttribute('session', $session);
         $this->_setup($request);
@@ -198,7 +202,11 @@ class AuthUserComponentTest extends IntegrationTestCase
         $user = $Users->get(1);
         $hasher = PasswordHasherFactory::build(DefaultPasswordHasher::class);
         $username = $user->get('username');
-        $hash = $hasher->hash($username . $user->get('password'));
+        // Cake 4 CookieAuthenticator token format:
+        // hash(username . password . hmac_sha1(username.password, Security::salt))
+        $value = $username . $user->get('password');
+        $hmac = hash_hmac('sha1', $value, \Cake\Utility\Security::getSalt());
+        $hash = $hasher->hash($value . $hmac);
         $cookieName = Configure::read('Security.cookieAuthName');
         $webroot = '/sub/';
         $request = (new ServerRequest([

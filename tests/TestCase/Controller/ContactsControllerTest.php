@@ -2,7 +2,7 @@
 
 namespace App\Test\TestCase\Controller;
 
-use Cake\Mailer\Email;
+use Cake\Mailer\Message;
 use Saito\Test\IntegrationTestCase;
 
 class ContactsControllerTestCase extends IntegrationTestCase
@@ -35,7 +35,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
             ->method('send')
             ->withConsecutive(
                 // cc mail
-                [$this->callback(function (Email $email) {
+                [$this->callback(function (Message $email) {
                     $this->assertEquals(
                         $email->getFrom(),
                         ['system@example.com' => 'macnemo']
@@ -49,7 +49,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
                     return true;
                 })],
                 // main mail
-                [$this->callback(function (Email $email) {
+                [$this->callback(function (Message $email) {
                     $this->assertEquals(
                         $email->getFrom(),
                         ['fo3@example.com' => 'fo3@example.com']
@@ -134,7 +134,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
             ->method('send')
             ->with(
                 $this->callback(
-                    function (Email $email) {
+                    function (Message $email) {
                         $this->assertEquals(
                             $email->getFrom(),
                             ['fo3@example.com' => 'fo3@example.com']
@@ -149,7 +149,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
                         );
                         $this->assertStringContainsString(
                             'message-text',
-                            $email->message('text')
+                            $email->getBodyText()
                         );
                         $this->assertEquals($email->getSubject(), 'subject');
 
@@ -181,7 +181,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
             ->method('send')
             ->with(
                 $this->callback(
-                    function (Email $email) {
+                    function (Message $email) {
                         $this->assertEquals(
                             $email->getFrom(),
                             ['ulysses@example.com' => 'Ulysses']

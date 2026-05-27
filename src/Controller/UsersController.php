@@ -81,7 +81,14 @@ class UsersController extends AppController
             // parameter, so we have to strip the base-path off again.
             $target = $target ? Router::normalize($target) : '';
             // Referer from Request
-            $target = $target ?: $this->referer(null, true);
+            // Referer fallback only if it points somewhere other than the
+            // login form itself; otherwise send the user to the front-page.
+            if (empty($target)) {
+                $referer = $this->referer('/', true);
+                if ($referer && strpos($referer, '/login') === false) {
+                    $target = $referer;
+                }
+            }
 
             if (empty($target)) {
                 $target = '/';
@@ -912,7 +919,7 @@ class UsersController extends AppController
 
         $this->CurrentUser->set('slidetab_order', $order);
 
-        return $this->getResponse()->withStringBody('true');
+        return $this->getResponse()->withStringBody('1');
     }
 
     /**

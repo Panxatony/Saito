@@ -32,18 +32,18 @@ class UpdaterStartForm extends Form
     /**
      * {@inheritDoc}
      */
-    protected function _buildValidator(Validator $validator)
+    public function validationDefault(Validator $validator): Validator
     {
         $validator
             ->requirePresence('dbname')
-            ->notEmpty('dbname')
+            ->notEmptyString('dbname')
             ->add('dbname', 'custom', [
                 'rule' => [$this, 'validateDbName'],
             ]);
 
         $validator
             ->requirePresence('dbpassword')
-            ->allowEmpty('dbpassword')
+            ->allowEmptyString('dbpassword')
             ->add('dbpassword', 'custom', [
                 'rule' => [$this, 'validateDbPassword'],
             ]);

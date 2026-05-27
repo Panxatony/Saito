@@ -145,6 +145,14 @@ class AuthUserComponent extends Component
      */
     public function login(): bool
     {
+        // Capture the authentication provider that succeeded BEFORE we
+        // destroy session/auth data — logout() resets _successfulAuthenticator
+        // and refreshAuthenticationProvider() needs to know if a cookie
+        // authenticator was used in this request.
+        $authenticationProvider = $this->Authentication
+            ->getAuthenticationService()
+            ->getAuthenticationProvider();
+
         // destroy any existing session or Authentication-data
         $this->logout();
 
@@ -159,6 +167,7 @@ class AuthUserComponent extends Component
         }
 
         $this->Authentication->setIdentity($user);
+        $this->refreshAuthenticationProvider($authenticationProvider);
         $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
         $this->setCurrentUser($CurrentUser);
 
@@ -201,7 +210,22 @@ class AuthUserComponent extends Component
             // relied on AuthComponent's identify=true to do the same.
             $userId = $array['sub'] ?? $array['id'] ?? null;
             if ($userId !== null) {
-                $user = $this->UsersTable->get($userId);
+                $user = $this->UsersTable
+                    ->find('profile')
+                    ->where(['Users.id' => $userId])
+                    ->first();
+                if ($user === null) {
+                    return null;
+                }
+            } elseif (!empty($array['username'])) {
+                // Fall-back: session/JWT only carries a username — look it up.
+                $user = $this->UsersTable
+                    ->find('profile')
+                    ->where(['Users.username' => $array['username']])
+                    ->first();
+                if ($user === null) {
+                    return null;
+                }
             } else {
                 $user = new User($array, ['markNew' => false, 'markClean' => true]);
             }
@@ -219,8 +243,6 @@ class AuthUserComponent extends Component
 
             return null;
         }
-
-        $this->refreshAuthenticationProvider();
 
         return $user;
     }
@@ -256,13 +278,8 @@ class AuthUserComponent extends Component
      *
      * @return void
      */
-    private function refreshAuthenticationProvider()
+    private function refreshAuthenticationProvider($authenticationProvider = null)
     {
-        // Get current authentication provider
-        $authenticationProvider = $this->Authentication
-            ->getAuthenticationService()
-            ->getAuthenticationProvider();
-
         // Persistent login provider is cookie based. Every time that cookie is
         // used for a login its expiry is pushed forward.
         if ($authenticationProvider instanceof CookieAuthenticator) {

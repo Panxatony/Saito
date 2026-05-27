@@ -8,7 +8,7 @@ use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\Filesystem\Folder;
-use Cake\Mailer\Email;
+use Cake\Mailer\Message;
 use Cake\ORM\TableRegistry;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
@@ -78,9 +78,11 @@ class UsersControllerTest extends IntegrationTestCase
 
         $this->get('/');
         $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
-        $this->assertNull(
-            $this->_controller->getRequest()->getSession()->read('Auth')
-        );
+        // Cake 4: Server::run() calls $session->close() at end of dispatch,
+        // which resets _started=false. Reading via the Session API afterwards
+        // in CLI re-calls start(), wiping $_SESSION. Use the $_SESSION
+        // superglobal directly to introspect post-request session state.
+        $this->assertArrayNotHasKey('Auth', $_SESSION);
 
         $this->mockSecurity();
         $this->post('/login', $data);
@@ -88,9 +90,8 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertFalse($this->_controller->components()->has('Security'));
 
         $this->assertTrue($this->_controller->CurrentUser->isLoggedIn());
-        $this->assertNotNull(
-            $this->_controller->getRequest()->getSession()->read('Auth')
-        );
+        $this->assertArrayHasKey('Auth', $_SESSION);
+        $this->assertNotNull($_SESSION['Auth']);
 
         //# successful login redirects
         $this->assertRedirect('/');
@@ -326,7 +327,7 @@ class UsersControllerTest extends IntegrationTestCase
             ->method('send')
             ->with(
                 $this->callback(
-                    function (Email $email) use ($Users) {
+                    function (Message $email) use ($Users) {
                         $this->assertEquals(
                             $email->getFrom(),
                             ['register@example.com' => 'macnemo']
@@ -343,7 +344,7 @@ class UsersControllerTest extends IntegrationTestCase
                         $activate = $user->get('activate_code');
                         $this->assertStringContainsString(
                             "/users/rs/$id?c=$activate",
-                            implode(' ', $email->message())
+                            $email->getBodyText()
                         );
 
                         return true;
