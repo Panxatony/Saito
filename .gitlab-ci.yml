@@ -50,6 +50,7 @@ test:
   script:
     - vendor/bin/phpunit --colors=never
   rules:
+    - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
