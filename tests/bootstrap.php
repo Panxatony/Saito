@@ -11,9 +11,21 @@ require dirname(__DIR__) . '/config/bootstrap.php';
 
 $_SERVER['PHP_SELF'] = '/';
 
-// otherwise Security mock fails with debug info
+use Cake\Cache\Cache;
+use Cake\Cache\Engine\ArrayEngine;
 use Cake\Core\Configure;
 
+// Run every cache configuration through Cake's in-memory ArrayEngine
+// during tests: no leftover files in tmp/cache/, no flaky interactions
+// between test runs, and a meaningful speed-up on cache-heavy paths.
+foreach (Cache::configured() as $cacheKey) {
+    $config = Cache::getConfigOrFail($cacheKey);
+    $config['className'] = ArrayEngine::class;
+    Cache::drop($cacheKey);
+    Cache::setConfig($cacheKey, $config);
+}
+
+// otherwise Security mock fails with debug info
 Configure::write('debug', true);
 
 // Cake Session isn't isolated and clashes with PHPUnit
