@@ -28,6 +28,16 @@ class RefererComponentTest extends SaitoTestCase
     public function setUp(): void
     {
         parent::setUp();
+        // Load the application's routes so Router::getRouteCollection()
+        // can resolve referer URLs to controller/action.
+        \Cake\Routing\Router::reload();
+        $app = new \App\Application(CONFIG);
+        $app->bootstrap();
+        $app->pluginBootstrap();
+        $builder = \Cake\Routing\Router::createRouteBuilder('/');
+        $app->routes($builder);
+        $app->pluginRoutes($builder);
+
         // Setup our component and fake test controller
         $request = new ServerRequest(['url' => '/users/view/5']);
         $response = new Response();
@@ -58,7 +68,7 @@ class RefererComponentTest extends SaitoTestCase
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);
         $this->component->beforeRender($event);
-        $result = $this->component->getController()->viewVars['referer'];
+        $result = $this->component->getController()->viewBuilder()->getVar('referer');
         $this->assertEquals(['controller' => 'entries', 'action' => 'index'], $result);
         $this->assertTrue($this->component->wasController('entries'));
         $this->assertFalse($this->component->wasController('users'));
@@ -70,7 +80,7 @@ class RefererComponentTest extends SaitoTestCase
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);
         $this->component->beforeRender($event);
-        $result = $this->component->getController()->viewVars['referer'];
+        $result = $this->component->getController()->viewBuilder()->getVar('referer');
         $this->assertEquals(['controller' => 'entries', 'action' => 'view'], $result);
         $this->assertTrue($this->component->wasController('entries'));
         $this->assertFalse($this->component->wasController('users'));
@@ -82,7 +92,7 @@ class RefererComponentTest extends SaitoTestCase
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);
         $this->component->beforeRender($event);
-        $result = $this->component->getController()->viewVars['referer'];
+        $result = $this->component->getController()->viewBuilder()->getVar('referer');
         $this->assertEquals(['controller' => 'some', 'action' => 'index'], $result);
         $this->assertTrue($this->component->wasController('some'));
         $this->assertFalse($this->component->wasController('entries'));
@@ -94,7 +104,7 @@ class RefererComponentTest extends SaitoTestCase
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);
         $this->component->beforeRender($event);
-        $result = $this->component->getController()->viewVars['referer'];
+        $result = $this->component->getController()->viewBuilder()->getVar('referer');
         $this->assertEquals([], $result);
         $this->assertFalse($this->component->wasController('entries'));
         $this->assertFalse($this->component->wasAction('index'));

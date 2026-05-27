@@ -72,6 +72,9 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         // config/app.php still carries the Cake-3 path because that file is
         // local (DB credentials, salts) and we don't want to touch it.
         Configure::write('App.paths.templates', [ROOT . DS . 'templates' . DS]);
+        // Same for locales: Cake-3 layout was src/Locale, but we kept it
+        // and just configure it here.
+        Configure::write('App.paths.locales', [APP . 'Locale' . DS]);
 
         if (PHP_SAPI === 'cli') {
             $this->bootstrapCli();

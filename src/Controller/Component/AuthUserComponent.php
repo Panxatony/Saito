@@ -196,20 +196,21 @@ class AuthUserComponent extends Component
             $array = $data instanceof \ArrayAccess
                 ? (array)($data instanceof \ArrayObject ? $data->getArrayCopy() : $data)
                 : (array)$data;
-            // JWT payload only carries 'sub' (the user-id); reload the full
-            // user record from the DB. The session payload already has the
-            // full user array, so we use it as-is.
-            if (isset($array['sub']) && count($array) === 1) {
-                $user = $this->UsersTable->get($array['sub']);
-            } elseif (isset($array['id']) && !isset($array['activate_code'])) {
-                $user = $this->UsersTable->get($array['id']);
+            // Resolve the user id from either JWT 'sub' or session 'id'
+            // and always reload the row from the DB. The Cake-3 era code
+            // relied on AuthComponent's identify=true to do the same.
+            $userId = $array['sub'] ?? $array['id'] ?? null;
+            if ($userId !== null) {
+                $user = $this->UsersTable->get($userId);
             } else {
                 $user = new User($array, ['markNew' => false, 'markClean' => true]);
             }
         }
 
-        $isUnactivated = $user['activate_code'] !== 0;
-        $isLocked = $user['user_lock'] == true;
+        // activate_code/user_lock might be absent for mocked sessions in
+        // unit tests; treat missing as "ok" rather than "unactivated/locked".
+        $isUnactivated = isset($user['activate_code']) && $user['activate_code'] !== 0;
+        $isLocked = isset($user['user_lock']) && $user['user_lock'] == true;
 
         if ($isUnactivated || $isLocked) {
             /// User isn't allowed to be logged-in

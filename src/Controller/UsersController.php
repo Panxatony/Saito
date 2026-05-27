@@ -79,7 +79,7 @@ class UsersController extends AppController
             $target = $this->getRequest()->getQuery('redirect');
             // AuthenticationService puts the full local path into the redirect
             // parameter, so we have to strip the base-path off again.
-            $target = Router::normalize($target);
+            $target = $target ? Router::normalize($target) : '';
             // Referer from Request
             $target = $target ?: $this->referer(null, true);
 

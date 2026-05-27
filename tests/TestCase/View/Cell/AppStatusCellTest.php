@@ -29,7 +29,7 @@ class AppStatusCellTest extends SaitoTestCase
     {
         parent::setUp();
         $this->request = $this->createMock('Cake\Http\ServerRequest');
-        $this->response = $this->createMock('Cake\Network\Response');
+        $this->response = $this->createMock('Cake\Http\Response');
 
         $this->AppStatus = new AppStatusCell($this->request, $this->response);
     }

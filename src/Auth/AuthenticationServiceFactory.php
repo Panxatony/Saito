@@ -55,10 +55,29 @@ class AuthenticationServiceFactory
         $service->setConfig('queryParam', 'redirect');
         $service->setConfig('unauthenticatedRedirect', Router::url(['_name' => 'login'], false));
 
+        // Password identifier looks up users by username and verifies the
+        // password against the saito-specific hashers.
+        $service->loadIdentifier('Authentication.Password', [
+            'fields' => ['username' => 'username', 'password' => 'password'],
+            'resolver' => [
+                'className' => 'Authentication.Orm',
+                'userModel' => 'Users',
+            ],
+            'passwordHasher' => [
+                'className' => 'Authentication.Fallback',
+                'hashers' => [
+                    'Authentication.Default',
+                    [
+                        'className' => 'App\\Auth\\Mlf2PasswordHasher',
+                    ],
+                ],
+            ],
+        ]);
+
         // Authenticators are checked in order of registration.
         // Leave Session first.
-        // `identify` stays false: Saito does not configure an Identifier,
-        // so the session payload is the source of truth for the request.
+        // `identify` stays false: Saito does not configure an Identifier
+        // for the session, so the session payload is the source of truth.
         $service->loadAuthenticator('Authentication.Session');
         $service->loadAuthenticator(
             'Authentication.Cookie',

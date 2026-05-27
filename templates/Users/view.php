@@ -311,7 +311,7 @@ if ($items) {
                     'lockPeriod',
                     ['id' => 'lockPeriod', 'value' => $defaultValue]
                 );
-                $lock[] = $this->Form->unlockField('lockPeriod');
+                $this->Form->unlockField('lockPeriod');
                 $lock[] = $this->Form->hidden(
                     'lockUserId',
                     ['value' => $user->get('id')]
