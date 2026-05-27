@@ -200,6 +200,30 @@ Add database credentials via `/root/.my.cnf` (mode `600`) so `mysqldump` doesn't
 
 For subsequent releases, drop the new tarball next to the running install, swap the symlink (or move the directory) and re-run `composer install --no-dev` only if you've updated `composer.lock` outside of the packaged release. Re-run `bin/cake plugin assets symlink` so the plugin asset symlinks are re-created in the fresh `webroot/`. Then visit the site once — Saito's updater detects schema changes and applies migrations.
 
+#### Upgrading from 5.7.x to 6.0.x
+
+6.0 is a framework upgrade (CakePHP 3.10 → 4). No database migration ships with this version — the last schema change was `Saito5x7x0` in early 2020. Your `phinxlog` table stays untouched.
+
+That said, before you swing the symlink:
+
+- **Take a database backup.** Standard hygiene; the upgrade itself is non-destructive, but the first request after deploy writes new cache and session structures.
+- **Verify InnoDB + utf8mb4.** Older installations may still have MyISAM tables or a non-`utf8mb4_unicode_ci` collation. The 4.x→5.x migrations were supposed to fix this, but installations that skipped versions sometimes have stragglers. Check with `SHOW TABLE STATUS` — if you find MyISAM or `latin1`/`utf8` collations, run the relevant migrations from the 5.x line before the framework jump.
+- **PHP 8.0+.** 6.0 drops PHP 7 support entirely. Adjust your PHP-FPM pool if needed.
+
+After deploy:
+
+- Run `bin/cake plugin assets symlink` (as above).
+- Open the site once while logged out — the boot path exercises the new middleware stack (BodyParser, CsrfProtection cookie name, AuthenticationMiddleware) and surfaces any per-environment misconfiguration immediately.
+
+##### Custom themes
+
+The bundled `Bota` theme has already been ported. If you maintain a custom theme outside the repo, the Cake-3 → 4 changes you need to make yourself are:
+
+1. **Template paths.** Cake 4 expects `templates/` at the theme plugin root (not `src/Template/`), and the element directory is lowercase `element/` (not `Element/`). Case matters on Linux. Move/rename accordingly.
+2. **View/Helper return types.** Methods that override CakePHP base classes (e.g. `View::initialize()`, custom Helpers) must match the parent signature exactly under PHP 8 — `public function initialize(): void` etc. Missing return types throw a fatal at request time, not at boot.
+3. **`$helpers` property removed.** Cake 4.4 dropped the `public $helpers = [...]` convention on Views and Controllers. Move helper registrations to `$this->viewBuilder()->setHelpers([...])` (Controller) or `$this->loadHelper(...)` (View). The deprecation warning is loud; the underlying behaviour silently skips the helpers.
+4. **Plugin asset symlinks.** Theme CSS/JS lives at `plugins/<Theme>/webroot/...` and must be exposed via `webroot/<theme_underscored>/`. `bin/cake plugin assets symlink` handles all bundled plugins in one go — including custom themes registered through `Saito.themes.available`.
+
 ## Development
 
 ### Set-Up Environment
