@@ -351,9 +351,12 @@ class AuthUserComponent extends Component
         }
 
         /// Set new token
-        // Use jwtSalt to allow emergency invalidation of all existing tokens
-        // independently from the cookie encryption key.
-        $jwtKey = Configure::read('Security.jwtSalt');
+        // Prefer a dedicated jwtSalt (lets ops invalidate all tokens by
+        // rotating it independently) but fall back to cookieSalt — which the
+        // installer always seeds — so default deployments work out of the
+        // box without extra config.
+        $jwtKey = Configure::read('Security.jwtSalt')
+            ?: Configure::read('Security.cookieSalt');
         $jwtPayload = [
             'sub' => $this->CurrentUser->getId(),
             // Token is valid for one day.

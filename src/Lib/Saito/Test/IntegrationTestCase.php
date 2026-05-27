@@ -199,7 +199,8 @@ abstract class IntegrationTestCase extends TestCase
      */
     protected function loginJwt(int $userId)
     {
-        $jwtKey = Configure::read('Security.jwtSalt');
+        $jwtKey = Configure::read('Security.jwtSalt')
+            ?: Configure::read('Security.cookieSalt');
         $jwtPayload = ['sub' => $userId];
         $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
 

@@ -37,7 +37,8 @@ class AuthenticationServiceFactory
         // actual User entity from the database when needed.
         $service->loadAuthenticator('Authentication.Jwt', [
             'returnPayload' => true,
-            'secretKey' => Configure::read('Security.jwtSalt'),
+            'secretKey' => Configure::read('Security.jwtSalt')
+                ?: Configure::read('Security.cookieSalt'),
         ]);
 
         return $service;
