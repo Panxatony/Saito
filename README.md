@@ -28,6 +28,75 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 
 A ready-to-use ZIP containing all necessary files is available on the [release page](https://github.com/Schlaefer/Saito/releases). Unzip it, upload it to your server, open it in a browser, and follow the instructions on the screen.
 
+## Deployment on Debian 13
+
+The walkthrough below sets up a fresh Debian 13 ("Trixie") box with Saito served via nginx + PHP-FPM, backed by MariaDB. Adjust paths, domain, and credentials as needed.
+
+### 1. System packages
+
+```shell
+sudo apt update
+sudo apt install -y \
+    nginx \
+    php8.2-fpm php8.2-cli \
+    php8.2-gd php8.2-intl php8.2-mbstring php8.2-mysql php8.2-xml php8.2-curl php8.2-zip \
+    mariadb-server \
+    certbot python3-certbot-nginx \
+    unzip curl
+```
+
+### 2. Database
+
+```shell
+sudo mysql -e "CREATE DATABASE saito CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo mysql -e "CREATE USER 'saito'@'localhost' IDENTIFIED BY 'CHANGE_ME';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON saito.* TO 'saito'@'localhost'; FLUSH PRIVILEGES;"
+```
+
+### 3. Deploy the release
+
+Download the tarball produced by the CI release stage (`saito-<tag>.tar.gz`) and unpack it under `/var/www/saito`:
+
+```shell
+sudo mkdir -p /var/www
+sudo tar -xzf saito-<tag>.tar.gz -C /var/www/
+sudo mv /var/www/saito-<tag> /var/www/saito
+sudo chown -R www-data:www-data /var/www/saito
+sudo find /var/www/saito/tmp /var/www/saito/logs -type d -exec chmod 770 {} \;
+```
+
+Edit `/var/www/saito/config/app.php` and replace the `__SALT__` placeholders plus the `Datasources.default` block with your real credentials. Alternatively set environment variables and let Saito read them via `env(…)`:
+
+- `SECURITY_SALT`, `SECURITY_COOKIE_SALT` (each at least 32 random characters)
+- `DATABASE_URL` (e.g. `mysql://saito:CHANGE_ME@localhost/saito?encoding=utf8mb4`)
+- `DEBUG=false`
+
+### 4. nginx vhost
+
+A reference configuration ships with the release at `config/nginx/saito.conf.example`. Copy it into place and adjust `server_name`, `root`, certificate paths, and the `fastcgi_pass` socket:
+
+```shell
+sudo cp /var/www/saito/config/nginx/saito.conf.example /etc/nginx/sites-available/saito.conf
+sudo ln -s /etc/nginx/sites-available/saito.conf /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### 5. TLS certificate
+
+```shell
+sudo certbot --nginx -d forum.example.com
+```
+
+Certbot wires the certificate paths into the vhost and reloads nginx. A systemd timer takes care of renewals.
+
+### 6. Run the installer
+
+Open `https://forum.example.com/` in a browser. Saito's web installer will create the database schema, the first admin account, and the basic forum settings. After it finishes, the installer disables itself; if you ever need to re-run it, delete `config/installer/installed.txt`.
+
+### 7. Upgrades
+
+For subsequent releases, drop the new tarball next to the running install, swap the symlink (or move the directory) and re-run `composer install --no-dev` only if you've updated `composer.lock` outside of the packaged release. Then visit the site once — Saito's updater detects schema changes and applies migrations.
+
 ## Development
 
 ### Set-Up Environment
