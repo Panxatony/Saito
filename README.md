@@ -30,30 +30,82 @@ A ready-to-use ZIP containing all necessary files is available on the [release p
 
 ## Deployment on Debian 13
 
-The walkthrough below sets up a fresh Debian 13 ("Trixie") box with Saito served via nginx + PHP-FPM, backed by MariaDB. Adjust paths, domain, and credentials as needed.
+The walkthrough below takes a stock Debian 13 ("Trixie") server to a fully running Saito instance served via nginx + PHP-FPM, backed by MariaDB and protected by a Let's Encrypt certificate. Adjust paths, domain, and credentials as you go.
+
+### 0. Prerequisites
+
+- A Debian 13 host you can `ssh` into with `sudo` rights.
+- A DNS `A`/`AAAA` record for `forum.example.com` already pointing at the server's public IP (Certbot's challenge needs this).
+- Ports `80` and `443` reachable from the public internet.
 
 ### 1. System packages
 
 ```shell
 sudo apt update
+sudo apt full-upgrade -y
 sudo apt install -y \
     nginx \
     php8.2-fpm php8.2-cli \
     php8.2-gd php8.2-intl php8.2-mbstring php8.2-mysql php8.2-xml php8.2-curl php8.2-zip \
     mariadb-server \
     certbot python3-certbot-nginx \
-    unzip curl
+    unzip curl ca-certificates
 ```
 
-### 2. Database
+### 2. Enable services and firewall
 
 ```shell
-sudo mysql -e "CREATE DATABASE saito CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-sudo mysql -e "CREATE USER 'saito'@'localhost' IDENTIFIED BY 'CHANGE_ME';"
-sudo mysql -e "GRANT ALL PRIVILEGES ON saito.* TO 'saito'@'localhost'; FLUSH PRIVILEGES;"
+sudo systemctl enable --now mariadb php8.2-fpm nginx
+# Optional but recommended: lock the box down to SSH + HTTP(S).
+sudo apt install -y ufw
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw --force enable
 ```
 
-### 3. Deploy the release
+### 3. Set up MariaDB
+
+Run the bundled hardening script — set a strong root password, drop anonymous accounts, disable remote root login, and remove the `test` database:
+
+```shell
+sudo mariadb-secure-installation
+```
+
+Then create the Saito database and a dedicated user (utf8mb4 is required for full Unicode/emoji support):
+
+```shell
+sudo mariadb <<'SQL'
+CREATE DATABASE saito CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'saito'@'localhost' IDENTIFIED BY 'CHANGE_ME';
+GRANT ALL PRIVILEGES ON saito.* TO 'saito'@'localhost';
+FLUSH PRIVILEGES;
+SQL
+```
+
+Verify the credentials work before moving on:
+
+```shell
+mysql -u saito -p'CHANGE_ME' -e 'SHOW DATABASES;' saito
+```
+
+### 4. Tune PHP-FPM
+
+Saito stores uploads through PHP, so PHP's upload limits need to match the nginx `client_max_body_size` (16 MB in the reference vhost). Edit `/etc/php/8.2/fpm/php.ini`:
+
+```ini
+memory_limit = 256M
+upload_max_filesize = 16M
+post_max_size = 18M
+date.timezone = Europe/Berlin
+```
+
+Reload PHP-FPM after the change:
+
+```shell
+sudo systemctl reload php8.2-fpm
+```
+
+### 5. Deploy the release
 
 Download the tarball produced by the CI release stage (`saito-<tag>.tar.gz`) and unpack it under `/var/www/saito`:
 
@@ -81,7 +133,7 @@ sudo -u www-data nano /var/www/saito/config/.env
 
 The file must live at `config/.env` (next to `app.php`); it is `.gitignore`d and never shipped with a release. To make Saito load it on every request, uncomment the dotenv block at the top of `config/bootstrap.php` — it's disabled by default to keep production deployments environment-driven.
 
-### 4. nginx vhost
+### 6. nginx vhost
 
 A reference configuration ships with the release at `config/nginx/saito.conf.example`. Copy it into place and adjust `server_name`, `root`, certificate paths, and the `fastcgi_pass` socket:
 
@@ -91,7 +143,7 @@ sudo ln -s /etc/nginx/sites-available/saito.conf /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-### 5. TLS certificate
+### 7. TLS certificate
 
 ```shell
 sudo certbot --nginx -d forum.example.com
@@ -99,11 +151,31 @@ sudo certbot --nginx -d forum.example.com
 
 Certbot wires the certificate paths into the vhost and reloads nginx. A systemd timer takes care of renewals.
 
-### 6. Run the installer
+### 8. Run the installer
 
 Open `https://forum.example.com/` in a browser. Saito's web installer will create the database schema, the first admin account, and the basic forum settings. After it finishes, the installer disables itself; if you ever need to re-run it, delete `config/installer/installed.txt`.
 
-### 7. Upgrades
+### 9. Backups
+
+At a minimum back up the database and the user-uploaded files. A simple nightly job via `cron.daily`:
+
+```shell
+sudo tee /etc/cron.daily/saito-backup > /dev/null <<'SH'
+#!/bin/sh
+set -e
+DEST=/var/backups/saito
+DATE=$(date +%F)
+mkdir -p "$DEST"
+mysqldump --single-transaction --quick saito | gzip > "$DEST/db-$DATE.sql.gz"
+tar czf "$DEST/uploads-$DATE.tar.gz" -C /var/www/saito webroot/useruploads
+find "$DEST" -type f -mtime +30 -delete
+SH
+sudo chmod 700 /etc/cron.daily/saito-backup
+```
+
+Add database credentials via `/root/.my.cnf` (mode `600`) so `mysqldump` doesn't need them on the command line.
+
+### 10. Upgrades
 
 For subsequent releases, drop the new tarball next to the running install, swap the symlink (or move the directory) and re-run `composer install --no-dev` only if you've updated `composer.lock` outside of the packaged release. Then visit the site once — Saito's updater detects schema changes and applies migrations.
 
