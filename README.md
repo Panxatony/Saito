@@ -21,7 +21,7 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 
 ## Requirements
 
-- PHP 8.0+ (extensions: gd, exif, intl, mbstring, pdo, simplexml)
+- PHP 8.3+ (extensions: gd, exif, intl, mbstring, pdo, simplexml)
 - Database (MySQL/MariaDB tested, [others untested](https://book.cakephp.org/3.0/en/orm/database-basics.html#supported-databases)).
 
 ## Get Started
@@ -45,8 +45,8 @@ sudo apt update
 sudo apt full-upgrade -y
 sudo apt install -y \
     nginx \
-    php8.2-fpm php8.2-cli \
-    php8.2-gd php8.2-intl php8.2-mbstring php8.2-mysql php8.2-xml php8.2-curl php8.2-zip \
+    php8.3-fpm php8.3-cli \
+    php8.3-gd php8.3-intl php8.3-mbstring php8.3-mysql php8.3-xml php8.3-curl php8.3-zip \
     mariadb-server \
     certbot python3-certbot-nginx \
     unzip curl ca-certificates
@@ -55,7 +55,7 @@ sudo apt install -y \
 ### 2. Enable services and firewall
 
 ```shell
-sudo systemctl enable --now mariadb php8.2-fpm nginx
+sudo systemctl enable --now mariadb php8.3-fpm nginx
 # Optional but recommended: lock the box down to SSH + HTTP(S).
 sudo apt install -y ufw
 sudo ufw allow OpenSSH
@@ -96,9 +96,9 @@ A reference pool config ships with the release at `config/php-fpm/saito.pool.con
 
 ```shell
 sudo cp /var/www/saito/config/php-fpm/saito.pool.conf.example \
-        /etc/php/8.2/fpm/pool.d/saito.conf
-sudo chmod 640 /etc/php/8.2/fpm/pool.d/saito.conf
-sudo nano /etc/php/8.2/fpm/pool.d/saito.conf
+        /etc/php/8.3/fpm/pool.d/saito.conf
+sudo chmod 640 /etc/php/8.3/fpm/pool.d/saito.conf
+sudo nano /etc/php/8.3/fpm/pool.d/saito.conf
 ```
 
 The reference pool already sets sane PHP runtime limits (`memory_limit = 256M`, `upload_max_filesize = 16M`, `post_max_size = 18M`, matching the nginx `client_max_body_size`). `clear_env = yes` ensures the env vars declared in the pool are the only ones Saito sees — they won't leak to the default `www` pool used by other sites.
@@ -106,11 +106,11 @@ The reference pool already sets sane PHP runtime limits (`memory_limit = 256M`, 
 Validate the FPM config and reload:
 
 ```shell
-sudo php-fpm8.2 -t
-sudo systemctl reload php8.2-fpm
+sudo php-fpm8.3 -t
+sudo systemctl reload php8.3-fpm
 ```
 
-`systemctl status php8.2-fpm` should now list both the default `www` pool and the new `saito` pool.
+`systemctl status php8.3-fpm` should now list both the default `www` pool and the new `saito` pool.
 
 ### 5. Deploy the release
 
@@ -156,7 +156,7 @@ The file must live at `config/.env` (next to `app.php`); it is `.gitignore`d and
 
 ### 6. nginx vhost
 
-A reference configuration ships with the release at `config/nginx/saito.conf.example`. It already targets the dedicated `php8.2-fpm-saito.sock` from step 4 — change the `fastcgi_pass` to `/run/php/php8.2-fpm.sock` if you skipped the pool step. Adjust `server_name`, `root`, and the certificate paths to match your environment:
+A reference configuration ships with the release at `config/nginx/saito.conf.example`. It already targets the dedicated `php8.3-fpm-saito.sock` from step 4 — change the `fastcgi_pass` to `/run/php/php8.3-fpm.sock` if you skipped the pool step. Adjust `server_name`, `root`, and the certificate paths to match your environment:
 
 ```shell
 sudo cp /var/www/saito/config/nginx/saito.conf.example /etc/nginx/sites-available/saito.conf
@@ -208,7 +208,7 @@ That said, before you swing the symlink:
 
 - **Take a database backup.** Standard hygiene; the upgrade itself is non-destructive, but the first request after deploy writes new cache and session structures.
 - **Verify InnoDB + utf8mb4.** Older installations may still have MyISAM tables or a non-`utf8mb4_unicode_ci` collation. The 4.x→5.x migrations were supposed to fix this, but installations that skipped versions sometimes have stragglers. Check with `SHOW TABLE STATUS` — if you find MyISAM or `latin1`/`utf8` collations, run the relevant migrations from the 5.x line before the framework jump.
-- **PHP 8.0+.** 6.0 drops PHP 7 support entirely. Adjust your PHP-FPM pool if needed.
+- **PHP 8.3+.** 6.0 drops PHP 7 and 8.0–8.2 support entirely (Cake 4.6's dependency tree caps at PHP 8.3 — going higher would require a Cake 5 upgrade). Adjust your PHP-FPM pool if needed; an existing 8.2 pool is the most common deploy blocker.
 
 After deploy:
 
