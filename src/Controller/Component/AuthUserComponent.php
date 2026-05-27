@@ -199,36 +199,43 @@ class AuthUserComponent extends Component
 
         $data = $result->getData();
 
+        // Resolve a user id from whatever Cake Authentication handed us
+        // (full User entity from the Session authenticator, JWT payload
+        // with 'sub', or a plain identity array) and *always* reload the
+        // row from the DB. The Cake-3 era code relied on AuthComponent's
+        // identify=true for this; Cake-4's Session authenticator caches
+        // the entity in the session, so without a manual reload changes
+        // to user settings (e.g. inline_view_on_click) wouldn't take
+        // effect until the user logs out and back in.
+        $array = [];
         if ($data instanceof User) {
-            $user = $data;
+            $userId = $data->get('id');
         } else {
             $array = $data instanceof \ArrayAccess
                 ? (array)($data instanceof \ArrayObject ? $data->getArrayCopy() : $data)
                 : (array)$data;
-            // Resolve the user id from either JWT 'sub' or session 'id'
-            // and always reload the row from the DB. The Cake-3 era code
-            // relied on AuthComponent's identify=true to do the same.
             $userId = $array['sub'] ?? $array['id'] ?? null;
-            if ($userId !== null) {
-                $user = $this->UsersTable
-                    ->find('profile')
-                    ->where(['Users.id' => $userId])
-                    ->first();
-                if ($user === null) {
-                    return null;
-                }
-            } elseif (!empty($array['username'])) {
-                // Fall-back: session/JWT only carries a username — look it up.
-                $user = $this->UsersTable
-                    ->find('profile')
-                    ->where(['Users.username' => $array['username']])
-                    ->first();
-                if ($user === null) {
-                    return null;
-                }
-            } else {
-                $user = new User($array, ['markNew' => false, 'markClean' => true]);
+        }
+
+        if ($userId !== null) {
+            $user = $this->UsersTable
+                ->find('profile')
+                ->where(['Users.id' => $userId])
+                ->first();
+            if ($user === null) {
+                return null;
             }
+        } elseif (!empty($array['username'])) {
+            // Fall-back: session/JWT only carries a username — look it up.
+            $user = $this->UsersTable
+                ->find('profile')
+                ->where(['Users.username' => $array['username']])
+                ->first();
+            if ($user === null) {
+                return null;
+            }
+        } else {
+            $user = new User($array, ['markNew' => false, 'markClean' => true]);
         }
 
         // activate_code/user_lock might be absent for mocked sessions in
