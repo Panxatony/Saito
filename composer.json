@@ -36,7 +36,7 @@
     "friendsofcake/search": "^6",
     "claviska/simpleimage": "^3.3",
     "embed/embed": "^3.3",
-    "layershifter/tld-extract": "^2.0",
+    "jeremykendall/php-domain-parser": "^6.3",
     "cakephp/authentication": "^2",
     "firebase/php-jwt": "^6"
   },
