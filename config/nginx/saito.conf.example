@@ -12,8 +12,12 @@
 #        ln -s /etc/nginx/sites-available/saito.conf /etc/nginx/sites-enabled/
 #        nginx -t && systemctl reload nginx
 #
-# Assumes PHP-FPM 8.2 listening on a Unix socket. Adjust if you run
-# PHP over TCP (127.0.0.1:9000) or a different PHP version.
+# Assumes a dedicated PHP-FPM pool for Saito listening on
+# /run/php/php8.2-fpm-saito.sock (see config/php-fpm/saito.pool.conf.example).
+# A dedicated pool keeps Saito's environment variables (DB URL, salts)
+# isolated from other vhosts on the same host. If you don't need that
+# isolation, the default pool socket /run/php/php8.2-fpm.sock works too.
+# Adjust if you run PHP over TCP (127.0.0.1:9000) or a different PHP version.
 
 # -------------------------------------------------------------------
 # HTTP -> HTTPS redirect
@@ -115,7 +119,7 @@ server {
     # ----------------------------------------------------------------
     location ~ ^/index\.php(/|$) {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.2-fpm-saito.sock;
         fastcgi_index index.php;
 
         include fastcgi_params;

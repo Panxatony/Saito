@@ -88,22 +88,29 @@ Verify the credentials work before moving on:
 mysql -u saito -p'CHANGE_ME' -e 'SHOW DATABASES;' saito
 ```
 
-### 4. Tune PHP-FPM
+### 4. Set up a dedicated PHP-FPM pool
 
-Saito stores uploads through PHP, so PHP's upload limits need to match the nginx `client_max_body_size` (16 MB in the reference vhost). Edit `/etc/php/8.2/fpm/php.ini`:
+When other vhosts share the same host, putting Saito on its own PHP-FPM pool keeps its environment variables (DB URL, security salts) isolated from everything else and lets you tune resource limits independently of the global `php.ini`.
 
-```ini
-memory_limit = 256M
-upload_max_filesize = 16M
-post_max_size = 18M
-date.timezone = Europe/Berlin
-```
-
-Reload PHP-FPM after the change:
+A reference pool config ships with the release at `config/php-fpm/saito.pool.conf.example`. Copy it to the FPM pool directory and edit the `env[…]` block — at minimum replace the `__SALT__` placeholders and set a real `DATABASE_URL` (or comment those out if you'd rather configure Saito through `config/.env` or `config/app.php`):
 
 ```shell
+sudo cp /var/www/saito/config/php-fpm/saito.pool.conf.example \
+        /etc/php/8.2/fpm/pool.d/saito.conf
+sudo chmod 640 /etc/php/8.2/fpm/pool.d/saito.conf
+sudo nano /etc/php/8.2/fpm/pool.d/saito.conf
+```
+
+The reference pool already sets sane PHP runtime limits (`memory_limit = 256M`, `upload_max_filesize = 16M`, `post_max_size = 18M`, matching the nginx `client_max_body_size`). `clear_env = yes` ensures the env vars declared in the pool are the only ones Saito sees — they won't leak to the default `www` pool used by other sites.
+
+Validate the FPM config and reload:
+
+```shell
+sudo php-fpm8.2 -t
 sudo systemctl reload php8.2-fpm
 ```
+
+`systemctl status php8.2-fpm` should now list both the default `www` pool and the new `saito` pool.
 
 ### 5. Deploy the release
 
@@ -135,7 +142,7 @@ The file must live at `config/.env` (next to `app.php`); it is `.gitignore`d and
 
 ### 6. nginx vhost
 
-A reference configuration ships with the release at `config/nginx/saito.conf.example`. Copy it into place and adjust `server_name`, `root`, certificate paths, and the `fastcgi_pass` socket:
+A reference configuration ships with the release at `config/nginx/saito.conf.example`. It already targets the dedicated `php8.2-fpm-saito.sock` from step 4 — change the `fastcgi_pass` to `/run/php/php8.2-fpm.sock` if you skipped the pool step. Adjust `server_name`, `root`, and the certificate paths to match your environment:
 
 ```shell
 sudo cp /var/www/saito/config/nginx/saito.conf.example /etc/nginx/sites-available/saito.conf
