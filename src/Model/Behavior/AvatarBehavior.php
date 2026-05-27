@@ -19,6 +19,7 @@ use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\Utility\Text;
 use claviska\SimpleImage;
+use Saito\RequestUpload;
 
 /**
  * Handles avatar file uploads: moving files, generating thumbnails, and
@@ -63,11 +64,12 @@ class AvatarBehavior extends Behavior
             return true;
         }
 
-        if (!is_array($value) || empty($value['tmp_name'])) {
+        $upload = RequestUpload::toArray($value);
+        if ($upload === null || empty($upload['tmp_name'])) {
             return true;
         }
 
-        $this->_processUpload($entity, $value);
+        $this->_processUpload($entity, $upload);
 
         return true;
     }

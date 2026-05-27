@@ -21,6 +21,7 @@ use ImageUploader\Lib\MimeType;
 use ImageUploader\Model\Entity\Upload;
 use ImageUploader\Model\Table\UploadsTable;
 use Saito\Exception\SaitoForbiddenException;
+use Saito\RequestUpload;
 use Saito\User\CurrentUser\CurrentUserInterface;
 use Saito\User\Permission\ResourceAI;
 
@@ -78,8 +79,8 @@ class UploadsController extends ApiAppController
      */
     public function add()
     {
-        $submitted = $this->request->getData('upload.0.file');
-        if (!is_array($submitted)) {
+        $submitted = RequestUpload::toArray($this->request->getData('upload.0.file'));
+        if ($submitted === null || empty($submitted['tmp_name'])) {
             throw new GenericApiException(__d('image_uploader', 'add.failure'));
         }
 

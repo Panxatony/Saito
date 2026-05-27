@@ -15,6 +15,7 @@ namespace App\Database\Type;
 use Cake\Database\DriverInterface;
 use Cake\Database\Type\BaseType;
 use PDO;
+use Saito\RequestUpload;
 
 /**
  * Column type for avatar upload fields.
@@ -27,8 +28,12 @@ class AvatarFileType extends BaseType
 {
     public function marshal($value)
     {
-        if (is_array($value)) {
-            return $value;
+        // Cake 4 hands file uploads to the marshaller as PSR-7
+        // UploadedFileInterface objects. Normalize to the $_FILES-style
+        // array the validator and AvatarBehavior still operate on.
+        $upload = RequestUpload::toArray($value);
+        if ($upload !== null) {
+            return $upload;
         }
         if ($value === null || $value === '') {
             return null;

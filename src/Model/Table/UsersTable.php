@@ -32,6 +32,7 @@ use Cake\Validation\Validation;
 use Cake\Validation\Validator;
 use DateTimeInterface;
 use Saito\App\Registry;
+use Saito\RequestUpload;
 use Saito\User\Permission\Permissions;
 use Stopwatch\Lib\Stopwatch;
 
@@ -173,10 +174,11 @@ class UsersTable extends AppTable
                 'avatar-dimension',
                 [
                     'rule' => function ($value) {
-                        if (!is_array($value) || empty($value['tmp_name'])) {
+                        $upload = RequestUpload::toArray($value);
+                        if ($upload === null || empty($upload['tmp_name'])) {
                             return true;
                         }
-                        $size = @getimagesize($value['tmp_name']);
+                        $size = @getimagesize($upload['tmp_name']);
                         if (!$size) {
                             return false;
                         }
