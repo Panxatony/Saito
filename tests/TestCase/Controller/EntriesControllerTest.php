@@ -8,7 +8,7 @@ use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Database\Schema\Table;
 use Cake\Datasource\Exception\RecordNotFoundException;
-use Cake\Error\PHP7ErrorException;
+use Cake\Controller\Exception\InvalidParameterException;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
 use Saito\Exception\SaitoForbiddenException;
@@ -432,7 +432,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testEditNoEntryId()
     {
         $this->_loginUser(2);
-        $this->expectException(PHP7ErrorException::class);
+        $this->expectException(InvalidParameterException::class);
         $this->get('entries/edit/');
     }
 

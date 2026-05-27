@@ -1245,7 +1245,7 @@ EOF;
 
         $result = $this->_Parser->parse($input);
 
-        $this->assertHtml($url, $result);
+        $this->assertStringContainsString($url, $result);
     }
 
     public function testEmbedDisabledWithAutolinking()

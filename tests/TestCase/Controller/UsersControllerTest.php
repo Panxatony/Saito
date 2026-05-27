@@ -146,8 +146,8 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $this->mockSecurity();
         $data = ['username' => 'Diane', 'password' => 'test'];
-        $result = $this->post('/login', $data);
-        $this->assertResponseContains('is not activated yet.', $result);
+        $this->post('/login', $data);
+        $this->assertResponseContains('is not activated yet.');
     }
 
     public function testLoginUserLocked()

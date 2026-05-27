@@ -912,9 +912,7 @@ class UsersController extends AppController
 
         $this->CurrentUser->set('slidetab_order', $order);
 
-        $this->response = $this->response->withStringBody(true);
-
-        return $this->response;
+        return $this->getResponse()->withStringBody('true');
     }
 
     /**

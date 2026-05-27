@@ -136,7 +136,7 @@ class AuthUserComponentTest extends IntegrationTestCase
 
         $oldUser = 2;
         $jwtPayload = ['sub' => $oldUser, 'exp' => time() + 10];
-        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey);
+        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
         $request = $this->controller->getRequest();
         $request = $request->withCookieParams(['Saito-JWT' => $jwtToken]);
         $this->controller->setRequest($request);
@@ -148,7 +148,7 @@ class AuthUserComponentTest extends IntegrationTestCase
         $this->assertNotEmpty($cookie);
         $this->assertSame('Saito-JWT', $cookie['name']);
 
-        $payload = \Firebase\JWT\JWT::decode($cookie['value'], $jwtKey, ['HS256']);
+        $payload = \Firebase\JWT\JWT::decode($cookie['value'], new \Firebase\JWT\Key($jwtKey, 'HS256'));
         $this->assertEquals(1, $payload->sub);
     }
 

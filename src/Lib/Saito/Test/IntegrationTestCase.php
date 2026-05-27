@@ -380,7 +380,7 @@ abstract class IntegrationTestCase extends TestCase
     {
         $this->assertContainsTag(
             $expected,
-            (string)$this->_controller->response->getBody()
+            (string)$this->_response->getBody()
         );
     }
 }

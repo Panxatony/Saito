@@ -561,7 +561,7 @@ class UsersTable extends AppTable
         $oldPasswordHash = $this->get($userId, ['fields' => ['password']])
             ->get('password');
 
-        return $this->getPasswordHasher()->check($value, $oldPasswordHash);
+        return $this->getPasswordHasher()->check((string)$value, $oldPasswordHash);
     }
 
     /**
@@ -850,7 +850,7 @@ class UsersTable extends AppTable
             //=if set a single category
             $category = (int)$category;
             if (
-                $category > 0 && $this->Entries->Categories->exists((int)$category)
+                $category > 0 && $this->Entries->Categories->exists(['id' => (int)$category])
             ) {
                 $active = $category;
             } else {
