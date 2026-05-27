@@ -36,9 +36,11 @@ test:
         libpng-dev libjpeg-dev libwebp-dev
         libonig-dev
         default-mysql-client
-    # PHP extensions required by CakePHP and the image processing library
+    # PHP extensions required by CakePHP, the image processing library, and
+    # EXIF metadata reading (used by ImageUploader tests verifying that
+    # uploaded images get their EXIF stripped).
     - docker-php-ext-configure gd --with-jpeg --with-webp
-    - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring
+    - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
     # Composer (post-install-cmd automatically applies vendor patches for PHP 8 + PHPUnit 9)
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress --ignore-platform-reqs
