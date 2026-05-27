@@ -75,17 +75,30 @@ release:
       - script_failure
       - stuck_or_timeout_failure
   before_script:
+    # ---- System packages + PHP build deps ----
     - apt-get update -qq
     - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends
-        git zip unzip
+        git zip unzip ca-certificates curl gnupg
         libicu-dev
         libpng-dev libjpeg-dev libwebp-dev
         libonig-dev
     - docker-php-ext-configure gd --with-jpeg --with-webp
     - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
+    # ---- Composer + production-only PHP deps ----
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    # Production install: no dev deps, optimized autoloader.
     - composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress --ignore-platform-reqs
+    # ---- Node.js (NodeSource v20) + yarn + grunt-cli for the frontend build ----
+    # Saito's webroot/css/stylesheets and webroot/js (plus several plugin
+    # webroot/ trees) are gitignored — they're produced by `grunt release`
+    # from SCSS/TS sources. Without this build the tarball would ship
+    # without bootstrap.min.css, compiled JS bundles, and theme CSS.
+    - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs
+    - npm install -g --silent yarn grunt-cli
+    - yarn install --frozen-lockfile --non-interactive --no-progress
+    # Webpack 4 still uses OpenSSL's MD4 hash, which OpenSSL 3 (default in
+    # Node 17+) disables. The legacy provider re-enables it just for this run.
+    - NODE_OPTIONS=--openssl-legacy-provider grunt release
   script:
     - export RELEASE_VERSION="${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
     - export RELEASE_NAME="saito-${RELEASE_VERSION}"
