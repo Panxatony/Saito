@@ -17,7 +17,7 @@ use Cake\Core\Configure;
 use Cake\Filesystem\File;
 use Cake\ORM\TableRegistry;
 use claviska\SimpleImage;
-use ImageUploader\Plugin;
+use ImageUploader\ImageUploaderPlugin;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
 

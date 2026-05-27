@@ -10,10 +10,10 @@ declare(strict_types=1);
  * @license http://opensource.org/licenses/MIT
  */
 
-namespace Stopwatch;
+namespace Commonmark;
 
 use Cake\Core\BasePlugin;
 
-class Plugin extends BasePlugin
+class CommonmarkPlugin extends BasePlugin
 {
 }

@@ -7,6 +7,6 @@ use Cake\Core\BasePlugin;
 /**
  * Plugin for Local
  */
-class Plugin extends BasePlugin
+class LocalPlugin extends BasePlugin
 {
 }

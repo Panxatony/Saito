@@ -10,11 +10,10 @@ declare(strict_types=1);
  * @license http://opensource.org/licenses/MIT
  */
 
-namespace Bota;
+namespace Cron;
 
 use Cake\Core\BasePlugin;
-use Cake\Core\PluginApplicationInterface;
 
-class Plugin extends BasePlugin
+class CronPlugin extends BasePlugin
 {
 }

@@ -16,7 +16,7 @@ use Cake\Core\BasePlugin;
 use Cake\Core\Plugin as CakePlugin;
 use Cake\Core\PluginApplicationInterface;
 
-class Plugin extends BasePlugin
+class InstallerPlugin extends BasePlugin
 {
     /**
      * {@inheritdoc}

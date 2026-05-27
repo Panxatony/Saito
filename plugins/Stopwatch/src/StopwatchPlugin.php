@@ -10,10 +10,10 @@ declare(strict_types=1);
  * @license http://opensource.org/licenses/MIT
  */
 
-namespace SpectrumColorpicker;
+namespace Stopwatch;
 
 use Cake\Core\BasePlugin;
 
-class Plugin extends BasePlugin
+class StopwatchPlugin extends BasePlugin
 {
 }

@@ -10,10 +10,11 @@ declare(strict_types=1);
  * @license http://opensource.org/licenses/MIT
  */
 
-namespace Detectors;
+namespace SaitoHelp;
 
 use Cake\Core\BasePlugin;
+use Cake\Core\PluginApplicationInterface;
 
-class Plugin extends BasePlugin
+class SaitoHelpPlugin extends BasePlugin
 {
 }

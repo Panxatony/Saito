@@ -10,11 +10,12 @@ declare(strict_types=1);
  * @license http://opensource.org/licenses/MIT
  */
 
-namespace Sitemap;
+namespace BbcodeParser;
 
+use Cake\Cache\Cache;
 use Cake\Core\BasePlugin;
 use Cake\Core\PluginApplicationInterface;
 
-class Plugin extends BasePlugin
+class BbcodeParserPlugin extends BasePlugin
 {
 }

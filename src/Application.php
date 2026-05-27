@@ -84,23 +84,23 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         Registry::initialize();
 
         $this->addPlugin('Authentication');
-        $this->addPlugin(\Admin\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\Api\Plugin::class, ['bootstrap' => true, 'routes' => true]);
-        $this->addPlugin(\Bookmarks\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\BbcodeParser\Plugin::class);
-        $this->addPlugin(\Feeds\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\Installer\Plugin::class);
-        $this->addPlugin(\SaitoHelp\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\SaitoSearch\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\Sitemap\Plugin::class, ['bootstrap' => true, 'routes' => true]);
-        $this->addPlugin(\ImageUploader\Plugin::class, ['routes' => true]);
+        $this->addPlugin(\Admin\AdminPlugin::class, ['routes' => true]);
+        $this->addPlugin(\Api\ApiPlugin::class, ['bootstrap' => true, 'routes' => true]);
+        $this->addPlugin(\Bookmarks\BookmarksPlugin::class, ['routes' => true]);
+        $this->addPlugin(\BbcodeParser\BbcodeParserPlugin::class);
+        $this->addPlugin(\Feeds\FeedsPlugin::class, ['routes' => true]);
+        $this->addPlugin(\Installer\InstallerPlugin::class);
+        $this->addPlugin(\SaitoHelp\SaitoHelpPlugin::class, ['routes' => true]);
+        $this->addPlugin(\SaitoSearch\SaitoSearchPlugin::class, ['routes' => true]);
+        $this->addPlugin(\Sitemap\SitemapPlugin::class, ['bootstrap' => true, 'routes' => true]);
+        $this->addPlugin(\ImageUploader\ImageUploaderPlugin::class, ['routes' => true]);
 
-        $this->addPlugin(\Cron\Plugin::class);
-        $this->addPlugin(\Commonmark\Plugin::class);
-        $this->addPlugin(\Detectors\Plugin::class);
-        $this->addPlugin(\MailObfuscator\Plugin::class);
-        $this->addPlugin(\SpectrumColorpicker\Plugin::class);
-        $this->addPlugin(\Stopwatch\Plugin::class);
+        $this->addPlugin(\Cron\CronPlugin::class);
+        $this->addPlugin(\Commonmark\CommonmarkPlugin::class);
+        $this->addPlugin(\Detectors\DetectorsPlugin::class);
+        $this->addPlugin(\MailObfuscator\MailObfuscatorPlugin::class);
+        $this->addPlugin(\SpectrumColorpicker\SpectrumColorpickerPlugin::class);
+        $this->addPlugin(\Stopwatch\StopwatchPlugin::class);
 
         $this->addPlugin('Local');
         $this->loadDefaultThemePlugin();

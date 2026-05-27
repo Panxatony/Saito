@@ -17,7 +17,7 @@ use Cake\Core\PluginApplicationInterface;
 use Cake\Core\Plugin as PluginCore;
 use Cake\Routing\RouteBuilder;
 
-class Plugin extends BasePlugin
+class SaitoSearchPlugin extends BasePlugin
 {
     /**
      * {@inheritDoc}
