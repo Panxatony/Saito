@@ -71,6 +71,16 @@ Edit `/var/www/saito/config/app.php` and replace the `__SALT__` placeholders plu
 - `DATABASE_URL` (e.g. `mysql://saito:CHANGE_ME@localhost/saito?encoding=utf8mb4`)
 - `DEBUG=false`
 
+If you prefer keeping the variables in a file rather than the systemd/FPM unit, copy the bundled template and edit it:
+
+```shell
+sudo -u www-data cp /var/www/saito/config/.env.default /var/www/saito/config/.env
+sudo chmod 640 /var/www/saito/config/.env
+sudo -u www-data nano /var/www/saito/config/.env
+```
+
+The file must live at `config/.env` (next to `app.php`); it is `.gitignore`d and never shipped with a release. To make Saito load it on every request, uncomment the dotenv block at the top of `config/bootstrap.php` — it's disabled by default to keep production deployments environment-driven.
+
 ### 4. nginx vhost
 
 A reference configuration ships with the release at `config/nginx/saito.conf.example`. Copy it into place and adjust `server_name`, `root`, certificate paths, and the `fastcgi_pass` socket:
