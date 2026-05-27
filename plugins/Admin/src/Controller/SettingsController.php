@@ -91,7 +91,7 @@ class SettingsController extends AdminAppController
      *
      * @return \Cake\Http\Response|void
      */
-    public function edit(string $id = null)
+    public function edit(?string $id = null)
     {
         if (empty($id)) {
             throw new NotFoundException();

@@ -1,4 +1,4 @@
-image: php:8.2-cli
+image: php:8.3-cli
 
 stages:
   - test
@@ -44,7 +44,7 @@ test:
     - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
     # Composer (post-install-cmd automatically applies vendor patches for PHP 8 + PHPUnit 9)
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress --ignore-platform-reqs
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
     # Wait for MariaDB to accept connections
     - until mysql -h mariadb -u saito -psaito saito_test -e "SELECT 1" >/dev/null 2>&1; do sleep 1; done
   script:
@@ -86,7 +86,7 @@ release:
     - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
     # ---- Composer + production-only PHP deps ----
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    - composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress --ignore-platform-reqs
+    - composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
     # ---- Node.js (NodeSource v20) + yarn + grunt-cli for the frontend build ----
     # Saito's webroot/css/stylesheets and webroot/js (plus several plugin
     # webroot/ trees) are gitignored — they're produced by `grunt release`

@@ -391,7 +391,7 @@ class UsersTable extends AppTable
      * @param DateTimeInterface|null $lastRefresh last refresh
      * @return void
      */
-    public function setLastRefresh(int $userId, DateTimeInterface $lastRefresh = null)
+    public function setLastRefresh(int $userId, ?DateTimeInterface $lastRefresh = null)
     {
         Stopwatch::start('Users->setLastRefresh()');
         $data['last_refresh_tmp'] = bDate();
@@ -871,7 +871,15 @@ class UsersTable extends AppTable
      */
     public function getPasswordHasher(): PasswordHasherInterface
     {
-        return PasswordHasherFactory::build(DefaultPasswordHasher::class);
+        // Pin bcrypt cost so the hash format is stable across PHP versions
+        // (PHP 8.4 bumped the default from 10 to 12). Without pinning,
+        // upgrades silently mark every existing password as "needs rehash"
+        // and the fixture-based tests drift.
+        return PasswordHasherFactory::build([
+            'className' => DefaultPasswordHasher::class,
+            'hashType' => PASSWORD_BCRYPT,
+            'hashOptions' => ['cost' => 12],
+        ]);
     }
 
     /**

@@ -83,5 +83,5 @@ interface ForumsUserInterface
      * @param ResourceAI $identity Identity
      * @return bool
      */
-    public function permission(string $resource, ResourceAI $identity = null): bool;
+    public function permission(string $resource, ?ResourceAI $identity = null): bool;
 }

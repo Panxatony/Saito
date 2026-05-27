@@ -83,7 +83,7 @@ class LastRefreshDatabase extends LastRefreshAbstract
      * @param DateTimeInterface $timestamp datetime string for last_refresh
      * @return void
      */
-    protected function persist(DateTimeInterface $timestamp = null): void
+    protected function persist(?DateTimeInterface $timestamp = null): void
     {
         $this->_storage->setLastRefresh(
             $this->_CurrentUser->getId(),

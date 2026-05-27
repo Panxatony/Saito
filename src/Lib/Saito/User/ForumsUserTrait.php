@@ -78,7 +78,7 @@ trait ForumsUserTrait
     /**
      * {@inheritDoc}
      */
-    public function permission(string $resource, ResourceAI $identity = null): bool
+    public function permission(string $resource, ?ResourceAI $identity = null): bool
     {
         if ($identity === null) {
             $identity = new ResourceAI();

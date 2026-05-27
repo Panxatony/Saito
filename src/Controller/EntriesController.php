@@ -385,7 +385,7 @@ class EntriesController extends AppController
      * @throws NotFoundException
      * @td put into admin entries controller
      */
-    public function merge(string $sourceId = null)
+    public function merge(?string $sourceId = null)
     {
         $sourceId = (int)$sourceId;
         if (empty($sourceId)) {

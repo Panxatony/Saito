@@ -105,7 +105,7 @@ trait AssertTrait
      * @param bool $debug debugging
      * @return void
      */
-    protected function assertFlash(string $message, string $element = null, $debug = false): void
+    protected function assertFlash(string $message, ?string $element = null, $debug = false): void
     {
         if ($debug) {
             debug($_SESSION['Flash']['flash']);

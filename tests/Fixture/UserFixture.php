@@ -256,7 +256,7 @@ class UserFixture extends TestFixture
             'user_type' => 'admin',
             'user_email' => 'second admin@example.com',
             //testtest
-            'password' => '$2y$10$LxV1Ff181IBFQfHWNMfmCee9cu2YY.kPKc30Jftb05nBCsjw5T9pi',
+            'password' => '$2y$12$0Zc6.mQb6hNW6ZgWbxmWhu1S7QsQB3ERqh3lufKwFab4A7OmsPawG',
             'user_automaticaly_mark_as_read' => 1,
             'registered' => '2010-09-01 11:12',
         ],

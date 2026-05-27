@@ -104,7 +104,7 @@ class PostingBehavior extends Behavior
      * @return array<PostingInterface> Array of postings found
      * @throws RecordNotFoundException If no thread is found
      */
-    public function postingsForThreads(array $tids, ?array $order = null, CurrentUserInterface $CU = null): array
+    public function postingsForThreads(array $tids, ?array $order = null, ?CurrentUserInterface $CU = null): array
     {
         $entries = $this->getTable()
             ->find('entriesForThreads', ['threadOrder' => $order, 'tids' => $tids])
