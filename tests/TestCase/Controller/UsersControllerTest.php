@@ -87,7 +87,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->mockSecurity();
         $this->post('/login', $data);
 
-        $this->assertFalse($this->_controller->components()->has('Security'));
+        $this->assertFalse($this->_controller->components()->has('FormProtection'));
 
         $this->assertTrue($this->_controller->CurrentUser->isLoggedIn());
         $this->assertArrayHasKey('Auth', $_SESSION);

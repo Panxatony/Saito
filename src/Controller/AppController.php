@@ -28,6 +28,7 @@ use Cake\Event\Event;
 use Cake\Http\Response;
 use Cake\I18n\I18n;
 use Cake\ORM\TableRegistry;
+use Closure;
 use Saito\App\Registry;
 use Saito\App\SettingsImmutable;
 use Saito\Event\SaitoEventManager;
@@ -46,6 +47,7 @@ use Stopwatch\Lib\Stopwatch;
  * @property ThemesComponent $Themes
  * @property TitleComponent $Title
  * @property UsersTable $Users
+ * @property \Cake\Controller\Component\FormProtectionComponent $FormProtection
  */
 #[\AllowDynamicProperties]
 class AppController extends Controller
@@ -119,9 +121,11 @@ class AppController extends Controller
         // CookieComponent was removed in Cake 4; cookies go through
         // EncryptedCookieMiddleware (see Application::middleware()).
         $this->loadComponent('Authentication.Authentication');
-        $this->loadComponent('Security', ['blackHoleCallback' => 'blackhole']);
-        // CsrfComponent was removed in Cake 4; CsrfProtectionMiddleware
-        // in Application::middleware() takes its place.
+        // SecurityComponent was removed in Cake 4; FormProtectionComponent
+        // covers form-tampering protection (CSRF lives in middleware).
+        $this->loadComponent('FormProtection', [
+            'validationFailureCallback' => Closure::fromCallable([$this, 'blackhole']),
+        ]);
         $this->loadComponent('RequestHandler', ['enableBeforeRedirect' => false]);
         $this->loadComponent('Cron.Cron');
         $this->loadComponent('CacheSupport');
@@ -224,14 +228,14 @@ class AppController extends Controller
     /**
      * Handle request-blackhole.
      *
-     * @param string $type type
+     * @param \Exception $exception PHP exception
      * @return void
      * @throws \Saito\Exception\SaitoBlackholeException
      */
-    public function blackhole($type)
+    public function blackhole(\Exception $exception): void
     {
         throw new \Saito\Exception\SaitoBlackholeException(
-            $type,
+            $exception->getMessage(),
             ['CurrentUser' => $this->CurrentUser]
         );
     }

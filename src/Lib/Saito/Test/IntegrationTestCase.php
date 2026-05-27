@@ -53,11 +53,9 @@ abstract class IntegrationTestCase extends TestCase
         // each have to remember to call mockSecurity(). The cookie name
         // must match `Application::middleware()` (Session.cookie + '-CSRF').
         $this->enableCsrfToken(Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF');
-        // SecurityComponent still validates POST bodies in Cake 4. Because
-        // `enableCsrfToken()` injects `_csrfToken` into the request body,
-        // `$request->getData()` is non-empty even on GET requests — which
-        // makes SecurityComponent treat them as form submissions and
-        // demand a `_Token`. Inject one so the component doesn't blackhole.
+        // FormProtectionComponent validates the `_Token` field on
+        // POST/PUT/PATCH/DELETE form submissions. Inject a valid token
+        // by default so individual tests don't each have to call it.
         $this->enableSecurityToken();
         $this->setUpSaito();
         $this->markUpdated();

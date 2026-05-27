@@ -32,8 +32,8 @@ class ApiAppController extends AppController
         if ($this->components()->has('Csrf')) {
             $this->components()->unload('Csrf');
         }
-        if ($this->components()->has('Security')) {
-            $this->components()->unload('Security');
+        if ($this->components()->has('FormProtection')) {
+            $this->components()->unload('FormProtection');
         }
     }
 }

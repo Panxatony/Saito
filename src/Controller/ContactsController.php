@@ -33,13 +33,13 @@ class ContactsController extends AppController
         $this->set('showDisclaimer', true);
         $this->Authentication->allowUnauthenticated(['owner']);
 
-        // SecurityComponent form tokens cause false-positives for anonymous users
+        // FormProtection form tokens cause false-positives for anonymous users
         // (session timeouts, bots). We already have CSRF + honeypot + timing protection.
         if (
             $this->getRequest()->getParam('action') === 'owner'
-            && $this->components()->has('Security')
+            && $this->components()->has('FormProtection')
         ) {
-            $this->components()->unload('Security');
+            $this->components()->unload('FormProtection');
         }
     }
 

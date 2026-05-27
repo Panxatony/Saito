@@ -453,7 +453,7 @@ class EntriesController extends AppController
         parent::beforeFilter($event);
         Stopwatch::start('Entries->beforeFilter()');
 
-        $this->Security->setConfig(
+        $this->FormProtection->setConfig(
             'unlockedActions',
             ['solve', 'view']
         );
