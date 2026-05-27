@@ -8,11 +8,6 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 
 [Test it here][SaitoSupport] (login: test/test).
 
-## Status
-
-[![Build Status](https://secure.travis-ci.org/Schlaefer/Saito.png?branch=master)](http://travis-ci.org/Schlaefer/Saito)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Schlaefer/Saito/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/Schlaefer/Saito/?branch=develop)
-
 [cake]: http://cakephp.org/
 [marionette]: https://marionettejs.com/
 [SaitoHomepage]: https://saito.siezi.com/
@@ -114,9 +109,17 @@ sudo systemctl reload php8.3-fpm
 
 ### 5. Deploy the release
 
-Download the tarball produced by the CI release stage (`saito-<tag>.tar.gz`) and unpack it under `/var/www/saito`:
+The CI release stage produces `saito-<tag>.tar.gz`. When you download it
+from the GitLab job artifacts page you'll receive a wrapper `.zip`
+(e.g. `saito-v6.0.0-alpha-2.zip`) that contains
+`build/saito-<tag>.tar.gz` and a `.sha256` next to it — unpack the zip
+first, verify the checksum, then deploy the inner tarball under
+`/var/www/saito`:
 
 ```shell
+unzip -d /tmp/saito-release saito-<tag>.zip
+cd /tmp/saito-release/build
+sha256sum -c saito-<tag>.tar.gz.sha256
 sudo mkdir -p /var/www
 sudo tar -xzf saito-<tag>.tar.gz -C /var/www/
 sudo mv /var/www/saito-<tag> /var/www/saito
@@ -140,8 +143,11 @@ the command runs.
 
 Edit `/var/www/saito/config/app.php` and replace the `__SALT__` placeholders plus the `Datasources.default` block with your real credentials. Alternatively set environment variables and let Saito read them via `env(…)`:
 
-- `SECURITY_SALT`, `SECURITY_COOKIE_SALT` (each at least 32 random characters)
+- `SECURITY_SALT`, `SECURITY_COOKIE_SALT`, `SECURITY_JWT_SALT` (each at least 32 random characters; `SECURITY_JWT_SALT` signs the API tokens issued by the JWT authentication path)
 - `DATABASE_URL` (e.g. `mysql://saito:CHANGE_ME@localhost/saito?encoding=utf8mb4`)
+- `APP_DEFAULT_TIMEZONE` (e.g. `Europe/Berlin`) — falls back to UTC
+- `APP_DEFAULT_LOCALE` (e.g. `de_DE`) — drives `intl` date/number formatting; default `en_US`
+- `SAITO_LANGUAGE` (`de` or `en`) — picks the UI translation bundle; default `en`
 - `DEBUG=false`
 
 If you prefer keeping the variables in a file rather than the systemd/FPM unit, copy the bundled template and edit it:
@@ -196,9 +202,27 @@ sudo chmod 700 /etc/cron.daily/saito-backup
 
 Add database credentials via `/root/.my.cnf` (mode `600`) so `mysqldump` doesn't need them on the command line.
 
-### 10. Upgrades
+### 10. Refresh the Public Suffix List (optional)
 
-For subsequent releases, drop the new tarball next to the running install, swap the symlink (or move the directory) and re-run `composer install --no-dev` only if you've updated `composer.lock` outside of the packaged release. Re-run `bin/cake plugin assets symlink` so the plugin asset symlinks are re-created in the fresh `webroot/`. Then visit the site once — Saito's updater detects schema changes and applies migrations.
+`data/public_suffix_list.dat` ships a snapshot of [publicsuffix.org](https://publicsuffix.org/) used by the URL-parsing helpers (e.g. extracting `youtube.com` from a posted link). The list changes slowly — established TLDs are stable, but new gTLDs land occasionally. If you rely on tight domain matching, refresh the file every few months:
+
+```shell
+sudo -u www-data curl -sS -o /var/www/saito/data/public_suffix_list.dat \
+    https://publicsuffix.org/list/public_suffix_list.dat
+```
+
+No restart needed — the file is read on demand.
+
+### 11. Upgrades
+
+For subsequent releases, drop the new tarball next to the running install, swap the symlink (or move the directory) and re-run `composer install --no-dev` only if you've updated `composer.lock` outside of the packaged release. Re-run `bin/cake plugin assets symlink` so the plugin asset symlinks are re-created in the fresh `webroot/`.
+
+Then apply database migrations. Two paths exist depending on your deploy style:
+
+- **Web path (default).** Visit the site once after the swap — Saito's in-app updater detects schema changes and runs the migrations on the first request. Suitable for hands-off deploys where the FPM environment already has all `env[…]` configured (so the web request sees the same DB the migrations need).
+- **CLI path (deploy automation).** Run `bin/cake migrations migrate` as the `www-data` user before re-enabling traffic. Because the cake CLI does not inherit env from the FPM pool, you have to feed `DATABASE_URL` (and the security salts) on the command line — extract them from `/etc/php/8.3/fpm/pool.d/saito.conf` once and pass them through `env`. Use this path when you want a deterministic deploy without a "first request" race, or when you need to surface migration errors in your deploy logs rather than the site's error page.
+
+After migrations, visit the site once with a logged-out browser. The boot path exercises the middleware stack and surfaces any per-environment misconfiguration immediately.
 
 #### Upgrading from 5.7.x to 6.0.x
 
