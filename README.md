@@ -124,6 +124,20 @@ sudo chown -R www-data:www-data /var/www/saito
 sudo find /var/www/saito/tmp /var/www/saito/logs -type d -exec chmod 770 {} \;
 ```
 
+Plugins ship their own `webroot/` (CSS, JS, fonts, icons). Saito's
+nginx vhost serves static assets directly from `/var/www/saito/webroot`,
+so each plugin's `webroot/` needs to be exposed there. Cake's bundled
+console command creates the symlinks for you:
+
+```shell
+sudo -u www-data /var/www/saito/bin/cake plugin assets symlink
+```
+
+This step is **required on every release** — the symlinks are not part
+of the tarball, so a fresh extract will be missing them and every
+plugin-served stylesheet (e.g. `/bota/css/theme.css`) returns 404 until
+the command runs.
+
 Edit `/var/www/saito/config/app.php` and replace the `__SALT__` placeholders plus the `Datasources.default` block with your real credentials. Alternatively set environment variables and let Saito read them via `env(…)`:
 
 - `SECURITY_SALT`, `SECURITY_COOKIE_SALT` (each at least 32 random characters)
@@ -184,7 +198,7 @@ Add database credentials via `/root/.my.cnf` (mode `600`) so `mysqldump` doesn't
 
 ### 10. Upgrades
 
-For subsequent releases, drop the new tarball next to the running install, swap the symlink (or move the directory) and re-run `composer install --no-dev` only if you've updated `composer.lock` outside of the packaged release. Then visit the site once — Saito's updater detects schema changes and applies migrations.
+For subsequent releases, drop the new tarball next to the running install, swap the symlink (or move the directory) and re-run `composer install --no-dev` only if you've updated `composer.lock` outside of the packaged release. Re-run `bin/cake plugin assets symlink` so the plugin asset symlinks are re-created in the fresh `webroot/`. Then visit the site once — Saito's updater detects schema changes and applies migrations.
 
 ## Development
 
