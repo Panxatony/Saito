@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Saito\Test;
 
+use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 
@@ -36,6 +37,6 @@ trait SecurityMockTrait
      */
     public function disableCsrf()
     {
-        $this->enableCsrfToken();
+        $this->enableCsrfToken(Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF');
     }
 }

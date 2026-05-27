@@ -954,7 +954,7 @@ class UsersControllerTest extends IntegrationTestCase
             'password_confirm' => 'test_new',
         ];
         $this->expectException(
-            'Cake\Http\Exception\BadRequestException'
+            'Saito\Exception\SaitoForbiddenException'
         );
         $this->post('/users/changepassword/1', $data);
     }
