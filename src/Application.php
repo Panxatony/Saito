@@ -29,6 +29,7 @@ use Cake\Core\Plugin;
 use Cake\Error\Middleware\ErrorHandlerMiddleware;
 use Cake\Event\EventManagerInterface;
 use Cake\Http\BaseApplication;
+use Cake\Http\Middleware\BodyParserMiddleware;
 use Cake\Http\Middleware\CsrfProtectionMiddleware;
 use Cake\Http\Middleware\EncryptedCookieMiddleware;
 use Cake\Http\Middleware\SecurityHeadersMiddleware;
@@ -128,6 +129,13 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             // pass null as cacheConfig, example: `new RoutingMiddleware($this)`
             // you might want to disable this cache in case your routing is extremely simple
             ->add(new RoutingMiddleware($this, '_cake_routes_'))
+
+            // Parse JSON / form-urlencoded request bodies (Cake 3's
+            // RequestHandlerComponent did this implicitly; in Cake 4 it
+            // has to be wired up explicitly). The Saito frontend posts
+            // its API payloads as application/json — without this the
+            // controllers receive an empty $this->request->getData().
+            ->add(new BodyParserMiddleware())
 
             ->insertAfter(RoutingMiddleware::class, new SaitoBootstrapMiddleware())
 
