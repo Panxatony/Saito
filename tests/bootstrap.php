@@ -14,6 +14,7 @@ $_SERVER['PHP_SELF'] = '/';
 use Cake\Cache\Cache;
 use Cake\Cache\Engine\ArrayEngine;
 use Cake\Core\Configure;
+use Migrations\Migrations;
 
 // Run every cache configuration through Cake's in-memory ArrayEngine
 // during tests: no leftover files in tmp/cache/, no flaky interactions
@@ -24,6 +25,13 @@ foreach (Cache::configured() as $cacheKey) {
     Cache::drop($cacheKey);
     Cache::setConfig($cacheKey, $config);
 }
+
+// Cake 5 no longer auto-creates table schemas from fixture `$fields`
+// definitions. Run the migrations against the `test` connection so the
+// fixture truncate/insert cycle has real tables to operate on. The call
+// is idempotent — Phinx skips migrations that are already in phinxlog,
+// so per-run cost after the first invocation is sub-second.
+(new Migrations())->migrate(['connection' => 'test']);
 
 // otherwise Security mock fails with debug info
 Configure::write('debug', true);
