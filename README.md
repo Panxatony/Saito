@@ -228,6 +228,8 @@ After migrations, visit the site once with a logged-out browser. The boot path e
 
 7.0 is a framework upgrade (CakePHP 4.6 → 5). As with 6.0, **no database migration ships** with this version — the last schema change is still `Saito5x7x0` (early 2020), so your `phinxlog` table stays untouched.
 
+**Jumping straight from 5.7.x?** You can skip 6.0 entirely. Because no migration has been added since `Saito5x7x0`, a 5.7.x database is already schema-identical to a 7.0.0 one: the updater accepts any `db_version >= 4.10.0`, runs `migrations migrate` as a no-op, and writes `7.0.0` into the settings row. The catch is that you take both framework jumps (Cake 3.10 → 4 → 5) and the PHP jump (7.x → 8.4) at once — so go straight to PHP 8.4, and a **custom** theme/plugin must carry both the Cake 3→4 changes (see the 5.7→6.0 "Custom themes" notes below) and any 4→5 changes before the swap. The bundled `Bota` theme is already ported.
+
 Before you swing the symlink:
 
 - **Take a database backup.** The upgrade is non-destructive, but the first request after deploy rewrites cache/session structures.
