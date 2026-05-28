@@ -74,7 +74,7 @@ class UsersControllerTest extends IntegrationTestCase
 
         $this->assertEquals($before + 1, $Users->find()->count());
 
-        $user = $Users->find()->order(['id' => 'DESC'])->first();
+        $user = $Users->find()->orderBy(['id' => 'DESC'])->first();
         foreach (array_keys($expected) as $field) {
             $this->assertEquals($expected[$field], $user->get($field));
         }
@@ -118,7 +118,7 @@ class UsersControllerTest extends IntegrationTestCase
 
         //# last login time should be set
         $Users = TableRegistry::getTableLocator()->get('Users');
-        $user = $Users->get(3, ['fields' => 'last_login']);
+        $user = $Users->get(3, fields: 'last_login');
         $this->assertWithinRange($user->get('last_login')->toUnixString(), time(), 2);
     }
 
@@ -1009,7 +1009,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->post('/users/changepassword/4', $data);
 
         $user = TableRegistry::getTableLocator()->get('Users');
-        $result = $user->get(5, ['fields' => 'password']);
+        $result = $user->get(5, fields: 'password');
         $this->assertEquals($result->get('password'), $password);
 
         $this->assertNoRedirect();
@@ -1036,7 +1036,7 @@ class UsersControllerTest extends IntegrationTestCase
 
         $expected = $user['password'];
         $user = TableRegistry::getTableLocator()->get('Users');
-        $result = $user->get(5, ['fields' => 'password']);
+        $result = $user->get(5, fields: 'password');
         $this->assertEquals($result->get('password'), $expected);
 
         $this->assertNoRedirect();
@@ -1061,7 +1061,7 @@ class UsersControllerTest extends IntegrationTestCase
         ];
         $this->post('/users/changepassword/5', $data);
 
-        $result = $Users->get(5, ['fields' => 'password']);
+        $result = $Users->get(5, fields: 'password');
         $pwH = new DefaultPasswordHasher();
         $newHash = $result->get('password');
         $this->assertTrue($pwH->check('test_new', $newHash));
@@ -1107,7 +1107,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->post('/users/setpassword/5', $data);
 
         $user = TableRegistry::getTableLocator()->get('Users');
-        $result = $user->get(5, ['fields' => 'password']);
+        $result = $user->get(5, fields: 'password');
         $pwH = new DefaultPasswordHasher();
         $this->assertTrue($pwH->check('test_new', $result->get('password')));
 
@@ -1129,7 +1129,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->post('/users/setpassword/5', $data);
 
         $user = TableRegistry::getTableLocator()->get('Users');
-        $result = $user->get(5, ['fields' => 'password']);
+        $result = $user->get(5, fields: 'password');
         $this->assertEquals($result->get('password'), $password);
 
         $this->assertNoRedirect();

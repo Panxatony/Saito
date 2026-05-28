@@ -165,7 +165,7 @@ class EntriesControllerTest extends IntegrationTestCase
 
         $this->_loginUser(1);
         $user = $Users->get(1);
-        $user->set(
+        $user->patch(
             [
                 'user_sort_last_answer' => 1,
                 'user_type' => 'admin',
@@ -212,7 +212,7 @@ class EntriesControllerTest extends IntegrationTestCase
 
         $this->_loginUser(3);
         $user = $Users->get(3);
-        $user->set(
+        $user->patch(
             [
                 'user_sort_last_answer' => 1,
                 'user_category_active' => 0,

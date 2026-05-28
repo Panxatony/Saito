@@ -400,7 +400,7 @@ class EntriesController extends AppController
         }
 
         // perform move operation
-        $targetId = $this->request->getData('targetId');
+        $targetId = (int)$this->request->getData('targetId');
         if (!empty($targetId)) {
             if ($this->Entries->threadMerge($sourceId, $targetId)) {
                 $this->redirect('/entries/view/' . $sourceId);

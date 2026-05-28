@@ -49,8 +49,8 @@ class SearchesControllerTest extends IntegrationTestCase
         $this->assertResponseCode(200);
 
         $result = $this->viewVariable('results');
-        $this->assertEquals(2, $result->first()->get('id'));
-        $this->assertEquals(5, $result->skip(1)->first()->get('id'));
+        $this->assertEquals(2, $result->items()->first()->get('id'));
+        $this->assertEquals(5, $result->items()->skip(1)->first()->get('id'));
     }
 
     /**

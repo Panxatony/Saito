@@ -440,7 +440,8 @@ class UsersTable extends AppTable
     {
         return $this->find(
             'list',
-            ['keyField' => 'id', 'valueField' => 'username']
+            keyField: 'id',
+            valueField: 'username',
         )->toArray();
     }
 
@@ -478,7 +479,7 @@ class UsersTable extends AppTable
      */
     public function autoUpdatePassword(int $userId, string $password): void
     {
-        $user = $this->get($userId, ['fields' => ['id', 'password']]);
+        $user = $this->get($userId, fields: ['id', 'password']);
         $oldPassword = $user->get('password');
         $needsRehash = $this->getPasswordHasher()->needsRehash($oldPassword);
         if ($needsRehash) {
@@ -562,7 +563,7 @@ class UsersTable extends AppTable
     public function validateCheckOldPassword($value, array $context)
     {
         $userId = $context['data']['id'];
-        $oldPasswordHash = $this->get($userId, ['fields' => ['password']])
+        $oldPasswordHash = $this->get($userId, fields: ['password'])
             ->get('password');
 
         return $this->getPasswordHasher()->check((string)$value, $oldPasswordHash);

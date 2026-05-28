@@ -188,16 +188,14 @@ class UserOnlineTable extends Table
         Stopwatch::start('UserOnline->getLoggedIn()');
         $loggedInUsers = $this->find(
             'all',
-            [
-                'contain' => [
-                    'Users' => [
-                        'fields' => ['id', 'user_type', 'username'],
-                    ],
+            contain: [
+                'Users' => [
+                    'fields' => ['id', 'user_type', 'username'],
                 ],
-                'conditions' => ['UserOnline.logged_in' => true],
-                'fields' => ['id'],
-                'order' => ['LOWER(Users.username)' => 'ASC'],
-            ]
+            ],
+            conditions: ['UserOnline.logged_in' => true],
+            fields: ['id'],
+            order: ['LOWER(Users.username)' => 'ASC'],
         );
         Stopwatch::stop('UserOnline->getLoggedIn()');
 

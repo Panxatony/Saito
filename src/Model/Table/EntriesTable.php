@@ -38,15 +38,6 @@ use Search\Manager;
  * @property BookmarksTable $Bookmarks
  * @property CategoriesTable $Categories
  * @property DraftsTable $Drafts
- * @method array treeBuild(array $postings)
- * @method createPosting(array $data, CurrentUserInterface $CurrentUser)
- * @method updatePosting(Entry $posting, array $data, CurrentUserInterface $CurrentUser)
- * @method array prepareChildPosting(BasicPostingInterface $parent, array $data)
- * @method array getRecentPostings(CurrentUserInterface $CU, ?array $options = [])
- * @method bool deletePosting(int $id)
- * @method array postingsForThreads(array $tids, ?array $order = null, ?CurrentUserInterface $CU)
- * @method PostingInterface postingsForThread(int $tid, ?bool $complete = false, ?CurrentUserInterface $CU)
- * @method threadMerge(int $sourceId, int $targetId)
  */
 class EntriesTable extends AppTable
 {
@@ -104,9 +95,8 @@ class EntriesTable extends AppTable
                             $categoryId = $entity->get('category_id');
                         }
 
-                        $query = $table->find('all', ['conditions' => [
-                            'pid' => 0, 'category_id' => $categoryId,
-                        ]]);
+                        $query = $table->find('all')
+                            ->where(['pid' => 0, 'category_id' => $categoryId]);
                         $count = $query->count();
 
                         return $count;
@@ -239,6 +229,67 @@ class EntriesTable extends AppTable
                 );
             }
         }
+    }
+
+    /**
+     * Get an array of postings for threads
+     *
+     * @param array $tids Thread-IDs
+     * @param array|null $order Thread sort order
+     * @param CurrentUserInterface|null $CU Current User
+     * @return array<PostingInterface>
+     */
+    public function postingsForThreads(array $tids, ?array $order = null, ?CurrentUserInterface $CU = null): array
+    {
+        return $this->getBehavior('Posting')->postingsForThreads($tids, $order, $CU);
+    }
+
+    /**
+     * Get a posting for a thread
+     *
+     * @param int $tid Thread-ID
+     * @param bool $complete complete fieldset
+     * @param CurrentUserInterface|null $CU CurrentUser
+     * @return PostingInterface
+     */
+    public function postingsForThread(int $tid, bool $complete = false, ?CurrentUserInterface $CU = null): PostingInterface
+    {
+        return $this->getBehavior('Posting')->postingsForThread($tid, $complete, $CU);
+    }
+
+    /**
+     * Delete a posting and all its subpostings
+     *
+     * @param int $id the node id
+     * @return bool
+     */
+    public function deletePosting(int $id): bool
+    {
+        return $this->getBehavior('Posting')->deletePosting($id);
+    }
+
+    /**
+     * Get recent postings
+     *
+     * @param CurrentUserInterface $User User who has access to postings
+     * @param array $options find options
+     * @return array<PostingInterface>
+     */
+    public function getRecentPostings(CurrentUserInterface $User, array $options = []): array
+    {
+        return $this->getBehavior('Posting')->getRecentPostings($User, $options);
+    }
+
+    /**
+     * Merge thread onto entry $targetId
+     *
+     * @param int $sourceId root-id of the posting that is merged onto another thread
+     * @param int $targetId id of the posting the source-thread should be appended to
+     * @return bool
+     */
+    public function threadMerge(int $sourceId, int $targetId): bool
+    {
+        return $this->getBehavior('Posting')->threadMerge($sourceId, $targetId);
     }
 
     /**
@@ -387,10 +438,10 @@ class EntriesTable extends AppTable
      */
     public function getThreadId($id)
     {
-        $entry = $this->find(
-            'all',
-            ['conditions' => ['id' => $id], 'fields' => 'tid']
-        )->first();
+        $entry = $this->find('all')
+            ->where(['id' => $id])
+            ->select(['tid'])
+            ->first();
         if (empty($entry)) {
             throw new RecordNotFoundException(
                 'Posting not found. Posting-Id: ' . $id

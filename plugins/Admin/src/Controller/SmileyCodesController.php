@@ -102,10 +102,8 @@ class SmileyCodesController extends AdminAppController
         $smilies = $this->SmileyCodes->Smilies
             ->find(
                 'list',
-                [
-                    'keyField' => 'id',
-                    'valueField' => 'icon',
-                ]
+                keyField: 'id',
+                valueField: 'icon',
             )
             ->toArray();
         $this->set(compact('smiley', 'smilies'));

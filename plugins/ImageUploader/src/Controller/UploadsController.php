@@ -170,7 +170,7 @@ class UploadsController extends ApiAppController
     public function delete($imageId)
     {
         /** @var Upload */
-        $upload = $this->Uploads->get($imageId, ['contain' => ['Users']]);
+        $upload = $this->Uploads->get($imageId, contain: ['Users']);
         $permission = $this->CurrentUser->permission(
             'saito.plugin.uploader.delete',
             (new ResourceAI())->onRole($upload->user->getRole())->onOwner($upload->user->getId())

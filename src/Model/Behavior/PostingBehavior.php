@@ -32,7 +32,7 @@ class PostingBehavior extends Behavior
     /**
      * {@inheritDoc}
      */
-    public function buildRules(\Cake\Event\EventInterface $event, RulesChecker $rules)
+    public function buildRules(\Cake\Event\EventInterface $event, RulesChecker $rules): void
     {
         $rules->add(
             function ($entity) {
@@ -61,8 +61,6 @@ class PostingBehavior extends Behavior
         );
 
         $rules->add($rules->existsIn('category_id', 'Categories'));
-
-        return $rules;
     }
 
     /**
@@ -107,7 +105,7 @@ class PostingBehavior extends Behavior
     public function postingsForThreads(array $tids, ?array $order = null, ?CurrentUserInterface $CU = null): array
     {
         $entries = $this->table()
-            ->find('entriesForThreads', ['threadOrder' => $order, 'tids' => $tids])
+            ->find('entriesForThreads', threadOrder: $order, tids: $tids)
             ->all();
 
         if (!count($entries)) {
@@ -131,7 +129,7 @@ class PostingBehavior extends Behavior
     public function postingsForThread(int $tid, bool $complete = false, ?CurrentUserInterface $CurrentUser = null): PostingInterface
     {
         $entries = $this->table()
-            ->find('entriesForThreads', ['complete' => $complete, 'tids' => [$tid]])
+            ->find('entriesForThreads', complete: $complete, tids: [$tid])
             ->all();
 
         if (!count($entries)) {
@@ -209,11 +207,9 @@ class PostingBehavior extends Behavior
                 ->table()
                 ->find(
                     'entry',
-                    [
-                        'conditions' => $conditions,
-                        'limit' => $options['limit'],
-                        'order' => ['time' => 'DESC'],
-                    ]
+                    conditions: $conditions,
+                    limit: $options['limit'],
+                    order: ['time' => 'DESC'],
                 )
                 // hydrating kills performance
                 ->enableHydration(false)
@@ -300,7 +296,7 @@ class PostingBehavior extends Behavior
         $order = $options['threadOrder'];
         unset($options['threadOrder'], $options['tids']);
 
-        $query = $query->find('entry', $options)
+        $query = $query->find('entry', ...$options)
             ->where(['tid IN' => $tids])
             ->enableHydration(false);
         if ($order !== null) {
@@ -360,7 +356,7 @@ class PostingBehavior extends Behavior
         /** @var EntriesTable */
         $table = $this->table();
 
-        $sourcePosting = $table->get($sourceId, ['return' => 'Entity']);
+        $sourcePosting = $table->get($sourceId);
 
         // check that source is thread-root and not an subposting
         if (!$sourcePosting->isRoot()) {
@@ -401,10 +397,7 @@ class PostingBehavior extends Behavior
             $sourceLastAnswer = $sourcePosting->get('last_answer');
             $targetLastAnswer = $targetPosting->get('last_answer');
             if ($sourceLastAnswer > $targetLastAnswer) {
-                $targetRoot = $table->get(
-                    $targetPosting->get('tid'),
-                    ['return' => 'Entity']
-                );
+                $targetRoot = $table->get($targetPosting->get('tid'));
                 $targetRoot = $table->patchEntity(
                     $targetRoot,
                     ['last_answer' => $sourceLastAnswer]

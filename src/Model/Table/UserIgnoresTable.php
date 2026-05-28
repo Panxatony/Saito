@@ -113,12 +113,10 @@ class UserIgnoresTable extends AppTable
     {
         return $this->find(
             'all',
-            [
-                'conditions' => [
-                    'user_id' => $userId,
-                    'blocked_user_id' => $blockedId,
-                ],
-            ]
+            conditions: [
+                'user_id' => $userId,
+                'blocked_user_id' => $blockedId,
+            ],
         )->first();
     }
 
@@ -180,9 +178,7 @@ class UserIgnoresTable extends AppTable
     {
         return $this->find(
             'all',
-            [
-                'conditions' => ['blocked_user_id' => $id],
-            ]
+            conditions: ['blocked_user_id' => $id],
         )->toArray();
     }
 

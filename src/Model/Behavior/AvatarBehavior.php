@@ -45,32 +45,30 @@ class AvatarBehavior extends Behavior
      * @param EventInterface $event
      * @param Entity $entity
      * @param ArrayObject $options
-     * @return bool
+     * @return void
      */
-    public function beforeSave(EventInterface $event, Entity $entity, ArrayObject $options): bool
+    public function beforeSave(EventInterface $event, Entity $entity, ArrayObject $options): void
     {
         $field = $this->getConfig('field');
         $dirField = $this->getConfig('dirField');
 
         if (!$entity->isDirty($field)) {
-            return true;
+            return;
         }
 
         $value = $entity->get($field);
 
         if ($value === null) {
             $this->_deleteUserDir((string)$entity->getOriginal($dirField));
-            return true;
+            return;
         }
 
         $upload = RequestUpload::toArray($value);
         if ($upload === null || empty($upload['tmp_name'])) {
-            return true;
+            return;
         }
 
         $this->_processUpload($entity, $upload);
-
-        return true;
     }
 
     /**

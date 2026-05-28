@@ -84,10 +84,8 @@ class UserBlocksTable extends Table
     {
         $block = $this->find(
             'all',
-            [
-                'conditions' => ['user_id' => $userId, 'ended IS' => null],
-                'sort' => ['ends' => 'asc'],
-            ]
+            conditions: ['user_id' => $userId, 'ended IS' => null],
+            sort: ['ends' => 'asc'],
         )->first();
 
         return $block->get('ends');
@@ -197,14 +195,12 @@ class UserBlocksTable extends Table
     {
         $blocks = $this->find(
             'all',
-            [
-                'conditions' => [
-                    'ended IS' => null,
-                    'user_id' => $userId,
-                ],
-            ]
+            conditions: [
+                'ended IS' => null,
+                'user_id' => $userId,
+            ],
         )->first();
-        $user = $this->Users->get($userId, ['fields' => ['id', 'user_lock']]);
+        $user = $this->Users->get($userId, fields: ['id', 'user_lock']);
         $user->set('user_lock', !empty($blocks));
 
         return $this->Users->save($user);

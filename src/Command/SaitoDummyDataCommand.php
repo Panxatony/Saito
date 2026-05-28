@@ -190,7 +190,7 @@ class SaitoDummyDataCommand extends Command
         $categories = $this->remember('existingCategories', function (): array {
             return $this->Entries->Categories->find(
                 'all',
-                ['fields' => ['id']]
+                fields: ['id'],
             )->toArray();
         });
         $id = array_rand($categories, 1);
@@ -208,7 +208,7 @@ class SaitoDummyDataCommand extends Command
         $users = $this->remember('existingUsers', function (): array {
             return $this->Users->find(
                 'all',
-                ['conditions' => ['activate_code' => 0]]
+                conditions: ['activate_code' => 0],
             )->toArray();
         });
         $id = array_rand($users, 1);

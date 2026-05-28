@@ -69,11 +69,12 @@ class PostingBehaviorTest extends SaitoTableTestCase
 
         $this->Table->deletePosting(2);
 
-        $after = $this->Table->find('list', [
-            'where' => ['tid' => $tid],
-            'keyField' => 'id',
-            'valueField' => 'id',
-        ])->toArray();
+        $after = $this->Table->find(
+            'list',
+            where: ['tid' => $tid],
+            keyField: 'id',
+            valueField: 'id',
+        )->toArray();
 
         $this->assertArrayHasKey(1, $after);
         $this->assertArrayHasKey(8, $after);

@@ -138,31 +138,29 @@ class UploadsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function beforeSave(\Cake\Event\EventInterface $event, Upload $entity, \ArrayObject $options)
+    public function beforeSave(\Cake\Event\EventInterface $event, Upload $entity, \ArrayObject $options): void
     {
         if (!$entity->isDirty('name') && !$entity->isDirty('document')) {
-            return true;
+            return;
         }
         try {
             $this->moveUpload($entity);
         } catch (\Throwable $e) {
-            return false;
+            // Abort the save: stopping the event makes Table::save() return false.
+            $event->stopPropagation();
         }
-
-        return true;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function beforeDelete(\Cake\Event\EventInterface $event, Upload $entity, \ArrayObject $options)
+    public function beforeDelete(\Cake\Event\EventInterface $event, Upload $entity, \ArrayObject $options): void
     {
         $filePath = $entity->get('file');
-        if (file_exists($filePath)) {
-            return unlink($filePath);
+        if (file_exists($filePath) && !unlink($filePath)) {
+            // Abort the delete: stopping the event makes Table::delete() return false.
+            $event->stopPropagation();
         }
-
-        return true;
     }
 
     /**
