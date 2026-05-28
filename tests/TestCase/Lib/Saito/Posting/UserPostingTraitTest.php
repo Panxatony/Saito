@@ -35,6 +35,9 @@ class UserPostingTraitTest extends SaitoTestCase
     /** @var UserPostingTraitClassMock */
     private $Mock;
 
+    /** @var mixed previous Saito.Settings.edit_period, restored in tearDown */
+    protected $editPeriodGlob;
+
     public function setUp(): void
     {
         parent::setUp();

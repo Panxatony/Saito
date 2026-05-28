@@ -28,11 +28,11 @@ class CodeWithoutAttributes extends CodeDefinition
             $type = $attributes['code'];
         }
 
-        $this->Geshi->defaultLanguage = 'text';
+        $this->Geshi->setConfig('defaultLanguage', 'text');
         // allow all languages
-        $this->Geshi->validLanguages = [true];
+        $this->Geshi->setConfig('validLanguages', [true]);
         // load config from app/Config/geshi.php
-        $this->Geshi->features = false;
+        $this->Geshi->setConfig('features', false);
 
         $string = '<div class="geshi-wrapper"><pre lang="' . $type . '">' . trim($content) . '</pre></div>';
 

@@ -48,7 +48,7 @@ class Posting implements PostingInterface
     public function __construct(
         $rawData,
         array $options = [],
-        Thread $tree = null
+        ?Thread $tree = null
     ) {
         $this->_rawData = $rawData;
 

@@ -17,6 +17,7 @@ use Saito\Test\SaitoTestCase;
 
 class LegacyPasswordHasherSaltlessTest extends SaitoTestCase
 {
+    protected $Hasher;
 
     public function setUp(): void
     {

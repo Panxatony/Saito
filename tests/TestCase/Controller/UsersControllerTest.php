@@ -184,7 +184,7 @@ class UsersControllerTest extends IntegrationTestCase
             ->method('getBlockEndsForUser')
             ->with('8')
             ->will($this->returnValue(false));
-        $Users->UserBlocks = $UserBlocks;
+        $Users->getAssociation('UserBlocks')->setTarget($UserBlocks);
         $data = ['username' => 'Walt', 'password' => 'test'];
         $this->post('/login', $data);
         $this->assertResponseContains('is locked.');

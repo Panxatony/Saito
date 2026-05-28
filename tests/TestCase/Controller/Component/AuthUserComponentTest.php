@@ -257,7 +257,12 @@ class AuthUserComponentTest extends IntegrationTestCase
         $request = $request->withAttribute('authentication', $service);
         $request = $request->withAttribute('authenticationResult', $result);
 
-        $controller = new Controller($request);
+        // Anonymous subclass declares $CurrentUser so AuthUserComponent can set
+        // it without triggering PHP 8.2's dynamic-property deprecation. In
+        // production this property is declared on App\Controller\AppController.
+        $controller = new class ($request) extends Controller {
+            public $CurrentUser;
+        };
 
         $registry = new ComponentRegistry($controller);
         $component = new AuthUserComponent($registry);

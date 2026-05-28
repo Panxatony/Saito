@@ -17,6 +17,8 @@ class LastRefreshDatabaseTest extends SaitoTestCase
      */
     public $CurrentUser;
 
+    protected $LastRefresh;
+
     public function setUp(): void
     {
         parent::setUp();

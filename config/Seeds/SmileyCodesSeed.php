@@ -1,10 +1,10 @@
 <?php
-use Migrations\AbstractSeed;
+use Migrations\BaseSeed;
 
 /**
  * SmileyCodes seed.
  */
-class SmileyCodesSeed extends AbstractSeed
+class SmileyCodesSeed extends BaseSeed
 {
     /**
      * Run Method.

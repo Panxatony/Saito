@@ -12,6 +12,9 @@ use Saito\User\CurrentUser\CurrentUserFactory;
 
 class ThreadHtmlRendererTest extends SaitoTestCase
 {
+    protected $PostingHelper;
+
+    protected $SaitoUser;
 
     /**
      * tests that posting of ignored user is/not ignored

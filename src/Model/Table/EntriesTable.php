@@ -26,7 +26,6 @@ use Cake\Validation\Validator;
 use Saito\Posting\PostingInterface;
 use Saito\User\CurrentUser\CurrentUserInterface;
 use Saito\Validation\SaitoValidationProvider;
-use Search\Manager;
 
 /**
  * Stores postings
@@ -290,43 +289,6 @@ class EntriesTable extends AppTable
     public function threadMerge(int $sourceId, int $targetId): bool
     {
         return $this->getBehavior('Posting')->threadMerge($sourceId, $targetId);
-    }
-
-    /**
-     * Advanced search configuration from SaitoSearch plugin
-     *
-     * @see https://github.com/FriendsOfCake/search
-     *
-     * @return Manager
-     */
-    public function searchManager(): Manager
-    {
-        /** @var Manager $searchManager */
-        $searchManager = $this->getBehavior('Search')->searchManager();
-        $searchManager
-        ->like('subject', [
-            'before' => true,
-            'after' => true,
-            'fieldMode' => 'OR',
-            'comparison' => 'LIKE',
-            'wildcardAny' => '*',
-            'wildcardOne' => '?',
-            'fields' => ['subject'],
-            'filterEmpty' => true,
-        ])
-        ->like('text', [
-            'before' => true,
-            'after' => true,
-            'fieldMode' => 'OR',
-            'comparison' => 'LIKE',
-            'wildcardAny' => '*',
-            'wildcardOne' => '?',
-            'fields' => ['text'],
-            'filterEmpty' => true,
-        ])
-        ->value('name', ['filterEmpty' => true]);
-
-        return $searchManager;
     }
 
     /**

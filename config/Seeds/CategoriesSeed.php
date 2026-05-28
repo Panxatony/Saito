@@ -1,10 +1,10 @@
 <?php
-use Migrations\AbstractSeed;
+use Migrations\BaseSeed;
 
 /**
  * Categories seed.
  */
-class CategoriesSeed extends AbstractSeed
+class CategoriesSeed extends BaseSeed
 {
     /**
      * Run Method.

@@ -6,6 +6,8 @@ use Saito\User\SaitoUser;
 
 class SaitoUserTest extends SaitoTestCase
 {
+    protected $SaitoUser;
+
     public function testGetSettings()
     {
         //# initialize with real user

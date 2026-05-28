@@ -57,23 +57,27 @@ class AuthenticationServiceFactory
         $service->setConfig('unauthenticatedRedirect', Router::url(['_name' => 'login'], false));
 
         // Password identifier looks up users by username and verifies the
-        // password against the saito-specific hashers.
-        $service->loadIdentifier('Authentication.Password', [
-            'fields' => ['username' => 'username', 'password' => 'password'],
-            'resolver' => [
-                'className' => 'Authentication.Orm',
-                'userModel' => 'Users',
-            ],
-            'passwordHasher' => [
-                'className' => 'Authentication.Fallback',
-                'hashers' => [
-                    'Authentication.Default',
-                    [
-                        'className' => 'App\\Auth\\Mlf2PasswordHasher',
+        // password against the saito-specific hashers. Passed directly to the
+        // identifying authenticators (Cookie, Form); loadIdentifier() is
+        // deprecated since authentication 3.3.0.
+        $passwordIdentifier = [
+            'Authentication.Password' => [
+                'fields' => ['username' => 'username', 'password' => 'password'],
+                'resolver' => [
+                    'className' => 'Authentication.Orm',
+                    'userModel' => 'Users',
+                ],
+                'passwordHasher' => [
+                    'className' => 'Authentication.Fallback',
+                    'hashers' => [
+                        'Authentication.Default',
+                        [
+                            'className' => 'App\\Auth\\Mlf2PasswordHasher',
+                        ],
                     ],
                 ],
             ],
-        ]);
+        ];
 
         // Authenticators are checked in order of registration.
         // Leave Session first.
@@ -83,6 +87,7 @@ class AuthenticationServiceFactory
         $service->loadAuthenticator(
             'Authentication.Cookie',
             [
+                'identifier' => $passwordIdentifier,
                 'cookie' => [
                     'expire' => new \DateTimeImmutable('+10 days'),
                     'httpOnly' => true,
@@ -93,7 +98,10 @@ class AuthenticationServiceFactory
         );
         $service->loadAuthenticator(
             'Authentication.Form',
-            ['loginUrl' => Router::url(['_name' => 'login'])]
+            [
+                'identifier' => $passwordIdentifier,
+                'loginUrl' => Router::url(['_name' => 'login']),
+            ]
         );
 
         return $service;

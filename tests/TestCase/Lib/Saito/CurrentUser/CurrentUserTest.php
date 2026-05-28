@@ -16,6 +16,8 @@ use Saito\User\CurrentUser\CurrentUser;
 
 class CurrentUserTest extends SaitoTestCase
 {
+    protected $CurrentUser;
+
     public function testIsLoggedIn()
     {
         //# initialize with real user

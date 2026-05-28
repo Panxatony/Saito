@@ -33,6 +33,8 @@ class UserOnlineTableTest extends SaitoTableTestCase
         'uuid',
     ];
 
+    protected array $_startUsersOnline = [];
+
     public function testSetOnlineSuccess()
     {
         /// set logged-in user 5 online

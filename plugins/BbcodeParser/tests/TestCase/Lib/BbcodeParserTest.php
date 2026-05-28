@@ -35,6 +35,15 @@ class BbcodeParserTest extends SaitoTestCase
     /** @var MarkupSettings */
     protected $MarkupSettings;
 
+    /** @var \App\View\Helper\ParserHelper */
+    protected $_Helper;
+
+    protected $server_name;
+
+    protected $server_port;
+
+    protected $autolink;
+
     public function testBold()
     {
         $input = '[b]bold[/b]';

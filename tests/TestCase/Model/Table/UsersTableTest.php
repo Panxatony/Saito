@@ -204,12 +204,13 @@ class UsersTableTest extends SaitoTableTestCase
 
     public function testDeleteUser()
     {
-        $this->Table->UserIgnores = $this->getMockForModel(
+        $userIgnores = $this->getMockForModel(
             'UserIgnores',
             ['deleteUser'],
             [false, 'user_ignore', 'test']
         );
-        $this->Table->UserIgnores->expects($this->once())
+        $this->Table->getAssociation('UserIgnores')->setTarget($userIgnores);
+        $userIgnores->expects($this->once())
             ->method('deleteUser')
             ->with(3)
             ->will($this->returnValue(true));

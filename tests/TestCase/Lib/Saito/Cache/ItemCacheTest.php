@@ -27,6 +27,13 @@ class ItemCacheMock extends ItemCache
 
 class ItemCacheTest extends SaitoTestCase
 {
+    protected $ItemCache;
+
+    protected $CacheEngine;
+
+    protected $fixture;
+
+    protected $time;
 
     public function setUp(): void
     {

@@ -33,6 +33,8 @@ class UsersControllerTest extends IntegrationTestCase
         'app.UserOnline',
     ];
 
+    protected $Users;
+
     public function setUp(): void
     {
         parent::setUp();

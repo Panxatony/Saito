@@ -14,6 +14,10 @@ class SmileyRendererTest extends SaitoTestCase
 
     public array $fixtures = ['app.Smiley', 'app.SmileyCode'];
 
+    protected $Renderer;
+
+    protected $Helper;
+
     public function setUp(): void
     {
         //= smiley fixture

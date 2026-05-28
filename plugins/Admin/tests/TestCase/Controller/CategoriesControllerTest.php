@@ -35,6 +35,10 @@ class CategoriesControllerTest extends IntegrationTestCase
         'app.UserOnline',
     ];
 
+    protected $Entries;
+
+    protected $Categories;
+
     public function setUp(): void
     {
         parent::setUp();

@@ -118,10 +118,12 @@ class TimeHHelper extends AppHelper
                 $string = date('d.m.', $timestamp);
                 break;
             case 'eng':
-                $string = strftime('%F %T', $timestamp);
+                $string = date('Y-m-d H:i:s', $timestamp);
                 break;
             default:
-                $string = strftime($format, $timestamp);
+                // $format is a date()-style format string (strftime() is
+                // deprecated since PHP 8.1).
+                $string = date($format, $timestamp);
         }
 
         if ($options['wrap'] !== false) {

@@ -63,9 +63,9 @@ class AppController extends Controller
      */
     protected $viewHelpers = [
         'Form' => [
-            // Bootstrap 4 CSS-class for invalid input elements
-            'errorClass' => 'is-invalid',
             'templates' => [
+                // Bootstrap 4 CSS-class for invalid input elements
+                'errorClass' => 'is-invalid',
                 // Bootstrap 4 CSS-class for input validation message
                 'error' => '<div class="invalid-feedback">{{content}}</div>',
             ],

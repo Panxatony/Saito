@@ -39,7 +39,7 @@ $this->Breadcrumbs->add(__('Users'), false);
                 // output date format sortable by datatable JS plugin
                 $this->TimeH->formatTime(
                     $user->get('registered'),
-                    '%Y-%m-%d %H:%M',
+                    'Y-m-d H:i',
                     ['wrap' => false]
                 ),
                 // without the &nbsp; the JS-sorting with the datatables plugin doesn't work

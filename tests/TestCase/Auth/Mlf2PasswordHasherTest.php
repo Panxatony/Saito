@@ -7,6 +7,7 @@ use Saito\Test\SaitoTestCase;
 
 class Mlf2PasswordHasherTest extends SaitoTestCase
 {
+    protected $Hasher;
 
     public function setUp(): void
     {

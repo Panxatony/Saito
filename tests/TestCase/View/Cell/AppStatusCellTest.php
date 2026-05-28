@@ -20,6 +20,12 @@ class AppStatusCellTest extends SaitoTestCase
         'app.User',
     ];
 
+    protected $request;
+
+    protected $response;
+
+    protected $AppStatus;
+
     /**
      * setUp method
      *

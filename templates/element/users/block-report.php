@@ -31,7 +31,7 @@ $format = ($mode === 'full') ? 'eng' : 'normal';
     $cells = [];
     foreach ($UserBlock as $block) {
         $domain = null;
-        $reason = $block->get('reason');
+        $reason = (string)$block->get('reason');
         if (strpos($reason, '.') !== false) {
             list($domain, $reason) = explode('.', $reason);
             $domain = Inflector::underscore($domain);
