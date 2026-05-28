@@ -188,6 +188,15 @@ class AppController extends Controller
             $this->viewBuilder()->setTemplatePath($path . DS . 'json');
         }
 
+        // Cake 4's RequestHandlerComponent disabled the layout for XHR requests
+        // so AJAX endpoints return bare HTML fragments. Cake 5 removed the
+        // component; replicate it here. The Saito SPA injects these fragments
+        // directly into the DOM (e.g. PostingModel.fetchHtml() → entries/view),
+        // so wrapping them in the full page layout corrupts the markup.
+        if ($this->request->is('ajax')) {
+            $this->viewBuilder()->disableAutoLayout();
+        }
+
         $this->Themes->set($this->CurrentUser);
         $this->_setConfigurationFromGetParams();
         $this->_l10nRenderFile();
