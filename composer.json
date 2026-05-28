@@ -19,7 +19,7 @@
     }
   },
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "cakephp/cakephp": "^5.0",
     "cakephp/migrations": "^4.0",
     "cakephp/plugin-installer": "*",
