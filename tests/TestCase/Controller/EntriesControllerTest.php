@@ -528,6 +528,24 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * XHR posting view must return a bare fragment, not a full page.
+     *
+     * The SPA (PostingModel.fetchHtml) injects this response straight into the
+     * DOM, so a full <html> layout corrupts the markup. Cake 5 removed
+     * RequestHandlerComponent, which used to disable the layout for AJAX.
+     */
+    public function testViewAjaxRendersFragmentWithoutLayout()
+    {
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->get('/entries/view/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('js-entry-view-core');
+        $this->assertResponseNotContains('<!DOCTYPE');
+        $this->assertResponseNotContains('<html');
+    }
+
+    /**
      * @param int $postingId
      */
     protected function _viewOk($postingId)
