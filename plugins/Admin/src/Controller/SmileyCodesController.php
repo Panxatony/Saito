@@ -36,8 +36,11 @@ class SmileyCodesController extends AdminAppController
      */
     public function index()
     {
-        $this->paginate = ['contain' => ['Smilies'], 'limit' => 1000];
-        $this->set('smileyCodes', $this->paginate($this->SmileyCodes));
+        // Cake 5's paginator no longer applies a `contain` setting; contain
+        // Smilies on the query directly (the template reads each code's
+        // associated smiley via $smileyCode->get('smiley')).
+        $query = $this->SmileyCodes->find()->contain(['Smilies']);
+        $this->set('smileyCodes', $this->paginate($query, ['limit' => 1000, 'maxLimit' => 1000]));
     }
 
     /**
