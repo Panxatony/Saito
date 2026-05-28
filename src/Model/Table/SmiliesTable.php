@@ -32,9 +32,9 @@ class SmiliesTable extends AppSettingTable
     public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator
-            ->allowEmptyString('order')
+            ->allowEmptyString('sort')
             ->add(
-                'order',
+                'sort',
                 ['isNumeric' => ['rule' => 'numeric']]
             );
 
