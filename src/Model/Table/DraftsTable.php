@@ -63,7 +63,7 @@ class DraftsTable extends AppTable
                 'subject',
                 [
                     'maxLength' => [
-                        'rule' => ['maxLength', $this->getConfig('subject_maxlength')],
+                        'rule' => ['maxLength', (int)$this->getConfig('subject_maxlength')],
                     ],
                 ]
             );

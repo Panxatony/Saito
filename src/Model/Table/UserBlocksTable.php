@@ -48,10 +48,10 @@ class UserBlocksTable extends Table
     public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator
-            ->allowEmpty('ends')
+            ->allowEmptyString('ends')
             ->add('ends', 'datetime', ['rule' => ['datetime']]);
-        $validator->notEmpty('user_id');
-        $validator->notEmpty('reason');
+        $validator->notBlank('user_id');
+        $validator->notBlank('reason');
 
         return $validator;
     }
@@ -144,7 +144,7 @@ class UserBlocksTable extends Table
     public function getAll()
     {
         $blocklist = $this->find('assocUsers')
-            ->order(['UserBlocks.id' => 'DESC']);
+            ->orderBy(['UserBlocks.id' => 'DESC']);
 
         return $blocklist;
     }

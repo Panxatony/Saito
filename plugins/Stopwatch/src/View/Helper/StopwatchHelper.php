@@ -24,7 +24,7 @@ use Stopwatch\Lib\Stopwatch;
  */
 class StopwatchHelper extends Helper
 {
-    public $helpers = [
+    public array $helpers = [
         'Html',
         'Number',
     ];

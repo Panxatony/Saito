@@ -39,7 +39,7 @@ class CategoriesControllerTest extends IntegrationTestCase
     {
         parent::setUp();
         foreach (['Entries', 'Categories'] as $table) {
-            $this->$table = TableRegistry::get($table);
+            $this->$table = TableRegistry::getTableLocator()->get($table);
         }
     }
 

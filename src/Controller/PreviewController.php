@@ -15,7 +15,7 @@ namespace App\Controller;
 use Api\Controller\ApiAppController;
 use App\Controller\Component\PostingComponent;
 use App\Model\Table\EntriesTable;
-use Cake\I18n\Time;
+use Cake\I18n\DateTime;
 use Cake\View\Helper\IdGeneratorTrait;
 
 /**
@@ -35,7 +35,7 @@ class PreviewController extends ApiAppController
      */
     public function preview()
     {
-        $this->loadModel('Entries');
+        $this->Entries = $this->fetchTable('Entries');
         $this->loadComponent('Posting');
 
         $data = [
@@ -51,7 +51,7 @@ class PreviewController extends ApiAppController
             'subject' => $this->request->getData('subject'),
             'text' => $this->request->getData('text'),
             'user_id' => $this->CurrentUser->getId(),
-            'time' => new Time(),
+            'time' => new DateTime(),
             'views' => 0,
         ];
 

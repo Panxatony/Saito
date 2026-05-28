@@ -23,7 +23,7 @@ use Cake\View\Helper\HtmlHelper;
 class MailObfuscatorHelper extends Helper
 {
 
-    public $helpers = ['Html'];
+    public array $helpers = ['Html'];
 
     /**
      * Generate mail lLink

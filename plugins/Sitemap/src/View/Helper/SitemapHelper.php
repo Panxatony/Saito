@@ -20,7 +20,7 @@ use Cake\View\Helper\UrlHelper;
  */
 class SitemapHelper extends Helper
 {
-    public $helpers = ['Url'];
+    public array $helpers = ['Url'];
 
     /**
      * Get sitemap-URL

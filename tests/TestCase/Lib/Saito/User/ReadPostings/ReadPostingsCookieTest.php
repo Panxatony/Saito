@@ -8,6 +8,7 @@ use Cake\Http\Response;
 use Cake\Http\ServerRequest;
 use Saito\User\Cookie\Storage;
 use Saito\User\CurrentUser\CurrentUserFactory;
+use Saito\User\LastRefresh\LastRefreshDummy;
 use Saito\User\ReadPostings\ReadPostingsCookie;
 
 class ReadPostingsCookieMock extends ReadPostingsCookie
@@ -50,14 +51,23 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         'app.User',
     ];
 
+    /** @var ReadPostingsCookieMock */
+    public $ReadPostings;
+
+    /** @var \PHPUnit\Framework\MockObject\MockObject cookie mock */
+    private $cookieMock;
+
+    /** @var \PHPUnit\Framework\MockObject\MockObject lastRefresh mock */
+    private $lastRefreshMock;
+
     public function testAbstractIsReadNoTimestamp()
     {
         $this->mock();
-        $this->ReadPostings->Cookie->expects($this->once())
+        $this->cookieMock->expects($this->once())
             ->method('read')
             ->will($this->returnValue('1.6'));
 
-        $this->ReadPostings->LastRefresh->expects($this->never())
+        $this->lastRefreshMock->expects($this->never())
             ->method('isNewerThan');
 
         $this->assertTrue($this->ReadPostings->isRead(1));
@@ -68,16 +78,21 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
     public function testAbstractIsReadWithTimestamp()
     {
         $this->mock();
-        $this->ReadPostings->Cookie->expects($this->once())
+        $this->cookieMock->expects($this->once())
             ->method('read')
             ->will($this->returnValue('1'));
 
         $time = time();
 
-        $this->ReadPostings->LastRefresh->expects($this->exactly(4))
+        $callCount = 0;
+        $expectedArgs = [$time, $time + 1, $time + 2, $time + 3];
+        $returnValues = [null, null, true, false];
+        $this->lastRefreshMock->expects($this->exactly(4))
             ->method('isNewerThan')
-            ->withConsecutive([$time], [$time + 1], [$time + 2], [$time + 3])
-            ->willReturnOnConsecutiveCalls(null, null, true, false);
+            ->willReturnCallback(function ($arg) use (&$callCount, $expectedArgs, $returnValues) {
+                $this->assertSame($expectedArgs[$callCount], $arg);
+                return $returnValues[$callCount++];
+            });
 
         $this->assertTrue($this->ReadPostings->isRead(1, $time));
         $this->assertFalse($this->ReadPostings->isRead(2, $time + 1));
@@ -88,8 +103,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
     public function testDelete()
     {
         $this->mock();
-        $cookie = $this->ReadPostings->Cookie
-            ->expects($this->once())
+        $this->cookieMock->expects($this->once())
             ->method('delete');
 
         $this->ReadPostings->delete();
@@ -98,7 +112,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
     public function testGet()
     {
         $this->mock();
-        $this->ReadPostings->Cookie->expects($this->once())
+        $this->cookieMock->expects($this->once())
             ->method('read')
             ->will($this->returnValue('1.6'));
 
@@ -123,10 +137,15 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
             ->will($this->returnValue([1 => 1, 2 => 1]));
 
         $time = time();
-        $this->ReadPostings->LastRefresh->expects($this->exactly(3))
+        $callCount = 0;
+        $expectedArgs = [$time, $time + 1, $time + 2];
+        $returnValues = [false, true, false];
+        $this->lastRefreshMock->expects($this->exactly(3))
             ->method('isNewerThan')
-            ->withConsecutive([$time], [$time + 1], [$time + 2])
-            ->willReturnOnConsecutiveCalls(false, true, false);
+            ->willReturnCallback(function ($arg) use (&$callCount, $expectedArgs, $returnValues) {
+                $this->assertSame($expectedArgs[$callCount], $arg);
+                return $returnValues[$callCount++];
+            });
 
         /*
          * 1: already stored, will be stored again but not twice
@@ -134,7 +153,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
          * 3: not stored, older than last refresh
          * 4: newly stored
          */
-        $this->ReadPostings->Cookie->expects($this->once())
+        $this->cookieMock->expects($this->once())
             ->method('write')
             ->with('1.2.4');
         $this->ReadPostings->set(
@@ -155,10 +174,10 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
     {
         $this->mock();
 
-        $this->ReadPostings->LastRefresh->expects($this->once())
+        $this->lastRefreshMock->expects($this->once())
             ->method('isNewerThan')
             ->will($this->returnValue(false));
-        $this->ReadPostings->Cookie->expects($this->once())
+        $this->cookieMock->expects($this->once())
             ->method('write')
             ->with('4');
 
@@ -172,7 +191,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
     public function testGc()
     {
         $this->mock();
-        $this->ReadPostings->Cookie->expects($this->once())
+        $this->cookieMock->expects($this->once())
             ->method('write')
             ->with('5.6');
 
@@ -195,22 +214,27 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         $request->getSession()->id('test');
         $response = new Response();
 
-        $controller = new Controller($request, $response);
+        $controller = new Controller($request);
 
-        $cookie = $this->getMockBuilder(Storage::class)
+        $this->cookieMock = $this->getMockBuilder(Storage::class)
             ->setConstructorArgs([$controller, 'Saito-Read'])
-            ->setMethods(['read', 'write', 'delete'])
+            ->onlyMethods(['read', 'write', 'delete'])
             ->getMock();
 
-        $this->ReadPostings = $this->getMockBuilder('Saito\Test\User\ReadPostings\ReadPostingsCookieMock')
-            ->setConstructorArgs([$currentUser, $cookie])
-            ->setMethods($methods)
+        if ($methods !== null) {
+            $this->ReadPostings = $this->getMockBuilder(ReadPostingsCookieMock::class)
+                ->setConstructorArgs([$currentUser, $this->cookieMock])
+                ->onlyMethods($methods)
+                ->getMock();
+        } else {
+            $this->ReadPostings = new ReadPostingsCookieMock($currentUser, $this->cookieMock);
+        }
+
+        $this->lastRefreshMock = $this->getMockBuilder(LastRefreshDummy::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isNewerThan'])
             ->getMock();
-        $this->ReadPostings->setLastRefresh(
-            $this->getMockBuilder(stdClass::class)
-                ->setMethods(['isNewerThan'])
-                ->getMock()
-        );
+        $this->ReadPostings->setLastRefresh($this->lastRefreshMock);
     }
 
     public function tearDown(): void

@@ -17,6 +17,8 @@ use Cake\TestSuite\Fixture\TestFixture;
 class PhinxlogFixture extends TestFixture
 {
 
+    public string $table = 'phinxlog';
+
     public array $fields = [
         'version' => [
             'type' => 'integer',

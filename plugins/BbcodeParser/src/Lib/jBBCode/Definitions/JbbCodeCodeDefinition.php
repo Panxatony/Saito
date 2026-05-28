@@ -34,7 +34,7 @@ class CodeWithoutAttributes extends CodeDefinition
         // load config from app/Config/geshi.php
         $this->Geshi->features = false;
 
-        $string = '<div class="geshi-wrapper"><pre lang="' . $type . '">' . $content . '</pre></div>';
+        $string = '<div class="geshi-wrapper"><pre lang="' . $type . '">' . trim($content) . '</pre></div>';
 
         $string = $this->Geshi->highlight($string);
 

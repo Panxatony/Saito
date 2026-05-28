@@ -14,13 +14,12 @@ namespace Installer\Test\TestCase\Controller;
 
 use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
-use Cake\Filesystem\File;
 use Cake\ORM\TableRegistry;
 use Installer\Lib\DbVersion;
 use Installer\Lib\InstallerState;
 use Installer\Lib\IntegrationTestCase;
 
-class InstallerControllerTest extends IntegrationTestCase
+class InstallControllerTest extends IntegrationTestCase
 {
     protected $isUpdated = false;
 
@@ -100,10 +99,9 @@ class InstallerControllerTest extends IntegrationTestCase
     {
         InstallerState::set('connected');
         $this->createSettings();
-        (new DbVersion(TableRegistry::get('Settings')))->set('4.10.0');
+        (new DbVersion(TableRegistry::getTableLocator()->get('Settings')))->set('4.10.0');
 
-        $token = new File(CONFIG . 'installer');
-        $this->assertTrue($token->exists());
+        $this->assertTrue(file_exists(CONFIG . 'installer'));
 
         $this->get('install/connected');
 
@@ -112,7 +110,7 @@ class InstallerControllerTest extends IntegrationTestCase
 
     private function createInstallerToken()
     {
-        (new File(CONFIG . 'installer'))->create();
+        touch(CONFIG . 'installer');
     }
 
     private function createSettings()

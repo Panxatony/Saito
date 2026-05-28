@@ -17,6 +17,6 @@ $routes->plugin(
     'SaitoSearch',
     ['path' => '/searches'],
     function (RouteBuilder $routes) {
-        $routes->connect('/:action', ['controller' => 'searches']);
+        $routes->connect('/{action}', ['controller' => 'searches']);
     }
 );

@@ -32,7 +32,7 @@ class UserHelper extends AppHelper
 {
     use RememberTrait;
 
-    public $helpers = ['Html', 'Url'];
+    public array $helpers = ['Html', 'Url'];
 
     /**
      * banned

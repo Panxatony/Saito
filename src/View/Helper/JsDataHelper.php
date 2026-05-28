@@ -28,7 +28,7 @@ use Saito\User\ForumsUserInterface;
  */
 class JsDataHelper extends AppHelper
 {
-    public $helpers = ['Url'];
+    public array $helpers = ['Url'];
 
     /**
      * Notifications

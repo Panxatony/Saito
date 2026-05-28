@@ -126,7 +126,6 @@ class AppController extends Controller
         $this->loadComponent('FormProtection', [
             'validationFailureCallback' => Closure::fromCallable([$this, 'blackhole']),
         ]);
-        $this->loadComponent('RequestHandler', ['enableBeforeRedirect' => false]);
         $this->loadComponent('Cron.Cron');
         $this->loadComponent('CacheSupport');
         $this->loadComponent('AuthUser');
@@ -177,6 +176,18 @@ class AppController extends Controller
     public function beforeRender(\Cake\Event\EventInterface $event)
     {
         Stopwatch::start('App->beforeRender()');
+
+        // Route to extension/content-type-specific template subdirectory (replaces
+        // Cake 4's RequestHandlerComponent behaviour of selecting json/, xml/, rss/ subdirs).
+        $ext = $this->request->getParam('_ext');
+        if ($ext && in_array($ext, ['xml', 'rss', 'json'], true)) {
+            $path = $this->viewBuilder()->getTemplatePath();
+            $this->viewBuilder()->setTemplatePath($path . DS . $ext);
+        } elseif ($this->request->is('json')) {
+            $path = $this->viewBuilder()->getTemplatePath();
+            $this->viewBuilder()->setTemplatePath($path . DS . 'json');
+        }
+
         $this->Themes->set($this->CurrentUser);
         $this->_setConfigurationFromGetParams();
         $this->_l10nRenderFile();

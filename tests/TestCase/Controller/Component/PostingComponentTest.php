@@ -41,8 +41,8 @@ class PostingComponentTest extends SaitoTestCase
         $request = new ServerRequest(['url' => '/users/view/5']);
         $response = new Response();
         $this->controller = $this->getMockBuilder('Cake\Controller\Controller')
-            ->setConstructorArgs([$request, $response])
-            ->setMethods(null)
+            ->setConstructorArgs([$request])
+            ->onlyMethods([])
             ->getMock();
         $registry = new ComponentRegistry($this->controller);
         $this->component = new PostingComponent($registry);

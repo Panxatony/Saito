@@ -2,12 +2,11 @@
 
 namespace App\Test\TestCase\Controller;
 
-use Cake\Auth\DefaultPasswordHasher;
+use Authentication\PasswordHasher\DefaultPasswordHasher;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
-use Cake\Filesystem\Folder;
 use Cake\Mailer\Message;
 use Cake\ORM\TableRegistry;
 use Saito\Exception\SaitoForbiddenException;
@@ -16,6 +15,27 @@ use Saito\User\Permission\ResourceAC;
 
 class UsersControllerTest extends IntegrationTestCase
 {
+    private function rrmdir(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        foreach (glob($dir . '*') ?: [] as $file) {
+            if (is_dir($file)) {
+                $this->rrmdir($file . '/');
+            } else {
+                unlink($file);
+            }
+        }
+        @rmdir($dir);
+    }
+
+    private function lsDir(string $dir): array
+    {
+        $files = glob(rtrim($dir, '/') . '/*') ?: [];
+        return array_values(array_filter($files, fn($f) => !str_starts_with(basename($f), '.')));
+    }
+
     public array $fixtures = [
         'app.Category',
         'app.Draft',
@@ -46,7 +66,7 @@ class UsersControllerTest extends IntegrationTestCase
             'user_email' => 'fo3@example.com',
         ];
 
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $before = $Users->find()->count();
 
         $this->_loginUser(1);
@@ -97,7 +117,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertRedirect('/');
 
         //# last login time should be set
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $user = $Users->get(3, ['fields' => 'last_login']);
         $this->assertWithinRange($user->get('last_login')->toUnixString(), time(), 2);
     }
@@ -154,7 +174,7 @@ class UsersControllerTest extends IntegrationTestCase
     public function testLoginUserLocked()
     {
         $this->mockSecurity();
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $UserBlocks = $this->getMockForTable(
             'UserBlocks',
             ['getBlockEndsForUser']
@@ -201,7 +221,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->post('users/register', $data);
         $this->assertResponseContains('Sending Confirmation Email Failed');
 
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $exists = $Users->exists(
             [
                 'username' => 'NewUser1',
@@ -299,7 +319,7 @@ class UsersControllerTest extends IntegrationTestCase
     public function testRegisterTosActive()
     {
         $this->mockSecurity();
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
 
         /*
          * TOS not checked
@@ -371,7 +391,7 @@ class UsersControllerTest extends IntegrationTestCase
     public function testRegisterTosNotActive()
     {
         $this->mockSecurity();
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         Configure::write('Saito.Settings.tos_enabled', false);
 
         $data = [
@@ -407,7 +427,7 @@ class UsersControllerTest extends IntegrationTestCase
             'password_confirm' => 'NewUser1spassword',
         ];
 
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $before = $Users->find()->count();
         $this->assertGreaterThan(0, $before);
 
@@ -427,7 +447,7 @@ class UsersControllerTest extends IntegrationTestCase
 
     public function testRsSuccess()
     {
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $user = $Users->get(10);
 
         $this->assertEquals(1548, $user->get('activate_code'));
@@ -448,7 +468,7 @@ class UsersControllerTest extends IntegrationTestCase
 
     public function testRsFailureWrongCode()
     {
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $user = $Users->get(10);
 
         $this->assertEquals(1548, $user->get('activate_code'));
@@ -545,7 +565,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $this->_loginUser(3);
 
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $user = $Users->get(3);
 
         $validData = ['slidetab_userlist'];
@@ -802,7 +822,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->mockSecurity();
         $this->_loginUser(3);
 
-        $Ignores = TableRegistry::get('UserIgnores');
+        $Ignores = TableRegistry::getTableLocator()->get('UserIgnores');
         $this->assertEmpty($Ignores->find()->count());
 
         $this->post('/users/ignore', ['id' => 1]);
@@ -842,7 +862,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         /* setup */
         $this->mockSecurity();
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
 
         $this->_loginUser(11);
 
@@ -869,7 +889,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         /* setup */
         $this->mockSecurity();
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
 
         // mod locks user
         $this->_loginUser(2);
@@ -911,7 +931,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $this->mockSecurity();
         $this->_loginUser(2);
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $userToLock = 5;
 
         /// Mod locks user 5
@@ -978,7 +998,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->mockSecurity();
         $this->_loginUser(4);
 
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $password = $Users->get(5)->get('password');
 
         $data = [
@@ -988,7 +1008,7 @@ class UsersControllerTest extends IntegrationTestCase
         ];
         $this->post('/users/changepassword/4', $data);
 
-        $user = TableRegistry::get('Users');
+        $user = TableRegistry::getTableLocator()->get('Users');
         $result = $user->get(5, ['fields' => 'password']);
         $this->assertEquals($result->get('password'), $password);
 
@@ -999,7 +1019,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $this->_loginUser(5);
         $this->mockSecurity();
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
 
         /// Set user password to "test" with current password-hasher
         $user = $Users->get(5);
@@ -1015,7 +1035,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->post('/users/changepassword/5', $data);
 
         $expected = $user['password'];
-        $user = TableRegistry::get('Users');
+        $user = TableRegistry::getTableLocator()->get('Users');
         $result = $user->get(5, ['fields' => 'password']);
         $this->assertEquals($result->get('password'), $expected);
 
@@ -1026,7 +1046,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $this->_loginUser(5);
         $this->mockSecurity();
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
 
         /// Set user password to "test" with current password-hasher
         $user = $Users->get(5);
@@ -1086,7 +1106,7 @@ class UsersControllerTest extends IntegrationTestCase
         ];
         $this->post('/users/setpassword/5', $data);
 
-        $user = TableRegistry::get('Users');
+        $user = TableRegistry::getTableLocator()->get('Users');
         $result = $user->get(5, ['fields' => 'password']);
         $pwH = new DefaultPasswordHasher();
         $this->assertTrue($pwH->check('test_new', $result->get('password')));
@@ -1099,7 +1119,7 @@ class UsersControllerTest extends IntegrationTestCase
         $userId = 1;
         $this->_loginUser($userId);
         $this->mockSecurity();
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $password = $Users->get($userId)->get('password');
 
         $data = [
@@ -1108,7 +1128,7 @@ class UsersControllerTest extends IntegrationTestCase
         ];
         $this->post('/users/setpassword/5', $data);
 
-        $user = TableRegistry::get('Users');
+        $user = TableRegistry::getTableLocator()->get('Users');
         $result = $user->get(5, ['fields' => 'password']);
         $this->assertEquals($result->get('password'), $password);
 
@@ -1206,8 +1226,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $userId = 3;
         $root = Configure::read('Saito.Settings.uploadDirectory');
-        $directory = new Folder("{$root}/users/avatar/{$userId}/");
-        $directory->delete();
+        $this->rrmdir("{$root}/users/avatar/{$userId}/");
         $this->_loginUser($userId);
         $this->mockSecurity();
 
@@ -1255,8 +1274,7 @@ class UsersControllerTest extends IntegrationTestCase
             $this->assertFileExists($fullDir . $filename);
             $this->assertFileExists($fullDir . "square_{$filename}");
 
-            $d = new Folder($fullDir);
-            $dc = $d->find('[^.].*');
+            $dc = $this->lsDir($fullDir);
             $this->assertCount(2, $dc);
         }
 
@@ -1266,18 +1284,17 @@ class UsersControllerTest extends IntegrationTestCase
         ];
         $this->post('/users/avatar/3', $data);
 
-        $dc = $d->find('[^.].*');
+        $dc = $this->lsDir($fullDir);
         $this->assertCount(0, $dc);
 
-        $directory->delete();
+        $this->rrmdir("{$root}/users/avatar/{$userId}/");
     }
 
     public function testAvatarPostPictureToLargeFailure()
     {
         $userId = 3;
         $root = Configure::read('Saito.Settings.uploadDirectory');
-        $directory = new Folder("{$root}/users/avatar/{$userId}/");
-        $directory->delete();
+        $this->rrmdir("{$root}/users/avatar/{$userId}/");
         $this->_loginUser($userId);
         $this->mockSecurity();
 
@@ -1312,8 +1329,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $userId = 3;
         $root = Configure::read('Saito.Settings.uploadDirectory');
-        $directory = new Folder("{$root}/users/avatar/{$userId}/");
-        $directory->delete();
+        $this->rrmdir("{$root}/users/avatar/{$userId}/");
         $this->_loginUser($userId);
         $this->mockSecurity();
 
@@ -1348,8 +1364,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $userId = 3;
         $root = Configure::read('Saito.Settings.uploadDirectory');
-        $directory = new Folder("{$root}/users/avatar/{$userId}/");
-        $directory->delete();
+        $this->rrmdir("{$root}/users/avatar/{$userId}/");
         $this->_loginUser($userId);
         $this->mockSecurity();
 

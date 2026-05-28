@@ -24,7 +24,7 @@ class SettingsTableTest extends SaitoTableTestCase
 
     public array $fixtures = ['app.Setting'];
 
-    public function settingsDataProvider()
+    public static function settingsDataProvider()
     {
         $data = (new SettingFixture())->records;
         $extracted = array_combine(array_column($data, 'name'), array_column($data, 'value'));

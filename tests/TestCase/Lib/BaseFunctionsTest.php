@@ -4,7 +4,7 @@ namespace Saito\Test\Lib;
 
 use PHPUnit\Framework\TestCase;
 
-class BaseFunciontsTest extends TestCase
+class BaseFunctionsTest extends TestCase
 {
     public function testDateToUnixIsUnix()
     {

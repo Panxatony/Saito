@@ -137,7 +137,7 @@ class EntriesTable extends AppTable
         /// category_id
         $categoryRequiredL10N = __('vld.entries.categories.notEmpty');
         $validator
-            ->notEmpty('category_id', $categoryRequiredL10N)
+            ->notBlank('category_id', $categoryRequiredL10N)
             ->requirePresence('category_id', 'create', $categoryRequiredL10N);
 
         /// last_answer
@@ -162,7 +162,7 @@ class EntriesTable extends AppTable
                 'subject',
                 [
                     'maxLength' => [
-                        'rule' => ['maxLength', $this->getConfig('subject_maxlength')],
+                        'rule' => ['maxLength', (int)$this->getConfig('subject_maxlength')],
                         'message' => __('vld.entries.subject.maxlength'),
                     ],
                 ]
@@ -193,21 +193,6 @@ class EntriesTable extends AppTable
     public function buildRules(RulesChecker $rules): \Cake\ORM\RulesChecker
     {
         $rules = parent::buildRules($rules);
-
-        $rules->add(
-            function ($entity) {
-                if (!$entity->isDirty('solves') || empty($entity->get('solves') > 0)) {
-                    return true;
-                }
-
-                return !$entity->isRoot();
-            },
-            'checkSolvesOnlyOnAnswers',
-            [
-                'errorField' => 'solves',
-                'message' => 'Root postings cannot mark themself solved.',
-            ]
-        );
 
         $rules->add(
             function ($entity) {
@@ -294,17 +279,22 @@ class EntriesTable extends AppTable
     }
 
     /**
-     * Shorthand for reading an entry with full da516ta
+     * Shorthand for reading an entry with full data.
      *
-     * @param int $primaryKey key
-     * @param array $options options
-     * @throws RecordNotFoundException if record isn't found
-     * @return mixed Posting
+     * Signature widened in Cake 5: Table::get() now takes (mixed $primaryKey,
+     * array|string $finder, ?CacheInterface|string $cache, Closure|string|null
+     * $cacheKey, mixed ...$args). The previous (array $options) form is
+     * replaced — Saito only ever called get($id) anyway.
      */
-    public function get($primaryKey, array $options = []): \Cake\Datasource\EntityInterface
-    {
-        /** @var Entry */
-        $result = $this->find('entry', ['complete' => true])
+    public function get(
+        mixed $primaryKey,
+        array|string $finder = 'all',
+        \Psr\SimpleCache\CacheInterface|string|null $cache = null,
+        \Closure|string|null $cacheKey = null,
+        mixed ...$args
+    ): \Cake\Datasource\EntityInterface {
+        /** @var Entry $result */
+        $result = $this->find('entry', complete: true)
             ->where([$this->getAlias() . '.id' => $primaryKey])
             ->first();
 

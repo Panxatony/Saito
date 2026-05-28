@@ -16,6 +16,7 @@ use App\View\Helper\ParserHelper;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\View\View;
+use MailObfuscator\View\Helper\MailObfuscatorHelper;
 use Plugin\BbcodeParser\Lib;
 use Plugin\BbcodeParser\src\Lib\Parser;
 use Saito\Markup\MarkupSettings;
@@ -459,8 +460,9 @@ class BbcodeParserTest extends SaitoTestCase
 
     public function testEmailMailto()
     {
-        $MO = $this->getMockBuilder('MailObfuscator')
-            ->setMethods(['link'])
+        $MO = $this->getMockBuilder(MailObfuscatorHelper::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['link'])
             ->getMock();
         $MO->expects($this->once(4))
             ->method('link')
@@ -473,8 +475,9 @@ class BbcodeParserTest extends SaitoTestCase
 
     public function testEmailMailtoMask()
     {
-        $MO = $this->getMockBuilder('MailObfuscator')
-            ->setMethods(['link'])
+        $MO = $this->getMockBuilder(MailObfuscatorHelper::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['link'])
             ->getMock();
         $MO->expects($this->once(4))
             ->method('link')
@@ -487,8 +490,9 @@ class BbcodeParserTest extends SaitoTestCase
 
     public function testEmailNoMailto()
     {
-        $MO = $this->getMockBuilder('MailObfuscator')
-            ->setMethods(['link'])
+        $MO = $this->getMockBuilder(MailObfuscatorHelper::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['link'])
             ->getMock();
         $MO->expects($this->once(4))
             ->method('link')
@@ -501,8 +505,9 @@ class BbcodeParserTest extends SaitoTestCase
 
     public function testEmailNoMailtoMask()
     {
-        $MO = $this->getMockBuilder('MailObfuscator')
-            ->setMethods(['link'])
+        $MO = $this->getMockBuilder(MailObfuscatorHelper::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['link'])
             ->getMock();
         $MO->expects($this->once(4))
             ->method('link')
@@ -1370,7 +1375,7 @@ EOF;
         //= userlist fixture
         $Userlist = $this->getMockBuilder(UserlistModel::class)
             ->disableOriginalConstructor()
-            ->setMethods(['get'])
+            ->onlyMethods(['get'])
             ->getMock();
         $Userlist->method('get')->willReturn(['Alice', 'Bobby Junior', 'Dr. No']);
 

@@ -55,7 +55,7 @@ class AuthUserComponent extends Component
      *
      * @var array
      */
-    public $components = [
+    public array $components = [
         'Authentication.Authentication',
     ];
 

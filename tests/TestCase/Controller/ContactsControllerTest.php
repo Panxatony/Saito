@@ -5,7 +5,7 @@ namespace App\Test\TestCase\Controller;
 use Cake\Mailer\Message;
 use Saito\Test\IntegrationTestCase;
 
-class ContactsControllerTestCase extends IntegrationTestCase
+class ContactsControllerTest extends IntegrationTestCase
 {
 
     public array $fixtures = [
@@ -31,11 +31,12 @@ class ContactsControllerTestCase extends IntegrationTestCase
         ];
 
         $transproter = $this->mockMailTransporter();
+        $callCount = 0;
         $transproter->expects($this->exactly(2))
             ->method('send')
-            ->withConsecutive(
-                // cc mail
-                [$this->callback(function (Message $email) {
+            ->willReturnCallback(function (Message $email) use (&$callCount) {
+                if ($callCount === 0) {
+                    // cc mail
                     $this->assertEquals(
                         $email->getFrom(),
                         ['system@example.com' => 'macnemo']
@@ -45,11 +46,8 @@ class ContactsControllerTestCase extends IntegrationTestCase
                         ['fo3@example.com' => 'fo3@example.com']
                     );
                     $this->assertEmpty($email->getSender());
-
-                    return true;
-                })],
-                // main mail
-                [$this->callback(function (Message $email) {
+                } else {
+                    // main mail
                     $this->assertEquals(
                         $email->getFrom(),
                         ['fo3@example.com' => 'fo3@example.com']
@@ -62,10 +60,10 @@ class ContactsControllerTestCase extends IntegrationTestCase
                         $email->getSender(),
                         ['system@example.com' => 'macnemo']
                     );
-
-                    return true;
-                })]
-            );
+                }
+                $callCount++;
+                return [];
+            });
         $this->post('/contacts/owner', $data);
     }
 

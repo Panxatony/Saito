@@ -53,8 +53,8 @@ class SaitoDummyDataCommand extends Command
     {
         parent::initialize();
         Registry::initialize();
-        $this->loadModel('Entries');
-        $this->loadModel('Users');
+        $this->fetchTable('Entries');
+        $this->fetchTable('Users');
     }
 
     /**

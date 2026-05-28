@@ -70,7 +70,7 @@ class Bookmarks
             return;
         }
         /** @var BookmarksTable */
-        $BookmarksTable = TableRegistry::get('Bookmarks.Bookmarks');
+        $BookmarksTable = TableRegistry::getTableLocator()->get('Bookmarks.Bookmarks');
         $this->_bookmarks = $BookmarksTable
             ->find('list', ['keyField' => 'entry_id', 'valueField' => 'id'])
             ->where(['user_id' => $this->_CurrentUser->getId()])

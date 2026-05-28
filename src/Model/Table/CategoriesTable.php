@@ -44,7 +44,7 @@ class CategoriesTable extends AppSettingTable
     public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator
-            ->allowEmpty('category_order', 'create')
+            ->allowEmptyString('category_order', 'create')
             ->add(
                 'category_order',
                 [
@@ -90,7 +90,7 @@ class CategoriesTable extends AppSettingTable
             function () use ($key) {
                 return $this->find('all')
                     ->cache($key)
-                    ->order(['category_order' => 'ASC'])
+                    ->orderBy(['category_order' => 'ASC'])
                     ->all();
             }
         );
@@ -118,7 +118,7 @@ class CategoriesTable extends AppSettingTable
             );
         }
 
-        $Entries = TableRegistry::get('Entries');
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
         $Entries->updateAll(
             ['category_id' => $target->get('id')],
             ['category_id' => $source->get('id')]
@@ -136,7 +136,7 @@ class CategoriesTable extends AppSettingTable
     public function deleteWithAllEntries($categoryId)
     {
         $category = $this->get($categoryId);
-        $Entries = TableRegistry::get('Entries');
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
         $Entries->deleteAll(
             ['category_id' => $category->get('id')]
         );

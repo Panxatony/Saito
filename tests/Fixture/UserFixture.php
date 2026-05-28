@@ -310,7 +310,7 @@ class UserFixture extends TestFixture
             'registered' => '2009-01-01 00:00',
             'slidetab_order' => null,
             'user_automaticaly_mark_as_read' => 0,
-            'user_category_custom' => '',
+            'user_category_custom' => [],
             'user_lock' => 0,
             'user_type' => 'user',
         ];

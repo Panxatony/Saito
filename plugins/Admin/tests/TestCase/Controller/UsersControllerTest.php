@@ -37,7 +37,7 @@ class UsersControllerTest extends IntegrationTestCase
     {
         parent::setUp();
         foreach (['Users'] as $table) {
-            $this->$table = TableRegistry::get($table);
+            $this->$table = TableRegistry::getTableLocator()->get($table);
         }
     }
 

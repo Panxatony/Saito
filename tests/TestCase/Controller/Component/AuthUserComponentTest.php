@@ -162,7 +162,7 @@ class AuthUserComponentTest extends IntegrationTestCase
 
         $session = $this->getMockBuilder(Session::class)
             ->disableOriginalConstructor()
-            ->setMethods(['read', 'check', 'write', 'renew', 'destroy', 'id', 'start'])
+            ->onlyMethods(['read', 'check', 'write', 'renew', 'destroy', 'id', 'start'])
             ->getMock();
         $session->expects($this->atLeastOnce())
            ->method('read')
@@ -232,7 +232,7 @@ class AuthUserComponentTest extends IntegrationTestCase
         $this->assertEquals($webroot, $cookie['path']);
     }
 
-    private function _setup(ServerRequestInterface $request = null)
+    private function _setup(?ServerRequestInterface $request = null)
     {
         // buildApp() needs the routes (uses Router::url(['_name' => 'login']))
         // and so does the JWT cookie path on the component.
@@ -257,7 +257,7 @@ class AuthUserComponentTest extends IntegrationTestCase
         $request = $request->withAttribute('authentication', $service);
         $request = $request->withAttribute('authenticationResult', $result);
 
-        $controller = new Controller($request, $response);
+        $controller = new Controller($request);
 
         $registry = new ComponentRegistry($controller);
         $component = new AuthUserComponent($registry);

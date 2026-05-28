@@ -8,8 +8,8 @@
 ### CakePHP 4 ###
 /config/app_local.php
 
-### CakePHP 3 ###
-schema-dump-default.lock
+### CakePHP migrations schema dumps ###
+schema-dump-*.lock
 /logs
 /tmp
 /vendor

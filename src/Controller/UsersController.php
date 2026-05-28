@@ -19,7 +19,7 @@ use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ForbiddenException;
 use Cake\Http\Response;
-use Cake\I18n\Time;
+use Cake\I18n\DateTime;
 use Cake\Routing\Router;
 use Saito\App\Registry;
 use Saito\Exception\Logger\ExceptionLogger;
@@ -113,7 +113,7 @@ class UsersController extends AppController
                 $ends = $this->Users->UserBlocks
                     ->getBlockEndsForUser($User->getId());
                 if ($ends) {
-                    $time = new Time($ends);
+                    $time = new DateTime($ends);
                     $data = [
                         'name' => $username,
                         'end' => $time->timeAgoInWords(['accuracy' => 'hour']),

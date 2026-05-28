@@ -17,7 +17,7 @@ use App\Model\Table\EntriesTable;
 class EntriesTableMock extends EntriesTable
 {
 
-    protected $_table = 'entries';
+    protected ?string $_table = 'entries';
 
     /**
      * {@inheritDoc}

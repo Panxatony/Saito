@@ -47,7 +47,7 @@ class InstallController extends AppController
         // Skip check for 'connected' action which is specifically designed to handle existing DBs.
         if ($this->request->getParam('action') !== 'connected') {
             try {
-                $dbVersion = (new DbVersion($this->loadModel('Settings')))->get();
+                $dbVersion = (new DbVersion($this->fetchTable('Settings')))->get();
                 if (!empty($dbVersion)) {
                     return $this->redirect('/');
                 }
@@ -131,7 +131,7 @@ class InstallController extends AppController
         }
 
         try {
-            (new DbVersion($this->loadModel('Settings')))->get();
+            (new DbVersion($this->fetchTable('Settings')))->get();
             $this->log('Installer found Settings-table.');
 
             return;
@@ -162,7 +162,7 @@ class InstallController extends AppController
 
             $this->log('Installer starting initial migrate.');
             // Initial layout
-            $this->migrations->migrate(['target' => '20180620093430']);
+            $this->migrations->migrate(['target' => 20180620093430]);
             $this->log('Installer starting seed.');
             // The seed is meant for the initial layout
             $this->migrations->seed();
@@ -220,7 +220,7 @@ class InstallController extends AppController
         $this->log('Installer forum email set.');
 
         $this->log('Marking installed.');
-        (new DbVersion($this->loadModel('Settings')))->set(Configure::read('Saito.v'));
+        (new DbVersion($this->fetchTable('Settings')))->set(Configure::read('Saito.v'));
 
         return $this->installerRedirect('finished');
     }
@@ -242,7 +242,7 @@ class InstallController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function log(string $message, $level = LogLevel::INFO, $context = ['saito.install']): bool
+    public function log(\Stringable|string $message, string|int $level = LogLevel::INFO, array|string $context = ['saito.install']): bool
     {
         return parent::log($message, $level, $context);
     }

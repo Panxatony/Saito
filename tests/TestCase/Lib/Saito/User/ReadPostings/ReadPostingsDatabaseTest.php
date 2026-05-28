@@ -100,7 +100,7 @@ class ReadPostingsDatabaseTest extends SaitoTableTestCase
         }
 
         $RP = $this->getMockBuilder(ReadPostingsDatabase::class)
-            ->setMethods($methods)
+            ->onlyMethods($methods)
             ->setConstructorArgs($args)
             ->getMock();
 

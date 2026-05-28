@@ -127,7 +127,6 @@ class BookmarksController extends ApiAppController
     public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
-        $this->FormProtection->setConfig('unlockedActions', ['add']);
     }
 
     /**

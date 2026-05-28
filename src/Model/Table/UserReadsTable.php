@@ -104,7 +104,7 @@ class UserReadsTable extends Table
         Stopwatch::start('UserRead::getUser()');
         $readPostings = $this->find()
             ->where(['user_id' => $userId])
-            ->order('entry_id');
+            ->orderBy('entry_id');
         $read = [];
         foreach ($readPostings as $posting) {
             $id = $posting->get('entry_id');
@@ -158,7 +158,7 @@ class UserReadsTable extends Table
      */
     public function garbageCollection(): void
     {
-        $oldest = $this->find()->order(['id' => 'ASC'])->first();
+        $oldest = $this->find()->orderBy(['id' => 'ASC'])->first();
         if (empty($oldest)) {
             // Usually a newly setup forum.
             return;

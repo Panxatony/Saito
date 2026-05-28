@@ -32,10 +32,10 @@ class SmileyLoader
             return $this->_smilies;
         }
         $this->_smilies = Cache::remember('Saito.Smilies.data', function () {
-            $Smilies = TableRegistry::get('Smilies');
+            $Smilies = TableRegistry::getTableLocator()->get('Smilies');
             $smiliesRaw = $Smilies->find()
                 ->contain(['SmileyCodes'])
-                ->order(['sort' => 'ASC'])
+                ->orderBy(['sort' => 'ASC'])
                 ->enableHydration(false)
                 ->all()
                 ->toArray();

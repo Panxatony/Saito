@@ -141,7 +141,7 @@ class UserIgnoresTable extends AppTable
                 ]
             )
             ->where(['user_id' => $userId])
-            ->order(['Users.username' => 'ASC'])
+            ->orderBy(['Users.username' => 'ASC'])
             ->all();
 
         return $results->extract('user');

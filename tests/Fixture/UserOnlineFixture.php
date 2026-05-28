@@ -11,7 +11,7 @@ class UseronlineFixture extends TestFixture
      *
      * @var string
      */
-    public $table = 'useronline';
+    public string $table = 'useronline';
 
     /**
      * Fields

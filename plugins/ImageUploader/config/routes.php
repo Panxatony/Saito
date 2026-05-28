@@ -18,7 +18,7 @@ $routes->plugin(
     ['path' => '/api/v2'],
     function (RouteBuilder $routes) {
         $routes->get(
-            '/uploads/thumb/:id',
+            '/uploads/thumb/{id}',
             ['controller' => 'Thumbnail', 'action' => 'thumb'],
             'imageUploader-thumbnail'
         )

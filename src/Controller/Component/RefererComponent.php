@@ -15,6 +15,7 @@ namespace App\Controller\Component;
 use Cake\Controller\Component;
 use Cake\Controller\Controller;
 use Cake\Event\Event;
+use Cake\Http\ServerRequest;
 use Cake\Routing\Router;
 
 class RefererComponent extends Component
@@ -43,7 +44,8 @@ class RefererComponent extends Component
         $referer = $event->getSubject()->referer(null, true);
         try {
             // GET context: most route maps require an HTTP method to match.
-            $parsed = Router::getRouteCollection()->parse($referer, 'GET');
+            $request = (new ServerRequest(['url' => $referer]))->withMethod('GET');
+            $parsed = Router::getRouteCollection()->parseRequest($request);
         } catch (\Cake\Routing\Exception\MissingRouteException $e) {
             $parsed = [];
         }

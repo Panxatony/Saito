@@ -14,7 +14,6 @@ namespace ImageUploader\Test\TestCase\Controller;
 
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
-use Cake\Filesystem\File;
 use Cake\ORM\TableRegistry;
 use claviska\SimpleImage;
 use ImageUploader\ImageUploaderPlugin;
@@ -30,20 +29,21 @@ class ThumbnailControllerTest extends IntegrationTestCase
 
     public function testCacheCreation()
     {
-        $Uploads = TableRegistry::get('ImageUploader.Uploads');
+        $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
         $upload = $Uploads->get(1);
 
-        $file = new File(Configure::read('Saito.Settings.uploadDirectory') . $upload->get('name'));
+        $filePath = Configure::read('Saito.Settings.uploadDirectory') . $upload->get('name');
         $raw = (new SimpleImage())
             ->fromNew(500, 500, 'blue')
             ->toString($upload->get('type'));
-        $file->write($raw);
+        file_put_contents($filePath, $raw);
         // pad image
-        $file->append(str_repeat('0', $upload->get('size')));
+        file_put_contents($filePath, str_repeat('0', $upload->get('size')), FILE_APPEND);
 
-        Plugin::configureCache(); // cache isn't bootstraped through request yet
+        ImageUploaderPlugin::configureCache(); // cache isn't bootstrapped through request yet
 
         $cacheKey = Configure::read('Saito.Settings.uploader')->getCacheKey();
+        Cache::clear($cacheKey); // ensure no stale data from previous test runs
 
         $this->assertNull(Cache::read((string)$upload->get('id'), $cacheKey));
 
@@ -59,8 +59,10 @@ class ThumbnailControllerTest extends IntegrationTestCase
         $this->assertHeader('content-type', 'image/png');
 
         //// cleanup
-        $file->delete();
-        unset($cache, $file);
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+        unset($cache);
     }
 
     /**
@@ -71,14 +73,14 @@ class ThumbnailControllerTest extends IntegrationTestCase
      */
     public function testAccessFailureNoHash()
     {
-        $Uploads = TableRegistry::get('ImageUploader.Uploads');
+        $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
         $upload = $Uploads->get(1);
 
-        $file = new File(Configure::read('Saito.Settings.uploadDirectory') . $upload->get('name'));
+        $filePath = Configure::read('Saito.Settings.uploadDirectory') . $upload->get('name');
         $raw = (new SimpleImage())
             ->fromNew(100, 100, 'blue')
             ->toString($upload->get('type'));
-        $file->write($raw);
+        file_put_contents($filePath, $raw);
 
         $this->expectException(SaitoForbiddenException::class);
         $this->get('/api/v2/uploads/thumb/1');

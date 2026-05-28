@@ -69,11 +69,17 @@ class ResourceACTest extends SaitoTestCase
     public function testCheckAsRoles()
     {
         $ac = $this->getMockBuilder(ResourceAC::class)
-            ->setMethods(['onRole'])
+            ->onlyMethods(['onRole'])
             ->getMock();
+        $callCount = 0;
+        $expectedArgs = ['user', 'mod'];
         $ac->expects($this->exactly(2))
             ->method('onRole')
-            ->withConsecutive(['user'], ['mod']);
+            ->willReturnCallback(function ($role) use ($ac, &$callCount, $expectedArgs) {
+                $this->assertSame($expectedArgs[$callCount], $role);
+                $callCount++;
+                return $ac;
+            });
 
         $ac->onRoles('user', 'mod');
     }

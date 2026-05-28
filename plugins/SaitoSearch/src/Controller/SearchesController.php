@@ -18,7 +18,7 @@ use Cake\Chronos\Chronos;
 use Cake\Database\Driver\Mysql;
 use Cake\Event\Event;
 use Cake\Http\Response;
-use Cake\I18n\FrozenDate;
+use Cake\I18n\Date;
 use SaitoSearch\Lib\SimpleSearchString;
 use Saito\Exception\SaitoForbiddenException;
 use Search\Controller\Component\PrgComponent;
@@ -38,11 +38,8 @@ class SearchesController extends AppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Entries');
+        $this->Entries = $this->fetchTable('Entries');
 
-        $this->loadComponent('Paginator');
-        // use setConfig on Component to not merge but overwrite/set the config
-        $this->Paginator->setConfig('whitelist', ['page'], false);
 
         if ($this->getRequest()->getParam('action') === 'simple') {
             $this->Entries->addBehavior('SaitoSearch.SaitoSearch');
@@ -104,10 +101,10 @@ class SearchesController extends AppController
                 ],
             ],
             // only sort paginate for "page"-query-param
-            'whitelist' => ['page'],
+            'allowedParameters' => ['page'],
         ];
 
-        $results = $this->Paginator->paginate($this->Entries, $config);
+        $results = $this->paginate($this->Entries, $config);
         $this->set('omittedWords', $searchString->getOmittedWords());
         $this->set('minWordLength', $searchString->getMinWordLength());
         $this->set('results', $results);
@@ -129,12 +126,12 @@ class SearchesController extends AppController
 
         /// Setup time filter data
         $first = $this->Entries->find()
-            ->order(['id' => 'ASC'])
+            ->orderBy(['id' => 'ASC'])
             ->first();
         if ($first) {
             $startDate = $first->get('time');
             /// Limit default search range to one year in the past
-            $aYearAgo = new FrozenDate('-1 year');
+            $aYearAgo = Chronos::now()->subYears(1);
             $defaultDate = $startDate < $aYearAgo ? $aYearAgo : $startDate;
         } else {
             /// No entries yet
@@ -158,9 +155,9 @@ class SearchesController extends AppController
 
         /// setup find
         $query = $this->Entries
-            ->find('search', ['search' => $queryData])
+            ->find('search', search: $queryData)
             ->contain(['Categories', 'Users'])
-            ->order(['Entries.id' => 'DESC']);
+            ->orderBy(['Entries.id' => 'DESC']);
 
         /// Time filter
         $time = Chronos::createFromDate((int)$year, (int)$month, 1);

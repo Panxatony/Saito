@@ -71,7 +71,7 @@ class UserOnlineTable extends Table
     {
         /// uuid
         $validator
-            ->notEmpty('uuid')
+            ->notBlank('uuid')
             ->requirePresence('uuid')
             ->add(
                 'uuid',

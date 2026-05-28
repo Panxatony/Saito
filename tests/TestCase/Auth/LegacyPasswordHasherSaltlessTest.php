@@ -39,6 +39,6 @@ class LegacyPasswordHasherSaltlessTest extends SaitoTestCase
         $hash = $this->Hasher->hash($password);
         $this->assertTrue($this->Hasher->check($password, $hash));
 
-        $this->assertFalse($this->Hasher->check(mt_rand(1, 99999), $hash));
+        $this->assertFalse($this->Hasher->check((string)mt_rand(1, 99999), $hash));
     }
 }

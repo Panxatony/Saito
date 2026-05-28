@@ -34,7 +34,7 @@ class ParserHelper extends AppHelper
     /**
      * @var array these Helpers are also used in the Parser
      */
-    public $helpers = [
+    public array $helpers = [
         'MailObfuscator.MailObfuscator',
         'Geshi.Geshi',
         'Form',

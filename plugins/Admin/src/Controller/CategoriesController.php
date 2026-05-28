@@ -21,7 +21,7 @@ use Cake\Http\Exception\BadRequestException;
 class CategoriesController extends AdminAppController
 {
 
-    public $paginate = [
+    public array $paginate = [
         'order' => [
             'Categories.category_order' => 'asc',
         ],
@@ -33,7 +33,7 @@ class CategoriesController extends AdminAppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Categories');
+        $this->Categories = $this->fetchTable('Categories');
     }
 
     /**

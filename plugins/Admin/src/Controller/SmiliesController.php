@@ -25,7 +25,7 @@ class SmiliesController extends AdminAppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Smilies');
+        $this->Smilies = $this->fetchTable('Smilies');
     }
 
     /**

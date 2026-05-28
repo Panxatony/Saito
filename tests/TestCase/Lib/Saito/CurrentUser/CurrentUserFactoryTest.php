@@ -35,7 +35,7 @@ class CurrentUserFactoryTest extends SaitoTestCase
 
         $request = new ServerRequest();
         $response = new Response();
-        $this->controller = new Controller($request, $response);
+        $this->controller = new Controller($request);
     }
 
     public function tearDown(): void

@@ -66,7 +66,7 @@ class SettingsController extends AdminAppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Settings');
+        $this->Settings = $this->fetchTable('Settings');
     }
 
     /**

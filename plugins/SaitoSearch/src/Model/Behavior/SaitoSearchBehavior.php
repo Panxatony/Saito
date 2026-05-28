@@ -30,7 +30,7 @@ class SaitoSearchBehavior extends Behavior
     {
         $query = $this
             ->findSimpleSearchByRank($query, $options)
-            ->order(['`Entries`.`time`' => 'DESC']);
+            ->orderBy(['`Entries`.`time`' => 'DESC']);
 
         return $query;
     }
@@ -73,7 +73,7 @@ class SaitoSearchBehavior extends Behavior
             throw new \RuntimeException();
         }
 
-        $connection = $this->getTable()->getConnection();
+        $connection = $this->table()->getConnection();
 
         $minWordLength = $connection
             ->execute("SHOW VARIABLES LIKE 'ft_min_word_len'")

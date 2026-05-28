@@ -32,6 +32,14 @@ class Registry
     protected static $dic;
 
     /**
+     * @return bool
+     */
+    public static function isInitialized(): bool
+    {
+        return self::$dic !== null;
+    }
+
+    /**
      * Resets and initializes registry.
      *
      * @return Container

@@ -42,7 +42,7 @@ class PreviewControllerTest extends IntegrationTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->Table = TableRegistry::get('Entries');
+        $this->Table = TableRegistry::getTableLocator()->get('Entries');
     }
 
     public function tearDown(): void

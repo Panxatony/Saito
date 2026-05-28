@@ -14,7 +14,6 @@ namespace ImageUploader\Model\Entity;
 
 use App\Model\Entity\User;
 use Cake\Core\Configure;
-use Cake\Filesystem\File;
 use Cake\ORM\Entity;
 use Cake\Utility\Text;
 
@@ -47,14 +46,14 @@ class Upload extends Entity
     }
 
     /**
-     * Virtual property getting a File to the upload
+     * Virtual property returning the absolute path to the upload file
      *
-     * @return File handle to the file
+     * @return string
      */
-    public function _getFile(): File
+    public function _getFile(): string
     {
         $folderPath = rtrim(Configure::read('Saito.Settings.uploadDirectory'), DS) . DS;
-        return new File($folderPath . $this->get('name'));
+        return $folderPath . $this->get('name');
     }
 
     /**

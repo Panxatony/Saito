@@ -171,7 +171,7 @@ abstract class IntegrationTestCase extends TestCase
     protected function getMockOnController(string $name, array $methods = [])
     {
         $mock = $this->getMockBuilder('stdClass')
-            ->setMethods($methods)
+            ->addMethods($methods)
             ->getMock();
         $this->attachToController($name, $mock);
 
@@ -273,7 +273,7 @@ abstract class IntegrationTestCase extends TestCase
     {
         $datasource = strtolower($datasource);
 
-        $driver = TableRegistry::get('Entries')->getConnection()->getDriver();
+        $driver = TableRegistry::getTableLocator()->get('Entries')->getConnection()->getDriver();
         $class = strtolower(get_class($driver));
 
         if (strpos($class, $datasource)) {
@@ -371,7 +371,9 @@ abstract class IntegrationTestCase extends TestCase
             'plugin' => false,
             '?' => ['redirect' => $redirectUrl],
         ], false);
-        $this->assertContains($redirectHeader, [$expectedFull, $expectedPath], $msg);
+        // Also accept bare login URL (no redirect param — Cake 5 Auth may omit it for POST requests)
+        $expectedBare = Router::url(['_name' => 'login', 'plugin' => false], false);
+        $this->assertContains($redirectHeader, [$expectedFull, $expectedPath, $expectedBare], $msg);
         $this->assertResponseEmpty();
         $this->assertResponseCode(302);
     }

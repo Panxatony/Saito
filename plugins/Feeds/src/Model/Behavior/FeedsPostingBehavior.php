@@ -28,7 +28,7 @@ class FeedsPostingBehavior extends Behavior
     public function findFeed(Query $query)
     {
         return $query->contain('Users')
-            ->order(['last_answer' => 'DESC'])
+            ->orderBy(['last_answer' => 'DESC', 'Entries.id' => 'ASC'])
             ->limit(10);
     }
 }

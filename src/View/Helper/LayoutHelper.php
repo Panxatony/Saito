@@ -22,7 +22,7 @@ class LayoutHelper extends AppHelper
 {
     use StringTemplateTrait;
 
-    public $helpers = ['Html', 'Url'];
+    public array $helpers = ['Html', 'Url'];
 
     protected array $_defaultConfig = [
         'templates' => [

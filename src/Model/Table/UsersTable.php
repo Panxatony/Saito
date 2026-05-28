@@ -21,7 +21,6 @@ use Authentication\PasswordHasher\DefaultPasswordHasher;
 use Authentication\PasswordHasher\PasswordHasherFactory;
 use Authentication\PasswordHasher\PasswordHasherInterface;
 use Cake\Core\Configure;
-use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Datasource\EntityInterface;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
@@ -130,6 +129,9 @@ class UsersTable extends AppTable
                 ],
             ]
         );
+
+        $this->getSchema()->setColumnType('avatar', 'avatar.file');
+        $this->getSchema()->setColumnType('user_category_custom', 'serialize');
     }
 
     /**
@@ -143,8 +145,8 @@ class UsersTable extends AppTable
         );
 
         $validator
-            ->allowEmpty('avatar_dir')
-            ->allowEmpty('avatar')
+            ->allowEmptyString('avatar_dir')
+            ->allowEmptyString('avatar')
             ->add(
                 'avatar',
                 'avatar-extension',
@@ -157,7 +159,13 @@ class UsersTable extends AppTable
                 'avatar',
                 'avatar-size',
                 [
-                    'rule' => ['fileSize', Validation::COMPARE_LESS, '3MB'],
+                    'rule' => function ($value) {
+                        $upload = RequestUpload::toArray($value);
+                        if ($upload === null || empty($upload['tmp_name'])) {
+                            return true;
+                        }
+                        return Validation::fileSize($upload['tmp_name'], Validation::COMPARE_LESS, '3MB');
+                    },
                     'message' => __('user.avatar.error.size', ['3']),
                 ]
             )
@@ -165,7 +173,13 @@ class UsersTable extends AppTable
                 'avatar',
                 'avatar-mime',
                 [
-                    'rule' => ['mimetype', ['image/jpeg', 'image/png']],
+                    'rule' => function ($value) {
+                        $upload = RequestUpload::toArray($value);
+                        if ($upload === null || empty($upload['tmp_name'])) {
+                            return true;
+                        }
+                        return Validation::mimeType($upload['tmp_name'], ['image/jpeg', 'image/png']);
+                    },
                     'message' => __('user.avatar.error.mime'),
                 ]
             )
@@ -194,7 +208,7 @@ class UsersTable extends AppTable
             );
 
         $validator
-            ->notEmpty('password')
+            ->notBlank('password')
             ->add(
                 'password',
                 [
@@ -207,7 +221,7 @@ class UsersTable extends AppTable
             );
 
         $validator
-            ->notEmpty('password_old')
+            ->notBlank('password_old')
             ->add(
                 'password_old',
                 [
@@ -220,7 +234,7 @@ class UsersTable extends AppTable
             );
 
         $validator
-            ->notEmpty('username', __('error_no_name'))
+            ->notBlank('username', __('error_no_name'))
             ->add(
                 'username',
                 [
@@ -256,7 +270,7 @@ class UsersTable extends AppTable
             );
 
         $validator
-            ->notEmpty('user_email')
+            ->notBlank('user_email')
             ->add(
                 'user_email',
                 [
@@ -292,7 +306,7 @@ class UsersTable extends AppTable
             ]
         );
 
-        $validator->notEmpty('registered');
+        $validator->notBlank('registered');
 
         $validator->add(
             'logins',
@@ -310,7 +324,7 @@ class UsersTable extends AppTable
         );
 
         $validator
-            ->notEmpty('activate_code')
+            ->notBlank('activate_code')
             ->add(
                 'activate_code',
                 [
@@ -340,7 +354,7 @@ class UsersTable extends AppTable
         );
 
         $validator
-            ->allowEmpty('user_color_new_postings')
+            ->allowEmptyString('user_color_new_postings')
             ->add(
                 'user_color_new_postings',
                 [
@@ -350,7 +364,7 @@ class UsersTable extends AppTable
                 ]
             );
         $validator
-            ->allowEmpty('user_color_old_postings')
+            ->allowEmptyString('user_color_old_postings')
             ->add(
                 'user_color_old_postings',
                 [
@@ -360,7 +374,7 @@ class UsersTable extends AppTable
                 ]
             );
         $validator
-            ->allowEmpty('user_color_actual_posting')
+            ->allowEmptyString('user_color_actual_posting')
             ->add(
                 'user_color_actual_posting',
                 [
@@ -371,17 +385,6 @@ class UsersTable extends AppTable
             );
 
         return $validator;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected function _initializeSchema(TableSchemaInterface $schema): TableSchemaInterface
-    {
-        $schema->setColumnType('avatar', 'avatar.file');
-        $schema->setColumnType('user_category_custom', 'serialize');
-
-        return $schema;
     }
 
     /**
@@ -400,8 +403,7 @@ class UsersTable extends AppTable
             $data['last_refresh'] = $lastRefresh;
         }
 
-        $this->query()
-            ->update()
+        $this->updateQuery()
             ->set($data)
             ->where(['id' => $userId])
             ->execute();
@@ -917,7 +919,7 @@ class UsersTable extends AppTable
     {
         $query
             ->contain(['UserOnline'])
-            ->order(['Users.username' => 'ASC']);
+            ->orderBy(['Users.username' => 'ASC']);
 
         return $query;
     }
@@ -932,7 +934,7 @@ class UsersTable extends AppTable
     public function findLatest(Query $query, array $options)
     {
         $query->where(['activate_code' => 0])
-            ->order(['id' => 'DESC'])
+            ->orderBy(['id' => 'DESC'])
             ->limit(1);
 
         return $query;

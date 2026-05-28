@@ -27,7 +27,7 @@ use Saito\Exception\SaitoForbiddenException;
  */
 class ThumbnailController extends Controller
 {
-    public $autoRender = false;
+    public bool $autoRender = false;
 
     /**
      * Thumb Image Generator
@@ -42,22 +42,22 @@ class ThumbnailController extends Controller
             ['hash' => $fingerprint, 'type' => $type, 'raw' => $raw] = Cache::remember(
                 (string)$id,
                 function () use ($id) {
-                    $Uploads = $this->loadModel('ImageUploader.Uploads');
+                    $Uploads = $this->fetchTable('ImageUploader.Uploads');
                     $document = $Uploads->get($id);
 
                     $hash = $document->get('hash');
                     $type = $document->get('type');
-                    $file = $document->get('file');
+                    $filePath = $document->get('file');
 
-                    if (!$file->exists()) {
+                    if (!file_exists($filePath)) {
                         throw new NotFoundException("Upload file for id $id not found on disk.");
                     }
 
-                    $raw = $file->read();
+                    $raw = file_get_contents($filePath);
 
                     if ($document->get('size') > 150000) {
                         $raw = (new SimpleImage())
-                            ->fromFile($file->path)
+                            ->fromFile($filePath)
                             ->bestFit(300, 300)
                             ->toString();
                     }

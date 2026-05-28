@@ -15,7 +15,6 @@ namespace ImageUploader\Model\Table;
 use App\Lib\Model\Table\AppTable;
 use Cake\Core\Configure;
 use Cake\Event\Event;
-use Cake\Filesystem\File;
 use Cake\I18n\Number;
 use Cake\ORM\RulesChecker;
 use Cake\Validation\Validation;
@@ -61,7 +60,7 @@ class UploadsTable extends AppTable
     {
         $validator
             ->add('id', 'valid', ['rule' => 'numeric'])
-            ->allowEmpty('id', 'create')
+            ->allowEmptyString('id', 'create')
             ->notBlank('name')
             ->notBlank('size')
             ->notBlank('type')
@@ -158,8 +157,9 @@ class UploadsTable extends AppTable
      */
     public function beforeDelete(\Cake\Event\EventInterface $event, Upload $entity, \ArrayObject $options)
     {
-        if ($entity->get('file')->exists()) {
-            return $entity->get('file')->delete();
+        $filePath = $entity->get('file');
+        if (file_exists($filePath)) {
+            return unlink($filePath);
         }
 
         return true;
@@ -173,37 +173,36 @@ class UploadsTable extends AppTable
      */
     private function moveUpload(Upload $entity): void
     {
-        /** @var File $file */
-        $file = $entity->get('file');
+        $filePath = $entity->get('file');
         try {
-            $tmpFile = new File($entity->get('document')['tmp_name']);
-            if (!$tmpFile->exists()) {
+            $tmpName = $entity->get('document')['tmp_name'];
+            if (!file_exists($tmpName)) {
                 throw new \RuntimeException('Uploaded file not found.');
             }
 
-            if (!$tmpFile->copy($file->path)) {
+            if (!copy($tmpName, $filePath)) {
                 throw new \RuntimeException('Uploaded file could not be moved');
             }
 
-            $mime = $file->info()['mime'];
+            $mime = mime_content_type($filePath) ?: '';
             switch ($mime) {
                 case 'image/png':
-                    $file = $this->convertToJpeg($file);
-                    $entity->set('type', $file->mime());
+                    $filePath = $this->convertToJpeg($filePath);
+                    $entity->set('type', mime_content_type($filePath) ?: '');
                     // fall through: png is further processed as jpeg
                     // no break
                 case 'image/jpeg':
-                    $this->fixOrientation($file);
-                    $this->resize($file, $this->UploaderConfig->getMaxResize());
-                    $entity->set('size', $file->size());
+                    $this->fixOrientation($filePath);
+                    $this->resize($filePath, $this->UploaderConfig->getMaxResize());
+                    $entity->set('size', filesize($filePath));
                     break;
                 default:
             }
 
-            $entity->set('name', $file->name);
+            $entity->set('name', basename($filePath));
         } catch (\Throwable $e) {
-            if ($file->exists()) {
-                $file->delete();
+            if (file_exists($filePath)) {
+                unlink($filePath);
             }
             throw new \RuntimeException('Moving uploaded file failed.');
         }
@@ -212,61 +211,61 @@ class UploadsTable extends AppTable
     /**
      * Convert image file to jpeg
      *
-     * @param File $file the non-jpeg image file handler
-     * @return File handler to jpeg file
+     * @param string $filePath path to non-jpeg image
+     * @return string path to jpeg file
      */
-    private function convertToJpeg(File $file): File
+    private function convertToJpeg(string $filePath): string
     {
-        $jpeg = new File($file->folder()->path . DS . $file->name() . '.jpg');
+        $jpegPath = dirname($filePath) . DS . pathinfo($filePath, PATHINFO_FILENAME) . '.jpg';
 
         try {
             (new SimpleImage())
-                ->fromFile($file->path)
-                ->toFile($jpeg->path, 'image/jpeg', 100);
+                ->fromFile($filePath)
+                ->toFile($jpegPath, 'image/jpeg', 100);
         } catch (\Throwable $e) {
-            if ($jpeg->exists()) {
-                $jpeg->delete();
+            if (file_exists($jpegPath)) {
+                unlink($jpegPath);
             }
             throw new \RuntimeException('Converting file to jpeg failed.');
         } finally {
-            $file->delete();
+            unlink($filePath);
         }
 
-        return $jpeg;
+        return $jpegPath;
     }
 
     /**
      * Fix image orientation according to image exif data
      *
-     * @param File $file file
-     * @return File handle to fixed file
+     * @param string $filePath path to image file
+     * @return void
      */
-    private function fixOrientation(File $file): File
+    private function fixOrientation(string $filePath): void
     {
-        $new = new File($file->path);
         (new SimpleImage())
-            ->fromFile($file->path)
+            ->fromFile($filePath)
             ->autoOrient()
-            ->toFile($new->path, null, 100);
-
-        return $new;
+            ->toFile($filePath, null, 100);
     }
 
     /**
      * Resizes a file
      *
-     * @param File $file file to resize
+     * @param string $filePath path to file to resize
      * @param int $target size in bytes
      * @return void
      */
-    private function resize(File $file, int $target): void
+    private function resize(string $filePath, int $target): void
     {
-        $size = $file->size();
+        $size = filesize($filePath);
         if ($size < $target) {
             return;
         }
 
-        $raw = $file->read();
+        $raw = file_get_contents($filePath);
+        if ($raw === false) {
+            throw new \RuntimeException();
+        }
 
         list($width, $height) = getimagesizefromstring($raw);
         $ratio = $size / $target;
@@ -289,17 +288,17 @@ class UploadsTable extends AppTable
             throw new \RuntimeException();
         }
 
-        $type = $file->mime();
+        $type = mime_content_type($filePath) ?: '';
         switch ($type) {
             case 'image/jpeg':
                 imagejpeg(
                     $destination,
-                    $file->path,
+                    $filePath,
                     $this->UploaderConfig->getJpegCompressionFactor()
                 );
                 break;
             case 'image/png':
-                imagepng($destination, $file->path);
+                imagepng($destination, $filePath);
                 break;
             default:
                 throw new \RuntimeException();
@@ -325,7 +324,10 @@ class UploadsTable extends AppTable
 
         /// Check file size
         $size = $UploaderConfig->getSize($check['type']);
-        if (!Validation::fileSize($check, '<', $size)) {
+        $filePath = $check instanceof \Psr\Http\Message\UploadedFileInterface
+            ? $check->getStream()->getMetadata('uri')
+            : ($check['tmp_name'] ?? null);
+        if (!Validation::fileSize($filePath ?? $check, '<', $size)) {
             return __d(
                 'image_uploader',
                 'validation.error.fileSize',

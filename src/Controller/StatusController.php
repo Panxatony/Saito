@@ -19,7 +19,7 @@ use Cake\Http\Response;
 class StatusController extends AppController
 {
 
-    public $autoRender = false;
+    public bool $autoRender = false;
 
     /**
      * Sends status data to the frontend

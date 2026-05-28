@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace App\Database\Type;
 
-use Cake\Database\DriverInterface;
+use Cake\Database\Driver;
 use Cake\Database\Type\BaseType;
 use PDO;
 use Saito\RequestUpload;
@@ -26,9 +26,9 @@ use Saito\RequestUpload;
  */
 class AvatarFileType extends BaseType
 {
-    public function marshal($value)
+    public function marshal(mixed $value): mixed
     {
-        // Cake 4 hands file uploads to the marshaller as PSR-7
+        // Cake 5 hands file uploads to the marshaller as PSR-7
         // UploadedFileInterface objects. Normalize to the $_FILES-style
         // array the validator and AvatarBehavior still operate on.
         $upload = RequestUpload::toArray($value);
@@ -42,7 +42,7 @@ class AvatarFileType extends BaseType
         return (string)$value;
     }
 
-    public function toPHP($value, DriverInterface $driver)
+    public function toPHP(mixed $value, Driver $driver): mixed
     {
         if ($value === null || $value === '') {
             return null;
@@ -51,7 +51,7 @@ class AvatarFileType extends BaseType
         return (string)$value;
     }
 
-    public function toDatabase($value, DriverInterface $driver)
+    public function toDatabase(mixed $value, Driver $driver): string|int|float|bool|\Cake\Database\Expression\ExpressionInterface|null
     {
         if (is_array($value)) {
             // Behavior did not run — should not happen in practice
@@ -64,7 +64,7 @@ class AvatarFileType extends BaseType
         return (string)$value;
     }
 
-    public function toStatement($value, DriverInterface $driver)
+    public function toStatement(mixed $value, Driver $driver): int
     {
         if ($value === null) {
             return PDO::PARAM_NULL;

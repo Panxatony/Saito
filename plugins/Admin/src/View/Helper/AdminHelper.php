@@ -28,7 +28,7 @@ use SaitoHelp\View\Helper\SaitoHelpHelper;
  */
 class AdminHelper extends AppHelper
 {
-    public $helpers = [
+    public array $helpers = [
         'Breadcrumbs',
         'SaitoHelp',
         'Html',

@@ -14,7 +14,6 @@ namespace App\Model\Behavior;
 
 use ArrayObject;
 use Cake\Event\EventInterface;
-use Cake\Filesystem\Folder;
 use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\Utility\Text;
@@ -97,7 +96,9 @@ class AvatarBehavior extends Behavior
             $this->_deleteUserDir($existingDir);
         }
 
-        (new Folder($targetDir, true, 0755));
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
 
         $ext = $this->_mimeToExt($upload['type']);
         $filename = Text::uuid() . '.' . $ext;
@@ -132,9 +133,13 @@ class AvatarBehavior extends Behavior
             return;
         }
         $root = $this->getConfig('root');
-        $folder = new Folder($root . DS . 'users' . DS . 'avatar' . DS . $dir);
-        foreach ($folder->find('[^.].*') as $file) {
-            unlink($folder->path . DS . $file);
+        $dirPath = $root . DS . 'users' . DS . 'avatar' . DS . $dir;
+        if (is_dir($dirPath)) {
+            foreach (glob($dirPath . DS . '*') ?: [] as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
         }
     }
 

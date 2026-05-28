@@ -41,7 +41,7 @@ class UploadsController extends ApiAppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Users');
+        $this->Users = $this->fetchTable('Users');
     }
 
     /**
@@ -67,7 +67,7 @@ class UploadsController extends ApiAppController
 
         $images = $this->Uploads->find()
             ->where(['user_id' => $userId])
-            ->order(['id' => 'DESC'])
+            ->orderBy(['id' => 'DESC'])
             ->all();
         $this->set('images', $images);
     }

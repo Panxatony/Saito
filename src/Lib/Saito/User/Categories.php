@@ -62,7 +62,7 @@ class Categories
             $key,
             function () use ($action, $format) {
                 /** @var CategoriesTable */
-                $Categories = TableRegistry::get('Categories');
+                $Categories = TableRegistry::getTableLocator()->get('Categories');
                 $all = $Categories->getAllCategories();
                 $categories = [];
                 foreach ($all as $category) {

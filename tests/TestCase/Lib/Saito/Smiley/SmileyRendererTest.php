@@ -9,7 +9,7 @@ use Saito\Smiley\SmileyLoader;
 use Saito\Smiley\SmileyRenderer;
 use Saito\Test\SaitoTestCase;
 
-class SmileyRenderTest extends SaitoTestCase
+class SmileyRendererTest extends SaitoTestCase
 {
 
     public array $fixtures = ['app.Smiley', 'app.SmileyCode'];

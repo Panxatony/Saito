@@ -17,7 +17,6 @@ use Authentication\Authenticator\UnauthenticatedException;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Datasource\Exception\RecordNotFoundException;
-use Cake\Filesystem\File;
 use Cake\ORM\TableRegistry;
 use ImageUploader\Model\Table\UploadsTable;
 use Saito\Exception\SaitoForbiddenException;
@@ -38,21 +37,23 @@ class UploadsControllerTest extends IntegrationTestCase
     ];
 
     /**
-     * @var File dummy file
+     * @var string path to dummy file
      */
-    private $file;
+    private string $file;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->file = new File(TMP . 'my new-upload.png');
+        $this->file = TMP . 'my new-upload.png';
         $this->mockMediaFile($this->file);
     }
 
     public function tearDown(): void
     {
-        $this->file->delete();
+        if (file_exists($this->file)) {
+            unlink($this->file);
+        }
         unset($this->file);
 
         parent::tearDown();
@@ -126,15 +127,15 @@ class UploadsControllerTest extends IntegrationTestCase
 
         $this->assertSame('1_ebd536d37aff03f2b570329b20ece832.jpg', $upload->get('name'));
         $this->assertSame('image/jpeg', $upload->get('type'));
-        $this->assertTrue($upload->get('file')->exists());
+        $this->assertTrue(file_exists($upload->get('file')));
     }
 
     public function testAddSvg()
     {
         $this->loginJwt(1);
 
-        $this->file = new File(TMP . 'tmp_svg.svg');
-        $this->file->write('<?xml version="1.0" encoding="UTF-8" ?>
+        $this->file = TMP . 'tmp_svg.svg';
+        file_put_contents($this->file, '<?xml version="1.0" encoding="UTF-8" ?>
             <svg width="9" height="9" style="background:red;"></svg>');
         $this->upload($this->file);
 
@@ -171,17 +172,17 @@ class UploadsControllerTest extends IntegrationTestCase
 
         $this->assertSame('1_853fe7aa4ef213b0c11f4b739cf444a8.svg', $upload->get('name'));
         $this->assertSame('image/svg+xml', $upload->get('type'));
-        $this->assertTrue($upload->get('file')->exists());
+        $this->assertTrue(file_exists($upload->get('file')));
     }
 
     public function testAddMimeTypeConversion()
     {
         $this->loginJwt(1);
 
-        $this->file = new File(TMP . 'test.mp4');
-        $fixture = new File(Plugin::path('ImageUploader') . 'tests/Fixture/test-application-octo.mp4');
-        $fixture->copy($this->file->path);
-        $this->assertEquals('application/octet-stream', $this->file->mime());
+        $this->file = TMP . 'test.mp4';
+        $fixturePath = Plugin::path('ImageUploader') . 'tests/Fixture/test-application-octo.mp4';
+        copy($fixturePath, $this->file);
+        $this->assertEquals('application/octet-stream', mime_content_type($this->file));
 
         $this->upload($this->file);
 
@@ -200,15 +201,17 @@ class UploadsControllerTest extends IntegrationTestCase
         }
 
         $this->loginJwt(1);
-        unset($this->file);
-        $this->file = new File(TMP . 'tmp_exif.jpg');
+        if (file_exists($this->file)) {
+            unlink($this->file);
+        }
+        $this->file = TMP . 'tmp_exif.jpg';
 
-        $fixture = new File($path = Plugin::path('ImageUploader') . 'tests/Fixture/exif-with-location.jpg');
-        $fixture->copy($this->file->path);
+        $fixturePath = Plugin::path('ImageUploader') . 'tests/Fixture/exif-with-location.jpg';
+        copy($fixturePath, $this->file);
 
-        $readExif = function (File $file) {
+        $readExif = function (string $path) {
             //@codingStandardsIgnoreStart
-            return @exif_read_data($file->path);
+            return @exif_read_data($path);
             //@codingStandardsIgnoreEnd
         };
         $exif = $readExif($this->file);
@@ -223,7 +226,7 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->assertResponseCode(200);
 
         $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
-        $upload = $Uploads->find('all')->last();
+        $upload = $Uploads->find('all')->orderBy(['id' => 'DESC'])->first();
 
         $exif = $readExif($upload->get('file'));
         $this->assertStringNotContainsString('EXIF', $exif['SectionsFound']);
@@ -270,7 +273,7 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->loginJwt(1);
         // Make sure to test a file that may get transformed on upload (e.g. PNG
         // to JEPG).
-        $file = new File(TMP . 'my new-upload.png');
+        $file = TMP . 'my new-upload.png';
         $this->mockMediaFile($file);
         $this->upload($file);
 
@@ -281,14 +284,16 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->loginJwt(1);
         $this->upload($file);
 
-        $file->delete();
+        if (file_exists($file)) {
+            unlink($file);
+        }
     }
 
     public function testAddFailureFilenameToLong()
     {
         $this->loginJwt(1);
         $max = UploadsTable::FILENAME_MAXLENGTH;
-        $file = new File(TMP . str_pad('', $max + 1, '0') . '.png');
+        $file = TMP . str_pad('', $max + 1, '0') . '.png';
         $this->mockMediaFile($file);
 
         $this->expectException(GenericApiException::class);
@@ -296,7 +301,9 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->expectExceptionMessage((string)$max);
         $this->upload($file);
 
-        $file->delete();
+        if (file_exists($file)) {
+            unlink($file);
+        }
     }
 
     public function testIndexNoAuthorization()
@@ -394,19 +401,19 @@ class UploadsControllerTest extends IntegrationTestCase
     /**
      * Sends a file to upload api
      *
-     * @param File $file The file to send
+     * @param string $filePath The file path to send
      * @param mixed $userId The user-ID to upload to
      */
-    private function upload(File $file, $userId = 1)
+    private function upload(string $filePath, $userId = 1)
     {
         $data = [
             'upload' => [
                 0 => [
                     'file' => [
-                        'tmp_name' => $file->path,
-                        'name' => $file->name() . '.' . $file->ext(),
-                        'size' => $file->size(),
-                        'type' => $file->mime(),
+                        'tmp_name' => $filePath,
+                        'name' => pathinfo($filePath, PATHINFO_FILENAME) . '.' . pathinfo($filePath, PATHINFO_EXTENSION),
+                        'size' => filesize($filePath),
+                        'type' => mime_content_type($filePath),
                     ],
                 ],
             ],

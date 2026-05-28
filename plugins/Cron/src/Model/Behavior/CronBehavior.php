@@ -24,8 +24,14 @@ class CronBehavior extends Behavior
      */
     public function initialize(array $config): void
     {
+        if (!Registry::isInitialized()) {
+            return;
+        }
         $cron = Registry::get('Cron');
         foreach ($config as $func => $options) {
+            if (!is_array($options)) {
+                continue;
+            }
             $cron->addCronJob(
                 $options['id'],
                 $options['due'],

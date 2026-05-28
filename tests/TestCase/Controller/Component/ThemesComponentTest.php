@@ -40,7 +40,7 @@ class ThemesComponentTest extends SaitoTestCase
         // Setup our component and fake test controller
         $request = new ServerRequest();
         $response = new Response();
-        $this->controller = new Controller($request, $response);
+        $this->controller = new Controller($request);
         $registry = new ComponentRegistry($this->controller);
         $this->component = new ThemesComponent($registry);
     }

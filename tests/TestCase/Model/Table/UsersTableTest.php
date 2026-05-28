@@ -3,7 +3,7 @@
 namespace App\Test\TestCase\Model\Table;
 
 use App\Model\Table\UsersTable;
-use Cake\I18n\Time;
+use Cake\I18n\DateTime;
 use Cake\ORM\TableRegistry;
 use Saito\App\Registry;
 use Saito\Test\Model\Table\SaitoTableTestCase;
@@ -218,11 +218,11 @@ class UsersTableTest extends SaitoTableTestCase
         $result = $this->Table->exists(3);
         $this->assertTrue($result);
 
-        $Entries = TableRegistry::get('Entries');
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
         $entriesBeforeDelete = $Entries->find('all')->count();
         $this->assertGreaterThan(0, $entriesBeforeDelete);
 
-        $Bookmarks = TableRegistry::get('Bookmarks');
+        $Bookmarks = TableRegistry::getTableLocator()->get('Bookmarks');
         $allBookmarksBeforeDelete = $Bookmarks->find()->count();
         $userBookmarksBeforeDelete = $Bookmarks->findAllByUserId(3)->count();
         // user has bookmarks before the test
@@ -482,12 +482,15 @@ class UsersTableTest extends SaitoTableTestCase
             ['table' => 'users']
         );
 
+        $callCount = 0;
         $this->Table->expects($this->atLeastOnce())
             ->method('dispatchDbEvent')
-            ->withConsecutive(
-                [$this->anything(), $this->anything()],
-                [$this->equalTo('saito.core.user.register.after'), $this->anything()]
-            );
+            ->willReturnCallback(function ($event, $data) use (&$callCount) {
+                if ($callCount === 1) {
+                    $this->assertEquals('saito.core.user.register.after', $event);
+                }
+                $callCount++;
+            });
 
         // new user
         $pw = 'test';
@@ -506,7 +509,7 @@ class UsersTableTest extends SaitoTableTestCase
         $this->assertTrue($result);
 
         $expected = $data + [
-                'registered' => new Time($now),
+                'registered' => new DateTime('@' . $now),
                 'user_type' => 'user',
             ];
         unset($expected['password'], $expected['password_confirm']);

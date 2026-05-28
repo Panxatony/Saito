@@ -21,7 +21,7 @@ $routes->scope(
     function ($routes) {
         $routes->setExtensions(['xml']);
         $routes->connect('/', ['controller' => 'Sitemaps']);
-        $routes->connect('/:action/*', ['controller' => 'Sitemaps']);
+        $routes->connect('/{action}/*', ['controller' => 'Sitemaps']);
     }
 );
 

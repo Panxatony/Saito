@@ -26,7 +26,7 @@ class SmileyCodesController extends AdminAppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('SmileyCodes');
+        $this->SmileyCodes = $this->fetchTable('SmileyCodes');
     }
 
     /**

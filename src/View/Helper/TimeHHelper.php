@@ -19,7 +19,7 @@ use DateTimeZone;
 class TimeHHelper extends AppHelper
 {
 
-    public $helpers = [
+    public array $helpers = [
         'Time',
     ];
 

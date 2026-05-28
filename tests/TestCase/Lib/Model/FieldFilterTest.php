@@ -5,7 +5,7 @@ namespace App\Test\TestCase\Lib\Model;
 use App\Lib\Model\Table\FieldFilter;
 use Cake\TestSuite\TestCase;
 
-class AppTableTest extends TestCase
+class FieldFilterTest extends TestCase
 {
     /** @var FieldFilter */
     private $fieldFilter;

@@ -13,7 +13,7 @@ class UserTest extends SaitoTestCase
 
     public function testNumberOfPostings()
     {
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
 
         //= zero entries
         $user = $Users->get(4);

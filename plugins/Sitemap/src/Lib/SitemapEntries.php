@@ -26,12 +26,12 @@ class SitemapEntries extends SitemapGenerator
      */
     public function files()
     {
-        $Entries = TableRegistry::get('Entries');
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
         $entry = $Entries->find()
             ->contain(['Categories'])
             ->select(['Entries.id'])
             ->where(['Categories.accession' => 0])
-            ->order(['Entries.id' => 'DESC'])
+            ->orderBy(['Entries.id' => 'DESC'])
             ->first();
 
         $count = (empty($entry)) ? 0 : $entry->get('id');
@@ -82,7 +82,7 @@ class SitemapEntries extends SitemapGenerator
             return $cache;
         }
 
-        $Entries = TableRegistry::get('Entries');
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
         $entries = $Entries->find()
             ->contain(['Categories'])
             ->select(['Entries.id', 'Entries.time', 'Entries.edited'])
@@ -104,9 +104,9 @@ class SitemapEntries extends SitemapGenerator
             } else {
                 $lastmod = $entry['time']->getTimestamp();
             }
-            if ($now > ($lastmod + (3 * DAY))) { // old entries
+            if ($now > ($lastmod + (3 * 86400))) { // old entries
                 $changefreq = 'monthly';
-            } elseif ($now > ($lastmod + DAY)) { // recently active entries
+            } elseif ($now > ($lastmod + 86400)) { // recently active entries
                 $changefreq = 'daily';
             } else { // currently active entries
                 $changefreq = 'hourly';

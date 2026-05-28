@@ -14,7 +14,6 @@ namespace Installer\Test\TestCase\Controller;
 
 use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
-use Cake\Filesystem\File;
 use Cake\ORM\TableRegistry;
 use Installer\Lib\DbVersion;
 use Installer\Lib\IntegrationTestCase;
@@ -25,8 +24,8 @@ class UpdaterControllerTest extends IntegrationTestCase
 
     public array $fixtures = ['app.Setting', 'plugin.Installer.Phinxlog'];
 
-    /** @var File */
-    protected $token;
+    /** @var string */
+    protected $tokenPath;
 
     /** @var DbVersion */
     protected $dbVersion;
@@ -34,21 +33,23 @@ class UpdaterControllerTest extends IntegrationTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->token = new File(CONFIG . 'updater');
-        $this->dbVersion = (new DbVersion(TableRegistry::get('Settings')));
+        $this->tokenPath = CONFIG . 'updater';
+        $this->dbVersion = (new DbVersion(TableRegistry::getTableLocator()->get('Settings')));
         Configure::write('Saito.updated', false);
     }
 
     public function tearDown(): void
     {
-        $this->token->delete();
-        unset($this->settings, $this->token);
+        if (file_exists($this->tokenPath)) {
+            unlink($this->tokenPath);
+        }
+        unset($this->settings, $this->tokenPath);
         parent::tearDown();
     }
 
     public function testUpdaterShowFailureAfterAbortedUpdated()
     {
-        $this->token->write('');
+        file_put_contents($this->tokenPath, '');
         $this->get('/');
 
         $this->assertResponseOk();
@@ -80,7 +81,7 @@ class UpdaterControllerTest extends IntegrationTestCase
     {
         $this->dropTables();
         $migration = new Migrations(['connection' => 'test']);
-        $migration->migrate(['target' => '20180620081553']);
+        $migration->migrate(['target' => 20180620081553]);
         $migration->seed(['seed' => 'SettingsSeed']);
         $this->dbVersion->set('4.10.0');
         $connection = ConnectionManager::get('test');
@@ -101,7 +102,7 @@ class UpdaterControllerTest extends IntegrationTestCase
     {
         $this->dropTables();
         $migration = new Migrations(['connection' => 'test']);
-        $migration->migrate(['target' => '20180620081553']);
+        $migration->migrate(['target' => 20180620081553]);
         $migration->seed(['seed' => 'SettingsSeed']);
         $this->dbVersion->set('4.10.0');
         $connection = ConnectionManager::get('test');
@@ -126,7 +127,7 @@ class UpdaterControllerTest extends IntegrationTestCase
     {
         $this->dropTables();
         $migration = new Migrations(['connection' => 'test']);
-        $migration->migrate(['target' => '20180620081553']);
+        $migration->migrate(['target' => 20180620081553]);
         $migration->seed(['seed' => 'SettingsSeed']);
         $this->dbVersion->set('4.10.0');
         $connection = ConnectionManager::get('test');

@@ -12,8 +12,6 @@ declare(strict_types=1);
 
 namespace Installer\Lib;
 
-use Cake\Filesystem\File;
-
 /**
  * Storage for installer state
  */
@@ -27,12 +25,12 @@ class InstallerState
      */
     public static function check(string $state): bool
     {
-        $file = self::getFile();
-        if (!$file->exists()) {
+        $path = self::getFilePath();
+        if (!file_exists($path)) {
             return false;
         }
 
-        return $file->read() === $state;
+        return file_get_contents($path) === $state;
     }
 
     /**
@@ -42,7 +40,10 @@ class InstallerState
      */
     public static function reset(): void
     {
-        self::getFile()->delete();
+        $path = self::getFilePath();
+        if (file_exists($path)) {
+            unlink($path);
+        }
     }
 
     /**
@@ -53,24 +54,24 @@ class InstallerState
      */
     public static function set(string $state): void
     {
-        self::getFile()->write($state);
+        file_put_contents(self::getFilePath(), $state);
     }
 
     /**
-     * Gets handle to state storage file
+     * Gets path to state storage file
      *
      * The file is stored as file in writable directory. Cache isn't available
      * during the installation.
      *
-     * @return File file handle
+     * @return string file path
      * @throws \RuntimeException
      */
-    private static function getFile(): File
+    private static function getFilePath(): string
     {
         if (empty(TMP)) {
             throw new \RuntimeException('TMP directory not available.', 1560524787);
         }
 
-        return (new File(TMP . 'installer.state'));
+        return TMP . 'installer.state';
     }
 }

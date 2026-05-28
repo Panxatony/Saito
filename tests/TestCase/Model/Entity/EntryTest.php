@@ -15,7 +15,7 @@ class EntryTest extends SaitoTestCase
 
     public function testIsRoot()
     {
-        $postings = TableRegistry::get('Entries');
+        $postings = TableRegistry::getTableLocator()->get('Entries');
 
         $posting = $postings->get(8);
         $this->assertFalse($posting->isRoot());

@@ -92,7 +92,7 @@ class ContactsController extends AppController
             throw new BadRequestException();
         }
 
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         try {
             $recipient = $Users->get($id);
         } catch (RecordNotFoundException $e) {

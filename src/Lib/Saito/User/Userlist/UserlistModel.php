@@ -32,7 +32,7 @@ class UserlistModel
     {
         return $this->remember('userlist', function () {
             /** @var UsersTable $users */
-            $users = TableRegistry::get('Users');
+            $users = TableRegistry::getTableLocator()->get('Users');
 
             return $users->userlist();
         });

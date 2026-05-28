@@ -35,7 +35,7 @@ class Stats
             'UsersOnline',
             function () {
                 /** @var UserOnlineTable */
-                $UserOnline = TableRegistry::get('UserOnline');
+                $UserOnline = TableRegistry::getTableLocator()->get('UserOnline');
 
                 return $UserOnline->getLoggedIn();
             }
@@ -139,9 +139,9 @@ class Stats
                 $stats = Cache::remember(
                     'header_counter',
                     function () {
-                        $Entries = TableRegistry::get('Entries');
-                        $Users = TableRegistry::get('Users');
-                        $UserOnline = TableRegistry::get('UserOnline');
+                        $Entries = TableRegistry::getTableLocator()->get('Entries');
+                        $Users = TableRegistry::getTableLocator()->get('Users');
+                        $UserOnline = TableRegistry::getTableLocator()->get('UserOnline');
                         $stats['numberOfPostings'] = $Entries
                             ->find()
                             ->count();

@@ -19,7 +19,7 @@ use Saito\Test\IntegrationTestCase;
 /**
  * App\Controller\ToolsController Test Case
  */
-class AdminControllerTest extends IntegrationTestCase
+class AdminsControllerTest extends IntegrationTestCase
 {
     /**
      * Fixtures

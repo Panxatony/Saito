@@ -31,7 +31,7 @@ use Saito\Thread\Renderer;
  */
 class PostingHelper extends AppHelper
 {
-    public $helpers = ['Form', 'Html', 'TimeH'];
+    public array $helpers = ['Form', 'Html', 'TimeH'];
 
     /**
      * @var array perf-cheat for renderers

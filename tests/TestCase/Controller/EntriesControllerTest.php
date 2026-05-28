@@ -35,7 +35,7 @@ class EntriesMockController extends EntriesController
  *
  * @package App\Test\TestCase\Controller
  */
-class EntriesControllerTestCase extends IntegrationTestCase
+class EntriesControllerTest extends IntegrationTestCase
 {
 
     /**
@@ -60,7 +60,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->Table = TableRegistry::get('Entries');
+        $this->Table = TableRegistry::getTableLocator()->get('Entries');
     }
 
     public function tearDown(): void
@@ -117,7 +117,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testCategoryChooserVisible()
     {
         $this->_loginUser(1);
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $user = $Users->get(1);
         $element = 'btn-category-chooser';
 
@@ -160,7 +160,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testCategoryChooserSingle()
     {
         // = setup =
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         Configure::write('Saito.Settings.category_chooser_global', 1);
 
         $this->_loginUser(1);
@@ -207,7 +207,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testCategoryChooserCustom()
     {
         // = setup =
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         Configure::write('Saito.Settings.category_chooser_global', 1);
 
         $this->_loginUser(3);
@@ -460,7 +460,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $this->_loginUser(1);
         Configure::write('Saito.Settings.edit_delay', '3');
-        $Table = TableRegistry::get('Entries');
+        $Table = TableRegistry::getTableLocator()->get('Entries');
         $posting = $Table->findById(3)->first();
         $editDelay = Configure::read('Saito.Settings.edit_delay');
         $posting->set('edited', $posting->get('time')->addMinutes($editDelay)->addSeconds(-1));
@@ -481,7 +481,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
         $this->_loginUser(1);
 
         Configure::write('Saito.Settings.edit_delay', '3');
-        $Table = TableRegistry::get('Entries');
+        $Table = TableRegistry::getTableLocator()->get('Entries');
         $posting = $Table->findById(3)->first();
         $editDelay = Configure::read('Saito.Settings.edit_delay');
         $posting->set('edited', $posting->get('time')->addMinutes($editDelay)->addSeconds(1));
@@ -543,7 +543,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $postingId = 1;
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get($postingId);
         $viewsExpected = $posting->get('views') + 1;
 
@@ -563,7 +563,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $postingId = 1;
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get($postingId);
         $viewsExpected = $posting->get('views') + 1;
 
@@ -587,7 +587,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $postingId = 1;
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get($postingId);
         $viewsExpected = $posting->get('views');
 
@@ -608,7 +608,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
         $this->_setUserAgent('A Crawler Agent');
         $postingId = 1;
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get($postingId);
         $viewsExpected = $posting->get('views');
 

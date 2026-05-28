@@ -106,7 +106,7 @@ class PostingBehavior extends Behavior
      */
     public function postingsForThreads(array $tids, ?array $order = null, ?CurrentUserInterface $CU = null): array
     {
-        $entries = $this->getTable()
+        $entries = $this->table()
             ->find('entriesForThreads', ['threadOrder' => $order, 'tids' => $tids])
             ->all();
 
@@ -130,7 +130,7 @@ class PostingBehavior extends Behavior
      */
     public function postingsForThread(int $tid, bool $complete = false, ?CurrentUserInterface $CurrentUser = null): PostingInterface
     {
-        $entries = $this->getTable()
+        $entries = $this->table()
             ->find('entriesForThreads', ['complete' => $complete, 'tids' => [$tid]])
             ->all();
 
@@ -167,7 +167,7 @@ class PostingBehavior extends Behavior
         };
 
         /** @var EntriesTable */
-        $table = $this->getTable();
+        $table = $this->table();
 
         return $table->deleteWithIds($idsToDelete);
     }
@@ -206,7 +206,7 @@ class PostingBehavior extends Behavior
             };
 
             $result = $this
-                ->getTable()
+                ->table()
                 ->find(
                     'entry',
                     [
@@ -268,7 +268,7 @@ class PostingBehavior extends Behavior
     protected function postingsForNode(int $id): ?PostingInterface
     {
         /** @var EntriesTable */
-        $table = $this->getTable();
+        $table = $this->table();
         $tid = $table->getThreadId($id);
         $postings = $this->postingsForThreads([$tid]);
         $postings = array_shift($postings);
@@ -302,9 +302,10 @@ class PostingBehavior extends Behavior
 
         $query = $query->find('entry', $options)
             ->where(['tid IN' => $tids])
-            ->order($order)
-            // hydrating kills performance
             ->enableHydration(false);
+        if ($order !== null) {
+            $query->orderBy($order);
+        }
         Stopwatch::stop('PostingBehavior::findEntriesForThreads');
 
         return $query;
@@ -322,7 +323,7 @@ class PostingBehavior extends Behavior
      */
     protected function lockThread(int $tid, $locked = true)
     {
-        $this->getTable()->updateAll(['locked' => $locked], ['tid' => $tid]);
+        $this->table()->updateAll(['locked' => $locked], ['tid' => $tid]);
     }
 
     /**
@@ -337,7 +338,7 @@ class PostingBehavior extends Behavior
      */
     protected function threadChangeCategory(int $tid, int $newCategoryId): bool
     {
-        $affected = $this->getTable()->updateAll(
+        $affected = $this->table()->updateAll(
             ['category_id' => $newCategoryId],
             ['tid' => $tid]
         );
@@ -357,7 +358,7 @@ class PostingBehavior extends Behavior
     public function threadMerge(int $sourceId, int $targetId): bool
     {
         /** @var EntriesTable */
-        $table = $this->getTable();
+        $table = $this->table();
 
         $sourcePosting = $table->get($sourceId, ['return' => 'Entity']);
 
@@ -399,7 +400,7 @@ class PostingBehavior extends Behavior
             // update target thread last answer if source is newer
             $sourceLastAnswer = $sourcePosting->get('last_answer');
             $targetLastAnswer = $targetPosting->get('last_answer');
-            if ($sourceLastAnswer->gt($targetLastAnswer)) {
+            if ($sourceLastAnswer > $targetLastAnswer) {
                 $targetRoot = $table->get(
                     $targetPosting->get('tid'),
                     ['return' => 'Entity']
