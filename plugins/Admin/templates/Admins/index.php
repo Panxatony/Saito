@@ -20,7 +20,7 @@ $this->Breadcrumbs->add(__('admin.sysInfo.h'), false);
         $version,
         __('admin.sysInfo.server', $this->Admin->badge(Router::fullBaseUrl())),
         __('admin.sysInfo.baseUrl', $this->Admin->badge($this->request->getAttribute('webroot'))),
-        __('admin.sysInfo.cce', $this->Admin->badgeForCache('_cake_core_')),
+        __('admin.sysInfo.cce', $this->Admin->badgeForCache('_cake_translations_')),
         __('admin.sysInfo.cse', $this->Admin->badgeForCache('default')),
     ];
     $si[] = $this->Html->link(
