@@ -271,9 +271,13 @@ class AuthUserComponent extends Component
     }
 
     /**
+     * Fires on Controller.shutdown (Cake 5 maps that event to a component's
+     * afterFilter(), not shutdown()). Refreshes the JWT cookie the SPA reads
+     * for API authentication.
+     *
      * {@inheritDoc}
      */
-    public function shutdown(\Cake\Event\EventInterface $event)
+    public function afterFilter(\Cake\Event\EventInterface $event)
     {
         $this->setJwtCookie($event->getSubject());
     }

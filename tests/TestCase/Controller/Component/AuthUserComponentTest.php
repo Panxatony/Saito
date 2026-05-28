@@ -76,10 +76,28 @@ class AuthUserComponentTest extends IntegrationTestCase
     public function testSetJwtCookieNoCookieSet()
     {
         $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->shutdown($event);
+        $this->component->afterFilter($event);
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-jwt');
         $this->assertNull($cookie);
+    }
+
+    /**
+     * Integration guard for the event wiring: a real logged-in request must
+     * issue the JWT cookie the SPA reads for API auth. Cake 5 maps
+     * Controller.shutdown to a component's afterFilter() (not shutdown()); if
+     * that callback isn't wired the cookie is never set and every /api/v2
+     * request returns 401.
+     *
+     * @return void
+     */
+    public function testJwtCookieIssuedOnLoggedInRequest()
+    {
+        $this->_loginUser(1);
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertNotEmpty($this->_response->getCookie('Saito-JWT'));
     }
 
     /**
@@ -93,7 +111,7 @@ class AuthUserComponentTest extends IntegrationTestCase
         $this->component->getUser()->setSettings($user);
 
         $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->shutdown($event);
+        $this->component->afterFilter($event);
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
         $this->assertNotEmpty($cookie);
@@ -113,7 +131,7 @@ class AuthUserComponentTest extends IntegrationTestCase
         $this->controller->setRequest($request);
 
         $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->shutdown($event);
+        $this->component->afterFilter($event);
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
         $this->assertNotEmpty($cookie);
@@ -142,7 +160,7 @@ class AuthUserComponentTest extends IntegrationTestCase
         $this->controller->setRequest($request);
 
         $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->shutdown($event);
+        $this->component->afterFilter($event);
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
         $this->assertNotEmpty($cookie);

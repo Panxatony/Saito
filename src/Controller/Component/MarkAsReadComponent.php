@@ -29,9 +29,11 @@ class MarkAsReadComponent extends Component
     protected $postings = [];
 
     /**
+     * Fires on Controller.shutdown (Cake 5 maps that event to afterFilter()).
+     *
      * {@inheritDoc}
      */
-    public function shutdown()
+    public function afterFilter(\Cake\Event\EventInterface $event)
     {
         if (empty($this->postings)) {
             return;
