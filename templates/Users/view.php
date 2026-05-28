@@ -82,7 +82,7 @@ $table[] = [
     __('user_since'),
     $this->TimeH->formatTime(
         $user->get('registered'),
-        '%d.%m.%Y'
+        'd.m.Y'
     ),
 ];
 

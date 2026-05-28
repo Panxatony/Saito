@@ -40,7 +40,7 @@ $this->element('users/menu');
                                     'user_since {0}',
                                     $this->TimeH->formatTime(
                                         $user->get('registered'),
-                                        '%d.%m.%Y'
+                                        'd.m.Y'
                                     )
                                 ),
                             ];

@@ -352,8 +352,9 @@ class AuthUserComponent extends Component
             // happens elsewhere.
             $payload = Jwt::jsonDecode(Jwt::urlsafeB64Decode($payloadEncoded));
             $isCurrentUser = $payload->sub === $this->CurrentUser->getId();
-            // Assume expired if within the next two hours.
-            $aboutToExpire = $payload->exp > (time() - 7200);
+            // Refresh early: treat the token as expiring if it runs out within
+            // the next two hours.
+            $aboutToExpire = $payload->exp < (time() + 7200);
             // Token doesn't require an update if it belongs to current user and
             // isn't about to expire.
             if ($isCurrentUser && !$aboutToExpire) {

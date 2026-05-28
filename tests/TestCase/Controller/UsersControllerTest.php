@@ -622,6 +622,12 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertResponseContains('Ulysses');
         // solves count
         $this->assertResponseContains('2013531');
+        // "Joined" date must use a date() format, not a literal strftime
+        // '%d.%m.%Y' (which renders as "%28.%05.%2026" since strftime() is gone).
+        $this->assertDoesNotMatchRegularExpression(
+            '/%\d{2}\.%\d{2}\.%\d{4}/',
+            (string)$this->_response->getBody()
+        );
     }
 
     /**
