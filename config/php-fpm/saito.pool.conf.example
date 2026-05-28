@@ -1,12 +1,12 @@
 ; Reference PHP-FPM pool for hosting the Saito forum.
 ;
 ; How to use:
-;   1. Copy to /etc/php/8.2/fpm/pool.d/saito.conf
+;   1. Copy to /etc/php/8.4/fpm/pool.d/saito.conf
 ;   2. Replace the __SALT__ placeholders and DATABASE_URL with real values
 ;      (or leave them out and configure via config/.env / config/app.php).
-;   3. Validate: sudo php-fpm8.2 -t
-;   4. Reload:   sudo systemctl reload php8.2-fpm
-;   5. Point the Saito nginx vhost at /run/php/php8.2-fpm-saito.sock
+;   3. Validate: sudo php-fpm8.4 -t
+;   4. Reload:   sudo systemctl reload php8.4-fpm
+;   5. Point the Saito nginx vhost at /run/php/php8.4-fpm-saito.sock
 ;
 ; Why a dedicated pool?
 ; - PHP `env[…]` directives only apply to this pool, so secrets aren't
@@ -22,7 +22,7 @@ group = www-data
 
 ; Dedicated Unix socket — keep it separate from the default `www` pool
 ; so the Saito nginx vhost talks only to this pool.
-listen = /run/php/php8.2-fpm-saito.sock
+listen = /run/php/php8.4-fpm-saito.sock
 listen.owner = www-data
 listen.group = www-data
 listen.mode = 0660

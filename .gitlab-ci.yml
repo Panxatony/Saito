@@ -1,4 +1,4 @@
-image: php:8.3-cli
+image: php:8.4-cli
 
 stages:
   - test
@@ -42,7 +42,8 @@ test:
     # uploaded images get their EXIF stripped).
     - docker-php-ext-configure gd --with-jpeg --with-webp
     - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
-    # Composer (post-install-cmd automatically applies vendor patches for PHP 8 + PHPUnit 9)
+    # Composer (CakePHP 5 + PHPUnit 11; PHP 8.4 required — some prod deps,
+    # e.g. symfony/string and symfony/filesystem, need >= 8.4)
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
     # Wait for MariaDB to accept connections
