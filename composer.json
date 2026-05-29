@@ -38,7 +38,7 @@
     "embed/embed": "^3.3",
     "jeremykendall/php-domain-parser": "^6.3",
     "cakephp/authentication": "^3",
-    "firebase/php-jwt": "^6"
+    "firebase/php-jwt": "^7.0"
   },
   "require-dev": {
     "cakephp/bake": "^3",
