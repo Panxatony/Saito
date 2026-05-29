@@ -13,6 +13,10 @@
   },
   "config": {
     "discard-changes": true,
+    "audit": {
+      "abandoned": "report",
+      "ignore": ["CVE-2025-2123"]
+    },
     "allow-plugins": {
       "cakephp/plugin-installer": true,
       "dealerdirect/phpcodesniffer-composer-installer": true
@@ -52,7 +56,8 @@
     "phing/phing": "^2.16",
     "symfony/css-selector": "^5.4|^6.0",
     "symfony/dom-crawler": "^5.4|^6.0",
-    "doctrine/instantiator": "^1.5"
+    "doctrine/instantiator": "^1.5",
+    "vimeo/psalm": "^6"
   },
   "suggest": {
     "cakephp/cakephp-codesniffer": "Allows to check the code against the coding standards used in CakePHP."

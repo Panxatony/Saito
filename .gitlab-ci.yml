@@ -1,8 +1,32 @@
 image: php:8.4-cli
 
+# GitLab-managed security scanners. SAST (Semgrep-based PHP rules) and
+# Dependency-Scanning (Gemnasium, reads composer.lock) add their own jobs in
+# the `test` stage and run as their own analyzer images.
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
 stages:
   - test
+  - security
   - release
+
+# Shared PHP + Composer setup, referenced via `!reference` so the test and
+# security jobs don't duplicate it.
+.php_setup:
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends
+        git zip unzip
+        libicu-dev
+        libpng-dev libjpeg-dev libwebp-dev
+        libonig-dev
+        default-mysql-client
+    - docker-php-ext-configure gd --with-jpeg --with-webp
+    - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
 
 variables:
   # MariaDB service credentials (used by the mariadb service and DATABASE_TEST_URL)
@@ -29,27 +53,46 @@ test:
     - name: mariadb:11
       alias: mariadb
   before_script:
-    # System dependencies
-    - apt-get update -qq
-    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends
-        git zip unzip
-        libicu-dev
-        libpng-dev libjpeg-dev libwebp-dev
-        libonig-dev
-        default-mysql-client
-    # PHP extensions required by CakePHP, the image processing library, and
-    # EXIF metadata reading (used by ImageUploader tests verifying that
-    # uploaded images get their EXIF stripped).
-    - docker-php-ext-configure gd --with-jpeg --with-webp
-    - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
-    # Composer (CakePHP 5 + PHPUnit 11; PHP 8.4 required — some prod deps,
-    # e.g. symfony/string and symfony/filesystem, need >= 8.4)
-    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+    - !reference [.php_setup, before_script]
     # Wait for MariaDB to accept connections
     - until mysql -h mariadb -u saito -psaito saito_test -e "SELECT 1" >/dev/null 2>&1; do sleep 1; done
   script:
     - vendor/bin/phpunit --colors=never
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# ----------------------------------------------------------------------
+# Security checks
+# ----------------------------------------------------------------------
+
+# Known CVEs in (locked) dependencies. Reads composer.lock against the
+# Packagist advisory DB; fails the build on any new advisory. Accepted
+# advisories are listed under config.audit.ignore in composer.json
+# (currently the geshi cssgen.php XSS, which is not web-reachable).
+security:composer-audit:
+  stage: security
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git unzip
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  script:
+    - composer audit
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Psalm taint analysis: tracks user input into SQL/HTML/header/file/shell
+# sinks (SQLi, XSS, header injection, …). allow_failure while the scan is
+# young — it reports findings without blocking until a baseline is trusted.
+security:psalm-taint:
+  stage: security
+  before_script:
+    - !reference [.php_setup, before_script]
+  script:
+    - vendor/bin/psalm --taint-analysis --no-progress --no-cache --output-format=compact
+  allow_failure: true
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH
