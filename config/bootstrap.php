@@ -139,6 +139,16 @@ if ($isCli) {
 }
 
 /*
+ * Also drop PHP engine deprecations (E_DEPRECATED) on top of whatever
+ * Error.errorLevel app.php set (which only excludes E_USER_DEPRECATED).
+ * Some third-party libs (jbbcode, aura/di, embed) still declare
+ * implicitly-nullable parameters, which PHP 8.4 flags as E_DEPRECATED on
+ * every request — pure noise we can't fix in our own code. ErrorTrap pushes
+ * this level into error_reporting(), so it has to be set before registering.
+ */
+Configure::write('Error.errorLevel', Configure::read('Error.errorLevel') & ~E_DEPRECATED);
+
+/*
  * Register application error and exception handlers via Cake 5's
  * ErrorTrap / ExceptionTrap (the old ErrorHandler classes were removed).
  */
