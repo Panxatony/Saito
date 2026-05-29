@@ -24,7 +24,7 @@ use Saito\Test\IntegrationTestCase;
 class CategoriesControllerTest extends IntegrationTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -35,11 +35,15 @@ class CategoriesControllerTest extends IntegrationTestCase
         'app.UserOnline',
     ];
 
-    public function setUp()
+    protected $Entries;
+
+    protected $Categories;
+
+    public function setUp(): void
     {
         parent::setUp();
         foreach (['Entries', 'Categories'] as $table) {
-            $this->$table = TableRegistry::get($table);
+            $this->$table = TableRegistry::getTableLocator()->get($table);
         }
     }
 
@@ -113,7 +117,8 @@ class CategoriesControllerTest extends IntegrationTestCase
 
         $targetCategories = $this->viewVariable('targetCategories');
         $this->assertCount(4, $targetCategories);
-        $this->assertArraySubset([4 => 'Offtopic', 5 => 'Trash'], $targetCategories);
+        $this->assertEquals('Offtopic', $targetCategories[4]);
+        $this->assertEquals('Trash', $targetCategories[5]);
     }
 
     /**

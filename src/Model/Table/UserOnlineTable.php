@@ -45,7 +45,7 @@ class UserOnlineTable extends Table
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->setTable('useronline');
 
@@ -67,11 +67,11 @@ class UserOnlineTable extends Table
     /**
      * {@inheritDoc}
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         /// uuid
         $validator
-            ->notEmpty('uuid')
+            ->notBlank('uuid')
             ->requirePresence('uuid')
             ->add(
                 'uuid',
@@ -188,16 +188,14 @@ class UserOnlineTable extends Table
         Stopwatch::start('UserOnline->getLoggedIn()');
         $loggedInUsers = $this->find(
             'all',
-            [
-                'contain' => [
-                    'Users' => [
-                        'fields' => ['id', 'user_type', 'username'],
-                    ],
+            contain: [
+                'Users' => [
+                    'fields' => ['id', 'user_type', 'username'],
                 ],
-                'conditions' => ['UserOnline.logged_in' => true],
-                'fields' => ['id'],
-                'order' => ['LOWER(Users.username)' => 'ASC'],
-            ]
+            ],
+            conditions: ['UserOnline.logged_in' => true],
+            fields: ['id'],
+            order: ['LOWER(Users.username)' => 'ASC'],
         );
         Stopwatch::stop('UserOnline->getLoggedIn()');
 

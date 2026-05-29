@@ -13,7 +13,7 @@ declare(strict_types=1);
 use Cake\Routing\Router;
 use Cake\Routing\Route\DashedRoute;
 
-Router::plugin(
+$routes->plugin(
     'Feeds',
     function ($routes) {
         $routes->setExtensions(['rss']);

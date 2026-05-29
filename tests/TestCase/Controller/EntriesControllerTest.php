@@ -8,7 +8,7 @@ use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Database\Schema\Table;
 use Cake\Datasource\Exception\RecordNotFoundException;
-use Cake\Error\PHP7ErrorException;
+use Cake\Controller\Exception\InvalidParameterException;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
 use Saito\Exception\SaitoForbiddenException;
@@ -35,7 +35,7 @@ class EntriesMockController extends EntriesController
  *
  * @package App\Test\TestCase\Controller
  */
-class EntriesControllerTestCase extends IntegrationTestCase
+class EntriesControllerTest extends IntegrationTestCase
 {
 
     /**
@@ -43,7 +43,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
      */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.Bookmarks.Bookmark',
         'app.Category',
         'app.Entry',
@@ -57,13 +57,13 @@ class EntriesControllerTestCase extends IntegrationTestCase
         'app.UserRead',
     ];
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
-        $this->Table = TableRegistry::get('Entries');
+        $this->Table = TableRegistry::getTableLocator()->get('Entries');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         unset($this->Table);
@@ -117,7 +117,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testCategoryChooserVisible()
     {
         $this->_loginUser(1);
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         $user = $Users->get(1);
         $element = 'btn-category-chooser';
 
@@ -160,12 +160,12 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testCategoryChooserSingle()
     {
         // = setup =
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         Configure::write('Saito.Settings.category_chooser_global', 1);
 
         $this->_loginUser(1);
         $user = $Users->get(1);
-        $user->set(
+        $user->patch(
             [
                 'user_sort_last_answer' => 1,
                 'user_type' => 'admin',
@@ -207,12 +207,12 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testCategoryChooserCustom()
     {
         // = setup =
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         Configure::write('Saito.Settings.category_chooser_global', 1);
 
         $this->_loginUser(3);
         $user = $Users->get(3);
-        $user->set(
+        $user->patch(
             [
                 'user_sort_last_answer' => 1,
                 'user_category_active' => 0,
@@ -432,7 +432,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testEditNoEntryId()
     {
         $this->_loginUser(2);
-        $this->expectException(PHP7ErrorException::class);
+        $this->expectException(InvalidParameterException::class);
         $this->get('entries/edit/');
     }
 
@@ -460,7 +460,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $this->_loginUser(1);
         Configure::write('Saito.Settings.edit_delay', '3');
-        $Table = TableRegistry::get('Entries');
+        $Table = TableRegistry::getTableLocator()->get('Entries');
         $posting = $Table->findById(3)->first();
         $editDelay = Configure::read('Saito.Settings.edit_delay');
         $posting->set('edited', $posting->get('time')->addMinutes($editDelay)->addSeconds(-1));
@@ -481,7 +481,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
         $this->_loginUser(1);
 
         Configure::write('Saito.Settings.edit_delay', '3');
-        $Table = TableRegistry::get('Entries');
+        $Table = TableRegistry::getTableLocator()->get('Entries');
         $posting = $Table->findById(3)->first();
         $editDelay = Configure::read('Saito.Settings.edit_delay');
         $posting->set('edited', $posting->get('time')->addMinutes($editDelay)->addSeconds(1));
@@ -528,6 +528,24 @@ class EntriesControllerTestCase extends IntegrationTestCase
     }
 
     /**
+     * XHR posting view must return a bare fragment, not a full page.
+     *
+     * The SPA (PostingModel.fetchHtml) injects this response straight into the
+     * DOM, so a full <html> layout corrupts the markup. Cake 5 removed
+     * RequestHandlerComponent, which used to disable the layout for AJAX.
+     */
+    public function testViewAjaxRendersFragmentWithoutLayout()
+    {
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->get('/entries/view/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('js-entry-view-core');
+        $this->assertResponseNotContains('<!DOCTYPE');
+        $this->assertResponseNotContains('<html');
+    }
+
+    /**
      * @param int $postingId
      */
     protected function _viewOk($postingId)
@@ -543,7 +561,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $postingId = 1;
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get($postingId);
         $viewsExpected = $posting->get('views') + 1;
 
@@ -563,7 +581,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $postingId = 1;
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get($postingId);
         $viewsExpected = $posting->get('views') + 1;
 
@@ -587,7 +605,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $postingId = 1;
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get($postingId);
         $viewsExpected = $posting->get('views');
 
@@ -608,7 +626,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
         $this->_setUserAgent('A Crawler Agent');
         $postingId = 1;
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get($postingId);
         $viewsExpected = $posting->get('views');
 
@@ -749,7 +767,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     public function testThreadLineAnon()
     {
         $this->_setJson();
-        $this->get('/entries/threadline/6');
+        $this->get('/entries/threadLine/6');
         $this->assertRedirectContains('/login');
     }
 
@@ -757,7 +775,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $this->_loginUser(3);
         $this->_setJson();
-        $this->get('/entries/threadline/6');
+        $this->get('/entries/threadLine/6');
         $this->assertRedirectContains('/login');
     }
 
@@ -765,7 +783,7 @@ class EntriesControllerTestCase extends IntegrationTestCase
     {
         $this->_loginUser(1);
         $this->_setJson();
-        $this->get('/entries/threadline/6');
+        $this->get('/entries/threadLine/6');
         $this->assertNoRedirect();
         $expected = 'Third Thread First_Subject';
         $this->assertResponseContains($expected);

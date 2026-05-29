@@ -19,7 +19,7 @@ use Cake\Http\Response;
 class StatusController extends AppController
 {
 
-    public $autoRender = false;
+    public bool $autoRender = false;
 
     /**
      * Sends status data to the frontend
@@ -85,7 +85,7 @@ class StatusController extends AppController
      * @param Event $event An Event instance
      * @return void
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
         $this->components()->unload('Authentication');

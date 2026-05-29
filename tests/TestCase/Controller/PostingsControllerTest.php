@@ -23,7 +23,7 @@ use Saito\Test\IntegrationTestCase;
 
 class PostingsControllerTest extends IntegrationTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.Bookmarks.Bookmark',
         'app.Category',
         'app.Draft',
@@ -56,8 +56,8 @@ class PostingsControllerTest extends IntegrationTestCase
 
         $data = ['pid' => 1, 'subject' => 'foo'];
 
-        $EntriesTable = TableRegistry::get('Entries');
-        $latestEntry = $EntriesTable->find()->order(['id' => 'desc'])->first();
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
+        $latestEntry = $EntriesTable->find()->orderBy(['id' => 'desc'])->first();
         $expectedId = $latestEntry->get('id') + 1;
 
         $this->post('api/v2/postings/', $data);
@@ -65,9 +65,10 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertResponseCode(200);
         $response = json_decode((string)$this->_response->getBody(), true);
 
-        $this->assertArraySubset(['pid' => 1, 'tid' => 1], $response['data']['attributes']);
+        $this->assertEquals(1, $response['data']['attributes']['pid']);
+        $this->assertEquals(1, $response['data']['attributes']['tid']);
 
-        $latestEntry = $EntriesTable->find()->order(['id' => 'desc'])->first();
+        $latestEntry = $EntriesTable->find()->orderBy(['id' => 'desc'])->first();
         $this->assertEquals($expectedId, $latestEntry->get('id'));
     }
 
@@ -240,9 +241,10 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertResponseCode(200);
         $response = json_decode((string)$this->_response->getBody(), true);
 
-        $this->assertArraySubset(['pid' => 1, 'tid' => 1], $response['data']['attributes']);
+        $this->assertEquals(1, $response['data']['attributes']['pid']);
+        $this->assertEquals(1, $response['data']['attributes']['tid']);
 
-        $EntriesTable = TableRegistry::get('Entries');
+        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
         $posting = $EntriesTable->get(2);
         $this->assertEquals($newSubject, $posting->get('subject'));
         $this->assertEquals($newText, $posting->get('text'));

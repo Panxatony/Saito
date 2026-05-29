@@ -26,7 +26,7 @@ class ParserComponent extends Component
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $controller = $this->getController();
 
@@ -52,7 +52,7 @@ class ParserComponent extends Component
                 'server' => Router::fullBaseUrl(),
                 'UserList' => new UserlistModel(),
                 'video_domains_allowed' => $settings['video_domains_allowed'],
-                'webroot' => $this->request->getAttribute('webroot'),
+                'webroot' => $controller->getRequest()->getAttribute('webroot'),
         ]);
     }
 }

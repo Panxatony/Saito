@@ -23,10 +23,10 @@ class SmileyCodesController extends AdminAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('SmileyCodes');
+        $this->SmileyCodes = $this->fetchTable('SmileyCodes');
     }
 
     /**
@@ -36,8 +36,11 @@ class SmileyCodesController extends AdminAppController
      */
     public function index()
     {
-        $this->paginate = ['contain' => ['Smilies'], 'limit' => 1000];
-        $this->set('smileyCodes', $this->paginate($this->SmileyCodes));
+        // Cake 5's paginator no longer applies a `contain` setting; contain
+        // Smilies on the query directly (the template reads each code's
+        // associated smiley via $smileyCode->get('smiley')).
+        $query = $this->SmileyCodes->find()->contain(['Smilies']);
+        $this->set('smileyCodes', $this->paginate($query, ['limit' => 1000, 'maxLimit' => 1000]));
     }
 
     /**
@@ -47,7 +50,7 @@ class SmileyCodesController extends AdminAppController
      */
     public function add()
     {
-        $smiley = $this->SmileyCodes->newEntity();
+        $smiley = $this->SmileyCodes->newEmptyEntity();
         $this->_addEditCommon($smiley);
     }
 
@@ -102,10 +105,8 @@ class SmileyCodesController extends AdminAppController
         $smilies = $this->SmileyCodes->Smilies
             ->find(
                 'list',
-                [
-                    'keyField' => 'id',
-                    'valueField' => 'icon',
-                ]
+                keyField: 'id',
+                valueField: 'icon',
             )
             ->toArray();
         $this->set(compact('smiley', 'smilies'));

@@ -12,44 +12,52 @@
     }
   },
   "config": {
-    "discard-changes": true
+    "discard-changes": true,
+    "audit": {
+      "abandoned": "report",
+      "ignore": ["CVE-2025-2123"]
+    },
+    "allow-plugins": {
+      "cakephp/plugin-installer": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   },
   "require": {
-    "php": ">=7.2",
-    "cakephp/cakephp": "3.8.*",
-    "cakephp/migrations": "@stable",
+    "php": ">=8.4",
+    "cakephp/cakephp": "^5.0",
+    "cakephp/migrations": "^4.0",
     "cakephp/plugin-installer": "*",
-    "josegonzalez/dotenv": "*",
-    "mobiledetect/mobiledetectlib": "2.*",
+    "josegonzalez/dotenv": "^4",
+    "mobiledetect/mobiledetectlib": "^2",
 
     "aura/di": "^4.0",
-    "davidyell/proffer": "^1.0",
     "jbbcode/jbbcode": "~1.4",
-    "markstory/geshi": "^3",
-    "siezi/cakephp-simple-captcha": "*",
+    "markstory/geshi": "^5",
     "yzalis/identicon": "*",
-    "league/commonmark": "^1.0",
+    "league/commonmark": "^2.8",
     "suin/php-rss-writer": "^1.6",
-    "friendsofcake/bootstrap-ui": "dev-develop",
-    "friendsofcake/search": "^4.4",
+    "friendsofcake/bootstrap-ui": "^5.0",
+    "friendsofcake/search": "^7",
     "claviska/simpleimage": "^3.3",
     "embed/embed": "^3.3",
-    "layershifter/tld-extract": "^2.0",
-    "cakephp/authentication": "^1.2",
-    "firebase/php-jwt": "^5.0"
+    "jeremykendall/php-domain-parser": "^6.3",
+    "cakephp/authentication": "^3",
+    "firebase/php-jwt": "^7.0"
   },
   "require-dev": {
-    "cakephp/bake": "~1.0",
-    "cakephp/cakephp-codesniffer": "^3.0",
-    "cakephp/debug_kit": "^3.19",
+    "cakephp/bake": "^3",
+    "cakephp/cakephp-codesniffer": "^5",
+    "cakephp/debug_kit": "^5",
     "psy/psysh": "@stable",
-    "phpunit/phpunit": "~6",
-    "squizlabs/php_codesniffer": "*",
-    "phpstan/phpstan": "^0.11.8",
+    "phpunit/phpunit": "^11.5",
+    "squizlabs/php_codesniffer": "^3.0",
+    "phpstan/phpstan": "^1.0",
 
     "phing/phing": "^2.16",
-    "symfony/css-selector": "*",
-    "symfony/dom-crawler": "*"
+    "symfony/css-selector": "^5.4|^6.0",
+    "symfony/dom-crawler": "^5.4|^6.0",
+    "doctrine/instantiator": "^1.5",
+    "vimeo/psalm": "^6"
   },
   "suggest": {
     "cakephp/cakephp-codesniffer": "Allows to check the code against the coding standards used in CakePHP."

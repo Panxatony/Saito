@@ -14,7 +14,6 @@ namespace Installer\Controller;
 
 use Cake\Core\Configure;
 use Cake\Event\Event;
-use Cake\Filesystem\File;
 use Cake\I18n\I18n;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -36,7 +35,7 @@ class UpdaterController extends AppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
         $this->dbVersion = Configure::read('Saito.Settings.db_version');
@@ -46,7 +45,7 @@ class UpdaterController extends AppController
     /**
      * {@inheritDoc}
      */
-    public function beforeRender(\Cake\Event\Event $event)
+    public function beforeRender(\Cake\Event\EventInterface $event)
     {
         $this->set('titleForLayout', __d('installer', 'update.title'));
     }
@@ -58,9 +57,9 @@ class UpdaterController extends AppController
      */
     public function start()
     {
-        $token = new File(CONFIG . 'updater');
+        $tokenPath = CONFIG . 'updater';
 
-        if ($token->exists()) {
+        if (file_exists($tokenPath)) {
             $this->renderFailure(__d('installer', 'update.failure.explanation'), 1529737182);
 
             return;
@@ -102,7 +101,7 @@ class UpdaterController extends AppController
 
         $this->logCurrentState('Pre-update state.');
 
-        $token->write('');
+        file_put_contents($tokenPath, '');
 
         try {
             if (
@@ -114,7 +113,7 @@ class UpdaterController extends AppController
             }
 
             $this->migrations->migrate();
-            (new DbVersion($this->Settings))->set($this->saitoVersion);
+            (new DbVersion($this->fetchTable('Settings')))->set($this->saitoVersion);
             $this->logCurrentState('Post upgrade state.');
         } catch (\Throwable $e) {
             $this->logCurrentState('Migration failed: ' . $e->getMessage());
@@ -122,7 +121,9 @@ class UpdaterController extends AppController
             return $this->redirect('/');
         }
 
-        $token->delete();
+        if (file_exists($tokenPath)) {
+            unlink($tokenPath);
+        }
         $this->viewBuilder()->setTemplate('success');
 
         $this->logCurrentState('Update successfull.');

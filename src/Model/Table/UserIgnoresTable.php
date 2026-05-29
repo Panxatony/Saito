@@ -26,7 +26,7 @@ class UserIgnoresTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->addBehavior(
             'Cron.Cron',
@@ -47,7 +47,7 @@ class UserIgnoresTable extends AppTable
     /**
      * {@inheritdoc}
      */
-    public function buildRules(RulesChecker $rules)
+    public function buildRules(RulesChecker $rules): \Cake\ORM\RulesChecker
     {
         $rules->add($rules->existsIn('user_id', 'Users'));
 
@@ -113,12 +113,10 @@ class UserIgnoresTable extends AppTable
     {
         return $this->find(
             'all',
-            [
-                'conditions' => [
-                    'user_id' => $userId,
-                    'blocked_user_id' => $blockedId,
-                ],
-            ]
+            conditions: [
+                'user_id' => $userId,
+                'blocked_user_id' => $blockedId,
+            ],
         )->first();
     }
 
@@ -141,7 +139,7 @@ class UserIgnoresTable extends AppTable
                 ]
             )
             ->where(['user_id' => $userId])
-            ->order(['Users.username' => 'ASC'])
+            ->orderBy(['Users.username' => 'ASC'])
             ->all();
 
         return $results->extract('user');
@@ -180,9 +178,7 @@ class UserIgnoresTable extends AppTable
     {
         return $this->find(
             'all',
-            [
-                'conditions' => ['blocked_user_id' => $id],
-            ]
+            conditions: ['blocked_user_id' => $id],
         )->toArray();
     }
 

@@ -18,7 +18,7 @@ class UserIgnoreTest extends SaitoTableTestCase
 
     public $tableClass = 'UserIgnores';
 
-    public $fixtures = ['app.Category', 'app.User', 'app.UserIgnore'];
+    public array $fixtures = ['app.Category', 'app.User', 'app.UserIgnore'];
 
     public function testUserIgnoreCountIngored()
     {

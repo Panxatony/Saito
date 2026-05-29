@@ -23,10 +23,10 @@ class ResourceTest extends TestCase
     {
         $resource = new Resource('foo');
         $disallowed = $this->getMockBuilder(ResourceAC::class)
-            ->setMethods(['check'])
+            ->onlyMethods(['check'])
             ->getMock();
         $allowed = $this->getMockBuilder(ResourceAC::class)
-            ->setMethods(['check'])
+            ->onlyMethods(['check'])
             ->getMock();
 
         $disallowed->expects($this->once())->method('check')->willReturn(true);
@@ -43,7 +43,7 @@ class ResourceTest extends TestCase
     {
         $resource = new Resource('foo');
         $allowed1 = $this->getMockBuilder(ResourceAC::class)
-            ->setMethods(['check'])
+            ->onlyMethods(['check'])
             ->getMock();
 
         $ai = new ResourceAI();
@@ -57,13 +57,13 @@ class ResourceTest extends TestCase
     {
         $resource = new Resource('foo');
         $allowed1 = $this->getMockBuilder(ResourceAC::class)
-            ->setMethods(['check'])
+            ->onlyMethods(['check'])
             ->getMock();
         $allowed2 = $this->getMockBuilder(ResourceAC::class)
-            ->setMethods(['check'])
+            ->onlyMethods(['check'])
             ->getMock();
         $allowed3 = $this->getMockBuilder(ResourceAC::class)
-            ->setMethods(['check'])
+            ->onlyMethods(['check'])
             ->getMock();
 
         $ai = new ResourceAI();

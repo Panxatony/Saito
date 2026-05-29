@@ -27,7 +27,7 @@ class SettingHelper extends AppHelper
 
     protected $_headers = [];
 
-    public $helpers = [
+    public array $helpers = [
         'Html',
         'SaitoHelp',
     ];

@@ -6,7 +6,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class SettingFixture extends TestFixture
 {
-    public $fields = [
+    public array $fields = [
         'id' => ['type' => 'integer', 'null' => false],
         'name' => ['type' => 'string', 'null' => true, 'default' => null],
         'value' => ['type' => 'string', 'null' => true, 'default' => null],
@@ -17,7 +17,7 @@ class SettingFixture extends TestFixture
         ],
     ];
 
-    public $records = [
+    public array $records = [
         ['id' => '1', 'name' => 'autolink', 'value' => '1'],
         ['id' => '3', 'name' => 'db_version', 'value' => null],
         ['id' => '4', 'name' => 'edit_delay', 'value' => '3'],
@@ -39,7 +39,7 @@ class SettingFixture extends TestFixture
         ['id' => '20', 'name' => 'category_chooser_user_override', 'value' => '1'],
         ['id' => '21', 'name' => 'category_chooser_user_override', 'value' => '1'],
         ['id' => '24', 'name' => 'forum_disabled', 'value' => '0'],
-        ['id' => '24', 'name' => 'forum_disabled_text', 'value' => 'We\'ll back soon'],
+        ['id' => '29', 'name' => 'forum_disabled_text', 'value' => 'We\'ll back soon'],
         ['id' => '25', 'name' => 'store_ip', 'value' => '0'],
         ['id' => '26', 'name' => 'store_ip_anonymized', 'value' => '1'],
         ['id' => '27', 'name' => 'bbcode_img', 'value' => '1'],

@@ -31,11 +31,14 @@ class AuthenticationServiceFactory
     public static function buildJwt(): AuthenticationService
     {
         $service = new AuthenticationService();
-
-        $service->loadIdentifier('Authentication.JwtSubject');
+        // returnPayload=true: Saito does not configure an Identifier, so let
+        // the JWT payload (carrying 'sub' = user-id) be the identity. The
+        // controller layer (CurrentUser/AuthUserComponent) hydrates the
+        // actual User entity from the database when needed.
         $service->loadAuthenticator('Authentication.Jwt', [
-            'returnPayload' => false,
-            'secretKey' => Configure::read('Security.cookieSalt'),
+            'returnPayload' => true,
+            'secretKey' => Configure::read('Security.jwtSalt')
+                ?: Configure::read('Security.cookieSalt'),
         ]);
 
         return $service;
@@ -53,37 +56,38 @@ class AuthenticationServiceFactory
         $service->setConfig('queryParam', 'redirect');
         $service->setConfig('unauthenticatedRedirect', Router::url(['_name' => 'login'], false));
 
-        $service->loadIdentifier('Authentication.Password', [
-            'passwordHasher' => [
-                'className' => 'Authentication.Fallback',
-                'hashers' => [
-                    // Saito passwords (Cake default)
-                    ['className' => 'Authentication.Default'],
-                    // Mylittleforum 2 legacy passwords
-                    ['className' => Mlf2PasswordHasher::class],
-                    // Mylittleforum 1 legacy passwords
-                    ['className' => LegacyPasswordHasherSaltless::class, 'hashType' => 'md5'],
+        // Password identifier looks up users by username and verifies the
+        // password against the saito-specific hashers. Passed directly to the
+        // identifying authenticators (Cookie, Form); loadIdentifier() is
+        // deprecated since authentication 3.3.0.
+        $passwordIdentifier = [
+            'Authentication.Password' => [
+                'fields' => ['username' => 'username', 'password' => 'password'],
+                'resolver' => [
+                    'className' => 'Authentication.Orm',
+                    'userModel' => 'Users',
+                ],
+                'passwordHasher' => [
+                    'className' => 'Authentication.Fallback',
+                    'hashers' => [
+                        'Authentication.Default',
+                        [
+                            'className' => 'App\\Auth\\Mlf2PasswordHasher',
+                        ],
+                    ],
                 ],
             ],
-            'resolver' => [
-                'className' => 'Authentication.Orm',
-                'finder' => 'profile',
-            ],
-        ]);
+        ];
 
         // Authenticators are checked in order of registration.
         // Leave Session first.
-        $service->loadAuthenticator(
-            'Authentication.Session',
-            [
-                // Always check against DB. User-state (type, locked) might have
-                // changed and must be reflected immediately.
-                'identify' => true,
-            ]
-        );
+        // `identify` stays false: Saito does not configure an Identifier
+        // for the session, so the session payload is the source of truth.
+        $service->loadAuthenticator('Authentication.Session');
         $service->loadAuthenticator(
             'Authentication.Cookie',
             [
+                'identifier' => $passwordIdentifier,
                 'cookie' => [
                     'expire' => new \DateTimeImmutable('+10 days'),
                     'httpOnly' => true,
@@ -94,7 +98,10 @@ class AuthenticationServiceFactory
         );
         $service->loadAuthenticator(
             'Authentication.Form',
-            ['loginUrl' => Router::url(['_name' => 'login'])]
+            [
+                'identifier' => $passwordIdentifier,
+                'loginUrl' => Router::url(['_name' => 'login']),
+            ]
         );
 
         return $service;

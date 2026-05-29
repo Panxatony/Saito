@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 use Cake\Routing\Router;
 
-Router::plugin(
+$routes->plugin(
     'Bookmarks',
     ['path' => '/api/v2'],
     function ($routes) {

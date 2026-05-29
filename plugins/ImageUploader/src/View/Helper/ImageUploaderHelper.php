@@ -23,7 +23,7 @@ use ImageUploader\Model\Entity\Upload;
  */
 class ImageUploaderHelper extends AppHelper
 {
-    public $helpers = ['Url'];
+    public array $helpers = ['Url'];
 
     /**
      * Returns data representation for an image

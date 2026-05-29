@@ -27,7 +27,7 @@ $config = [
          * @see http://php.net/manual/en/intro.intl.php
          * @see https://r12a.github.io/app-subtags/
          */
-        'language' => 'en',
+        'language' => env('SAITO_LANGUAGE', 'en'),
 
         'Settings' => [
             /**

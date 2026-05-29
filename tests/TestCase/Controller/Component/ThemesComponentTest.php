@@ -13,7 +13,7 @@ use App\Controller\Component\ThemesComponent;
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Controller;
 use Cake\Http\Response;
-use Cake\Network\Request;
+use Cake\Http\ServerRequest;
 use Saito\Test\SaitoTestCase;
 use Saito\User\CurrentUser\CurrentUserFactory;
 
@@ -34,18 +34,18 @@ class ThemesComponentTest extends SaitoTestCase
      */
     public $controller;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         // Setup our component and fake test controller
-        $request = new Request();
+        $request = new ServerRequest();
         $response = new Response();
-        $this->controller = new Controller($request, $response);
+        $this->controller = new Controller($request);
         $registry = new ComponentRegistry($this->controller);
         $this->component = new ThemesComponent($registry);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->component, $this->controller);
         parent::tearDown();

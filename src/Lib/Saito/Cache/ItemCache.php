@@ -60,7 +60,7 @@ class ItemCache
      */
     public function __construct(
         $name,
-        SaitoCacheEngineInterface $CacheEngine = null,
+        ?SaitoCacheEngineInterface $CacheEngine = null,
         $options = []
     ) {
         $this->_settings = $options + $this->_settings;

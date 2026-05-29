@@ -9,7 +9,7 @@ class UserBlocksTableTest extends SaitoTableTestCase
 
     public $tableClass = 'UserBlocks';
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.User',
         'app.UserBlock',
     ];

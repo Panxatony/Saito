@@ -13,23 +13,29 @@ use Saito\Test\SaitoTestCase;
 class AppStatusCellTest extends SaitoTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.UserOnline',
         'app.User',
     ];
 
+    protected $request;
+
+    protected $response;
+
+    protected $AppStatus;
+
     /**
      * setUp method
      *
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
-        $this->request = $this->createMock('Cake\Network\Request');
-        $this->response = $this->createMock('Cake\Network\Response');
+        $this->request = $this->createMock('Cake\Http\ServerRequest');
+        $this->response = $this->createMock('Cake\Http\Response');
 
         $this->AppStatus = new AppStatusCell($this->request, $this->response);
     }
@@ -39,7 +45,7 @@ class AppStatusCellTest extends SaitoTestCase
      *
      * @return void
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->AppStatus);
 

@@ -29,7 +29,7 @@ use Saito\User\CurrentUser\CurrentUserInterface;
  */
 class SaitoHelpHelper extends Helper
 {
-    public $helpers = ['Commonmark.Commonmark', 'Html', 'Layout', 'Url'];
+    public array $helpers = ['Commonmark.Commonmark', 'Html', 'Layout', 'Url'];
 
     /**
      * Create a help icon linking to a help page

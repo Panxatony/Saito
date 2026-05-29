@@ -14,7 +14,6 @@ namespace Saito\Test;
 
 use Cake\Core\Configure;
 use Cake\Event\EventManager;
-use Cake\Filesystem\File;
 use Cake\I18n\I18n;
 use Cake\Mailer\TransportFactory;
 use Cake\ORM\TableRegistry;
@@ -28,6 +27,8 @@ trait TestCaseTrait
 
     protected $saitoPermissions;
 
+    private bool $_saitoSetupDone = false;
+
     /**
      * set-up saito
      *
@@ -35,6 +36,7 @@ trait TestCaseTrait
      */
     protected function setUpSaito()
     {
+        $this->_saitoSetupDone = true;
         Registry::initialize();
 
         $this->_storeSettings();
@@ -49,6 +51,10 @@ trait TestCaseTrait
      */
     protected function tearDownSaito()
     {
+        if (!$this->_saitoSetupDone) {
+            return;
+        }
+        $this->_saitoSetupDone = false;
         $this->_restoreSettings();
         $this->_clearCaches();
     }
@@ -143,39 +149,45 @@ trait TestCaseTrait
         $mock = $this->createMock('Cake\Mailer\Transport\DebugTransport');
         TransportFactory::drop('saito');
         TransportFactory::setConfig('saito', $mock);
+        // The 'saito' Mailer profile points at the 'saito' transport so
+        // `new Mailer('saito')` actually uses the mocked transport.
+        // Cake 5 dropped Cake\Mailer\Email; Mailer is the replacement.
+        \Cake\Mailer\Mailer::drop('saito');
+        \Cake\Mailer\Mailer::setConfig('saito', [
+            'transport' => 'saito',
+            'from' => 'system@example.com',
+        ]);
 
         return $mock;
     }
 
     /**
-     * Creates a mock image file in $file
+     * Creates a mock image file at $filePath
      *
-     * @param File $file File with extension.
+     * @param string $filePath Absolute path with extension.
      *
      * Mime type is taken from extension. Allowed extensions: png, jpeg, jpg
      *
      * @param int $size size of the mock image in kB
      * @return void
      */
-    protected function mockMediaFile(File $file, int $size = 100): void
+    protected function mockMediaFile(string $filePath, int $size = 100): void
     {
-        //// Create single pixel image
         $Image = imagecreatetruecolor(1, 1);
         imagesetpixel($Image, 0, 0, imagecolorallocate($Image, 0, 0, 0));
 
-        switch ($file->ext()) {
+        switch (strtolower(pathinfo($filePath, PATHINFO_EXTENSION))) {
             case 'jpeg':
             case 'jpg':
-                imagejpeg($Image, $file->path);
+                imagejpeg($Image, $filePath);
                 break;
             case 'png':
-                imagepng($Image, $file->path);
+                imagepng($Image, $filePath);
                 break;
             default:
                 throw new \InvalidArgumentException();
         }
 
-        // pad to saze with garbage data
-        $file->append(str_repeat('0', $size * 1024));
+        file_put_contents($filePath, str_repeat('0', $size * 1024), FILE_APPEND);
     }
 }

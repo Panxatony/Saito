@@ -29,7 +29,7 @@ class UserBlocksTable extends Table
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->addBehavior('Timestamp');
 
@@ -45,13 +45,13 @@ class UserBlocksTable extends Table
     /**
      * {@inheritDoc}
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator
-            ->allowEmpty('ends')
+            ->allowEmptyString('ends')
             ->add('ends', 'datetime', ['rule' => ['datetime']]);
-        $validator->notEmpty('user_id');
-        $validator->notEmpty('reason');
+        $validator->notBlank('user_id');
+        $validator->notBlank('reason');
 
         return $validator;
     }
@@ -84,10 +84,8 @@ class UserBlocksTable extends Table
     {
         $block = $this->find(
             'all',
-            [
-                'conditions' => ['user_id' => $userId, 'ended IS' => null],
-                'sort' => ['ends' => 'asc'],
-            ]
+            conditions: ['user_id' => $userId, 'ended IS' => null],
+            sort: ['ends' => 'asc'],
         )->first();
 
         return $block->get('ends');
@@ -144,7 +142,7 @@ class UserBlocksTable extends Table
     public function getAll()
     {
         $blocklist = $this->find('assocUsers')
-            ->order(['UserBlocks.id' => 'DESC']);
+            ->orderBy(['UserBlocks.id' => 'DESC']);
 
         return $blocklist;
     }
@@ -197,14 +195,12 @@ class UserBlocksTable extends Table
     {
         $blocks = $this->find(
             'all',
-            [
-                'conditions' => [
-                    'ended IS' => null,
-                    'user_id' => $userId,
-                ],
-            ]
+            conditions: [
+                'ended IS' => null,
+                'user_id' => $userId,
+            ],
         )->first();
-        $user = $this->Users->get($userId, ['fields' => ['id', 'user_lock']]);
+        $user = $this->Users->get($userId, fields: ['id', 'user_lock']);
         $user->set('user_lock', !empty($blocks));
 
         return $this->Users->save($user);

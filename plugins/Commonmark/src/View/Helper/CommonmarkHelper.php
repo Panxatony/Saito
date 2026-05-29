@@ -28,7 +28,7 @@ class CommonmarkHelper extends Helper
      */
     public function parse($text)
     {
-        return $this->_getParser()->convertToHtml($text);
+        return (string)$this->_getParser()->convert($text);
     }
 
     /**

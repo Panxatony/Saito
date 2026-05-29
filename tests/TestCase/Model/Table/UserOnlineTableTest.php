@@ -19,7 +19,7 @@ class UserOnlineTableTest extends SaitoTableTestCase
 {
     public $tableClass = 'UserOnline';
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',
@@ -32,6 +32,8 @@ class UserOnlineTableTest extends SaitoTableTestCase
         'user_id',
         'uuid',
     ];
+
+    protected array $_startUsersOnline = [];
 
     public function testSetOnlineSuccess()
     {
@@ -259,13 +261,13 @@ class UserOnlineTableTest extends SaitoTableTestCase
         unset($UserOnline['time']);
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->_startUsersOnline = [];
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->UserOnline);
         parent::tearDown();

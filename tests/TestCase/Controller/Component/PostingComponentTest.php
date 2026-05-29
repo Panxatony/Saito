@@ -16,7 +16,7 @@ use Saito\User\CurrentUser\CurrentUserFactory;
 
 class PostingComponentTest extends SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Draft',
         'app.Entry',
@@ -34,15 +34,15 @@ class PostingComponentTest extends SaitoTestCase
      */
     public $controller;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         // Setup our component and fake test controller
-        $request = new ServerRequest('/users/view/5');
+        $request = new ServerRequest(['url' => '/users/view/5']);
         $response = new Response();
         $this->controller = $this->getMockBuilder('Cake\Controller\Controller')
-            ->setConstructorArgs([$request, $response])
-            ->setMethods(null)
+            ->setConstructorArgs([$request])
+            ->onlyMethods([])
             ->getMock();
         $registry = new ComponentRegistry($this->controller);
         $this->component = new PostingComponent($registry);
@@ -50,7 +50,7 @@ class PostingComponentTest extends SaitoTestCase
         $this->insertCategoryPermissions();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         // Clean up after we're done

@@ -15,20 +15,20 @@ use Cake\Routing\Router;
 /**
  * Routes for xml files
  */
-Router::scope(
+$routes->scope(
     '/sitemap',
     ['plugin' => 'Sitemap'],
     function ($routes) {
         $routes->setExtensions(['xml']);
         $routes->connect('/', ['controller' => 'Sitemaps']);
-        $routes->connect('/:action/*', ['controller' => 'Sitemaps']);
+        $routes->connect('/{action}/*', ['controller' => 'Sitemaps']);
     }
 );
 
 /**
  * Routes for admin interface
  */
-Router::prefix(
+$routes->prefix(
     'admin',
     function ($routes) {
         $routes->connect(

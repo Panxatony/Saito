@@ -22,9 +22,9 @@ class LayoutHelper extends AppHelper
 {
     use StringTemplateTrait;
 
-    public $helpers = ['Html', 'Url'];
+    public array $helpers = ['Html', 'Url'];
 
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'templates' => [
             'dropdownMenuDivider' => '<div class="dropdown-divider"></div>',
             'dropdownMenu' => '<div class="dropdown" style="display: inline;">{{button}}<div id="{{id}}" class="dropdown-menu">{{menu}}</div></div>',

@@ -7,11 +7,11 @@ use Cake\ORM\Entity;
 use Saito\Cache\CacheSupport;
 use Saito\Test\Model\Table\SaitoTableTestCase;
 
-class SmileyCodeTest extends SaitoTableTestCase
+class SmileyCodesTest extends SaitoTableTestCase
 {
     public $tableClass = 'SmileyCodes';
 
-    public $fixtures = ['app.Smiley', 'app.SmileyCode'];
+    public array $fixtures = ['app.Smiley', 'app.SmileyCode'];
 
     public function testCacheClearAfterDelete()
     {
@@ -38,13 +38,13 @@ class SmileyCodeTest extends SaitoTableTestCase
         $this->Table->save($Entity);
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->Table->clearCache();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->Table->clearCache();
         parent::tearDown();

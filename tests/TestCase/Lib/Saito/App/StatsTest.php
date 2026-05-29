@@ -9,7 +9,7 @@ use Saito\Test\SaitoTestCase;
 class StatsTest extends SaitoTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.UserOnline',
@@ -23,7 +23,7 @@ class StatsTest extends SaitoTestCase
      */
     public function testAppStats()
     {
-        $UserOnline = TableRegistry::get('UserOnline');
+        $UserOnline = TableRegistry::getTableLocator()->get('UserOnline');
 
         $UserOnline->setOnline(1, false);
         $UserOnline->setOnline(2, true);

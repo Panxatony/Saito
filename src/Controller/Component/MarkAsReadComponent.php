@@ -29,9 +29,11 @@ class MarkAsReadComponent extends Component
     protected $postings = [];
 
     /**
+     * Fires on Controller.shutdown (Cake 5 maps that event to afterFilter()).
+     *
      * {@inheritDoc}
      */
-    public function shutdown()
+    public function afterFilter(\Cake\Event\EventInterface $event)
     {
         if (empty($this->postings)) {
             return;
@@ -71,7 +73,7 @@ class MarkAsReadComponent extends Component
         /** @var AppController */
         $controller = $this->getController();
         $CU = $controller->CurrentUser;
-        if ($this->request->is('preview') || !$CU->isLoggedIn()) {
+        if ($controller->getRequest()->is('preview') || !$CU->isLoggedIn()) {
             return false;
         }
 
@@ -83,7 +85,8 @@ class MarkAsReadComponent extends Component
             return false;
         }
 
-        $session = $this->request->getSession();
+        $request = $controller->getRequest();
+        $session = $request->getSession();
         $lastRefreshTemp = $session->read('User.last_refresh_tmp');
         if (empty($lastRefreshTemp)) {
             // new session
@@ -91,7 +94,7 @@ class MarkAsReadComponent extends Component
             $session->write('User.last_refresh_tmp', $lastRefreshTemp);
         }
 
-        if ($this->request->getQuery('mar') !== null) {
+        if ($request->getQuery('mar') !== null) {
             // a second session A shall not accidentally mark something as read that isn't read on session B
             if ($lastRefreshTemp > $CU->get('last_refresh_unix')) {
                 $CU->getLastRefresh()->set();

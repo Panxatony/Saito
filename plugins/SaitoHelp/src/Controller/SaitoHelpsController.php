@@ -16,8 +16,6 @@ use App\Controller\AppController;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Event\Event;
-use Cake\Filesystem\File;
-use Cake\Filesystem\Folder;
 use Cake\Http\Response;
 use Cake\ORM\Entity;
 use SaitoHelp\Model\Table\SaitoHelpTable;
@@ -73,7 +71,7 @@ class SaitoHelpsController extends AppController
     /**
      * {@inheritDoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
         $this->Authentication->allowUnauthenticated(['languageRedirect', 'view']);
@@ -97,8 +95,13 @@ class SaitoHelpsController extends AppController
             }
             $folderPath .= 'docs' . DS . 'help' . DS . $lang;
 
-            $folder = new Folder($folderPath);
-            $files = $folder->find("$id(-.*?)?\.md");
+            $files = [];
+            if (is_dir($folderPath)) {
+                $allFiles = array_values(array_diff(scandir($folderPath), ['.', '..']));
+                $files = preg_grep('/^' . preg_quote($id, '/') . '(-.*?)?\.md$/', $allFiles);
+                sort($files);
+                $files = array_values($files);
+            }
 
             return [$files, $folderPath];
         };
@@ -114,9 +117,7 @@ class SaitoHelpsController extends AppController
             return null;
         }
         $name = $files[0];
-        $file = new File($folderPath . DS . $name, false, 0444);
-        $text = $file->read();
-        $file->close();
+        $text = file_get_contents($folderPath . DS . $name);
         $data = [
             'file' => $name,
             'id' => $id,

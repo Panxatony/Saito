@@ -17,9 +17,11 @@ use Api\Error\Exception\GenericApiException;
 use App\Model\Entity\User;
 use Cake\Cache\Cache;
 use Cake\Utility\Security;
+use ImageUploader\Lib\MimeType;
 use ImageUploader\Model\Entity\Upload;
 use ImageUploader\Model\Table\UploadsTable;
 use Saito\Exception\SaitoForbiddenException;
+use Saito\RequestUpload;
 use Saito\User\CurrentUser\CurrentUserInterface;
 use Saito\User\Permission\ResourceAI;
 
@@ -36,10 +38,10 @@ class UploadsController extends ApiAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Users');
+        $this->Users = $this->fetchTable('Users');
     }
 
     /**
@@ -65,7 +67,7 @@ class UploadsController extends ApiAppController
 
         $images = $this->Uploads->find()
             ->where(['user_id' => $userId])
-            ->order(['id' => 'DESC'])
+            ->orderBy(['id' => 'DESC'])
             ->all();
         $this->set('images', $images);
     }
@@ -77,8 +79,8 @@ class UploadsController extends ApiAppController
      */
     public function add()
     {
-        $submitted = $this->request->getData('upload.0.file');
-        if (!is_array($submitted)) {
+        $submitted = RequestUpload::toArray($this->request->getData('upload.0.file'));
+        if ($submitted === null || empty($submitted['tmp_name'])) {
             throw new GenericApiException(__d('image_uploader', 'add.failure'));
         }
 
@@ -96,8 +98,16 @@ class UploadsController extends ApiAppController
             );
         }
 
-        $parts = explode('.', $submitted['name']);
-        $ext = array_pop($parts);
+        // Determine extension from server-detected MIME type, never from user-supplied filename
+        try {
+            $mime = MimeType::get($submitted['tmp_name'], $submitted['name']);
+        } catch (\RuntimeException $e) {
+            throw new GenericApiException(__d('image_uploader', 'add.failure'));
+        }
+        $ext = self::mimeToExtension($mime);
+        if ($ext === null) {
+            throw new GenericApiException(__d('image_uploader', 'add.failure'));
+        }
         $name = $this->CurrentUser->getId() .
                 '_' .
                 substr(Security::hash($submitted['name'], 'sha256'), 32) .
@@ -122,6 +132,36 @@ class UploadsController extends ApiAppController
     }
 
     /**
+     * Maps a server-detected MIME type to a safe, whitelisted file extension.
+     *
+     * Returns null for any MIME type not in the whitelist, causing the upload to be rejected.
+     *
+     * @param string $mime Server-determined MIME type
+     * @return string|null Safe extension, or null if the type is not allowed
+     */
+    private static function mimeToExtension(string $mime): ?string
+    {
+        $map = [
+            'audio/mp4'      => 'mp4',
+            'audio/mpeg'     => 'mp3',
+            'audio/ogg'      => 'ogg',
+            'audio/opus'     => 'opus',
+            'audio/webm'     => 'webm',
+            'image/gif'      => 'gif',
+            'image/jpeg'     => 'jpg',
+            'image/png'      => 'png',
+            'image/svg+xml'  => 'svg',
+            'image/webp'     => 'webp',
+            'text/plain'     => 'txt',
+            'video/mp4'      => 'mp4',
+            'video/ogg'      => 'ogv',
+            'video/webm'     => 'webm',
+        ];
+
+        return $map[$mime] ?? null;
+    }
+
+    /**
      * Deletes an upload
      *
      * @param int $imageId the ID of the image to delete
@@ -130,7 +170,7 @@ class UploadsController extends ApiAppController
     public function delete($imageId)
     {
         /** @var Upload */
-        $upload = $this->Uploads->get($imageId, ['contain' => ['Users']]);
+        $upload = $this->Uploads->get($imageId, contain: ['Users']);
         $permission = $this->CurrentUser->permission(
             'saito.plugin.uploader.delete',
             (new ResourceAI())->onRole($upload->user->getRole())->onOwner($upload->user->getId())

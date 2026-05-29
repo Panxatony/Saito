@@ -1,7 +1,7 @@
 <?php
-use Migrations\AbstractMigration;
+use Migrations\BaseMigration;
 
-class Saitox5x0x0 extends AbstractMigration
+class Saitox5x0x0 extends BaseMigration
 {
 
     public function up()

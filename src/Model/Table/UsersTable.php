@@ -21,7 +21,6 @@ use Authentication\PasswordHasher\DefaultPasswordHasher;
 use Authentication\PasswordHasher\PasswordHasherFactory;
 use Authentication\PasswordHasher\PasswordHasherInterface;
 use Cake\Core\Configure;
-use Cake\Database\Schema\TableSchema;
 use Cake\Datasource\EntityInterface;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
@@ -32,8 +31,8 @@ use Cake\Validation\Validation;
 use Cake\Validation\Validator;
 use DateTimeInterface;
 use Saito\App\Registry;
+use Saito\RequestUpload;
 use Saito\User\Permission\Permissions;
-use Saito\User\Upload\AvatarFilenameListener;
 use Stopwatch\Lib\Stopwatch;
 
 /**
@@ -56,14 +55,14 @@ class UsersTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'user_name_disallowed_chars' => ['\'', ';', '&', '<', '>'],
     ];
 
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->addBehavior(
             'Cron.Cron',
@@ -81,20 +80,16 @@ class UsersTable extends AppTable
 
         $avatarRootDir = Configure::read('Saito.Settings.uploadDirectory');
         $this->addBehavior(
-            'Proffer.Proffer',
+            'Avatar',
             [
-                'avatar' => [ // The name of your upload field (filename)
-                    'root' => $avatarRootDir,
-                    'dir' => 'avatar_dir', // field for upload directory
-                    'thumbnailSizes' => [
-                        'square' => ['w' => 100, 'h' => 100],
-                    ],
-                    // Options are Imagick, Gd or Gmagick
-                    'thumbnailMethod' => 'Gd',
+                'field' => 'avatar',
+                'dirField' => 'avatar_dir',
+                'root' => $avatarRootDir,
+                'thumbnailSizes' => [
+                    'square' => ['w' => 100, 'h' => 100],
                 ],
             ]
         );
-        $this->getEventManager()->on(new AvatarFilenameListener($avatarRootDir));
 
         $this->hasOne(
             'UserOnline',
@@ -134,12 +129,15 @@ class UsersTable extends AppTable
                 ],
             ]
         );
+
+        $this->getSchema()->setColumnType('avatar', 'avatar.file');
+        $this->getSchema()->setColumnType('user_category_custom', 'serialize');
     }
 
     /**
      * {@inheritDoc}
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator->setProvider(
             'saito',
@@ -147,12 +145,8 @@ class UsersTable extends AppTable
         );
 
         $validator
-            ->setProvider(
-                'proffer',
-                'Proffer\Model\Validation\ProfferRules'
-            )
-            ->allowEmpty('avatar_dir')
-            ->allowEmpty('avatar')
+            ->allowEmptyString('avatar_dir')
+            ->allowEmptyString('avatar')
             ->add(
                 'avatar',
                 'avatar-extension',
@@ -165,7 +159,13 @@ class UsersTable extends AppTable
                 'avatar',
                 'avatar-size',
                 [
-                    'rule' => ['fileSize', Validation::COMPARE_LESS, '3MB'],
+                    'rule' => function ($value) {
+                        $upload = RequestUpload::toArray($value);
+                        if ($upload === null || empty($upload['tmp_name'])) {
+                            return true;
+                        }
+                        return Validation::fileSize($upload['tmp_name'], Validation::COMPARE_LESS, '3MB');
+                    },
                     'message' => __('user.avatar.error.size', ['3']),
                 ]
             )
@@ -173,7 +173,13 @@ class UsersTable extends AppTable
                 'avatar',
                 'avatar-mime',
                 [
-                    'rule' => ['mimetype', ['image/jpeg', 'image/png']],
+                    'rule' => function ($value) {
+                        $upload = RequestUpload::toArray($value);
+                        if ($upload === null || empty($upload['tmp_name'])) {
+                            return true;
+                        }
+                        return Validation::mimeType($upload['tmp_name'], ['image/jpeg', 'image/png']);
+                    },
                     'message' => __('user.avatar.error.mime'),
                 ]
             )
@@ -181,23 +187,28 @@ class UsersTable extends AppTable
                 'avatar',
                 'avatar-dimension',
                 [
-                    'rule' => [
-                        'dimensions',
-                        [
-                            'min' => ['w' => 100, 'h' => 100],
-                            'max' => ['w' => 1500, 'h' => 1500],
-                        ],
-                    ],
+                    'rule' => function ($value) {
+                        $upload = RequestUpload::toArray($value);
+                        if ($upload === null || empty($upload['tmp_name'])) {
+                            return true;
+                        }
+                        $size = @getimagesize($upload['tmp_name']);
+                        if (!$size) {
+                            return false;
+                        }
+                        [$w, $h] = $size;
+
+                        return $w >= 100 && $h >= 100 && $w <= 1500 && $h <= 1500;
+                    },
                     'message' => __(
                         'user.avatar.error.dimension',
                         ['100x100', '1500x1500']
                     ),
-                    'provider' => 'proffer',
                 ]
             );
 
         $validator
-            ->notEmpty('password')
+            ->notBlank('password')
             ->add(
                 'password',
                 [
@@ -210,7 +221,7 @@ class UsersTable extends AppTable
             );
 
         $validator
-            ->notEmpty('password_old')
+            ->notBlank('password_old')
             ->add(
                 'password_old',
                 [
@@ -223,7 +234,7 @@ class UsersTable extends AppTable
             );
 
         $validator
-            ->notEmpty('username', __('error_no_name'))
+            ->notBlank('username', __('error_no_name'))
             ->add(
                 'username',
                 [
@@ -259,7 +270,7 @@ class UsersTable extends AppTable
             );
 
         $validator
-            ->notEmpty('user_email')
+            ->notBlank('user_email')
             ->add(
                 'user_email',
                 [
@@ -295,7 +306,7 @@ class UsersTable extends AppTable
             ]
         );
 
-        $validator->notEmpty('registered');
+        $validator->notBlank('registered');
 
         $validator->add(
             'logins',
@@ -313,7 +324,7 @@ class UsersTable extends AppTable
         );
 
         $validator
-            ->notEmpty('activate_code')
+            ->notBlank('activate_code')
             ->add(
                 'activate_code',
                 [
@@ -343,7 +354,7 @@ class UsersTable extends AppTable
         );
 
         $validator
-            ->allowEmpty('user_color_new_postings')
+            ->allowEmptyString('user_color_new_postings')
             ->add(
                 'user_color_new_postings',
                 [
@@ -353,7 +364,7 @@ class UsersTable extends AppTable
                 ]
             );
         $validator
-            ->allowEmpty('user_color_old_postings')
+            ->allowEmptyString('user_color_old_postings')
             ->add(
                 'user_color_old_postings',
                 [
@@ -363,7 +374,7 @@ class UsersTable extends AppTable
                 ]
             );
         $validator
-            ->allowEmpty('user_color_actual_posting')
+            ->allowEmptyString('user_color_actual_posting')
             ->add(
                 'user_color_actual_posting',
                 [
@@ -377,24 +388,13 @@ class UsersTable extends AppTable
     }
 
     /**
-     * {@inheritDoc}
-     */
-    protected function _initializeSchema(TableSchema $table)
-    {
-        $table->setColumnType('avatar', 'proffer.file');
-        $table->setColumnType('user_category_custom', 'serialize');
-
-        return $table;
-    }
-
-    /**
      * set last refresh
      *
      * @param int $userId user-ID
      * @param DateTimeInterface|null $lastRefresh last refresh
      * @return void
      */
-    public function setLastRefresh(int $userId, DateTimeInterface $lastRefresh = null)
+    public function setLastRefresh(int $userId, ?DateTimeInterface $lastRefresh = null)
     {
         Stopwatch::start('Users->setLastRefresh()');
         $data['last_refresh_tmp'] = bDate();
@@ -403,8 +403,7 @@ class UsersTable extends AppTable
             $data['last_refresh'] = $lastRefresh;
         }
 
-        $this->query()
-            ->update()
+        $this->updateQuery()
             ->set($data)
             ->where(['id' => $userId])
             ->execute();
@@ -441,7 +440,8 @@ class UsersTable extends AppTable
     {
         return $this->find(
             'list',
-            ['keyField' => 'id', 'valueField' => 'username']
+            keyField: 'id',
+            valueField: 'username',
         )->toArray();
     }
 
@@ -479,7 +479,7 @@ class UsersTable extends AppTable
      */
     public function autoUpdatePassword(int $userId, string $password): void
     {
-        $user = $this->get($userId, ['fields' => ['id', 'password']]);
+        $user = $this->get($userId, fields: ['id', 'password']);
         $oldPassword = $user->get('password');
         $needsRehash = $this->getPasswordHasher()->needsRehash($oldPassword);
         if ($needsRehash) {
@@ -515,7 +515,7 @@ class UsersTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function afterSave(Event $event, Entity $entity, \ArrayObject $options)
+    public function afterSave(\Cake\Event\EventInterface $event, Entity $entity, \ArrayObject $options)
     {
         if ($entity->isDirty('username')) {
             $this->updateUsername($entity);
@@ -526,12 +526,12 @@ class UsersTable extends AppTable
      * {@inheritDoc}
      */
     public function beforeSave(
-        Event $event,
+        \Cake\Event\EventInterface $event,
         Entity $entity,
         \ArrayObject $options
     ) {
         if ($entity->isDirty('password')) {
-            $hashedPassword = $this->getPasswordHasher()->hash($entity->get('password'));
+            $hashedPassword = $this->getPasswordHasher()->hash((string)$entity->get('password'));
             $entity->set('password', $hashedPassword);
         }
     }
@@ -563,10 +563,10 @@ class UsersTable extends AppTable
     public function validateCheckOldPassword($value, array $context)
     {
         $userId = $context['data']['id'];
-        $oldPasswordHash = $this->get($userId, ['fields' => ['password']])
+        $oldPasswordHash = $this->get($userId, fields: ['password'])
             ->get('password');
 
-        return $this->getPasswordHasher()->check($value, $oldPasswordHash);
+        return $this->getPasswordHasher()->check((string)$value, $oldPasswordHash);
     }
 
     /**
@@ -855,7 +855,7 @@ class UsersTable extends AppTable
             //=if set a single category
             $category = (int)$category;
             if (
-                $category > 0 && $this->Entries->Categories->exists((int)$category)
+                $category > 0 && $this->Entries->Categories->exists(['id' => (int)$category])
             ) {
                 $active = $category;
             } else {
@@ -874,7 +874,15 @@ class UsersTable extends AppTable
      */
     public function getPasswordHasher(): PasswordHasherInterface
     {
-        return PasswordHasherFactory::build(DefaultPasswordHasher::class);
+        // Pin bcrypt cost so the hash format is stable across PHP versions
+        // (PHP 8.4 bumped the default from 10 to 12). Without pinning,
+        // upgrades silently mark every existing password as "needs rehash"
+        // and the fixture-based tests drift.
+        return PasswordHasherFactory::build([
+            'className' => DefaultPasswordHasher::class,
+            'hashType' => PASSWORD_BCRYPT,
+            'hashOptions' => ['cost' => 12],
+        ]);
     }
 
     /**
@@ -912,7 +920,7 @@ class UsersTable extends AppTable
     {
         $query
             ->contain(['UserOnline'])
-            ->order(['Users.username' => 'ASC']);
+            ->orderBy(['Users.username' => 'ASC']);
 
         return $query;
     }
@@ -927,7 +935,7 @@ class UsersTable extends AppTable
     public function findLatest(Query $query, array $options)
     {
         $query->where(['activate_code' => 0])
-            ->order(['id' => 'DESC'])
+            ->orderBy(['id' => 'DESC'])
             ->limit(1);
 
         return $query;

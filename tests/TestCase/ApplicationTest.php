@@ -15,13 +15,13 @@ namespace Saito\Test;
 use App\Application;
 use Cake\Http\Client\Request;
 use GuzzleHttp\Psr7\Uri;
-use Zend\Diactoros\Request as ZendRequest;
-use Zend\Diactoros\Response;
-use Zend\Diactoros\ServerRequest;
+use Laminas\Diactoros\Request as ZendRequest;
+use Laminas\Diactoros\Response;
+use Laminas\Diactoros\ServerRequest;
 
 class ApplicationTest extends SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
     ];
 
@@ -30,11 +30,16 @@ class ApplicationTest extends SaitoTestCase
     /** @var Application */
     private $application;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
-        $this->application = new Application(__DIR__);
+        $this->application = new Application(CONFIG);
+        $this->application->bootstrap();
+        $this->application->pluginBootstrap();
+        $builder = \Cake\Routing\Router::createRouteBuilder('/');
+        $this->application->routes($builder);
+        $this->application->pluginRoutes($builder);
     }
 
     public function teardDown()
@@ -57,13 +62,9 @@ class ApplicationTest extends SaitoTestCase
 
             $provider = $this->application->getAuthenticationService($request, $response);
 
-            $authenticator = $provider->authenticators()->get('Jwt');
-            $this->assertNotEmpty($authenticator);
-
-            $authenticator = $provider->authenticators()->get('Session');
-            $this->assertEmpty($authenticator);
-            $authenticator = $provider->authenticators()->get('Cookie');
-            $this->assertEmpty($authenticator);
+            $this->assertTrue($provider->authenticators()->has('Jwt'));
+            $this->assertFalse($provider->authenticators()->has('Session'));
+            $this->assertFalse($provider->authenticators()->has('Cookie'));
         }
     }
 

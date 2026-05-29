@@ -30,19 +30,19 @@ class PostingsController extends AppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
 
         /** @var EntriesTable */
-        $EntriesTable = $this->loadModel('Entries');
-        $EntriesTable->addBehavior(FeedsPostingBehavior::class);
+        $this->Entries = $this->fetchTable('Entries');
+        $this->Entries->addBehavior(FeedsPostingBehavior::class);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
         $this->Authentication->allowUnauthenticated(['new', 'threads']);
@@ -90,15 +90,12 @@ class PostingsController extends AppController
     /**
      * Check that request is Rss
      *
-     * Can't use beforeFilter because RequestHandlerComponent::startup() not called
-     * and thus RequestHandler uninitialized
-     *
      * @throws BadRequestException
      * @return void
      */
     private function checkRss(): void
     {
-        if ($this->RequestHandler->prefers('rss')) {
+        if ($this->request->accepts('application/rss+xml') || $this->request->getParam('_ext') === 'rss') {
             return;
         }
         throw new BadRequestException();

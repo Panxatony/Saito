@@ -20,7 +20,7 @@ use Saito\Test\IntegrationTestCase;
 class BookmarksControllerTest extends IntegrationTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -39,9 +39,9 @@ class BookmarksControllerTest extends IntegrationTestCase
      */
     protected $Bookmarks;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->Bookmarks = TableRegistry::get('Bookmarks');
+        $this->Bookmarks = TableRegistry::getTableLocator()->get('Bookmarks');
         parent::setUp();
     }
 

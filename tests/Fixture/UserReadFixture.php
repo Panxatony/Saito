@@ -11,7 +11,7 @@ class UserReadFixture extends TestFixture
      *
      * @var array
      */
-    public $fields = [
+    public array $fields = [
         'id' => [
             'type' => 'integer',
             'null' => false,
@@ -50,7 +50,7 @@ class UserReadFixture extends TestFixture
      *
      * @var array
      */
-    public $records = [
+    public array $records = [
         [
             'id' => 1,
             'user_id' => 9999,

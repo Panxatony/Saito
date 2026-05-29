@@ -19,7 +19,7 @@ use Saito\View\Cell\SlidetabCell;
 class SlidetabUserlistCell extends SlidetabCell
 {
 
-    protected $_validCellOptions = [];
+    protected array $_validCellOptions = [];
 
     /**
      * {@inheritDoc}

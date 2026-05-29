@@ -45,15 +45,15 @@ class AppController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         Cache::clear();
         Cache::disable();
 
         parent::initialize();
 
-        $this->loadModel('Settings');
-        $this->migrations = $this->initializeMigrations($this->Settings);
+        $settings = $this->fetchTable('Settings');
+        $this->migrations = $this->initializeMigrations($settings);
 
         $locale = Configure::read('Saito.language');
         I18n::setLocale($locale);

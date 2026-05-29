@@ -27,7 +27,7 @@ class AppTable extends Table
     }
 
     /** @var array default config for InstanceConfigTrait */
-    protected $_defaultConfig = [];
+    protected array $_defaultConfig = [];
 
     public $SharedObjects;
 
@@ -42,7 +42,7 @@ class AppTable extends Table
      * @param int|array|\ArrayAccess $conditions Record-ID or query conditions.
      * @return bool
      */
-    public function exists($conditions)
+    public function exists($conditions): bool
     {
         if (is_int($conditions)) {
             $conditions = ['id' => $conditions];

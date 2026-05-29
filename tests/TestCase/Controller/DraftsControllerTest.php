@@ -21,7 +21,7 @@ use Saito\Test\IntegrationTestCase;
 
 class DraftsControllerTest extends IntegrationTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.Bookmarks.Bookmark',
         'app.Category',
         'app.Draft',

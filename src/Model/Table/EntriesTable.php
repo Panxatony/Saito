@@ -26,7 +26,6 @@ use Cake\Validation\Validator;
 use Saito\Posting\PostingInterface;
 use Saito\User\CurrentUser\CurrentUserInterface;
 use Saito\Validation\SaitoValidationProvider;
-use Search\Manager;
 
 /**
  * Stores postings
@@ -38,15 +37,6 @@ use Search\Manager;
  * @property BookmarksTable $Bookmarks
  * @property CategoriesTable $Categories
  * @property DraftsTable $Drafts
- * @method array treeBuild(array $postings)
- * @method createPosting(array $data, CurrentUserInterface $CurrentUser)
- * @method updatePosting(Entry $posting, array $data, CurrentUserInterface $CurrentUser)
- * @method array prepareChildPosting(BasicPostingInterface $parent, array $data)
- * @method array getRecentPostings(CurrentUserInterface $CU, ?array $options = [])
- * @method bool deletePosting(int $id)
- * @method array postingsForThreads(array $tids, ?array $order = null, ?CurrentUserInterface $CU)
- * @method PostingInterface postingsForThread(int $tid, ?bool $complete = false, ?CurrentUserInterface $CU)
- * @method threadMerge(int $sourceId, int $targetId)
  */
 class EntriesTable extends AppTable
 {
@@ -69,14 +59,14 @@ class EntriesTable extends AppTable
         'category' => ['type' => 'value'],
     ];
 
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'subject_maxlength' => 100,
     ];
 
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->setPrimaryKey('id');
 
@@ -104,9 +94,8 @@ class EntriesTable extends AppTable
                             $categoryId = $entity->get('category_id');
                         }
 
-                        $query = $table->find('all', ['conditions' => [
-                            'pid' => 0, 'category_id' => $categoryId,
-                        ]]);
+                        $query = $table->find('all')
+                            ->where(['pid' => 0, 'category_id' => $categoryId]);
                         $count = $query->count();
 
                         return $count;
@@ -130,14 +119,14 @@ class EntriesTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator->setProvider('saito', SaitoValidationProvider::class);
 
         /// category_id
         $categoryRequiredL10N = __('vld.entries.categories.notEmpty');
         $validator
-            ->notEmpty('category_id', $categoryRequiredL10N)
+            ->notBlank('category_id', $categoryRequiredL10N)
             ->requirePresence('category_id', 'create', $categoryRequiredL10N);
 
         /// last_answer
@@ -162,7 +151,7 @@ class EntriesTable extends AppTable
                 'subject',
                 [
                     'maxLength' => [
-                        'rule' => ['maxLength', $this->getConfig('subject_maxlength')],
+                        'rule' => ['maxLength', (int)$this->getConfig('subject_maxlength')],
                         'message' => __('vld.entries.subject.maxlength'),
                     ],
                 ]
@@ -190,24 +179,9 @@ class EntriesTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function buildRules(RulesChecker $rules)
+    public function buildRules(RulesChecker $rules): \Cake\ORM\RulesChecker
     {
         $rules = parent::buildRules($rules);
-
-        $rules->add(
-            function ($entity) {
-                if (!$entity->isDirty('solves') || empty($entity->get('solves') > 0)) {
-                    return true;
-                }
-
-                return !$entity->isRoot();
-            },
-            'checkSolvesOnlyOnAnswers',
-            [
-                'errorField' => 'solves',
-                'message' => 'Root postings cannot mark themself solved.',
-            ]
-        );
 
         $rules->add(
             function ($entity) {
@@ -230,7 +204,7 @@ class EntriesTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function afterSave(Event $event, Entity $entity, \ArrayObject $options)
+    public function afterSave(\Cake\Event\EventInterface $event, Entity $entity, \ArrayObject $options)
     {
         if ($entity->isNew()) {
             $this->Drafts->deleteDraftForPosting($entity);
@@ -257,54 +231,83 @@ class EntriesTable extends AppTable
     }
 
     /**
-     * Advanced search configuration from SaitoSearch plugin
+     * Get an array of postings for threads
      *
-     * @see https://github.com/FriendsOfCake/search
-     *
-     * @return Manager
+     * @param array $tids Thread-IDs
+     * @param array|null $order Thread sort order
+     * @param CurrentUserInterface|null $CU Current User
+     * @return array<PostingInterface>
      */
-    public function searchManager(): Manager
+    public function postingsForThreads(array $tids, ?array $order = null, ?CurrentUserInterface $CU = null): array
     {
-        /** @var Manager $searchManager */
-        $searchManager = $this->getBehavior('Search')->searchManager();
-        $searchManager
-        ->like('subject', [
-            'before' => true,
-            'after' => true,
-            'fieldMode' => 'OR',
-            'comparison' => 'LIKE',
-            'wildcardAny' => '*',
-            'wildcardOne' => '?',
-            'field' => ['subject'],
-            'filterEmpty' => true,
-        ])
-        ->like('text', [
-            'before' => true,
-            'after' => true,
-            'fieldMode' => 'OR',
-            'comparison' => 'LIKE',
-            'wildcardAny' => '*',
-            'wildcardOne' => '?',
-            'field' => ['text'],
-            'filterEmpty' => true,
-        ])
-        ->value('name', ['filterEmpty' => true]);
-
-        return $searchManager;
+        return $this->getBehavior('Posting')->postingsForThreads($tids, $order, $CU);
     }
 
     /**
-     * Shorthand for reading an entry with full da516ta
+     * Get a posting for a thread
      *
-     * @param int $primaryKey key
-     * @param array $options options
-     * @throws RecordNotFoundException if record isn't found
-     * @return mixed Posting
+     * @param int $tid Thread-ID
+     * @param bool $complete complete fieldset
+     * @param CurrentUserInterface|null $CU CurrentUser
+     * @return PostingInterface
      */
-    public function get($primaryKey, $options = [])
+    public function postingsForThread(int $tid, bool $complete = false, ?CurrentUserInterface $CU = null): PostingInterface
     {
-        /** @var Entry */
-        $result = $this->find('entry', ['complete' => true])
+        return $this->getBehavior('Posting')->postingsForThread($tid, $complete, $CU);
+    }
+
+    /**
+     * Delete a posting and all its subpostings
+     *
+     * @param int $id the node id
+     * @return bool
+     */
+    public function deletePosting(int $id): bool
+    {
+        return $this->getBehavior('Posting')->deletePosting($id);
+    }
+
+    /**
+     * Get recent postings
+     *
+     * @param CurrentUserInterface $User User who has access to postings
+     * @param array $options find options
+     * @return array<PostingInterface>
+     */
+    public function getRecentPostings(CurrentUserInterface $User, array $options = []): array
+    {
+        return $this->getBehavior('Posting')->getRecentPostings($User, $options);
+    }
+
+    /**
+     * Merge thread onto entry $targetId
+     *
+     * @param int $sourceId root-id of the posting that is merged onto another thread
+     * @param int $targetId id of the posting the source-thread should be appended to
+     * @return bool
+     */
+    public function threadMerge(int $sourceId, int $targetId): bool
+    {
+        return $this->getBehavior('Posting')->threadMerge($sourceId, $targetId);
+    }
+
+    /**
+     * Shorthand for reading an entry with full data.
+     *
+     * Signature widened in Cake 5: Table::get() now takes (mixed $primaryKey,
+     * array|string $finder, ?CacheInterface|string $cache, Closure|string|null
+     * $cacheKey, mixed ...$args). The previous (array $options) form is
+     * replaced — Saito only ever called get($id) anyway.
+     */
+    public function get(
+        mixed $primaryKey,
+        array|string $finder = 'all',
+        \Psr\SimpleCache\CacheInterface|string|null $cache = null,
+        \Closure|string|null $cacheKey = null,
+        mixed ...$args
+    ): \Cake\Datasource\EntityInterface {
+        /** @var Entry $result */
+        $result = $this->find('entry', complete: true)
             ->where([$this->getAlias() . '.id' => $primaryKey])
             ->first();
 
@@ -397,10 +400,10 @@ class EntriesTable extends AppTable
      */
     public function getThreadId($id)
     {
-        $entry = $this->find(
-            'all',
-            ['conditions' => ['id' => $id], 'fields' => 'tid']
-        )->first();
+        $entry = $this->find('all')
+            ->where(['id' => $id])
+            ->select(['tid'])
+            ->first();
         if (empty($entry)) {
             throw new RecordNotFoundException(
                 'Posting not found. Posting-Id: ' . $id

@@ -32,6 +32,14 @@ class Registry
     protected static $dic;
 
     /**
+     * @return bool
+     */
+    public static function isInitialized(): bool
+    {
+        return self::$dic !== null;
+    }
+
+    /**
      * Resets and initializes registry.
      *
      * @return Container
@@ -48,7 +56,8 @@ class Registry
         $dic->set('AppStats', $dic->lazyNew('\Saito\App\Stats'));
 
         $dic->set('MarkupSettings', $dic->lazyNew(MarkupSettings::class));
-        $markupClass = Configure::read('Saito.Settings.ParserPlugin');
+        $markupClass = Configure::read('Saito.Settings.ParserPlugin')
+            ?: \Plugin\BbcodeParser\src\Lib\Markup::class;
 
         $dic->set('Markup', $dic->lazyNew($markupClass));
         $dic->params[$markupClass]['settings'] = $dic->lazyGet('MarkupSettings');

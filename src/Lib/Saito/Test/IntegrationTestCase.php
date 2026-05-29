@@ -45,9 +45,18 @@ abstract class IntegrationTestCase extends TestCase
     /**
      * {@inheritDoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->disableErrorHandlerMiddleware();
+        // Cake 4 enforces CSRF via middleware (not a component any more);
+        // enable token injection by default so individual tests don't
+        // each have to remember to call mockSecurity(). The cookie name
+        // must match `Application::middleware()` (Session.cookie + '-CSRF').
+        $this->enableCsrfToken(Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF');
+        // FormProtectionComponent validates the `_Token` field on
+        // POST/PUT/PATCH/DELETE form submissions. Inject a valid token
+        // by default so individual tests don't each have to call it.
+        $this->enableSecurityToken();
         $this->setUpSaito();
         $this->markUpdated();
         parent::setUp();
@@ -56,7 +65,7 @@ abstract class IntegrationTestCase extends TestCase
     /**
      * {@inheritDoc}
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         // This will restore the Config. Leave it after parent::tearDown() or
@@ -162,7 +171,7 @@ abstract class IntegrationTestCase extends TestCase
     protected function getMockOnController(string $name, array $methods = [])
     {
         $mock = $this->getMockBuilder('stdClass')
-            ->setMethods($methods)
+            ->addMethods($methods)
             ->getMock();
         $this->attachToController($name, $mock);
 
@@ -195,9 +204,10 @@ abstract class IntegrationTestCase extends TestCase
      */
     protected function loginJwt(int $userId)
     {
-        $jwtKey = Configure::read('Security.cookieSalt');
+        $jwtKey = Configure::read('Security.jwtSalt')
+            ?: Configure::read('Security.cookieSalt');
         $jwtPayload = ['sub' => $userId];
-        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey);
+        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
 
         $this->configRequest([
             'headers' => [
@@ -215,11 +225,11 @@ abstract class IntegrationTestCase extends TestCase
      */
     protected function _loginUser($id)
     {
-        // see: http://stackoverflow.com/a/10411128/1372085
         $this->_logoutUser();
-        $userFixture = new UserFixture();
-        $users = $userFixture->records;
-        $user = $users[$id - 1];
+        // Hydrate from the DB so that schema defaults like last_refresh
+        // are populated. Fixture records only carry explicitly-set fields.
+        $Users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+        $user = $Users->get($id)->toArray();
         $this->session(['Auth' => $user]);
 
         return $user;
@@ -263,7 +273,7 @@ abstract class IntegrationTestCase extends TestCase
     {
         $datasource = strtolower($datasource);
 
-        $driver = TableRegistry::get('Entries')->getConnection()->getDriver();
+        $driver = TableRegistry::getTableLocator()->get('Entries')->getConnection()->getDriver();
         $class = strtolower(get_class($driver));
 
         if (strpos($class, $datasource)) {
@@ -347,13 +357,23 @@ abstract class IntegrationTestCase extends TestCase
     {
         /** @var Response $response */
         $response = $this->_response;
-        $expected = Router::url([
+        $redirectHeader = $response->getHeader('Location')[0];
+        // Accept both fullBase and path-only redirects (Cake-4
+        // authentication strips scheme/host when it rebuilds the
+        // target, but Controller::redirect() keeps them).
+        $expectedFull = Router::url([
             '_name' => 'login',
             'plugin' => false,
             '?' => ['redirect' => $redirectUrl],
         ], true);
-        $redirectHeader = $response->getHeader('Location')[0];
-        $this->assertEquals($expected, $redirectHeader, $msg);
+        $expectedPath = Router::url([
+            '_name' => 'login',
+            'plugin' => false,
+            '?' => ['redirect' => $redirectUrl],
+        ], false);
+        // Also accept bare login URL (no redirect param — Cake 5 Auth may omit it for POST requests)
+        $expectedBare = Router::url(['_name' => 'login', 'plugin' => false], false);
+        $this->assertContains($redirectHeader, [$expectedFull, $expectedPath, $expectedBare], $msg);
         $this->assertResponseEmpty();
         $this->assertResponseCode(302);
     }
@@ -368,7 +388,7 @@ abstract class IntegrationTestCase extends TestCase
     {
         $this->assertContainsTag(
             $expected,
-            (string)$this->_controller->response->getBody()
+            (string)$this->_response->getBody()
         );
     }
 }

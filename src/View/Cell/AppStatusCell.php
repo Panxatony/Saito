@@ -28,7 +28,7 @@ class AppStatusCell extends Cell
      *
      * @var array
      */
-    protected $_validCellOptions = [];
+    protected array $_validCellOptions = [];
 
     /**
      * {@inheritDoc}

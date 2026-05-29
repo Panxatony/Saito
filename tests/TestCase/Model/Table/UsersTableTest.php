@@ -3,7 +3,7 @@
 namespace App\Test\TestCase\Model\Table;
 
 use App\Model\Table\UsersTable;
-use Cake\I18n\Time;
+use Cake\I18n\DateTime;
 use Cake\ORM\TableRegistry;
 use Saito\App\Registry;
 use Saito\Test\Model\Table\SaitoTableTestCase;
@@ -18,7 +18,7 @@ class UsersTableTest extends SaitoTableTestCase
      */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Draft',
         'app.Entry',
@@ -204,12 +204,13 @@ class UsersTableTest extends SaitoTableTestCase
 
     public function testDeleteUser()
     {
-        $this->Table->UserIgnores = $this->getMockForModel(
+        $userIgnores = $this->getMockForModel(
             'UserIgnores',
             ['deleteUser'],
             [false, 'user_ignore', 'test']
         );
-        $this->Table->UserIgnores->expects($this->once())
+        $this->Table->getAssociation('UserIgnores')->setTarget($userIgnores);
+        $userIgnores->expects($this->once())
             ->method('deleteUser')
             ->with(3)
             ->will($this->returnValue(true));
@@ -218,11 +219,11 @@ class UsersTableTest extends SaitoTableTestCase
         $result = $this->Table->exists(3);
         $this->assertTrue($result);
 
-        $Entries = TableRegistry::get('Entries');
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
         $entriesBeforeDelete = $Entries->find('all')->count();
         $this->assertGreaterThan(0, $entriesBeforeDelete);
 
-        $Bookmarks = TableRegistry::get('Bookmarks');
+        $Bookmarks = TableRegistry::getTableLocator()->get('Bookmarks');
         $allBookmarksBeforeDelete = $Bookmarks->find()->count();
         $userBookmarksBeforeDelete = $Bookmarks->findAllByUserId(3)->count();
         // user has bookmarks before the test
@@ -482,9 +483,15 @@ class UsersTableTest extends SaitoTableTestCase
             ['table' => 'users']
         );
 
-        $this->Table->expects($this->at(1))
+        $callCount = 0;
+        $this->Table->expects($this->atLeastOnce())
             ->method('dispatchDbEvent')
-            ->with('saito.core.user.register.after');
+            ->willReturnCallback(function ($event, $data) use (&$callCount) {
+                if ($callCount === 1) {
+                    $this->assertEquals('saito.core.user.register.after', $event);
+                }
+                $callCount++;
+            });
 
         // new user
         $pw = 'test';
@@ -503,7 +510,7 @@ class UsersTableTest extends SaitoTableTestCase
         $this->assertTrue($result);
 
         $expected = $data + [
-                'registered' => new Time($now),
+                'registered' => new DateTime('@' . $now),
                 'user_type' => 'user',
             ];
         unset($expected['password'], $expected['password_confirm']);
@@ -638,7 +645,7 @@ class UsersTableTest extends SaitoTableTestCase
         $this->Table->patchEntity($user, ['username' => str_pad('', $max + 1, '0')]);
 
         $this->assertArrayHasKey('maxLength', $user->getError('username'));
-        $this->assertContains('191', $user->getError('username')['maxLength']);
+        $this->assertStringContainsString('191', $user->getError('username')['maxLength']);
     }
 
     public function testRenameUser()

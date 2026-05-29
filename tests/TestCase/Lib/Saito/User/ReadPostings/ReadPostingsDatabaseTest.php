@@ -26,13 +26,13 @@ class ReadPostingsDatabaseTest extends SaitoTableTestCase
     /** @var UserReadsTable */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Entry',
         'app.UserRead',
         'app.User',
     ];
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         Configure::write('Saito.Settings.topics_per_page', 10);
@@ -100,7 +100,7 @@ class ReadPostingsDatabaseTest extends SaitoTableTestCase
         }
 
         $RP = $this->getMockBuilder(ReadPostingsDatabase::class)
-            ->setMethods($methods)
+            ->onlyMethods($methods)
             ->setConstructorArgs($args)
             ->getMock();
 

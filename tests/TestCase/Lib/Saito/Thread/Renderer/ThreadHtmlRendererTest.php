@@ -3,7 +3,7 @@
 namespace Saito\Test\Thread\Renderer;
 
 use App\View\Helper\PostingHelper;
-use Cake\I18n\Time;
+use DateTimeImmutable;
 use Cake\View\View;
 use Saito\Posting\Posting;
 use Saito\Test\SaitoTestCase;
@@ -12,6 +12,9 @@ use Saito\User\CurrentUser\CurrentUserFactory;
 
 class ThreadHtmlRendererTest extends SaitoTestCase
 {
+    protected $PostingHelper;
+
+    protected $SaitoUser;
 
     /**
      * tests that posting of ignored user is/not ignored
@@ -24,8 +27,8 @@ class ThreadHtmlRendererTest extends SaitoTestCase
             'pid' => 0,
             'subject' => 'a',
             'text' => 'b',
-            'time' => new Time(),
-            'last_answer' => new Time(),
+            'time' => new DateTimeImmutable(),
+            'last_answer' => new DateTimeImmutable(),
             'fixed' => false,
             'solves' => '',
             'user_id' => 1,
@@ -40,7 +43,7 @@ class ThreadHtmlRendererTest extends SaitoTestCase
 
         $entries = $this->getMockBuilder('\Saito\Posting\Posting')
             ->setConstructorArgs([$entry])
-            ->setMethods(['isIgnored'])
+            ->onlyMethods(['isIgnored'])
             ->getMock();
         $entries->withCurrentUser($this->SaitoUser);
         $entries->expects($this->once())
@@ -70,8 +73,8 @@ class ThreadHtmlRendererTest extends SaitoTestCase
             'pid' => 0,
             'subject' => 'a',
             'text' => 'b',
-            'time' => new Time(),
-            'last_answer' => new Time(),
+            'time' => new DateTimeImmutable(),
+            'last_answer' => new DateTimeImmutable(),
             'fixed' => false,
             'solves' => '',
             'user_id' => 1,
@@ -107,21 +110,14 @@ class ThreadHtmlRendererTest extends SaitoTestCase
 
     public function testThreadMaxDepth()
     {
-        $SaitoUser = $this->getMockBuilder('SaitoUser')
-            ->setMethods(['getId', 'hasBookmarks'])
-            ->getMock();
-        $SaitoUser->Postings = $this->createMock(
-            '\Saito\User\ReadPostings\ReadPostingsDummy'
-        );
-
         $entry = [
             'id' => 1,
             'pid' => 0,
             'tid' => 0,
             'subject' => 'a',
             'text' => 'b',
-            'time' => new Time(),
-            'last_answer' => new Time(),
+            'time' => new DateTimeImmutable(),
+            'last_answer' => new DateTimeImmutable(),
             'fixed' => false,
             'solves' => '',
             'user_id' => 1,
@@ -160,7 +156,7 @@ class ThreadHtmlRendererTest extends SaitoTestCase
         $this->assertEquals(substr_count($result, '<ul'), 2);
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->PostingHelper = $this->_setupPostingHelper();

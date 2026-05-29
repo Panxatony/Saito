@@ -20,7 +20,7 @@ use Cake\View\Helper\UrlHelper;
  */
 class SitemapHelper extends Helper
 {
-    public $helpers = ['Url'];
+    public array $helpers = ['Url'];
 
     /**
      * Get sitemap-URL
@@ -39,6 +39,6 @@ class SitemapHelper extends Helper
      */
     public function baseUrl()
     {
-        return $this->Url->build('/', true);
+        return $this->Url->build('/', ['fullBase' => true]);
     }
 }

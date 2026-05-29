@@ -7,7 +7,7 @@ use Saito\User\CurrentUser\CurrentUserFactory;
 
 class LastRefreshDatabaseTest extends SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.User',
         'app.UserRead',
     ];
@@ -17,7 +17,9 @@ class LastRefreshDatabaseTest extends SaitoTestCase
      */
     public $CurrentUser;
 
-    public function setUp()
+    protected $LastRefresh;
+
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -25,7 +27,7 @@ class LastRefreshDatabaseTest extends SaitoTestCase
         $this->LastRefresh = $this->CurrentUser->getLastRefresh();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->CurrentUser);
         unset($this->LastRefresh);

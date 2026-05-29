@@ -9,7 +9,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 class UserFixture extends TestFixture
 {
 
-    public $fields = [
+    public array $fields = [
         'id' => [
             'type' => 'integer',
             'null' => false,
@@ -217,7 +217,7 @@ class UserFixture extends TestFixture
         ],
     ];
 
-    public $records = [
+    public array $records = [
         [
             'id' => 1,
             'username' => 'Alice',
@@ -256,7 +256,7 @@ class UserFixture extends TestFixture
             'user_type' => 'admin',
             'user_email' => 'second admin@example.com',
             //testtest
-            'password' => '$2y$10$LxV1Ff181IBFQfHWNMfmCee9cu2YY.kPKc30Jftb05nBCsjw5T9pi',
+            'password' => '$2y$12$0Zc6.mQb6hNW6ZgWbxmWhu1S7QsQB3ERqh3lufKwFab4A7OmsPawG',
             'user_automaticaly_mark_as_read' => 1,
             'registered' => '2010-09-01 11:12',
         ],
@@ -300,7 +300,7 @@ class UserFixture extends TestFixture
         ],
     ];
 
-    public function init()
+    public function init(): void
     {
         $hasher = PasswordHasherFactory::build(DefaultPasswordHasher::class);
         $common = [
@@ -310,7 +310,7 @@ class UserFixture extends TestFixture
             'registered' => '2009-01-01 00:00',
             'slidetab_order' => null,
             'user_automaticaly_mark_as_read' => 0,
-            'user_category_custom' => '',
+            'user_category_custom' => [],
             'user_lock' => 0,
             'user_type' => 'user',
         ];
@@ -319,6 +319,6 @@ class UserFixture extends TestFixture
             $this->records[$k] += $common;
         }
 
-        return parent::init();
+        parent::init();
     }
 }

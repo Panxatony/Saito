@@ -19,7 +19,7 @@ use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ForbiddenException;
 use Cake\Http\Response;
-use Cake\I18n\Time;
+use Cake\I18n\DateTime;
 use Cake\Routing\Router;
 use Saito\App\Registry;
 use Saito\Exception\Logger\ExceptionLogger;
@@ -28,7 +28,6 @@ use Saito\Exception\SaitoForbiddenException;
 use Saito\User\Blocker\ManualBlocker;
 use Saito\User\Permission\Permissions;
 use Saito\User\Permission\ResourceAI;
-use Siezi\SimpleCaptcha\Model\Validation\SimpleCaptchaValidator;
 use Stopwatch\Lib\Stopwatch;
 
 /**
@@ -36,19 +35,17 @@ use Stopwatch\Lib\Stopwatch;
  */
 class UsersController extends AppController
 {
-    public $helpers = [
-        'SpectrumColorpicker.SpectrumColorpicker',
-        'Posting',
-        'Siezi/SimpleCaptcha.SimpleCaptcha',
-        'Text',
-    ];
-
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
+        $this->viewBuilder()->addHelpers([
+            'SpectrumColorpicker.SpectrumColorpicker',
+            'Posting',
+            'Text',
+        ]);
         $this->loadComponent('Referer');
     }
 
@@ -82,9 +79,16 @@ class UsersController extends AppController
             $target = $this->getRequest()->getQuery('redirect');
             // AuthenticationService puts the full local path into the redirect
             // parameter, so we have to strip the base-path off again.
-            $target = Router::normalize($target);
+            $target = $target ? Router::normalize($target) : '';
             // Referer from Request
-            $target = $target ?: $this->referer(null, true);
+            // Referer fallback only if it points somewhere other than the
+            // login form itself; otherwise send the user to the front-page.
+            if (empty($target)) {
+                $referer = $this->referer('/', true);
+                if ($referer && strpos($referer, '/login') === false) {
+                    $target = $referer;
+                }
+            }
 
             if (empty($target)) {
                 $target = '/';
@@ -109,7 +113,7 @@ class UsersController extends AppController
                 $ends = $this->Users->UserBlocks
                     ->getBlockEndsForUser($User->getId());
                 if ($ends) {
-                    $time = new Time($ends);
+                    $time = new DateTime($ends);
                     $data = [
                         'name' => $username,
                         'end' => $time->timeAgoInWords(['accuracy' => 'hour']),
@@ -167,10 +171,13 @@ class UsersController extends AppController
         $tosRequired = Configure::read('Saito.Settings.tos_enabled');
         $this->set(compact('tosRequired'));
 
-        $user = $this->Users->newEntity();
+        $user = $this->Users->newEmptyEntity();
         $this->set('user', $user);
 
+        $session = $this->request->getSession();
+
         if (!$this->request->is('post')) {
+            $session->write('Register.formLoadTime', time());
             $logout = $this->_logoutAndComeHereAgain();
             if ($logout) {
                 return $logout;
@@ -181,6 +188,16 @@ class UsersController extends AppController
 
         $data = $this->request->getData();
 
+        // Bot protection: honeypot field must be empty, form must have been
+        // open for at least 5 seconds (bots submit instantly).
+        $formLoadTime = (int)$session->read('Register.formLoadTime');
+        if (!empty($data['url']) || $formLoadTime === 0 || (time() - $formLoadTime) < 5) {
+            $this->set('user', $this->Users->newEmptyEntity());
+
+            return;
+        }
+        $session->delete('Register.formLoadTime');
+
         if (!$tosRequired) {
             $data['tos_confirm'] = true;
         }
@@ -189,11 +206,7 @@ class UsersController extends AppController
             return;
         }
 
-        $validator = new SimpleCaptchaValidator();
-        $errors = $validator->errors($this->request->getData());
-
         $user = $this->Users->register($data);
-        $user->setErrors($errors);
 
         $errors = $user->getErrors();
         if (!empty($errors)) {
@@ -518,7 +531,29 @@ class UsersController extends AppController
 
         if ($this->request->is('post') || $this->request->is('put')) {
             $data = $this->request->getData();
-            $patched = $this->Users->patchEntity($user, $data);
+            $allowedFields = [
+                'username',
+                'user_email',
+                'user_real_name',
+                'user_hp',
+                'user_place',
+                'profile',
+                'signature',
+                'user_sort_last_answer',
+                'user_automaticaly_mark_as_read',
+                'user_signatures_hide',
+                'user_signatures_images_hide',
+                'user_forum_refresh_time',
+                'user_theme',
+                'user_color_new_postings',
+                'user_color_old_postings',
+                'user_color_actual_posting',
+                'inline_view_on_click',
+                'user_show_thread_collapsed',
+                'personal_messages',
+                'user_category_override',
+            ];
+            $patched = $this->Users->patchEntity($user, $data, ['fields' => $allowedFields]);
             $errors = $patched->getErrors();
             if (empty($errors) && $this->Users->save($patched)) {
                 return $this->redirect(['action' => 'view', $id]);
@@ -884,9 +919,7 @@ class UsersController extends AppController
 
         $this->CurrentUser->set('slidetab_order', $order);
 
-        $this->response = $this->response->withStringBody(true);
-
-        return $this->response;
+        return $this->getResponse()->withStringBody('1');
     }
 
     /**
@@ -922,13 +955,13 @@ class UsersController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
         Stopwatch::start('Users->beforeFilter()');
 
         $unlocked = ['slidetabToggle', 'slidetabOrder'];
-        $this->Security->setConfig('unlockedActions', $unlocked);
+        $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
         $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs']);
         $this->AuthUser->authorizeAction('register', 'saito.core.user.register');
@@ -938,9 +971,9 @@ class UsersController extends AppController
         // See https://github.com/Schlaefer/Saito/issues/339
         if (
             ($this->getRequest()->getParam('action') === 'login')
-            && $this->components()->has('Security')
+            && $this->components()->has('FormProtection')
         ) {
-            $this->components()->unload('Security');
+            $this->components()->unload('FormProtection');
         }
 
         Stopwatch::stop('Users->beforeFilter()');

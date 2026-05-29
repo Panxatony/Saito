@@ -9,12 +9,16 @@ use Saito\Smiley\SmileyLoader;
 use Saito\Smiley\SmileyRenderer;
 use Saito\Test\SaitoTestCase;
 
-class SmileyRenderTest extends SaitoTestCase
+class SmileyRendererTest extends SaitoTestCase
 {
 
-    public $fixtures = ['app.Smiley', 'app.SmileyCode'];
+    public array $fixtures = ['app.Smiley', 'app.SmileyCode'];
 
-    public function setUp()
+    protected $Renderer;
+
+    protected $Helper;
+
+    public function setUp(): void
     {
         //= smiley fixture
         $smiliesFixture = [
@@ -54,7 +58,7 @@ class SmileyRenderTest extends SaitoTestCase
         $this->Renderer->setHelper($this->Helper);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->Helper, $this->Renderer);
     }

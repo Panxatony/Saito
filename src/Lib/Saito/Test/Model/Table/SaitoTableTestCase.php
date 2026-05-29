@@ -32,18 +32,20 @@ abstract class SaitoTableTestCase extends SaitoTestCase
     /**
      * {@inheritDoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
-        TableRegistry::clear();
-        $this->Table = TableRegistry::get($this->tableClass);
+        TableRegistry::getTableLocator()->clear();
+        if ($this->tableClass !== null) {
+            $this->Table = TableRegistry::getTableLocator()->get($this->tableClass);
+        }
     }
 
     /**
      * {@inheritDoc}
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->Table);
         parent::tearDown();

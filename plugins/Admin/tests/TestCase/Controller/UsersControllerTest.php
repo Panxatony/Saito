@@ -24,7 +24,7 @@ use Saito\Test\IntegrationTestCase;
 class UsersControllerTest extends IntegrationTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Setting',
         'app.User',
@@ -33,11 +33,13 @@ class UsersControllerTest extends IntegrationTestCase
         'app.UserOnline',
     ];
 
-    public function setUp()
+    protected $Users;
+
+    public function setUp(): void
     {
         parent::setUp();
         foreach (['Users'] as $table) {
-            $this->$table = TableRegistry::get($table);
+            $this->$table = TableRegistry::getTableLocator()->get($table);
         }
     }
 

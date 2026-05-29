@@ -20,7 +20,7 @@ use Saito\User\SaitoUser;
 
 class ResourceACTest extends SaitoTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
     ];
 
@@ -30,14 +30,14 @@ class ResourceACTest extends SaitoTestCase
     /** @var ResourceAI */
     private $ai;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->ac = new ResourceAC();
         $this->ai = new ResourceAI();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         unset($this->ac, $this->ai);
@@ -69,14 +69,17 @@ class ResourceACTest extends SaitoTestCase
     public function testCheckAsRoles()
     {
         $ac = $this->getMockBuilder(ResourceAC::class)
-            ->setMethods(['onRole'])
+            ->onlyMethods(['onRole'])
             ->getMock();
-        $ac->expects($this->at(0))
+        $callCount = 0;
+        $expectedArgs = ['user', 'mod'];
+        $ac->expects($this->exactly(2))
             ->method('onRole')
-            ->with('user');
-        $ac->expects($this->at(1))
-            ->method('onRole')
-            ->with('mod');
+            ->willReturnCallback(function ($role) use ($ac, &$callCount, $expectedArgs) {
+                $this->assertSame($expectedArgs[$callCount], $role);
+                $callCount++;
+                return $ac;
+            });
 
         $ac->onRoles('user', 'mod');
     }

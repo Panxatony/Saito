@@ -12,10 +12,11 @@ declare(strict_types=1);
 
 namespace Saito;
 
-use LayerShifter\TLDExtract\Extract;
+use Pdp\Rules;
 
 class DomainParser
 {
+    private static ?Rules $rules = null;
 
     /**
      * Returns host name for $uri
@@ -27,7 +28,9 @@ class DomainParser
      */
     public static function domain(string $uri): ?string
     {
-        return (new Extract())->parse($uri)->getHostname();
+        $resolved = self::resolve($uri);
+
+        return $resolved !== null ? $resolved->secondLevelDomain()->toString() : null;
     }
 
     /**
@@ -40,6 +43,29 @@ class DomainParser
      */
     public static function domainAndTld(string $uri): ?string
     {
-        return (new Extract())->parse($uri)->getRegistrableDomain();
+        $resolved = self::resolve($uri);
+
+        return $resolved !== null ? $resolved->registrableDomain()->toString() : null;
+    }
+
+    private static function resolve(string $uri): ?\Pdp\ResolvedDomainName
+    {
+        $host = parse_url($uri, PHP_URL_HOST) ?? $uri;
+        if ($host === '' || $host === false) {
+            return null;
+        }
+
+        $resolved = self::rules()->resolve($host);
+
+        return $resolved->registrableDomain()->toString() !== '' ? $resolved : null;
+    }
+
+    private static function rules(): Rules
+    {
+        if (self::$rules === null) {
+            self::$rules = Rules::fromPath(ROOT . DS . 'data' . DS . 'public_suffix_list.dat');
+        }
+
+        return self::$rules;
     }
 }

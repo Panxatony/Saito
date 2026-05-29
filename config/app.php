@@ -61,7 +61,7 @@ return [
         'jsBaseUrl' => 'js/',
         'paths' => [
             'plugins' => [ROOT . DS . 'plugins' . DS],
-            'templates' => [APP . 'Template' . DS],
+            'templates' => [ROOT . DS . 'templates' . DS],
             'locales' => [APP . 'Locale' . DS],
         ],
     ],
@@ -109,7 +109,7 @@ return [
          * Duration will be set to '+2 minutes' in bootstrap.php when debug = true
          * If you set 'className' => 'Null' core cache will be disabled.
          */
-        '_cake_core_' => [
+        '_cake_translations_' => [
             'className' => $cache['engine'],
             'prefix' => $cache['prefix'] . 'cake_core_',
             'path' => CACHE . 'persistent/',
@@ -206,8 +206,8 @@ return [
      *   breathing room to complete logging or error handling.
      */
     'Error' => [
-        'errorLevel' => E_ALL,
-        'exceptionRenderer' => 'Cake\Error\ExceptionRenderer',
+        'errorLevel' => E_ALL & ~E_USER_DEPRECATED,
+        'exceptionRenderer' => 'Cake\Error\Renderer\WebExceptionRenderer',
         'skipLog' => [],
         'log' => true,
         'trace' => true,

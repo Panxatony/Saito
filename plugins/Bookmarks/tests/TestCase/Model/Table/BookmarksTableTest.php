@@ -22,7 +22,7 @@ class BookmarksTableTest extends SaitoTableTestCase
 
     public $tableClass = 'Bookmarks.Bookmarks';
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',

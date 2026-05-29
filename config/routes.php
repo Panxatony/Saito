@@ -18,10 +18,10 @@
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
-use Cake\Core\Plugin;
 use Cake\Routing\RouteBuilder;
-use Cake\Routing\Router;
 use Cake\Routing\Route\DashedRoute;
+
+/** @var \Cake\Routing\RouteBuilder $routes — injected by Application::routes() */
 
 /**
  * The default class to use for all routes
@@ -44,9 +44,9 @@ use Cake\Routing\Route\DashedRoute;
  * constructor in your `src/Application.php` file to change this behavior.
  *
  */
-Router::defaultRouteClass(DashedRoute::class);
+$routes->setRouteClass(DashedRoute::class);
 
-Router::scope('/', function (RouteBuilder $routes) {
+$routes->scope('/', function (RouteBuilder $routes) {
     /**
      * Here, we are connecting '/' (base path) to a controller called 'Pages',
      * its action called 'display', and we pass a param to select the view file
@@ -96,7 +96,7 @@ Router::scope('/', function (RouteBuilder $routes) {
     $routes->fallbacks(DashedRoute::class);
 });
 
-Router::scope('/entries', function ($routes) {
+$routes->scope('/entries', function ($routes) {
     $routes->setExtensions(['json']);
     $routes->connect(
         '/threadLine/*',
@@ -104,12 +104,12 @@ Router::scope('/entries', function ($routes) {
     );
 });
 
-Router::scope('/api/v2/', function ($routes) {
+$routes->scope('/api/v2/', function ($routes) {
     $routes->setExtensions(['json']);
     $routes->resources('Postings');
 });
 
-Router::scope('/api/v2/postingmeta', function ($routes) {
+$routes->scope('/api/v2/postingmeta', function ($routes) {
     $routes->setExtensions(['json']);
     $routes->connect(
         '/*',
@@ -117,12 +117,12 @@ Router::scope('/api/v2/postingmeta', function ($routes) {
     );
 });
 
-Router::scope('/api/v2/', function ($routes) {
+$routes->scope('/api/v2/', function ($routes) {
     $routes->setExtensions(['json']);
     $routes->resources('Drafts');
 });
 
-Router::scope('/api/v2/preview', function ($routes) {
+$routes->scope('/api/v2/preview', function ($routes) {
     $routes->setExtensions(['json']);
     $routes->connect(
         '/preview/*',

@@ -171,6 +171,7 @@ class Iframe extends CodeDefinition
 
         $atrStr = '';
         foreach ($attributes as $attributeName => $attributeValue) {
+            // Attributes are already HTML-encoded by BbcodePreparePreprocessor (h())
             $atrStr .= "$attributeName=\"$attributeValue\" ";
         }
         $atrStr = rtrim($atrStr);
@@ -281,6 +282,8 @@ class Flash extends Iframe
             }
         }
 
+        // $url and $width are already HTML-encoded by BbcodePreparePreprocessor (h())
+        // $height is already constrained to digits by the regex (?<height>\d+)
         $out = '<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="' . $width . '" height="' . $height . '">
 									<param name="movie" value="' . $url . '"></param>
 									<embed src="' . $url . '" width="' . $width . '" height="' . $height . '" type="application/x-shockwave-flash" wmode="opaque" style="width:' . $width . 'px; height:' . $height . 'px;" id="VideoPlayback" flashvars=""> </embed> </object>';

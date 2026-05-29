@@ -31,7 +31,7 @@ use Saito\Thread\Renderer;
  */
 class PostingHelper extends AppHelper
 {
-    public $helpers = ['Form', 'Html', 'TimeH'];
+    public array $helpers = ['Form', 'Html', 'TimeH'];
 
     /**
      * @var array perf-cheat for renderers
@@ -208,7 +208,7 @@ class PostingHelper extends AppHelper
         if ($base) {
             $url .= $this->getView()->getRequest()->getAttribute('base');
         }
-        $url .= "/entries/mix/${tid}";
+        $url .= "/entries/mix/{$tid}";
         $url .= $jump ? '#' . $posting->get('id') : '';
 
         return $url;

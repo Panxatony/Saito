@@ -22,10 +22,10 @@ class UsersController extends AdminAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Users');
+        $this->Users = $this->fetchTable('Users');
     }
 
     /**
@@ -46,7 +46,7 @@ class UsersController extends AdminAppController
                     'user_lock',
                 ]
             )
-            ->order(['username' => 'asc'])
+            ->orderBy(['username' => 'asc'])
             ->all();
         $this->set('users', $data);
     }
@@ -59,7 +59,7 @@ class UsersController extends AdminAppController
     public function add()
     {
         if (!$this->request->is('post') && empty($this->request->getData())) {
-            $user = $this->Users->newEntity();
+            $user = $this->Users->newEmptyEntity();
         } else {
             $user = $this->Users->register($this->request->getData(), true);
             if (!empty($user) && !$user->hasErrors()) {

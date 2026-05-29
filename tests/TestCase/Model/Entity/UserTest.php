@@ -9,11 +9,11 @@ use Saito\Test\SaitoTestCase;
 class UserTest extends SaitoTestCase
 {
 
-    public $fixtures = ['app.Category', 'app.User'];
+    public array $fixtures = ['app.Category', 'app.User'];
 
     public function testNumberOfPostings()
     {
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
 
         //= zero entries
         $user = $Users->get(4);

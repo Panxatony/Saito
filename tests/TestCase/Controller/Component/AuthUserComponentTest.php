@@ -35,7 +35,7 @@ class AuthUserComponentTest extends IntegrationTestCase
     /**
      * {@inheritDoc}
      */
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -54,14 +54,14 @@ class AuthUserComponentTest extends IntegrationTestCase
      */
     public $controller = null;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
         $this->_setup();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         // Clean up after we're done
@@ -76,10 +76,28 @@ class AuthUserComponentTest extends IntegrationTestCase
     public function testSetJwtCookieNoCookieSet()
     {
         $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->shutdown($event);
+        $this->component->afterFilter($event);
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-jwt');
         $this->assertNull($cookie);
+    }
+
+    /**
+     * Integration guard for the event wiring: a real logged-in request must
+     * issue the JWT cookie the SPA reads for API auth. Cake 5 maps
+     * Controller.shutdown to a component's afterFilter() (not shutdown()); if
+     * that callback isn't wired the cookie is never set and every /api/v2
+     * request returns 401.
+     *
+     * @return void
+     */
+    public function testJwtCookieIssuedOnLoggedInRequest()
+    {
+        $this->_loginUser(1);
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertNotEmpty($this->_response->getCookie('Saito-JWT'));
     }
 
     /**
@@ -93,12 +111,12 @@ class AuthUserComponentTest extends IntegrationTestCase
         $this->component->getUser()->setSettings($user);
 
         $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->shutdown($event);
+        $this->component->afterFilter($event);
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
         $this->assertNotEmpty($cookie);
         $this->assertSame('Saito-JWT', $cookie['name']);
-        $this->assertFalse($cookie['httpOnly']);
+        $this->assertFalse($cookie['httponly']);
     }
 
     /**
@@ -113,12 +131,12 @@ class AuthUserComponentTest extends IntegrationTestCase
         $this->controller->setRequest($request);
 
         $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->shutdown($event);
+        $this->component->afterFilter($event);
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
         $this->assertNotEmpty($cookie);
         $this->assertSame('Saito-JWT', $cookie['name']);
-        $this->assertSame('1', $cookie['expire']);
+        $this->assertSame(1, $cookie['expires']);
     }
 
     /**
@@ -136,19 +154,19 @@ class AuthUserComponentTest extends IntegrationTestCase
 
         $oldUser = 2;
         $jwtPayload = ['sub' => $oldUser, 'exp' => time() + 10];
-        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey);
+        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
         $request = $this->controller->getRequest();
         $request = $request->withCookieParams(['Saito-JWT' => $jwtToken]);
         $this->controller->setRequest($request);
 
         $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->shutdown($event);
+        $this->component->afterFilter($event);
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
         $this->assertNotEmpty($cookie);
         $this->assertSame('Saito-JWT', $cookie['name']);
 
-        $payload = \Firebase\JWT\JWT::decode($cookie['value'], $jwtKey, ['HS256']);
+        $payload = \Firebase\JWT\JWT::decode($cookie['value'], new \Firebase\JWT\Key($jwtKey, 'HS256'));
         $this->assertEquals(1, $payload->sub);
     }
 
@@ -162,14 +180,18 @@ class AuthUserComponentTest extends IntegrationTestCase
 
         $session = $this->getMockBuilder(Session::class)
             ->disableOriginalConstructor()
-            ->setMethods(['read'])
+            ->onlyMethods(['read', 'check', 'write', 'renew', 'destroy', 'id', 'start'])
             ->getMock();
-        $session->expects($this->at(0))
+        $session->expects($this->atLeastOnce())
            ->method('read')
-           ->with('Auth')
-           ->will($this->returnValue([
-               'username' => 'Ulysses',
-           ]));
+           ->willReturnCallback(function ($key) {
+               return $key === 'Auth' ? ['username' => 'Ulysses'] : null;
+           });
+        // SessionAuthenticator::persistIdentity()/clearIdentity() call
+        // check()/renew()/write()/destroy() when AuthenticationComponent
+        // setIdentity() is called from login().
+        $session->method('check')->willReturn(true);
+        $session->method('id')->willReturn('test-session-id');
 
         $request = $request->withAttribute('session', $session);
         $this->_setup($request);
@@ -198,7 +220,11 @@ class AuthUserComponentTest extends IntegrationTestCase
         $user = $Users->get(1);
         $hasher = PasswordHasherFactory::build(DefaultPasswordHasher::class);
         $username = $user->get('username');
-        $hash = $hasher->hash($username . $user->get('password'));
+        // Cake 4 CookieAuthenticator token format:
+        // hash(username . password . hmac_sha1(username.password, Security::salt))
+        $value = $username . $user->get('password');
+        $hmac = hash_hmac('sha1', $value, \Cake\Utility\Security::getSalt());
+        $hash = $hasher->hash($value . $hmac);
         $cookieName = Configure::read('Security.cookieAuthName');
         $webroot = '/sub/';
         $request = (new ServerRequest([
@@ -220,22 +246,41 @@ class AuthUserComponentTest extends IntegrationTestCase
             ->authenticators()
             ->get('Cookie');
         $expire = $authProvider->getConfig('cookie.expire');
-        $this->assertWithinRange($expire->getTimestamp(), (int)$cookie['expire'], 2);
+        $this->assertWithinRange($expire->getTimestamp(), (int)$cookie['expires'], 2);
         $this->assertEquals($webroot, $cookie['path']);
     }
 
-    private function _setup(ServerRequestInterface $request = null)
+    private function _setup(?ServerRequestInterface $request = null)
     {
+        // buildApp() needs the routes (uses Router::url(['_name' => 'login']))
+        // and so does the JWT cookie path on the component.
+        \Cake\Routing\Router::reload();
+        $app = new \App\Application(CONFIG);
+        $app->bootstrap();
+        $app->pluginBootstrap();
+        $builder = \Cake\Routing\Router::createRouteBuilder('/');
+        $app->routes($builder);
+        $app->pluginRoutes($builder);
+
         $request = $request ?: new ServerRequest();
+        // AuthUserComponent uses is('bot'), so register the detector the
+        // Detectors plugin would normally provide.
+        $request->addDetector('bot', function () { return false; });
         $response = new Response();
 
         $service = AuthenticationServiceFactory::buildApp();
-        $result = $service->authenticate($request, $response);
+        // v2 authenticate signature: only the request, returns a Result.
+        $result = $service->authenticate($request);
 
         $request = $request->withAttribute('authentication', $service);
-        $request = $request->withAttribute('authenticationResult', $result['result']);
+        $request = $request->withAttribute('authenticationResult', $result);
 
-        $controller = new Controller($request, $response);
+        // Anonymous subclass declares $CurrentUser so AuthUserComponent can set
+        // it without triggering PHP 8.2's dynamic-property deprecation. In
+        // production this property is declared on App\Controller\AppController.
+        $controller = new class ($request) extends Controller {
+            public $CurrentUser;
+        };
 
         $registry = new ComponentRegistry($controller);
         $component = new AuthUserComponent($registry);

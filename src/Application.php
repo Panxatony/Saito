@@ -19,7 +19,7 @@ namespace App;
 
 use App\Auth\AuthenticationServiceFactory;
 use App\Middleware\SaitoBootstrapMiddleware;
-use Authentication\AuthenticationService;
+use Authentication\AuthenticationServiceInterface;
 use Authentication\AuthenticationServiceProviderInterface;
 use Authentication\Middleware\AuthenticationMiddleware;
 use Authentication\UrlChecker\DefaultUrlChecker;
@@ -29,6 +29,8 @@ use Cake\Core\Plugin;
 use Cake\Error\Middleware\ErrorHandlerMiddleware;
 use Cake\Event\EventManagerInterface;
 use Cake\Http\BaseApplication;
+use Cake\Http\Middleware\BodyParserMiddleware;
+use Cake\Http\Middleware\CsrfProtectionMiddleware;
 use Cake\Http\Middleware\EncryptedCookieMiddleware;
 use Cake\Http\Middleware\SecurityHeadersMiddleware;
 use Cake\Routing\Middleware\AssetMiddleware;
@@ -49,7 +51,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
     /**
      * {@inheritDoc}
      */
-    public function __construct($configDir, EventManagerInterface $eventManager = null)
+    public function __construct($configDir, ?EventManagerInterface $eventManager = null)
     {
         Stopwatch::init();
         Stopwatch::enable();
@@ -61,7 +63,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
     /**
      * {@inheritDoc}
      */
-    public function bootstrap()
+    public function bootstrap(): void
     {
         Stopwatch::start('Application::bootstrap');
 
@@ -82,25 +84,23 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         Registry::initialize();
 
         $this->addPlugin('Authentication');
-        $this->addPlugin(\Admin\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\Api\Plugin::class, ['bootstrap' => true, 'routes' => true]);
-        $this->addPlugin(\Bookmarks\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\BbcodeParser\Plugin::class);
-        $this->addPlugin(\Feeds\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\Installer\Plugin::class);
-        $this->addPlugin(\SaitoHelp\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\SaitoSearch\Plugin::class, ['routes' => true]);
-        $this->addPlugin(\Sitemap\Plugin::class, ['bootstrap' => true, 'routes' => true]);
-        $this->addPlugin(\ImageUploader\Plugin::class, ['routes' => true]);
+        $this->addPlugin(\Admin\AdminPlugin::class, ['routes' => true]);
+        $this->addPlugin(\Api\ApiPlugin::class, ['bootstrap' => true, 'routes' => true]);
+        $this->addPlugin(\Bookmarks\BookmarksPlugin::class, ['routes' => true]);
+        $this->addPlugin(\BbcodeParser\BbcodeParserPlugin::class);
+        $this->addPlugin(\Feeds\FeedsPlugin::class, ['routes' => true]);
+        $this->addPlugin(\Installer\InstallerPlugin::class);
+        $this->addPlugin(\SaitoHelp\SaitoHelpPlugin::class, ['routes' => true]);
+        $this->addPlugin(\SaitoSearch\SaitoSearchPlugin::class, ['routes' => true]);
+        $this->addPlugin(\Sitemap\SitemapPlugin::class, ['bootstrap' => true, 'routes' => true]);
+        $this->addPlugin(\ImageUploader\ImageUploaderPlugin::class, ['routes' => true]);
 
-        $this->addPlugin(\Cron\Plugin::class);
-        $this->addPlugin(\Commonmark\Plugin::class);
-        $this->addPlugin(\Detectors\Plugin::class);
-        $this->addPlugin(\MailObfuscator\Plugin::class);
-        $this->addPlugin(\SpectrumColorpicker\Plugin::class);
-        $this->addPlugin(\Stopwatch\Plugin::class);
-
-        $this->addPlugin('Proffer');
+        $this->addPlugin(\Cron\CronPlugin::class);
+        $this->addPlugin(\Commonmark\CommonmarkPlugin::class);
+        $this->addPlugin(\Detectors\DetectorsPlugin::class);
+        $this->addPlugin(\MailObfuscator\MailObfuscatorPlugin::class);
+        $this->addPlugin(\SpectrumColorpicker\SpectrumColorpickerPlugin::class);
+        $this->addPlugin(\Stopwatch\StopwatchPlugin::class);
 
         $this->addPlugin('Local');
         $this->loadDefaultThemePlugin();
@@ -114,12 +114,12 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
      * @param \Cake\Http\MiddlewareQueue $middlewareQueue The middleware queue to setup.
      * @return \Cake\Http\MiddlewareQueue The updated middleware queue.
      */
-    public function middleware($middlewareQueue)
+    public function middleware($middlewareQueue): \Cake\Http\MiddlewareQueue
     {
         $middlewareQueue
             // Catch any exceptions in the lower layers,
             // and make an error page/response
-            ->add(ErrorHandlerMiddleware::class)
+            ->add(new ErrorHandlerMiddleware(Configure::read('Error')))
 
             // Handle plugin/theme assets like CakePHP normally does.
             ->add(AssetMiddleware::class)
@@ -130,6 +130,13 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             // you might want to disable this cache in case your routing is extremely simple
             ->add(new RoutingMiddleware($this, '_cake_routes_'))
 
+            // Parse JSON / form-urlencoded request bodies (Cake 3's
+            // RequestHandlerComponent did this implicitly; in Cake 4 it
+            // has to be wired up explicitly). The Saito frontend posts
+            // its API payloads as application/json — without this the
+            // controllers receive an empty $this->request->getData().
+            ->add(new BodyParserMiddleware())
+
             ->insertAfter(RoutingMiddleware::class, new SaitoBootstrapMiddleware())
 
             ->add(new EncryptedCookieMiddleware(
@@ -137,6 +144,18 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                 [Configure::read('Security.cookieAuthName')],
                 Configure::read('Security.cookieSalt')
             ))
+
+            // CSRF protection (replaces the Cake-3 CsrfComponent).
+            // API requests are JWT-authenticated and intentionally exempt.
+            ->add(
+                (new CsrfProtectionMiddleware([
+                    'expiry' => time() + 10800,
+                    'cookieName' => Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF',
+                ]))
+                    ->skipCheckCallback(function ($request) {
+                        return strpos($request->getUri()->getPath(), '/api/') !== false;
+                    })
+            )
 
             // CakePHP authentication provider
             ->insertAfter(
@@ -158,9 +177,9 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
      *
      * {@inheritDoc}
      */
-    public function getAuthenticationService(ServerRequestInterface $request, ResponseInterface $response): AuthenticationService
+    public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
     {
-        $isApi = (new DefaultUrlChecker())
+        $isApi = (new \Authentication\UrlChecker\DefaultUrlChecker())
             ->check($request, ['#api/v2#'], ['useRegex' => true]);
         if ($isApi) {
             return AuthenticationServiceFactory::buildJwt();
@@ -191,7 +210,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
     /**
      * @return void
      */
-    protected function bootstrapCli()
+    protected function bootstrapCli(): void
     {
         try {
             $this->addPlugin('Bake');

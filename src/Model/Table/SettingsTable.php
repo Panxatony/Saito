@@ -30,7 +30,7 @@ class SettingsTable extends AppSettingTable
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->setPrimaryKey('name');
     }
@@ -38,7 +38,7 @@ class SettingsTable extends AppSettingTable
     /**
      * {@inheritDoc}
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator
             ->notEmptyString('name')
@@ -160,6 +160,29 @@ class SettingsTable extends AppSettingTable
         foreach ($this->_optionalEmailFields as $field) {
             if (empty($settings[$field])) {
                 $settings[$field] = $settings['forum_email'];
+            }
+        }
+    }
+
+    /**
+     * Normalise e-mail address settings before saving.
+     *
+     * A pasted trailing tab/space silently breaks From-address validation and
+     * mail delivery (Cake rejects the address, the relay rejects the sender),
+     * so trim it here rather than trusting the admin form input.
+     *
+     * @param \Cake\Event\EventInterface $event event
+     * @param \Cake\Datasource\EntityInterface $entity setting being saved
+     * @param \ArrayObject $options save options
+     * @return void
+     */
+    public function beforeSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): void
+    {
+        $emailFields = array_merge(['forum_email'], $this->_optionalEmailFields);
+        if (in_array($entity->get('name'), $emailFields, true)) {
+            $value = $entity->get('value');
+            if (is_string($value)) {
+                $entity->set('value', trim($value));
             }
         }
     }

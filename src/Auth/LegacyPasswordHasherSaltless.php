@@ -23,8 +23,8 @@ class LegacyPasswordHasherSaltless extends LegacyPasswordHasher
     /**
      * {@inheritDoc}
      */
-    public function hash($password)
+    public function hash($password): string
     {
-        return Security::hash($password, $this->_config['hashType'], false);
+        return Security::hash((string)$password, $this->_config['hashType'], false);
     }
 }

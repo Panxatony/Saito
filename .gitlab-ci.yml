@@ -1,0 +1,258 @@
+image: php:8.4-cli
+
+# GitLab-managed security scanners. SAST (Semgrep-based PHP rules) and
+# Dependency-Scanning (Gemnasium, reads composer.lock) add their own jobs in
+# the `test` stage and run as their own analyzer images.
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
+stages:
+  - test
+  - security
+  - build
+  - upload
+  - release
+
+# Shared PHP + Composer setup, referenced via `!reference` so the test and
+# security jobs don't duplicate it.
+.php_setup:
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends
+        git zip unzip
+        libicu-dev
+        libpng-dev libjpeg-dev libwebp-dev
+        libonig-dev
+        default-mysql-client
+    - docker-php-ext-configure gd --with-jpeg --with-webp
+    - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+variables:
+  # MariaDB service credentials (used by the mariadb service and DATABASE_TEST_URL)
+  MYSQL_ROOT_PASSWORD: root
+  MYSQL_DATABASE: saito_test
+  MYSQL_USER: saito
+  MYSQL_PASSWORD: saito
+  # CakePHP reads this to override the 'test' datasource in config/app.php
+  DATABASE_TEST_URL: "mysql://saito:saito@mariadb/saito_test?encoding=utf8mb4&timezone=UTC"
+  COMPOSER_ALLOW_SUPERUSER: "1"
+  COMPOSER_CACHE_DIR: "/tmp/composer-cache"
+  # Generic Package Registry target for the release tarball.
+  # CI_COMMIT_TAG is only set on tag pipelines (where upload/release run).
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/saito/${CI_COMMIT_TAG}"
+
+cache:
+  key:
+    files:
+      - composer.lock
+  paths:
+    - vendor/
+    - /tmp/composer-cache/
+
+test:
+  stage: test
+  services:
+    - name: mariadb:11
+      alias: mariadb
+  before_script:
+    - !reference [.php_setup, before_script]
+    # Wait for MariaDB to accept connections
+    - until mysql -h mariadb -u saito -psaito saito_test -e "SELECT 1" >/dev/null 2>&1; do sleep 1; done
+  script:
+    - vendor/bin/phpunit --colors=never
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# ----------------------------------------------------------------------
+# Security checks
+# ----------------------------------------------------------------------
+
+# Known CVEs in (locked) dependencies. Reads composer.lock against the
+# Packagist advisory DB; fails the build on any new advisory. Accepted
+# advisories are listed under config.audit.ignore in composer.json
+# (currently the geshi cssgen.php XSS, which is not web-reachable).
+security:composer-audit:
+  stage: security
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git unzip
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  script:
+    - composer audit
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Psalm taint analysis: tracks user input into SQL/HTML/header/file/shell
+# sinks (SQLi, XSS, header injection, …). allow_failure while the scan is
+# young — it reports findings without blocking until a baseline is trusted.
+security:psalm-taint:
+  stage: security
+  before_script:
+    - !reference [.php_setup, before_script]
+  script:
+    - vendor/bin/psalm --taint-analysis --no-progress --no-cache --output-format=compact
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# ----------------------------------------------------------------------
+# Build the deployable tarball
+# Produces a deployable tarball on main (or any tag). The artifact
+# contains the PHP application with production dependencies installed,
+# but without dev tooling, tests, frontend sources, or local config.
+#
+# On main this 30-day artifact is the "latest deployable" build.
+# On tags it is additionally picked up by the upload/release jobs below
+# and stored permanently in the Package Registry as a versioned release.
+# ----------------------------------------------------------------------
+build:
+  stage: build
+  needs:
+    - test
+    # Don't ship a build with a known dependency CVE.
+    - "security:composer-audit"
+  # Transient Debian-Mirror-Fehler beim apt-get install (siehe Pipeline-Logs
+  # mit "Tried to start delayed item … but failed") sollen den Release-Build
+  # nicht hart abreißen lassen — bei runner_system_failure und Skript-Fehlern
+  # einmal komplett neu versuchen.
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - script_failure
+      - stuck_or_timeout_failure
+  before_script:
+    # ---- System packages + PHP build deps ----
+    - apt-get update -qq
+    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends
+        git zip unzip ca-certificates curl gnupg
+        libicu-dev
+        libpng-dev libjpeg-dev libwebp-dev
+        libonig-dev
+    - docker-php-ext-configure gd --with-jpeg --with-webp
+    - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
+    # ---- Composer + production-only PHP deps ----
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
+    # ---- Node.js (NodeSource v20) + yarn + grunt-cli for the frontend build ----
+    # Saito's webroot/css/stylesheets and webroot/js (plus several plugin
+    # webroot/ trees) are gitignored — they're produced by `grunt release`
+    # from SCSS/TS sources. Without this build the tarball would ship
+    # without bootstrap.min.css, compiled JS bundles, and theme CSS.
+    - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs
+    - npm install -g --silent yarn grunt-cli
+    - yarn install --frozen-lockfile --non-interactive --no-progress
+    # Webpack 4 still uses OpenSSL's MD4 hash, which OpenSSL 3 (default in
+    # Node 17+) disables. The legacy provider re-enables it just for this run.
+    - NODE_OPTIONS=--openssl-legacy-provider grunt release
+  script:
+    - export RELEASE_VERSION="${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+    - export RELEASE_NAME="saito-${RELEASE_VERSION}"
+    # Composer's post-install (App\Console\Installer::postInstall) rewrites
+    # the `__SALT__` placeholders in config/app.php with a freshly generated
+    # value. We don't want to ship a tarball with a fixed salt — restore the
+    # committed placeholder so the installer regenerates the salt on the
+    # first deploy of each install.
+    - git checkout HEAD -- config/app.php
+    - mkdir -p build
+    # Tar the application; exclusions cover dev/test material, local
+    # artefacts, and the build directory itself.
+    - >
+      tar czf "build/${RELEASE_NAME}.tar.gz"
+      --transform "s,^,${RELEASE_NAME}/,"
+      --exclude='./.git'
+      --exclude='./.gitlab-ci.yml'
+      --exclude='./.gitignore'
+      --exclude='./.phpunit.result.cache'
+      --exclude='./build'
+      --exclude='./dev'
+      --exclude='./docs'
+      --exclude='./frontend'
+      --exclude='./node_modules'
+      --exclude='./logs'
+      --exclude='./tmp'
+      --exclude='./tests'
+      --exclude='./pipeline-failed.log'
+      --exclude='./Gruntfile.js'
+      --exclude='./karma.conf.js'
+      --exclude='./package.json'
+      --exclude='./phpcs.xml.dist'
+      --exclude='./phpstan.neon'
+      --exclude='./phpunit.xml.dist'
+      --exclude='./tsconfig.json'
+      --exclude='./tslint.json'
+      --exclude='./webpack.config.js'
+      --exclude='./yarn.lock'
+      --exclude='./build.xml'
+      --exclude='*/tests'
+      .
+    - sha256sum "build/${RELEASE_NAME}.tar.gz" > "build/${RELEASE_NAME}.tar.gz.sha256"
+    - ls -lh build/
+  artifacts:
+    name: "saito-${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+    paths:
+      - build/saito-*.tar.gz
+      - build/saito-*.tar.gz.sha256
+    expire_in: 30 days
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ----------------------------------------------------------------------
+# Upload the tarball to the Generic Package Registry
+# Tag-only: stores the build permanently (unlike the 30-day job artifact).
+# On main the rolling artifact from the build job is enough.
+# ----------------------------------------------------------------------
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  needs:
+    - build
+  script:
+    - export RELEASE_NAME="saito-${CI_COMMIT_TAG}"
+    - |
+      curl --fail --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "build/${RELEASE_NAME}.tar.gz" \
+           "${PACKAGE_REGISTRY_URL}/${RELEASE_NAME}.tar.gz"
+    - |
+      curl --fail --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "build/${RELEASE_NAME}.tar.gz.sha256" \
+           "${PACKAGE_REGISTRY_URL}/${RELEASE_NAME}.tar.gz.sha256"
+  rules:
+    - if: $CI_COMMIT_TAG
+
+# ----------------------------------------------------------------------
+# Create the GitLab Release and link the package
+# Tag-only. Appears under Deploy → Releases with download links pointing
+# at the permanently stored package registry assets.
+# ----------------------------------------------------------------------
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - upload
+  script:
+    - echo "Erstelle Release ${CI_COMMIT_TAG}"
+  release:
+    tag_name: "${CI_COMMIT_TAG}"
+    name: "Saito ${CI_COMMIT_TAG}"
+    description: "Deploybarer Build ${CI_COMMIT_TAG}"
+    assets:
+      links:
+        - name: "saito-${CI_COMMIT_TAG}.tar.gz"
+          url: "${PACKAGE_REGISTRY_URL}/saito-${CI_COMMIT_TAG}.tar.gz"
+          link_type: package
+        - name: "SHA256 checksum"
+          url: "${PACKAGE_REGISTRY_URL}/saito-${CI_COMMIT_TAG}.tar.gz.sha256"
+          link_type: other
+  rules:
+    - if: $CI_COMMIT_TAG

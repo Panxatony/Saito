@@ -27,11 +27,20 @@ class ContactsController extends AppController
     /**
      * {@inheritDoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
         $this->set('showDisclaimer', true);
         $this->Authentication->allowUnauthenticated(['owner']);
+
+        // FormProtection form tokens cause false-positives for anonymous users
+        // (session timeouts, bots). We already have CSRF + honeypot + timing protection.
+        if (
+            $this->getRequest()->getParam('action') === 'owner'
+            && $this->components()->has('FormProtection')
+        ) {
+            $this->components()->unload('FormProtection');
+        }
     }
 
     /**
@@ -42,6 +51,21 @@ class ContactsController extends AppController
     public function owner()
     {
         $recipient = 'contact';
+        $session = $this->request->getSession();
+
+        if ($this->request->is('get')) {
+            $session->write('Contact.formLoadTime', time());
+        }
+
+        if ($this->request->is('post') && !$this->CurrentUser->isLoggedIn()) {
+            $formLoadTime = (int)$session->read('Contact.formLoadTime');
+            if ($formLoadTime === 0 || (time() - $formLoadTime) < 5) {
+                $this->Flash->set(__('error_subject_empty'), ['element' => 'error']);
+                return $this->redirect(['action' => 'owner']);
+            }
+            $session->delete('Contact.formLoadTime');
+        }
+
         if ($this->CurrentUser->isLoggedIn()) {
             $user = $this->CurrentUser;
             $sender = $user->getId();
@@ -68,7 +92,7 @@ class ContactsController extends AppController
             throw new BadRequestException();
         }
 
-        $Users = TableRegistry::get('Users');
+        $Users = TableRegistry::getTableLocator()->get('Users');
         try {
             $recipient = $Users->get($id);
         } catch (RecordNotFoundException $e) {

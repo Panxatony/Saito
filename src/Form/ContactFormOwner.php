@@ -24,10 +24,11 @@ class ContactFormOwner extends ContactForm
      * @param \Cake\Form\Schema $schema The schema to customize.
      * @return \Cake\Form\Schema The schema to use.
      */
-    protected function _buildSchema(Schema $schema)
+    protected function _buildSchema(Schema $schema): \Cake\Form\Schema
     {
         $schema = parent::_buildSchema($schema);
         $schema->addField('sender_contact', 'string');
+        $schema->addField('website', 'string');
 
         return $schema;
     }
@@ -38,15 +39,24 @@ class ContactFormOwner extends ContactForm
      * @param \Cake\Validation\Validator $validator The validator to customize.
      * @return \Cake\Validation\Validator The validator to use.
      */
-    protected function _buildValidator(Validator $validator)
+    public function validationDefault(Validator $validator): Validator
     {
-        $validator = parent::_buildValidator($validator);
+        $validator = parent::validationDefault($validator);
         $validator
-            ->notEmpty('sender_contact')
+            ->notEmptyString('sender_contact')
             ->add('sender_contact', [
                 'isEmail' => [
                     'rule' => ['email', true],
                     'message' => __('error_email_not-valid'),
+                ],
+            ])
+            ->allowEmptyString('website')
+            ->add('website', [
+                'honeypot' => [
+                    'rule' => function ($value) {
+                        return empty($value);
+                    },
+                    'message' => __('error_subject_empty'),
                 ],
             ]);
 

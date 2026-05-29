@@ -22,9 +22,9 @@ class SettingsTableTest extends SaitoTableTestCase
 
     public $tableClass = 'Settings';
 
-    public $fixtures = ['app.Setting'];
+    public array $fixtures = ['app.Setting'];
 
-    public function settingsDataProvider()
+    public static function settingsDataProvider()
     {
         $data = (new SettingFixture())->records;
         $extracted = array_combine(array_column($data, 'name'), array_column($data, 'value'));
@@ -46,6 +46,19 @@ class SettingsTableTest extends SaitoTableTestCase
         $this->assertEquals($address, $result['email_contact']);
         $this->assertEquals($address, $result['email_register']);
         $this->assertEquals($address, $result['email_system']);
+    }
+
+    /**
+     * Email-address settings get trimmed on save so a pasted trailing
+     * tab/space can't break From-address validation and mail delivery.
+     */
+    public function testTrimsWhitespaceFromEmailSettingOnSave()
+    {
+        $setting = $this->Table->get('email_register');
+        $this->Table->patchEntity($setting, ['value' => "noreply@example.com\t "], ['fields' => ['value']]);
+        $this->assertNotFalse($this->Table->save($setting));
+
+        $this->assertSame('noreply@example.com', $this->Table->get('email_register')->get('value'));
     }
 
     /**
@@ -136,10 +149,10 @@ class SettingsTableTest extends SaitoTableTestCase
             ['name' => 'subject_maxlength', 'value' => $max + 1]
         );
         $this->assertArrayHasKey('subjectMaxLength', $entity->getError('value'));
-        $this->assertContains((string)$max, $entity->getError('value')['subjectMaxLength']);
+        $this->assertStringContainsString((string)$max, $entity->getError('value')['subjectMaxLength']);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->Table->clearCache();
         parent::tearDown();

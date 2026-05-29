@@ -2,12 +2,13 @@
 
 namespace App\Test\TestCase\Controller\Component;
 
+use App\Controller\Component\AuthUserComponent;
 use App\Controller\Component\ThreadsComponent;
 use App\Model\Table\EntriesTable;
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Controller;
 use Cake\Http\Response;
-use Cake\Network\Request;
+use Cake\Http\ServerRequest;
 use Saito\Test\Model\Table\SaitoTableTestCase;
 use Saito\User\CurrentUser\CurrentUserFactory;
 
@@ -18,7 +19,7 @@ use Saito\User\CurrentUser\CurrentUserFactory;
  */
 class ThreadsComponentTest extends SaitoTableTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',
@@ -40,18 +41,18 @@ class ThreadsComponentTest extends SaitoTableTestCase
     /** @var EntriesTable */
     public $Table;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         // Setup our component and fake test controller
-        $request = new Request();
+        $request = new ServerRequest();
         $response = new Response();
-        $this->controller = new Controller($request, $response);
+        $this->controller = new Controller($request);
         $registry = new ComponentRegistry($this->controller);
         $this->component = new ThreadsComponent($registry, ['table' => $this->Table]);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->component, $this->controller);
         parent::tearDown();
@@ -62,7 +63,8 @@ class ThreadsComponentTest extends SaitoTableTestCase
         $tid = 4;
 
         $this->component->AuthUser = $this->getMockBuilder(AuthUserComponent::class)
-            ->setMethods(['isBot'])
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isBot'])
             ->getMock();
         $this->component->AuthUser->expects($this->once())->method('isBot')->will(
             $this->returnValue(false)
@@ -86,7 +88,8 @@ class ThreadsComponentTest extends SaitoTableTestCase
         $tid = 4;
 
         $this->component->AuthUser = $this->getMockBuilder(AuthUserComponent::class)
-            ->setMethods(['isBot'])
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isBot'])
             ->getMock();
         $this->component->AuthUser->expects($this->once())->method('isBot')->will(
             $this->returnValue(false)
@@ -109,7 +112,8 @@ class ThreadsComponentTest extends SaitoTableTestCase
         $tid = 4;
 
         $this->component->AuthUser = $this->getMockBuilder(AuthUserComponent::class)
-            ->setMethods(['isBot'])
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isBot'])
             ->getMock();
         $this->component->AuthUser->expects($this->once())->method('isBot')->will(
             $this->returnValue(false)
@@ -132,7 +136,8 @@ class ThreadsComponentTest extends SaitoTableTestCase
     {
         $tid = 4;
         $this->component->AuthUser = $this->getMockBuilder(AuthUserComponent::class)
-            ->setMethods(['isBot'])
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isBot'])
             ->getMock();
         $this->component->AuthUser->expects($this->once())->method('isBot')->will(
             $this->returnValue(false)

@@ -9,7 +9,7 @@ class SmileyCodeFixture extends TestFixture
 
     public $name = 'SmileyCode';
 
-    public $fields = [
+    public array $fields = [
         'id' => [
             'type' => 'integer',
             'null' => false,
@@ -41,7 +41,7 @@ class SmileyCodeFixture extends TestFixture
         ],
     ];
 
-    public $records = [
+    public array $records = [
         [
             'id' => 1,
             'smiley_id' => 1,

@@ -16,6 +16,7 @@ use App\Controller\AppController;
 use Cake\Controller\Component\AuthComponent;
 use Cake\Core\Configure;
 use Cake\Event\Event;
+use Cake\Event\EventInterface;
 
 /**
  * Api App Controller
@@ -25,15 +26,23 @@ class ApiAppController extends AppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
 
         if ($this->components()->has('Csrf')) {
             $this->components()->unload('Csrf');
         }
-        if ($this->components()->has('Security')) {
-            $this->components()->unload('Security');
+        if ($this->components()->has('FormProtection')) {
+            $this->components()->unload('FormProtection');
+        }
+    }
+
+    public function beforeRender(EventInterface $event): void
+    {
+        parent::beforeRender($event);
+        if ($this->request->is('json')) {
+            $this->viewBuilder()->setClassName('Json');
         }
     }
 }

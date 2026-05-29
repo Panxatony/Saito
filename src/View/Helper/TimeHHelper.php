@@ -19,7 +19,7 @@ use DateTimeZone;
 class TimeHHelper extends AppHelper
 {
 
-    public $helpers = [
+    public array $helpers = [
         'Time',
     ];
 
@@ -118,10 +118,12 @@ class TimeHHelper extends AppHelper
                 $string = date('d.m.', $timestamp);
                 break;
             case 'eng':
-                $string = strftime('%F %T', $timestamp);
+                $string = date('Y-m-d H:i:s', $timestamp);
                 break;
             default:
-                $string = strftime($format, $timestamp);
+                // $format is a date()-style format string (strftime() is
+                // deprecated since PHP 8.1).
+                $string = date($format, $timestamp);
         }
 
         if ($options['wrap'] !== false) {
@@ -143,13 +145,13 @@ class TimeHHelper extends AppHelper
     {
         if ($timestamp > $this->_today || $timestamp > ($this->_now - 21600)) {
             // today or in the last 6 hours
-            $time = strftime("%H:%M", $timestamp);
+            $time = date('H:i', $timestamp);
         } elseif ($timestamp > ($this->_today - 64800)) {
             // yesterday but in the last 18 hours
-            $time = __('yesterday') . ' ' . strftime("%H:%M", $timestamp);
+            $time = __('yesterday') . ' ' . date('H:i', $timestamp);
         } else {
             // yesterday and 18 hours and older
-            $time = strftime("%d.%m.%Y", $timestamp);
+            $time = date('d.m.Y', $timestamp);
         }
 
         return $time;
@@ -169,7 +171,7 @@ class TimeHHelper extends AppHelper
     {
         $options += [
             'datetime' => date(DATE_RFC3339, $timestamp),
-            'title' => strftime("%F %T", $timestamp),
+            'title' => date('Y-m-d H:i:s', $timestamp),
         ];
         $attributes = [];
         foreach ($options as $attribute => $value) {

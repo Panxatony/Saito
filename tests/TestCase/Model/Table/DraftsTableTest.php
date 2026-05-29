@@ -27,11 +27,11 @@ class DraftsTableTest extends SaitoTableTestCase
     /** @var DraftsTable */
     public $Drafts;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Draft',
     ];
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $config = TableRegistry::getTableLocator()
@@ -39,7 +39,7 @@ class DraftsTableTest extends SaitoTableTestCase
         $this->Drafts = TableRegistry::getTableLocator()->get('Drafts', $config);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->Drafts);
 

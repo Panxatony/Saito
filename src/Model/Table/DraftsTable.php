@@ -36,7 +36,7 @@ class DraftsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         parent::initialize($config);
 
@@ -50,7 +50,7 @@ class DraftsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         /// pid
         $validator
@@ -63,7 +63,7 @@ class DraftsTable extends AppTable
                 'subject',
                 [
                     'maxLength' => [
-                        'rule' => ['maxLength', $this->getConfig('subject_maxlength')],
+                        'rule' => ['maxLength', (int)$this->getConfig('subject_maxlength')],
                     ],
                 ]
             );
@@ -95,7 +95,7 @@ class DraftsTable extends AppTable
     /**
      * {@inheritDoc}
      */
-    public function buildRules(RulesChecker $rules)
+    public function buildRules(RulesChecker $rules): \Cake\ORM\RulesChecker
     {
         $rules = parent::buildRules($rules);
 

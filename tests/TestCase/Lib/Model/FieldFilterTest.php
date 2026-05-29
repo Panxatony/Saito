@@ -5,18 +5,18 @@ namespace App\Test\TestCase\Lib\Model;
 use App\Lib\Model\Table\FieldFilter;
 use Cake\TestSuite\TestCase;
 
-class AppTableTest extends TestCase
+class FieldFilterTest extends TestCase
 {
     /** @var FieldFilter */
     private $fieldFilter;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->fieldFilter = new FieldFilter();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->fieldFilter);
         parent::tearDown();

@@ -27,7 +27,7 @@ class UploadsFixture extends TestFixture
      * @var array
      */
     // @codingStandardsIgnoreStart
-    public $fields = [
+    public array $fields = [
         'id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
         'name' => ['type' => 'string', 'length' => 200, 'null' => true, 'default' => null, 'collate' => 'utf8mb4_unicode_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
         'title' => ['type' => 'string', 'length' => 191, 'null' => false, 'default' => null, 'collate' => 'utf8mb4_unicode_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
@@ -52,7 +52,7 @@ class UploadsFixture extends TestFixture
      *
      * @return void
      */
-    public function init()
+    public function init(): void
     {
         $this->records = [
             [

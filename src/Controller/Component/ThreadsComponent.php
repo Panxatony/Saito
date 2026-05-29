@@ -14,7 +14,6 @@ namespace App\Controller\Component;
 
 use App\Model\Table\EntriesTable;
 use Cake\Controller\Component;
-use Cake\Controller\Component\PaginatorComponent;
 use Cake\Core\Configure;
 use Cake\ORM\Entity;
 use Saito\Posting\Basic\BasicPostingInterface;
@@ -24,12 +23,12 @@ use Stopwatch\Lib\Stopwatch;
 /**
  * Class ThreadsComponent
  *
- * @property PaginatorComponent $Paginator
  * @property AuthUserComponent $AuthUser
  */
+#[\AllowDynamicProperties]
 class ThreadsComponent extends Component
 {
-    public $components = ['AuthUser', 'Paginator'];
+    public array $components = ['AuthUser'];
 
     /**
      * Entries table
@@ -41,7 +40,7 @@ class ThreadsComponent extends Component
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         parent::initialize($config);
         $this->Table = $config['table'];
@@ -86,7 +85,7 @@ class ThreadsComponent extends Component
                 'Entries.category_id IN' => $categories,
             ],
             // @td sanitize input?
-            'limit' => Configure::read('Saito.Settings.topics_per_page'),
+            'limit' => (int)Configure::read('Saito.Settings.topics_per_page'),
             'order' => $order,
             // Performance: Custom counter from categories counter-cache;
             // avoids a costly COUNT(*) DB call counting all pages for pagination.
@@ -109,11 +108,13 @@ class ThreadsComponent extends Component
 
         $settings = [
             'finder' => ['indexPaginator' => $customFinderOptions],
+            'allowedParameters' => ['page'],
+            'limit' => (int)Configure::read('Saito.Settings.topics_per_page'),
         ];
+        $initialThreads = $this->getController()->paginate($this->Table, $settings);
 
-        // use setConfig on Component to not merge but overwrite/set the config
-        $this->Paginator->setConfig('whitelist', ['page'], false);
-        $initialThreads = $this->Paginator->paginate($this->Table, $settings);
+        // Expose the PaginatedInterface to view so PaginatorHelper can find it
+        $this->getController()->set('_paginationMeta', $initialThreads);
 
         $initialThreadsNew = [];
         foreach ($initialThreads as $k => $v) {

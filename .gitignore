@@ -8,8 +8,8 @@
 ### CakePHP 4 ###
 /config/app_local.php
 
-### CakePHP 3 ###
-schema-dump-default.lock
+### CakePHP migrations schema dumps ###
+schema-dump-*.lock
 /logs
 /tmp
 /vendor
@@ -18,6 +18,11 @@ schema-dump-default.lock
 /_attic
 /build/
 /config/.env
+# Marker file the web installer creates after a successful install
+# (read by config/saito_config.php → Saito.installed). Must not be
+# shipped in releases — otherwise installed=false on fresh deploys
+# and the Installer plugin intercepts every request (loop).
+/config/installer
 /docs/local
 /dist/
 /webroot/useruploads/*

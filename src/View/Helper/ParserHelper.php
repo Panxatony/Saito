@@ -34,7 +34,7 @@ class ParserHelper extends AppHelper
     /**
      * @var array these Helpers are also used in the Parser
      */
-    public $helpers = [
+    public array $helpers = [
         'MailObfuscator.MailObfuscator',
         'Geshi.Geshi',
         'Form',
@@ -59,7 +59,7 @@ class ParserHelper extends AppHelper
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         parent::initialize($config);
         /** @var MarkupInterface */

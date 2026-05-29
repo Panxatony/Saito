@@ -28,7 +28,7 @@ use Saito\User\ForumsUserInterface;
  */
 class JsDataHelper extends AppHelper
 {
-    public $helpers = ['Url'];
+    public array $helpers = ['Url'];
 
     /**
      * Notifications
@@ -51,7 +51,7 @@ class JsDataHelper extends AppHelper
         $js = [
             'app' => [
                 'settings' => [
-                    'autoPageReload' => (isset($View->viewVars['autoPageReload']) ? $View->viewVars['autoPageReload'] : 0),
+                    'autoPageReload' => $View->get('autoPageReload', 0),
                     'editPeriod' => (int)Configure::read(
                         'Saito.Settings.edit_period'
                     ),
@@ -106,12 +106,22 @@ class JsDataHelper extends AppHelper
      */
     protected function _getCsrf(View $View)
     {
-        $key = Configure::read('Session.cookie') . '-CSRF';
-        $token = $View->getRequest()->getCookie($key);
-        if ($token === null) {
-            // First request without CSRF cookie set yet. CSRF set as new cookie
-            // in this request.
-            $token = $View->getResponse()->getCookie($key)['value'];
+        // CakePHP 4's CsrfProtectionMiddleware puts the (salted) token on
+        // the request as the `csrfToken` attribute *before* the view runs;
+        // the matching Set-Cookie header is only added to the response
+        // afterwards, so reading the cookie at render time misses it on
+        // the very first request. The request attribute is the canonical
+        // source of truth in Cake 4.
+        $token = $View->getRequest()->getAttribute('csrfToken');
+        if (!is_string($token)) {
+            // Fall back to whatever cookie is already there (subsequent
+            // requests, or contexts where the middleware was skipped).
+            $key = Configure::read('Session.cookie') . '-CSRF';
+            $token = $View->getRequest()->getCookie($key);
+            if ($token === null) {
+                $cookie = $View->getResponse()->getCookie($key);
+                $token = $cookie['value'] ?? null;
+            }
         }
         $header = 'X-CSRF-Token';
 

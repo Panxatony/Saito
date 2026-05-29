@@ -30,7 +30,7 @@ class InstallController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
         $this->loadComponent('Referer');
@@ -39,9 +39,22 @@ class InstallController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function beforeFilter(\Cake\Event\Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         $this->set('titleForLayout', __d('installer', 'title'));
+
+        // Block installer if the forum is already installed (db_version is set).
+        // Skip check for 'connected' action which is specifically designed to handle existing DBs.
+        if ($this->request->getParam('action') !== 'connected') {
+            try {
+                $dbVersion = (new DbVersion($this->fetchTable('Settings')))->get();
+                if (!empty($dbVersion)) {
+                    return $this->redirect('/');
+                }
+            } catch (\Throwable $e) {
+                // Settings table doesn't exist yet — fresh installation, proceed normally
+            }
+        }
     }
 
     /**
@@ -118,7 +131,7 @@ class InstallController extends AppController
         }
 
         try {
-            (new DbVersion($this->loadModel('Settings')))->get();
+            (new DbVersion($this->fetchTable('Settings')))->get();
             $this->log('Installer found Settings-table.');
 
             return;
@@ -149,7 +162,7 @@ class InstallController extends AppController
 
             $this->log('Installer starting initial migrate.');
             // Initial layout
-            $this->migrations->migrate(['target' => 'Saitox5x0x0']);
+            $this->migrations->migrate(['target' => 20180620093430]);
             $this->log('Installer starting seed.');
             // The seed is meant for the initial layout
             $this->migrations->seed();
@@ -180,7 +193,7 @@ class InstallController extends AppController
         $Users = TableRegistry::getTableLocator()->get('Users');
 
         if ($this->getRequest()->is('get')) {
-            $this->set('admin', $Users->newEntity());
+            $this->set('admin', $Users->newEmptyEntity());
 
             return;
         }
@@ -207,7 +220,7 @@ class InstallController extends AppController
         $this->log('Installer forum email set.');
 
         $this->log('Marking installed.');
-        (new DbVersion($this->loadModel('Settings')))->set(Configure::read('Saito.v'));
+        (new DbVersion($this->fetchTable('Settings')))->set(Configure::read('Saito.v'));
 
         return $this->installerRedirect('finished');
     }
@@ -229,9 +242,9 @@ class InstallController extends AppController
     /**
      * {@inheritdoc}
      */
-    public function log($msg, $level = LogLevel::INFO, $context = ['saito.install'])
+    public function log(\Stringable|string $message, string|int $level = LogLevel::INFO, array|string $context = ['saito.install']): bool
     {
-        parent::log($msg, $level, $context);
+        return parent::log($message, $level, $context);
     }
 
     /**

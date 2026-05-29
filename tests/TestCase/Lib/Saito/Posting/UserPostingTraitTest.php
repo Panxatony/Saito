@@ -3,7 +3,7 @@
 namespace Saito\Test\Posting;
 
 use Cake\Core\Configure;
-use Cake\I18n\Time;
+use Cake\I18n\DateTime;
 use Saito\Test\SaitoTestCase;
 use Saito\User\Categories;
 use Saito\User\CurrentUser\CurrentUser;
@@ -30,12 +30,15 @@ class UserPostingTraitTest extends SaitoTestCase
 {
     public $editPeriod = 20;
 
-    public $fixtures = ['app.Category'];
+    public array $fixtures = ['app.Category'];
 
     /** @var UserPostingTraitClassMock */
     private $Mock;
 
-    public function setUp()
+    /** @var mixed previous Saito.Settings.edit_period, restored in tearDown */
+    protected $editPeriodGlob;
+
+    public function setUp(): void
     {
         parent::setUp();
         $this->editPeriodGlob = Configure::read('Saito.Settings.edit_period');
@@ -44,7 +47,7 @@ class UserPostingTraitTest extends SaitoTestCase
         $this->insertCategoryPermissions();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         unset($this->Mock);
@@ -85,7 +88,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'category_id' => 2,
             'pid' => 0,
             'user_id' => 1,
-            'time' => new Time(time() - ($this->editPeriod * 60) + 1),
+            'time' => new DateTime(time() - ($this->editPeriod * 60) + 1),
             'locked' => 0,
         ];
         $this->Mock->set($entry);
@@ -104,7 +107,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'category_id' => 1, // accesion 2
             'pid' => 0,
             'user_id' => 1,
-            'time' => new Time(time() - ($this->editPeriod * 60) + 1),
+            'time' => new DateTime(time() - ($this->editPeriod * 60) + 1),
             'locked' => 0,
         ];
         $this->Mock->set($entry);
@@ -126,7 +129,7 @@ class UserPostingTraitTest extends SaitoTestCase
     {
         $entry = [
             'user_id' => 1,
-            'time' => new Time(time() - ($this->editPeriod * 60) + 1),
+            'time' => new DateTime(time() - ($this->editPeriod * 60) + 1),
             'locked' => 0,
         ];
         $this->Mock->set($entry);
@@ -139,7 +142,7 @@ class UserPostingTraitTest extends SaitoTestCase
     {
         $entry = [
             'user_id' => 1,
-            'time' => new Time(),
+            'time' => new DateTime(),
         ];
         $this->Mock->set($entry);
         $user = [
@@ -157,7 +160,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'category_id' => 2,
             'pid' => 0,
             'user_id' => 1,
-            'time' => new Time(),
+            'time' => new DateTime(),
         ];
         $this->Mock->set($entry);
         $user = [
@@ -178,7 +181,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'pid' => 0,
             'user_id' => 1,
             'locked' => false,
-            'time' => new Time(time() - ($this->editPeriod * 60) - 1),
+            'time' => new DateTime(time() - ($this->editPeriod * 60) - 1),
         ];
         $this->Mock->set($entry);
         $user = [
@@ -196,7 +199,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'category_id' => 2,
             'pid' => 0,
             'user_id' => 1,
-            'time' => new Time(),
+            'time' => new DateTime(),
             'locked' => 1,
         ];
         $this->Mock->set($entry);
@@ -216,7 +219,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'category_id' => 2,
             'pid' => 0,
             'user_id' => 1,
-            'time' => new Time(time() - ($this->editPeriod * 60) - 1),
+            'time' => new DateTime(time() - ($this->editPeriod * 60) - 1),
             'fixed' => false,
         ];
         $user = [
@@ -239,7 +242,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'category_id' => 2,
             'pid' => 0,
             'user_id' => 1,
-            'time' => new Time(time() - $editPeriod - 1),
+            'time' => new DateTime(time() - $editPeriod - 1),
             'fixed' => false,
         ];
         $user = [
@@ -264,7 +267,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'category_id' => 2,
             'pid' => 0,
             'user_id' => 1,
-            'time' => new Time(time() - $editPeriod - 1),
+            'time' => new DateTime(time() - $editPeriod - 1),
             'fixed' => true,
         ];
         $user = [
@@ -285,7 +288,7 @@ class UserPostingTraitTest extends SaitoTestCase
             'category_id' => 2,
             'pid' => 0,
             'user_id' => 2,
-            'time' => new Time(0),
+            'time' => new DateTime(0),
             'fixed' => false,
         ];
         $user = [
@@ -304,7 +307,7 @@ class UserPostingTraitTest extends SaitoTestCase
     {
         $entry = [
             'user_id' => 1,
-            'time' => new Time(time() - ($this->editPeriod * 60) - 1),
+            'time' => new DateTime(time() - ($this->editPeriod * 60) - 1),
             'fixed' => false,
         ];
         $user = [

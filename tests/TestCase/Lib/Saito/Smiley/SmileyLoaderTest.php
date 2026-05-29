@@ -8,7 +8,7 @@ use Saito\Test\SaitoTestCase;
 class SmileyLoaderTest extends SaitoTestCase
 {
 
-    public $fixtures = ['app.Smiley', 'app.SmileyCode'];
+    public array $fixtures = ['app.Smiley', 'app.SmileyCode'];
 
     public function testLoad()
     {

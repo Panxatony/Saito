@@ -18,7 +18,7 @@ use Saito\Test\IntegrationTestCase;
 
 class SitemapsControllerTest extends IntegrationTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -59,10 +59,10 @@ class SitemapsControllerTest extends IntegrationTestCase
         $this->assertResponseNotContains("{$baseUrl}/entries/view/6</loc>");
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         if (Cache::getConfig('sitemap')) {
-            Cache::clear(false, 'sitemap');
+            Cache::clear('sitemap');
         }
         parent::setUp();
     }

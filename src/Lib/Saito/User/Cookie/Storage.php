@@ -73,7 +73,7 @@ class Storage
     public function read()
     {
         // raw string value of cookie
-        $raw = $this->_Controller->request->getCookie($this->_key);
+        $raw = $this->_Controller->getRequest()->getCookie($this->_key);
         if ($raw === null) {
             return null;
         }
@@ -95,7 +95,9 @@ class Storage
     {
         $cookie = $this->createCookie()
             ->withValue($data);
-        $this->_Controller->response = $this->_Controller->response->withCookie($cookie);
+        $this->_Controller->setResponse(
+            $this->_Controller->getResponse()->withCookie($cookie)
+        );
     }
 
     /**
@@ -106,7 +108,9 @@ class Storage
     public function delete(): void
     {
         $cookie = $this->createCookie();
-        $this->_Controller->response = $this->_Controller->response->withExpiredCookie($cookie);
+        $this->_Controller->setResponse(
+            $this->_Controller->getResponse()->withExpiredCookie($cookie)
+        );
     }
 
     /**

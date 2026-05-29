@@ -20,9 +20,11 @@ class CronComponent extends Component
 {
 
     /**
+     * Fires on Controller.shutdown (Cake 5 maps that event to afterFilter()).
+     *
      * {@inheritDoc}
      */
-    public function shutdown(Event $event)
+    public function afterFilter(\Cake\Event\EventInterface $event)
     {
         $Cron = Registry::get('Cron');
         $Cron->execute();

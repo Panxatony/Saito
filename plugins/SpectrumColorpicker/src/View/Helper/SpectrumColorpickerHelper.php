@@ -24,7 +24,7 @@ class SpectrumColorpickerHelper extends Helper
 {
     use Helper\IdGeneratorTrait;
 
-    public $helpers = ['Form', 'Html', 'Url'];
+    public array $helpers = ['Form', 'Html', 'Url'];
 
     protected $_included = false;
 

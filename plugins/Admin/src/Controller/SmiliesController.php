@@ -22,10 +22,10 @@ class SmiliesController extends AdminAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Smilies');
+        $this->Smilies = $this->fetchTable('Smilies');
     }
 
     /**
@@ -35,13 +35,15 @@ class SmiliesController extends AdminAppController
      */
     public function index()
     {
-        $this->paginate = [
-            'contain' => ['SmileyCodes'],
-            'limit' => 1000, // limit high enough so that no paging should occur
-            'order' => ['Smiley.order' => 'ASC'],
-        ];
+        // Build the query explicitly: in Cake 5 the paginator no longer applies
+        // a `contain` setting, so contain SmileyCodes on the query directly
+        // (the template builds a Collection from each smiley's smiley_codes).
+        $query = $this->Smilies->find()
+            ->contain(['SmileyCodes'])
+            ->orderBy(['Smilies.sort' => 'ASC']);
 
-        $this->set('smilies', $this->paginate($this->Smilies));
+        // limit high enough so that no paging should occur
+        $this->set('smilies', $this->paginate($query, ['limit' => 1000, 'maxLimit' => 1000]));
     }
 
     /**
@@ -51,7 +53,7 @@ class SmiliesController extends AdminAppController
      */
     public function add()
     {
-        $smiley = $this->Smilies->newEntity();
+        $smiley = $this->Smilies->newEmptyEntity();
         if ($this->request->is('post')) {
             $this->Smilies->patchEntity($smiley, $this->request->getData());
             if ($this->Smilies->save($smiley)) {

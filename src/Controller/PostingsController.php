@@ -33,10 +33,10 @@ class PostingsController extends ApiAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Entries');
+        $this->Entries = $this->fetchTable('Entries');
         $this->loadComponent('Posting');
     }
 

@@ -15,12 +15,19 @@ namespace Cron\Test;
 use Cake\TestSuite\TestCase;
 use Cron\Lib\CronJob;
 
+class CronJobCallbackTarget
+{
+    public function callback(): void
+    {
+    }
+}
+
 class CronJobTest extends TestCase
 {
     public function testAll()
     {
-        $mock = $this->getMockBuilder('stdClass')
-            ->setMethods(['callback'])
+        $mock = $this->getMockBuilder(CronJobCallbackTarget::class)
+            ->onlyMethods(['callback'])
             ->getMock();
         $mock->expects($this->once())->method('callback');
 

@@ -17,12 +17,12 @@ use App\Model\Table\EntriesTable;
 class EntriesTableMock extends EntriesTable
 {
 
-    protected $_table = 'entries';
+    protected ?string $_table = 'entries';
 
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->setEntityClass('Entry');
         parent::initialize($config);

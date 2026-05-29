@@ -28,6 +28,7 @@ use Cake\Event\Event;
 use Cake\Http\Response;
 use Cake\I18n\I18n;
 use Cake\ORM\TableRegistry;
+use Closure;
 use Saito\App\Registry;
 use Saito\App\SettingsImmutable;
 use Saito\Event\SaitoEventManager;
@@ -46,16 +47,25 @@ use Stopwatch\Lib\Stopwatch;
  * @property ThemesComponent $Themes
  * @property TitleComponent $Title
  * @property UsersTable $Users
+ * @property \Cake\Controller\Component\FormProtectionComponent $FormProtection
  */
+#[\AllowDynamicProperties]
 class AppController extends Controller
 {
     use InstanceConfigTrait;
 
-    public $helpers = [
+    /**
+     * View helpers.
+     *
+     * In Cake 4 the legacy `public $helpers` auto-loading was removed;
+     * helpers are applied via the ViewBuilder. The keys here are loaded
+     * by initialize() at the end of the controller bootstrap.
+     */
+    protected $viewHelpers = [
         'Form' => [
-            // Bootstrap 4 CSS-class for invalid input elements
-            'errorClass' => 'is-invalid',
             'templates' => [
+                // Bootstrap 4 CSS-class for invalid input elements
+                'errorClass' => 'is-invalid',
                 // Bootstrap 4 CSS-class for input validation message
                 'error' => '<div class="invalid-feedback">{{content}}</div>',
             ],
@@ -76,7 +86,7 @@ class AppController extends Controller
      *
      * @var array default configuration
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'showStopwatch' => false,
     ];
 
@@ -90,7 +100,7 @@ class AppController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         Stopwatch::start('------------------- Controller -------------------');
 
@@ -98,7 +108,9 @@ class AppController extends Controller
 
         $this->setConfig('showStopwatch', Configure::read('debug'));
 
-        if (!$this->request->is('requested')) {
+        // Cake 4 dropped requestAction sub-requests, so the previous
+        // is('requested') guard is no longer needed.
+        if (!$this->request->getSession()->started()) {
             $this->request->getSession()->start();
         }
 
@@ -106,15 +118,14 @@ class AppController extends Controller
 
         // Leave in front to have it available in all Components
         $this->loadComponent('Detectors.Detectors');
-        $this->loadComponent('Cookie');
+        // CookieComponent was removed in Cake 4; cookies go through
+        // EncryptedCookieMiddleware (see Application::middleware()).
         $this->loadComponent('Authentication.Authentication');
-        $this->loadComponent('Security', ['blackHoleCallback' => 'blackhole']);
-        $this->loadComponent('Csrf', ['expiry' => time() + 10800]);
-        if (PHP_SAPI !== 'cli') {
-            // if: The security mock in testing doesn't allow seeting cookie-name.
-            $this->Csrf->setConfig('cookieName', Configure::read('Session.cookie') . '-CSRF');
-        }
-        $this->loadComponent('RequestHandler', ['enableBeforeRedirect' => false]);
+        // SecurityComponent was removed in Cake 4; FormProtectionComponent
+        // covers form-tampering protection (CSRF lives in middleware).
+        $this->loadComponent('FormProtection', [
+            'validationFailureCallback' => Closure::fromCallable([$this, 'blackhole']),
+        ]);
         $this->loadComponent('Cron.Cron');
         $this->loadComponent('CacheSupport');
         $this->loadComponent('AuthUser');
@@ -124,12 +135,16 @@ class AppController extends Controller
         $this->loadComponent('Themes', Configure::read('Saito.themes'));
         $this->loadComponent('Flash');
         $this->loadComponent('Title');
+
+        // Cake 4: ViewBuilder is the canonical place for helpers; the old
+        // $controller->helpers auto-loading was removed in 4.4.
+        $this->viewBuilder()->addHelpers($this->viewHelpers);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         Stopwatch::start('App->beforeFilter()');
 
@@ -158,9 +173,30 @@ class AppController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function beforeRender(Event $event)
+    public function beforeRender(\Cake\Event\EventInterface $event)
     {
         Stopwatch::start('App->beforeRender()');
+
+        // Route to extension/content-type-specific template subdirectory (replaces
+        // Cake 4's RequestHandlerComponent behaviour of selecting json/, xml/, rss/ subdirs).
+        $ext = $this->request->getParam('_ext');
+        if ($ext && in_array($ext, ['xml', 'rss', 'json'], true)) {
+            $path = $this->viewBuilder()->getTemplatePath();
+            $this->viewBuilder()->setTemplatePath($path . DS . $ext);
+        } elseif ($this->request->is('json')) {
+            $path = $this->viewBuilder()->getTemplatePath();
+            $this->viewBuilder()->setTemplatePath($path . DS . 'json');
+        }
+
+        // Cake 4's RequestHandlerComponent disabled the layout for XHR requests
+        // so AJAX endpoints return bare HTML fragments. Cake 5 removed the
+        // component; replicate it here. The Saito SPA injects these fragments
+        // directly into the DOM (e.g. PostingModel.fetchHtml() → entries/view),
+        // so wrapping them in the full page layout corrupts the markup.
+        if ($this->request->is('ajax')) {
+            $this->viewBuilder()->disableAutoLayout();
+        }
+
         $this->Themes->set($this->CurrentUser);
         $this->_setConfigurationFromGetParams();
         $this->_l10nRenderFile();
@@ -212,14 +248,14 @@ class AppController extends Controller
     /**
      * Handle request-blackhole.
      *
-     * @param string $type type
+     * @param \Exception $exception PHP exception
      * @return void
      * @throws \Saito\Exception\SaitoBlackholeException
      */
-    public function blackhole($type)
+    public function blackhole(\Exception $exception): void
     {
         throw new \Saito\Exception\SaitoBlackholeException(
-            $type,
+            $exception->getMessage(),
             ['CurrentUser' => $this->CurrentUser]
         );
     }

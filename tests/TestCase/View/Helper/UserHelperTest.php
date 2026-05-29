@@ -6,7 +6,7 @@ use App\View\Helper\UserHelper;
 use Cake\TestSuite\TestCase;
 use Cake\View\View;
 
-class CurrencyRendererHelperTest extends TestCase
+class UserHelperTest extends TestCase
 {
     /**
      * Helper to test
@@ -15,7 +15,7 @@ class CurrencyRendererHelperTest extends TestCase
      */
     public $helper = null;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $View = new View();

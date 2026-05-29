@@ -15,6 +15,7 @@ namespace App\Controller\Component;
 use Cake\Controller\Component;
 use Cake\Controller\Controller;
 use Cake\Event\Event;
+use Cake\Http\ServerRequest;
 use Cake\Routing\Router;
 
 class RefererComponent extends Component
@@ -29,17 +30,25 @@ class RefererComponent extends Component
     /**
      * {@inheritDoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
+        // In Cake 4 `Controller::referer()` defaults to a local path with
+        // `$local=true`. Use the full referer URL to decide if it's local.
+        $fullReferer = $event->getSubject()->referer(null, false);
         $baseUrl = Router::url('/', true);
-        $referer = $event->getSubject()->referer();
-        if (strpos($referer, $baseUrl) !== 0) {
+        if (empty($fullReferer) || strpos($fullReferer, $baseUrl) !== 0) {
             $this->last = [];
 
             return;
         }
         $referer = $event->getSubject()->referer(null, true);
-        $parsed = Router::getRouteCollection()->parse($referer);
+        try {
+            // GET context: most route maps require an HTTP method to match.
+            $request = (new ServerRequest(['url' => $referer]))->withMethod('GET');
+            $parsed = Router::getRouteCollection()->parseRequest($request);
+        } catch (\Cake\Routing\Exception\MissingRouteException $e) {
+            $parsed = [];
+        }
         foreach (['action', 'controller'] as $type) {
             if (isset($parsed[$type])) {
                 $this->last[$type] = strtolower($parsed[$type]);
@@ -50,7 +59,7 @@ class RefererComponent extends Component
     /**
      * {@inheritDoc}
      */
-    public function beforeRender(Event $event)
+    public function beforeRender(\Cake\Event\EventInterface $event)
     {
         $controller = $event->getSubject();
         $controller->set('referer', $this->last);

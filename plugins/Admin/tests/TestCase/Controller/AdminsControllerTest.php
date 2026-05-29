@@ -19,14 +19,14 @@ use Saito\Test\IntegrationTestCase;
 /**
  * App\Controller\ToolsController Test Case
  */
-class AdminControllerTest extends IntegrationTestCase
+class AdminsControllerTest extends IntegrationTestCase
 {
     /**
      * Fixtures
      *
      * @var array
      */
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -64,6 +64,21 @@ class AdminControllerTest extends IntegrationTestCase
         $this->assertEquals('bar', Cache::read('foo'));
         $this->get('admin/admins/emptyCaches');
         $this->assertEmpty(Cache::read('foo'));
+    }
+
+    /**
+     * Admin dashboard renders the system-info panel.
+     *
+     * Guards the Cake 5 cache-config rename: the panel calls
+     * badgeForCache('_cake_translations_') (was '_cake_core_' in Cake 4);
+     * the old name no longer exists and threw a 500 on /admin/.
+     */
+    public function testAdminIndexRendersSystemInfo()
+    {
+        $this->_loginUser(1);
+        $this->get('/admin/');
+        $this->assertResponseOk();
+        $this->assertResponseContains('PHP Info');
     }
 
     public function testPhpInfoUserAllowence()

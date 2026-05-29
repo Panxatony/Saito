@@ -63,10 +63,10 @@ class SettingsController extends AdminAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Settings');
+        $this->Settings = $this->fetchTable('Settings');
     }
 
     /**
@@ -91,7 +91,7 @@ class SettingsController extends AdminAppController
      *
      * @return \Cake\Http\Response|void
      */
-    public function edit(string $id = null)
+    public function edit(?string $id = null)
     {
         if (empty($id)) {
             throw new NotFoundException();

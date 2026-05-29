@@ -25,7 +25,6 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\MethodNotAllowedException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
-use Cake\Routing\RequestActionTrait;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Basic\BasicPostingInterface;
 use Saito\User\CurrentUser\CurrentUserInterface;
@@ -44,16 +43,13 @@ use Stopwatch\Lib\Stopwatch;
  */
 class EntriesController extends AppController
 {
-    use RequestActionTrait;
-
-    public $helpers = ['Posting', 'Text'];
-
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
+        $this->viewBuilder()->addHelpers(['Posting', 'Text']);
 
         $this->loadComponent('Posting');
         $this->loadComponent('MarkAsRead');
@@ -199,7 +195,7 @@ class EntriesController extends AppController
 
         // inline open
         if ($this->request->is('ajax')) {
-            return $this->render('/Element/entry/view_posting');
+            return $this->render('/element/entry/view_posting');
         }
 
         // full page request
@@ -389,7 +385,7 @@ class EntriesController extends AppController
      * @throws NotFoundException
      * @td put into admin entries controller
      */
-    public function merge(string $sourceId = null)
+    public function merge(?string $sourceId = null)
     {
         $sourceId = (int)$sourceId;
         if (empty($sourceId)) {
@@ -404,7 +400,7 @@ class EntriesController extends AppController
         }
 
         // perform move operation
-        $targetId = $this->request->getData('targetId');
+        $targetId = (int)$this->request->getData('targetId');
         if (!empty($targetId)) {
             if ($this->Entries->threadMerge($sourceId, $targetId)) {
                 $this->redirect('/entries/view/' . $sourceId);
@@ -452,12 +448,12 @@ class EntriesController extends AppController
     /**
      * {@inheritDoc}
      */
-    public function beforeFilter(Event $event)
+    public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
         Stopwatch::start('Entries->beforeFilter()');
 
-        $this->Security->setConfig(
+        $this->FormProtection->setConfig(
             'unlockedActions',
             ['solve', 'view']
         );
@@ -530,13 +526,10 @@ class EntriesController extends AppController
         if ($this->CurrentUser->isLoggedIn()) {
             // Only logged in users see the answering buttons if they …
             if (
-// … directly on entries/view but not inline
-                ($this->request->getParam('action') === 'view' && !$this->request->is('ajax'))
+                // … directly on entries/view (full page or inline)
+                $this->request->getParam('action') === 'view'
                 // … directly in entries/mix
                 || $this->request->getParam('action') === 'mix'
-                // … inline viewing … on entries/index.
-                || ($this->Referer->wasController('entries')
-                    && $this->Referer->wasAction('index'))
             ) {
                 $showAnsweringPanel = true;
             }

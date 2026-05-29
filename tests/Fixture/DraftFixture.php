@@ -27,7 +27,7 @@ class DraftFixture extends TestFixture
      * @var array
      */
     // @codingStandardsIgnoreStart
-    public $fields = [
+    public array $fields = [
         'id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
         'user_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'pid' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
@@ -50,7 +50,7 @@ class DraftFixture extends TestFixture
      *
      * @return void
      */
-    public function init()
+    public function init(): void
     {
         $outdated = (new Chronos(DraftsTable::OUTDATED))->getTimestamp() - 1;
         $this->records = [

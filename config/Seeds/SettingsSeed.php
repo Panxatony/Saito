@@ -1,10 +1,10 @@
 <?php
-use Migrations\AbstractSeed;
+use Migrations\BaseSeed;
 
 /**
  * Settings seed.
  */
-class SettingsSeed extends AbstractSeed
+class SettingsSeed extends BaseSeed
 {
     /**
      * Run Method.
@@ -16,7 +16,7 @@ class SettingsSeed extends AbstractSeed
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         $data = [
             ['name' => 'autolink', 'value' => '1'],

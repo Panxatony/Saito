@@ -2,13 +2,13 @@
 
 namespace App\Test\TestCase\Controller;
 
-use Cake\Mailer\Email;
+use Cake\Mailer\Message;
 use Saito\Test\IntegrationTestCase;
 
-class ContactsControllerTestCase extends IntegrationTestCase
+class ContactsControllerTest extends IntegrationTestCase
 {
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.User',
@@ -22,6 +22,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
     public function testContactEmailSuccessWithCc()
     {
         $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
         $data = [
             'sender_contact' => 'fo3@example.com',
             'subject' => 'subject',
@@ -30,52 +31,39 @@ class ContactsControllerTestCase extends IntegrationTestCase
         ];
 
         $transproter = $this->mockMailTransporter();
-        $transproter->expects($this->exactly(2))->method('send');
-        // cc mail
-        $transproter
-            ->expects($this->at(0))
+        $callCount = 0;
+        $transproter->expects($this->exactly(2))
             ->method('send')
-            ->with(
-                $this->callback(
-                    function (Email $email) {
-                        $this->assertEquals(
-                            $email->getFrom(),
-                            ['system@example.com' => 'macnemo']
-                        );
-                        $this->assertEquals(
-                            $email->getTo(),
-                            ['fo3@example.com' => 'fo3@example.com']
-                        );
-                        $this->assertEmpty($email->getSender());
-
-                        return true;
-                    }
-                )
-            );
-        // main mail
-        $transproter
-            ->expects($this->at(1))
-            ->method('send')
-            ->with(
-                $this->callback(
-                    function (Email $email) {
-                        $this->assertEquals(
-                            $email->getFrom(),
-                            ['fo3@example.com' => 'fo3@example.com']
-                        );
-                        $this->assertEquals(
-                            $email->getTo(),
-                            ['contact@example.com' => 'macnemo']
-                        );
-                        $this->assertEquals(
-                            $email->getSender(),
-                            ['system@example.com' => 'macnemo']
-                        );
-
-                        return true;
-                    }
-                )
-            );
+            ->willReturnCallback(function (Message $email) use (&$callCount) {
+                if ($callCount === 0) {
+                    // cc mail
+                    $this->assertEquals(
+                        $email->getFrom(),
+                        ['system@example.com' => 'macnemo']
+                    );
+                    $this->assertEquals(
+                        $email->getTo(),
+                        ['fo3@example.com' => 'fo3@example.com']
+                    );
+                    $this->assertEmpty($email->getSender());
+                } else {
+                    // main mail
+                    $this->assertEquals(
+                        $email->getFrom(),
+                        ['fo3@example.com' => 'fo3@example.com']
+                    );
+                    $this->assertEquals(
+                        $email->getTo(),
+                        ['contact@example.com' => 'macnemo']
+                    );
+                    $this->assertEquals(
+                        $email->getSender(),
+                        ['system@example.com' => 'macnemo']
+                    );
+                }
+                $callCount++;
+                return [];
+            });
         $this->post('/contacts/owner', $data);
     }
 
@@ -116,6 +104,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
     public function testContactOwnerByAnonSendInvalidEmail()
     {
         $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
         $data = [
             'sender_contact' => 'foo',
             'subject' => 'Subject',
@@ -136,15 +125,14 @@ class ContactsControllerTestCase extends IntegrationTestCase
     public function testContactOwnerByAnonSendSuccess()
     {
         $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
         $transproter = $this->mockMailTransporter();
 
-        $transproter->expects($this->once())->method('send');
-        $transproter
-            ->expects($this->at(0))
+        $transproter->expects($this->once())
             ->method('send')
             ->with(
                 $this->callback(
-                    function (Email $email) {
+                    function (Message $email) {
                         $this->assertEquals(
                             $email->getFrom(),
                             ['fo3@example.com' => 'fo3@example.com']
@@ -157,9 +145,9 @@ class ContactsControllerTestCase extends IntegrationTestCase
                             $email->getSender(),
                             ['system@example.com' => 'macnemo']
                         );
-                        $this->assertContains(
+                        $this->assertStringContainsString(
                             'message-text',
-                            $email->message('text')
+                            $email->getBodyText()
                         );
                         $this->assertEquals($email->getSubject(), 'subject');
 
@@ -187,13 +175,11 @@ class ContactsControllerTestCase extends IntegrationTestCase
         $this->_loginUser(3);
 
         $transproter = $this->mockMailTransporter();
-        $transproter->expects($this->once())->method('send');
-        $transproter
-            ->expects($this->at(0))
+        $transproter->expects($this->once())
             ->method('send')
             ->with(
                 $this->callback(
-                    function (Email $email) {
+                    function (Message $email) {
                         $this->assertEquals(
                             $email->getFrom(),
                             ['ulysses@example.com' => 'Ulysses']
@@ -248,6 +234,7 @@ class ContactsControllerTestCase extends IntegrationTestCase
     {
         $url = '/contacts/user/3';
         $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
         $transporter = $this->mockMailTransporter();
         $transporter->expects($this->never())->method('send');
         $data = [

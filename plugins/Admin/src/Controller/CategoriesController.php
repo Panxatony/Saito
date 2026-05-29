@@ -21,7 +21,7 @@ use Cake\Http\Exception\BadRequestException;
 class CategoriesController extends AdminAppController
 {
 
-    public $paginate = [
+    public array $paginate = [
         'order' => [
             'Categories.category_order' => 'asc',
         ],
@@ -30,10 +30,10 @@ class CategoriesController extends AdminAppController
     /**
      * {@inheritDoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         parent::initialize();
-        $this->loadModel('Categories');
+        $this->Categories = $this->fetchTable('Categories');
     }
 
     /**
@@ -57,7 +57,7 @@ class CategoriesController extends AdminAppController
      */
     public function add()
     {
-        $category = $this->Categories->newEntity();
+        $category = $this->Categories->newEmptyEntity();
         if ($this->request->is('post')) {
             $category = $this->Categories->patchEntity(
                 $category,

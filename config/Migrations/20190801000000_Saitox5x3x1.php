@@ -1,8 +1,8 @@
 <?php
-use Migrations\AbstractMigration;
+use Migrations\BaseMigration;
 use Phinx\Db\Action\ChangeColumn;
 
-class Saitox5x3x1 extends AbstractMigration
+class Saitox5x3x1 extends BaseMigration
 {
     public function up()
     {

@@ -77,12 +77,21 @@ trait UrlParserTrait
             // use Cakes Validation class to detect valid URL
             $validator = new Validator();
             $validator->add('url', ['url' => ['rule' => 'url']]);
-            $errors = $validator->errors(['url' => $url]);
+            $errors = $validator->validate(['url' => $url]);
             if (empty($errors)) {
                 $url = 'http://' . $url;
             }
         }
 
+        // Block dangerous URL schemes (javascript:, data:, vbscript:, etc.)
+        // Decode HTML entities first since JBBCode pre-encodes attribute values
+        $rawUrl = html_entity_decode($url, ENT_QUOTES, 'UTF-8');
+        $scheme = strtolower((string)parse_url($rawUrl, PHP_URL_SCHEME));
+        if (!in_array($scheme, ['http', 'https', 'ftp', ''], true)) {
+            return '';
+        }
+
+        // Use the pre-encoded URL from JBBCode directly (already HTML-safe)
         $out = "<a href='$url' class=\"richtext-link";
         if ($truncate) {
             $out .= ' truncate';
@@ -95,7 +104,7 @@ trait UrlParserTrait
             if (!empty($url) && preg_match('/\<img\s*?src=/', $text) !== 1) {
                 $host = DomainParser::domainAndTld($url);
                 if ($host !== null && $host !== env('SERVER_NAME')) {
-                    $out .= ' <span class=\'richtext-linkInfo\'>[' . $host . ']</span>';
+                    $out .= ' <span class=\'richtext-linkInfo\'>[' . htmlspecialchars($host, ENT_QUOTES, 'UTF-8') . ']</span>';
                 }
             }
         }

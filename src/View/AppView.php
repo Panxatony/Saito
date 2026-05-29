@@ -21,6 +21,7 @@ use Cake\View\View;
 /**
  * App View class
  */
+#[\AllowDynamicProperties]
 class AppView extends View
 {
 
@@ -32,7 +33,7 @@ class AppView extends View
      *
      * @return void
      */
-    public function initialize()
+    public function initialize(): void
     {
     }
 }

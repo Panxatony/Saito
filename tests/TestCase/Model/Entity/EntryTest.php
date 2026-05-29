@@ -11,11 +11,11 @@ use Saito\Test\SaitoTestCase;
 
 class EntryTest extends SaitoTestCase
 {
-    public $fixtures = ['app.Category', 'app.Entry', 'app.User'];
+    public array $fixtures = ['app.Category', 'app.Entry', 'app.User'];
 
     public function testIsRoot()
     {
-        $postings = TableRegistry::get('Entries');
+        $postings = TableRegistry::getTableLocator()->get('Entries');
 
         $posting = $postings->get(8);
         $this->assertFalse($posting->isRoot());

@@ -14,7 +14,7 @@ class EntryFixture extends TestFixture
         'solves' => 0,
     ];
 
-    public $fields = [
+    public array $fields = [
         'created' => [
             'type' => 'datetime',
             'null' => true,
@@ -174,7 +174,7 @@ class EntryFixture extends TestFixture
      *
      * @var type array
      */
-    public $records = [
+    public array $records = [
         // thread 1
         // -------------------------------------
         [
@@ -380,12 +380,12 @@ class EntryFixture extends TestFixture
         ],
     ];
 
-    public function init()
+    public function init(): void
     {
         foreach ($this->records as $k => $record) {
             $this->records[$k] += $this->_common;
         }
 
-        return parent::init();
+        parent::init();
     }
 }

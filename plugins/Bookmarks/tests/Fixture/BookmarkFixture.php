@@ -22,7 +22,7 @@ class BookmarkFixture extends TestFixture
      *
      * @var array
      */
-    public $fields = [
+    public array $fields = [
         'id' => [
             'type' => 'integer',
             'null' => false,
@@ -67,7 +67,7 @@ class BookmarkFixture extends TestFixture
      *
      * @var array
      */
-    public $records = [
+    public array $records = [
         [
             'id' => 1, // !important
             'user_id' => 3, // !important

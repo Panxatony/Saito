@@ -56,7 +56,7 @@ class SaitoEmailContact implements ContactInterface
 
         /* resolve users */
         if (is_numeric($contact)) {
-            $Users = TableRegistry::get('Users');
+            $Users = TableRegistry::getTableLocator()->get('Users');
             $contact = $Users->find()
                 ->select(['id', 'username', 'user_email'])
                 ->where(['id' => (int)$contact])

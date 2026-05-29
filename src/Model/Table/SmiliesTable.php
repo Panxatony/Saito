@@ -21,7 +21,7 @@ class SmiliesTable extends AppSettingTable
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->hasMany('SmileyCodes', ['foreignKey' => 'smiley_id']);
     }
@@ -29,12 +29,12 @@ class SmiliesTable extends AppSettingTable
     /**
      * {@inheritDoc}
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): \Cake\Validation\Validator
     {
         $validator
-            ->allowEmpty('order')
+            ->allowEmptyString('sort')
             ->add(
-                'order',
+                'sort',
                 ['isNumeric' => ['rule' => 'numeric']]
             );
 

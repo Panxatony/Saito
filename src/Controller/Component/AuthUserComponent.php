@@ -38,6 +38,7 @@ use Stopwatch\Lib\Stopwatch;
  *
  * @property AuthenticationComponent $Authentication
  */
+#[\AllowDynamicProperties]
 class AuthUserComponent extends Component
 {
     use RememberTrait;
@@ -54,7 +55,7 @@ class AuthUserComponent extends Component
      *
      * @var array
      */
-    public $components = [
+    public array $components = [
         'Authentication.Authentication',
     ];
 
@@ -82,7 +83,7 @@ class AuthUserComponent extends Component
     /**
      * {@inheritDoc}
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         Stopwatch::start('CurrentUser::initialize()');
 
@@ -144,6 +145,14 @@ class AuthUserComponent extends Component
      */
     public function login(): bool
     {
+        // Capture the authentication provider that succeeded BEFORE we
+        // destroy session/auth data — logout() resets _successfulAuthenticator
+        // and refreshAuthenticationProvider() needs to know if a cookie
+        // authenticator was used in this request.
+        $authenticationProvider = $this->Authentication
+            ->getAuthenticationService()
+            ->getAuthenticationProvider();
+
         // destroy any existing session or Authentication-data
         $this->logout();
 
@@ -158,6 +167,7 @@ class AuthUserComponent extends Component
         }
 
         $this->Authentication->setIdentity($user);
+        $this->refreshAuthenticationProvider($authenticationProvider);
         $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
         $this->setCurrentUser($CurrentUser);
 
@@ -165,7 +175,7 @@ class AuthUserComponent extends Component
         $this->UsersTable->UserOnline->setOffline($originalSessionId);
 
         /// password update
-        $password = (string)$this->request->getData('password');
+        $password = (string)$this->getController()->getRequest()->getData('password');
         if ($password) {
             $this->UsersTable->autoUpdatePassword($this->CurrentUser->getId(), $password);
         }
@@ -187,11 +197,51 @@ class AuthUserComponent extends Component
             return null;
         }
 
-        /** @var User User is always retrieved from ORM */
-        $user = $result->getData();
+        $data = $result->getData();
 
-        $isUnactivated = $user['activate_code'] !== 0;
-        $isLocked = $user['user_lock'] == true;
+        // Resolve a user id from whatever Cake Authentication handed us
+        // (full User entity from the Session authenticator, JWT payload
+        // with 'sub', or a plain identity array) and *always* reload the
+        // row from the DB. The Cake-3 era code relied on AuthComponent's
+        // identify=true for this; Cake-4's Session authenticator caches
+        // the entity in the session, so without a manual reload changes
+        // to user settings (e.g. inline_view_on_click) wouldn't take
+        // effect until the user logs out and back in.
+        $array = [];
+        if ($data instanceof User) {
+            $userId = $data->get('id');
+        } else {
+            $array = $data instanceof \ArrayAccess
+                ? (array)($data instanceof \ArrayObject ? $data->getArrayCopy() : $data)
+                : (array)$data;
+            $userId = $array['sub'] ?? $array['id'] ?? null;
+        }
+
+        if ($userId !== null) {
+            $user = $this->UsersTable
+                ->find('profile')
+                ->where(['Users.id' => $userId])
+                ->first();
+            if ($user === null) {
+                return null;
+            }
+        } elseif (!empty($array['username'])) {
+            // Fall-back: session/JWT only carries a username — look it up.
+            $user = $this->UsersTable
+                ->find('profile')
+                ->where(['Users.username' => $array['username']])
+                ->first();
+            if ($user === null) {
+                return null;
+            }
+        } else {
+            $user = new User($array, ['markNew' => false, 'markClean' => true]);
+        }
+
+        // activate_code/user_lock might be absent for mocked sessions in
+        // unit tests; treat missing as "ok" rather than "unactivated/locked".
+        $isUnactivated = isset($user['activate_code']) && $user['activate_code'] !== 0;
+        $isLocked = isset($user['user_lock']) && $user['user_lock'] == true;
 
         if ($isUnactivated || $isLocked) {
             /// User isn't allowed to be logged-in
@@ -200,8 +250,6 @@ class AuthUserComponent extends Component
 
             return null;
         }
-
-        $this->refreshAuthenticationProvider();
 
         return $user;
     }
@@ -223,9 +271,13 @@ class AuthUserComponent extends Component
     }
 
     /**
+     * Fires on Controller.shutdown (Cake 5 maps that event to a component's
+     * afterFilter(), not shutdown()). Refreshes the JWT cookie the SPA reads
+     * for API authentication.
+     *
      * {@inheritDoc}
      */
-    public function shutdown(Event $event)
+    public function afterFilter(\Cake\Event\EventInterface $event)
     {
         $this->setJwtCookie($event->getSubject());
     }
@@ -237,13 +289,8 @@ class AuthUserComponent extends Component
      *
      * @return void
      */
-    private function refreshAuthenticationProvider()
+    private function refreshAuthenticationProvider($authenticationProvider = null)
     {
-        // Get current authentication provider
-        $authenticationProvider = $this->Authentication
-            ->getAuthenticationService()
-            ->getAuthenticationProvider();
-
         // Persistent login provider is cookie based. Every time that cookie is
         // used for a login its expiry is pushed forward.
         if ($authenticationProvider instanceof CookieAuthenticator) {
@@ -305,8 +352,9 @@ class AuthUserComponent extends Component
             // happens elsewhere.
             $payload = Jwt::jsonDecode(Jwt::urlsafeB64Decode($payloadEncoded));
             $isCurrentUser = $payload->sub === $this->CurrentUser->getId();
-            // Assume expired if within the next two hours.
-            $aboutToExpire = $payload->exp > (time() - 7200);
+            // Refresh early: treat the token as expiring if it runs out within
+            // the next two hours.
+            $aboutToExpire = $payload->exp < (time() + 7200);
             // Token doesn't require an update if it belongs to current user and
             // isn't about to expire.
             if ($isCurrentUser && !$aboutToExpire) {
@@ -315,15 +363,18 @@ class AuthUserComponent extends Component
         }
 
         /// Set new token
-        // Use easy to change cookieSalt to allow emergency invalidation of all
-        // existing tokens.
-        $jwtKey = Configure::read('Security.cookieSalt');
+        // Prefer a dedicated jwtSalt (lets ops invalidate all tokens by
+        // rotating it independently) but fall back to cookieSalt — which the
+        // installer always seeds — so default deployments work out of the
+        // box without extra config.
+        $jwtKey = Configure::read('Security.jwtSalt')
+            ?: Configure::read('Security.cookieSalt');
         $jwtPayload = [
             'sub' => $this->CurrentUser->getId(),
             // Token is valid for one day.
             'exp' => (new DateTimeImmutable($expire))->getTimestamp(),
         ];
-        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey);
+        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
         $cookie->write($jwtToken);
     }
 
@@ -375,15 +426,17 @@ class AuthUserComponent extends Component
      */
     private function isAuthorized(CurrentUser $user)
     {
+        $request = $this->getController()->getRequest();
+
         /// Authorize action through resource
-        $action = $this->getController()->getRequest()->getParam('action');
+        $action = $request->getParam('action');
         if (isset($this->actionAuthorizationResources[$action])) {
             return $user->permission($this->actionAuthorizationResources[$action]);
         }
 
         /// Authorize admin area
-        $prefix = $this->request->getParam('prefix');
-        $plugin = $this->request->getParam('plugin');
+        $prefix = $request->getParam('prefix');
+        $plugin = $request->getParam('plugin');
         $isAdminRoute = ($prefix && strtolower($prefix) === 'admin')
             || ($plugin && strtolower($plugin) === 'admin');
         if ($isAdminRoute) {

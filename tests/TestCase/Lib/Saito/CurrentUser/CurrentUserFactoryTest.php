@@ -29,16 +29,16 @@ class CurrentUserFactoryTest extends SaitoTestCase
         $this->assertEquals('anon', $user->getRole());
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
         $request = new ServerRequest();
         $response = new Response();
-        $this->controller = new Controller($request, $response);
+        $this->controller = new Controller($request);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         unset($this->controller);
 

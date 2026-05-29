@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace ImageUploader\Lib;
 
 use Cake\Core\Configure;
-use Cake\Filesystem\File;
 
 /**
  * Determine mime-type for a file and try to fix some common mime-type issues.
@@ -36,15 +35,14 @@ class MimeType
      */
     public static function get(string $filepath, ?string $name): string
     {
-        $file = new File($filepath);
-        if (!$file->exists()) {
+        if (!file_exists($filepath)) {
             throw new \RuntimeException(
                 sprintf('File "%s" does not exists.', $filepath),
                 1570856931
             );
         }
 
-        $type = $file->mime();
+        $type = mime_content_type($filepath);
         if (!$type) {
             throw new \RuntimeException(
                 sprintf('Cannot determine mime-type for file "%s".', $filepath),
@@ -52,7 +50,7 @@ class MimeType
             );
         }
 
-        $name = $name ?: $file->pwd();
+        $name = $name ?: $filepath;
         $type = self::fixByFileExtension($type, $name);
 
         return $type;

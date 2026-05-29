@@ -7,13 +7,30 @@
 
 ## [next] -
 
-- [Full commit-log](https://github.com/Schlaefer/Saito/compare/5.7.1...<next>)
+- [Full commit-log](https://github.com/Schlaefer/Saito/compare/6.0.0...<next>)
 - [Download release-zip](https://github.com/Schlaefer/Saito/releases/download/<next>/saito-release-master-<next>.zip)
 
 ### Changes
 
+## [6.0.0] - 2026-05-24
+
+- [Full commit-log](https://github.com/Schlaefer/Saito/compare/5.7.1...6.0.0)
+- [Download release-zip](https://github.com/Schlaefer/Saito/releases/download/6.0.0/saito-release-master-6.0.0.zip)
+
+### Changes
+
+- ＋ Adds honeypot and timing protection against bots during registration
 - Δ Stricter content hiding for ignored users
-- Δ Updates library for embedding 3rd-party content
+- Δ Updates library for embedding 3rd-party content (embed/embed 3.x)
+- Δ Updates league/commonmark from 1.x to 2.x
+- Δ Raises minimum PHP requirement from 7.2 to 8.0
+- − Removes davidyell/proffer image upload library (replaced with built-in AvatarBehavior)
+- − Removes siezi/cakephp-simple-captcha
+- Internal code changes:
+  - Δ Updates CakePHP from 3.8 to 3.10
+  - Δ Updates PHPUnit from 6 to 9
+  - Δ Updates PHPStan from 0.11 to 1.x
+  - Δ PHP 8.x compatibility fixes throughout the codebase
 
 ## [5.7.1] - 2020-08-07
 

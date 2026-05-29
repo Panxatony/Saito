@@ -17,7 +17,6 @@ use Authentication\Authenticator\UnauthenticatedException;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Datasource\Exception\RecordNotFoundException;
-use Cake\Filesystem\File;
 use Cake\ORM\TableRegistry;
 use ImageUploader\Model\Table\UploadsTable;
 use Saito\Exception\SaitoForbiddenException;
@@ -25,7 +24,7 @@ use Saito\Test\IntegrationTestCase;
 
 class UploadsControllerTest extends IntegrationTestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -38,21 +37,23 @@ class UploadsControllerTest extends IntegrationTestCase
     ];
 
     /**
-     * @var File dummy file
+     * @var string path to dummy file
      */
-    private $file;
+    private string $file;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
-        $this->file = new File(TMP . 'my new-upload.png');
+        $this->file = TMP . 'my new-upload.png';
         $this->mockMediaFile($this->file);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
-        $this->file->delete();
+        if (file_exists($this->file)) {
+            unlink($this->file);
+        }
         unset($this->file);
 
         parent::tearDown();
@@ -113,9 +114,9 @@ class UploadsControllerTest extends IntegrationTestCase
                     'id' => 3,
                     'mime' => 'image/jpeg',
                     'name' => '1_ebd536d37aff03f2b570329b20ece832.jpg',
-                    'thumbnail_url' => '/api/v2/uploads/thumb/3?h=e1fddb2ea8f448fac14ec06b88d4ce94',
+                    'thumbnail_url' => 'http://localhost/api/v2/uploads/thumb/3?h=e1fddb2ea8f448fac14ec06b88d4ce94',
                     'title' => 'my new-upload.png',
-                    'url' => '/useruploads/1_ebd536d37aff03f2b570329b20ece832.jpg',
+                    'url' => 'http://localhost/useruploads/1_ebd536d37aff03f2b570329b20ece832.jpg',
                 ],
             ],
         ];
@@ -126,15 +127,15 @@ class UploadsControllerTest extends IntegrationTestCase
 
         $this->assertSame('1_ebd536d37aff03f2b570329b20ece832.jpg', $upload->get('name'));
         $this->assertSame('image/jpeg', $upload->get('type'));
-        $this->assertTrue($upload->get('file')->exists());
+        $this->assertTrue(file_exists($upload->get('file')));
     }
 
     public function testAddSvg()
     {
         $this->loginJwt(1);
 
-        $this->file = new File(TMP . 'tmp_svg.svg');
-        $this->file->write('<?xml version="1.0" encoding="UTF-8" ?>
+        $this->file = TMP . 'tmp_svg.svg';
+        file_put_contents($this->file, '<?xml version="1.0" encoding="UTF-8" ?>
             <svg width="9" height="9" style="background:red;"></svg>');
         $this->upload($this->file);
 
@@ -158,9 +159,9 @@ class UploadsControllerTest extends IntegrationTestCase
                     'mime' => 'image/svg+xml',
                     'name' => '1_853fe7aa4ef213b0c11f4b739cf444a8.svg',
                     'size' => 108,
-                    'thumbnail_url' => '/api/v2/uploads/thumb/3?h=1d57b148ad44d4caf90fa1cd98729678',
+                    'thumbnail_url' => 'http://localhost/api/v2/uploads/thumb/3?h=1d57b148ad44d4caf90fa1cd98729678',
                     'title' => 'tmp_svg.svg',
-                    'url' => '/useruploads/1_853fe7aa4ef213b0c11f4b739cf444a8.svg',
+                    'url' => 'http://localhost/useruploads/1_853fe7aa4ef213b0c11f4b739cf444a8.svg',
                 ],
             ],
         ];
@@ -171,17 +172,17 @@ class UploadsControllerTest extends IntegrationTestCase
 
         $this->assertSame('1_853fe7aa4ef213b0c11f4b739cf444a8.svg', $upload->get('name'));
         $this->assertSame('image/svg+xml', $upload->get('type'));
-        $this->assertTrue($upload->get('file')->exists());
+        $this->assertTrue(file_exists($upload->get('file')));
     }
 
     public function testAddMimeTypeConversion()
     {
         $this->loginJwt(1);
 
-        $this->file = new File(TMP . 'test.mp4');
-        $fixture = new File(Plugin::path('ImageUploader') . 'tests/Fixture/test-application-octo.mp4');
-        $fixture->copy($this->file->path);
-        $this->assertEquals('application/octet-stream', $this->file->mime());
+        $this->file = TMP . 'test.mp4';
+        $fixturePath = Plugin::path('ImageUploader') . 'tests/Fixture/test-application-octo.mp4';
+        copy($fixturePath, $this->file);
+        $this->assertEquals('application/octet-stream', mime_content_type($this->file));
 
         $this->upload($this->file);
 
@@ -195,22 +196,28 @@ class UploadsControllerTest extends IntegrationTestCase
 
     public function testRemoveExifData()
     {
+        if (!function_exists('exif_read_data')) {
+            $this->markTestSkipped('PHP exif extension not available');
+        }
+
         $this->loginJwt(1);
-        unset($this->file);
-        $this->file = new File(TMP . 'tmp_exif.jpg');
+        if (file_exists($this->file)) {
+            unlink($this->file);
+        }
+        $this->file = TMP . 'tmp_exif.jpg';
 
-        $fixture = new File($path = Plugin::path('ImageUploader') . 'tests/Fixture/exif-with-location.jpg');
-        $fixture->copy($this->file->path);
+        $fixturePath = Plugin::path('ImageUploader') . 'tests/Fixture/exif-with-location.jpg';
+        copy($fixturePath, $this->file);
 
-        $readExif = function (File $file) {
+        $readExif = function (string $path) {
             //@codingStandardsIgnoreStart
-            return @exif_read_data($file->path);
+            return @exif_read_data($path);
             //@codingStandardsIgnoreEnd
         };
         $exif = $readExif($this->file);
         $this->assertNotEmpty($exif['SectionsFound']);
-        $this->assertContains('EXIF', $exif['SectionsFound']);
-        $this->assertContains('IFD0', $exif['SectionsFound']);
+        $this->assertStringContainsString('EXIF', $exif['SectionsFound']);
+        $this->assertStringContainsString('IFD0', $exif['SectionsFound']);
 
         $this->upload($this->file);
 
@@ -219,11 +226,11 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->assertResponseCode(200);
 
         $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
-        $upload = $Uploads->find('all')->last();
+        $upload = $Uploads->find('all')->orderBy(['id' => 'DESC'])->first();
 
         $exif = $readExif($upload->get('file'));
-        $this->assertNotContains('EXIF', $exif['SectionsFound']);
-        $this->assertNotContains('IFD0', $exif['SectionsFound']);
+        $this->assertStringNotContainsString('EXIF', $exif['SectionsFound']);
+        $this->assertStringNotContainsString('IFD0', $exif['SectionsFound']);
     }
 
     public function testAddFailureMaxUploadsPerUser()
@@ -266,7 +273,7 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->loginJwt(1);
         // Make sure to test a file that may get transformed on upload (e.g. PNG
         // to JEPG).
-        $file = new File(TMP . 'my new-upload.png');
+        $file = TMP . 'my new-upload.png';
         $this->mockMediaFile($file);
         $this->upload($file);
 
@@ -277,14 +284,16 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->loginJwt(1);
         $this->upload($file);
 
-        $file->delete();
+        if (file_exists($file)) {
+            unlink($file);
+        }
     }
 
     public function testAddFailureFilenameToLong()
     {
         $this->loginJwt(1);
         $max = UploadsTable::FILENAME_MAXLENGTH;
-        $file = new File(TMP . str_pad('', $max + 1, '0') . '.png');
+        $file = TMP . str_pad('', $max + 1, '0') . '.png';
         $this->mockMediaFile($file);
 
         $this->expectException(GenericApiException::class);
@@ -292,7 +301,9 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->expectExceptionMessage((string)$max);
         $this->upload($file);
 
-        $file->delete();
+        if (file_exists($file)) {
+            unlink($file);
+        }
     }
 
     public function testIndexNoAuthorization()
@@ -337,9 +348,9 @@ class UploadsControllerTest extends IntegrationTestCase
                         'mime' => 'image/jpeg',
                         'name' => '3-another-upload.jpg',
                         'size' => 50000,
-                        'thumbnail_url' => '/api/v2/uploads/thumb/2?h=be7ef71551c4245f82223d0c8e652eee',
+                        'thumbnail_url' => 'http://localhost/api/v2/uploads/thumb/2?h=be7ef71551c4245f82223d0c8e652eee',
                         'title' => '3-another-upload.jpg',
-                        'url' => '/useruploads/3-another-upload.jpg',
+                        'url' => 'http://localhost/useruploads/3-another-upload.jpg',
                     ],
                 ],
             ],
@@ -390,19 +401,19 @@ class UploadsControllerTest extends IntegrationTestCase
     /**
      * Sends a file to upload api
      *
-     * @param File $file The file to send
+     * @param string $filePath The file path to send
      * @param mixed $userId The user-ID to upload to
      */
-    private function upload(File $file, $userId = 1)
+    private function upload(string $filePath, $userId = 1)
     {
         $data = [
             'upload' => [
                 0 => [
                     'file' => [
-                        'tmp_name' => $file->path,
-                        'name' => $file->name() . '.' . $file->ext(),
-                        'size' => $file->size(),
-                        'type' => $file->mime(),
+                        'tmp_name' => $filePath,
+                        'name' => pathinfo($filePath, PATHINFO_FILENAME) . '.' . pathinfo($filePath, PATHINFO_EXTENSION),
+                        'size' => filesize($filePath),
+                        'type' => mime_content_type($filePath),
                     ],
                 ],
             ],

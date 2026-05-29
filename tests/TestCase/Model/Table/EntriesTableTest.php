@@ -8,14 +8,14 @@ use Cake\Datasource\Exception\RecordNotFoundException;
 use Saito\Test\Model\Table\SaitoTableTestCase;
 use Saito\User\CurrentUser\CurrentUserFactory;
 
-class EntriesTest extends SaitoTableTestCase
+class EntriesTableTest extends SaitoTableTestCase
 {
     public $tableClass = 'Entries';
 
     /** @var EntriesTable */
     public $Table;
 
-    public $fixtures = [
+    public array $fixtures = [
         'app.User',
         'app.UserOnline',
         'app.UserRead',

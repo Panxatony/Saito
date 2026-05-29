@@ -1,0 +1,72 @@
+; Reference PHP-FPM pool for hosting the Saito forum.
+;
+; How to use:
+;   1. Copy to /etc/php/8.4/fpm/pool.d/saito.conf
+;   2. Replace the __SALT__ placeholders and DATABASE_URL with real values
+;      (or leave them out and configure via config/.env / config/app.php).
+;   3. Validate: sudo php-fpm8.4 -t
+;   4. Reload:   sudo systemctl reload php8.4-fpm
+;   5. Point the Saito nginx vhost at /run/php/php8.4-fpm-saito.sock
+;
+; Why a dedicated pool?
+; - PHP `env[…]` directives only apply to this pool, so secrets aren't
+;   visible to other vhosts running through the default `www` pool.
+; - Resource limits (children, memory_limit, upload sizes) are tunable
+;   per application without touching global php.ini.
+; - The pool can run under its own user/group if you want stricter
+;   filesystem isolation between sites.
+
+[saito]
+user = www-data
+group = www-data
+
+; Dedicated Unix socket — keep it separate from the default `www` pool
+; so the Saito nginx vhost talks only to this pool.
+listen = /run/php/php8.4-fpm-saito.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+
+; Process manager — adjust based on traffic and available RAM.
+; A rough rule of thumb: max_children ≈ available_RAM_for_PHP / 32 MB.
+pm = dynamic
+pm.max_children = 12
+pm.start_servers = 2
+pm.min_spare_servers = 2
+pm.max_spare_servers = 4
+pm.max_requests = 500
+
+; --- PHP runtime limits (override global php.ini for this app only) ---
+; Keep upload_max_filesize ≤ nginx `client_max_body_size` (16 MB in the
+; reference vhost). post_max_size should be slightly larger to allow for
+; form fields next to the upload payload.
+php_admin_value[memory_limit] = 256M
+php_admin_value[upload_max_filesize] = 16M
+php_admin_value[post_max_size] = 18M
+php_admin_value[date.timezone] = Europe/Berlin
+
+; Optional: per-app error log instead of the global one.
+;php_admin_value[error_log] = /var/log/php-fpm/saito-error.log
+;php_admin_flag[log_errors] = on
+
+; --- Environment variables (Saito-only) ---
+; clear_env = yes ensures this pool starts with an empty environment,
+; so values declared here are the *only* ones Saito sees and they don't
+; leak to other vhosts. Set clear_env = no only if you need to inherit
+; host-level variables (rarely needed).
+clear_env = yes
+env[PATH] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+env[DEBUG] = "false"
+env[APP_DEFAULT_TIMEZONE] = "Europe/Berlin"
+env[DATABASE_URL] = "mysql://saito:__DB_PASSWORD__@localhost/saito?encoding=utf8mb4"
+env[SECURITY_SALT] = "__SALT__"
+env[SECURITY_COOKIE_SALT] = "__SALT__"
+env[SECURITY_JWT_SALT] = "__SALT__"
+
+; Mail transport (optional — set if you don't configure EmailTransport
+; directly in config/app.php).
+;env[EMAIL_TRANSPORT_DEFAULT_URL] = "smtp://user:pass@mail.example.com:587?tls=true"
+
+; --- Slow log (optional, useful for performance tuning) ---
+;slowlog = /var/log/php-fpm/saito-slow.log
+;request_slowlog_timeout = 5s

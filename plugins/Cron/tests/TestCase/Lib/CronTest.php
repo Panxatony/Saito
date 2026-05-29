@@ -16,13 +16,20 @@ use Cake\Cache\Cache;
 use Cron\Lib\Cron;
 use Saito\Test\SaitoTestCase;
 
+class CronCallbackTarget
+{
+    public function callback(): void
+    {
+    }
+}
+
 class CronTest extends SaitoTestCase
 {
     public function testSimpleCronJobRunEmptyPersistance()
     {
         $cron = new Cron();
-        $mock = $this->getMockBuilder('stdClass')
-            ->setMethods(['callback'])
+        $mock = $this->getMockBuilder(CronCallbackTarget::class)
+            ->onlyMethods(['callback'])
             ->getMock();
         $mock->expects($this->once())->method('callback');
         $cron->addCronJob('foo', '+1 day', [$mock, 'callback']);
@@ -37,15 +44,15 @@ class CronTest extends SaitoTestCase
         $lastRuns = ['run' => time() - 3, 'notRun' => time() + 3];
         Cache::write('Plugin.Cron.lastRuns', $lastRuns, 'long');
 
-        $run = $this->getMockBuilder('stdClass')
-            ->setMethods(['callback'])
+        $run = $this->getMockBuilder(CronCallbackTarget::class)
+            ->onlyMethods(['callback'])
             ->getMock();
         $run->expects($this->exactly(1))->method('callback');
         $newDue = '+1 day';
         $cron->addCronJob('run', $newDue, [$run, 'callback']);
 
-        $notRun = $this->getMockBuilder('stdClass')
-            ->setMethods(['callback'])
+        $notRun = $this->getMockBuilder(CronCallbackTarget::class)
+            ->onlyMethods(['callback'])
             ->getMock();
         $notRun->expects($this->never())->method('callback');
         $cron->addCronJob('notRun', '+1 day', [$notRun, 'callback']);

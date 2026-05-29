@@ -15,6 +15,7 @@ namespace ImageUploader\Controller;
 use Cake\Cache\Cache;
 use Cake\Controller\Controller;
 use Cake\Core\Configure;
+use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
 use claviska\SimpleImage;
 use Saito\Exception\SaitoForbiddenException;
@@ -26,7 +27,7 @@ use Saito\Exception\SaitoForbiddenException;
  */
 class ThumbnailController extends Controller
 {
-    public $autoRender = false;
+    public bool $autoRender = false;
 
     /**
      * Thumb Image Generator
@@ -36,24 +37,39 @@ class ThumbnailController extends Controller
     public function thumb(): Response
     {
         $id = (int)$this->request->getParam('id');
-        ['hash' => $fingerprint, 'type' => $type, 'raw' => $raw] = Cache::remember((string)$id, function () use ($id) {
-            $Uploads = $this->loadModel('ImageUploader.Uploads');
-            $document = $Uploads->get($id);
 
-            $hash = $document->get('hash');
-            $type = $document->get('type');
-            $file = $document->get('file');
-            $raw = $file->read();
+        try {
+            ['hash' => $fingerprint, 'type' => $type, 'raw' => $raw] = Cache::remember(
+                (string)$id,
+                function () use ($id) {
+                    $Uploads = $this->fetchTable('ImageUploader.Uploads');
+                    $document = $Uploads->get($id);
 
-            if ($document->get('size') > 150000) {
-                $raw = (new SimpleImage())
-                    ->fromFile($file->path)
-                    ->bestFit(300, 300)
-                    ->toString();
-            }
+                    $hash = $document->get('hash');
+                    $type = $document->get('type');
+                    $filePath = $document->get('file');
 
-            return compact('hash', 'raw', 'type');
-        }, Configure::read('Saito.Settings.uploader')->getCacheKey());
+                    if (!file_exists($filePath)) {
+                        throw new NotFoundException("Upload file for id $id not found on disk.");
+                    }
+
+                    $raw = file_get_contents($filePath);
+
+                    if ($document->get('size') > 150000) {
+                        $raw = (new SimpleImage())
+                            ->fromFile($filePath)
+                            ->bestFit(300, 300)
+                            ->toString();
+                    }
+
+                    return compact('hash', 'raw', 'type');
+                },
+                Configure::read('Saito.Settings.uploader')->getCacheKey()
+            );
+        } catch (NotFoundException $e) {
+            // File missing on disk (e.g. after server migration) — return 404 silently
+            return $this->response->withStatus(404);
+        }
 
         $hash = (string)$this->request->getQuery('h');
         if ($hash !== $fingerprint) {

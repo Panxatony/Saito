@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 use Cake\Routing\Router;
 
-Router::connect(
+$routes->connect(
     '/help/:id',
     [
         'plugin' => 'SaitoHelp',
@@ -22,7 +22,7 @@ Router::connect(
     ['pass' => ['id']]
 );
 
-Router::connect(
+$routes->connect(
     '/help/:lang/:id',
     [
         'plugin' => 'SaitoHelp',
