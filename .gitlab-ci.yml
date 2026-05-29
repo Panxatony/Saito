@@ -10,6 +10,8 @@ include:
 stages:
   - test
   - security
+  - build
+  - upload
   - release
 
 # Shared PHP + Composer setup, referenced via `!reference` so the test and
@@ -38,6 +40,9 @@ variables:
   DATABASE_TEST_URL: "mysql://saito:saito@mariadb/saito_test?encoding=utf8mb4&timezone=UTC"
   COMPOSER_ALLOW_SUPERUSER: "1"
   COMPOSER_CACHE_DIR: "/tmp/composer-cache"
+  # Generic Package Registry target for the release tarball.
+  # CI_COMMIT_TAG is only set on tag pipelines (where upload/release run).
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/saito/${CI_COMMIT_TAG}"
 
 cache:
   key:
@@ -99,15 +104,21 @@ security:psalm-taint:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 # ----------------------------------------------------------------------
-# Release package
+# Build the deployable tarball
 # Produces a deployable tarball on main (or any tag). The artifact
 # contains the PHP application with production dependencies installed,
 # but without dev tooling, tests, frontend sources, or local config.
+#
+# On main this 30-day artifact is the "latest deployable" build.
+# On tags it is additionally picked up by the upload/release jobs below
+# and stored permanently in the Package Registry as a versioned release.
 # ----------------------------------------------------------------------
-release:
-  stage: release
+build:
+  stage: build
   needs:
     - test
+    # Don't ship a build with a known dependency CVE.
+    - "security:composer-audit"
   # Transient Debian-Mirror-Fehler beim apt-get install (siehe Pipeline-Logs
   # mit "Tried to start delayed item … but failed") sollen den Release-Build
   # nicht hart abreißen lassen — bei runner_system_failure und Skript-Fehlern
@@ -195,3 +206,53 @@ release:
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH == "main"
+
+# ----------------------------------------------------------------------
+# Upload the tarball to the Generic Package Registry
+# Tag-only: stores the build permanently (unlike the 30-day job artifact).
+# On main the rolling artifact from the build job is enough.
+# ----------------------------------------------------------------------
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  needs:
+    - build
+  script:
+    - export RELEASE_NAME="saito-${CI_COMMIT_TAG}"
+    - |
+      curl --fail --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "build/${RELEASE_NAME}.tar.gz" \
+           "${PACKAGE_REGISTRY_URL}/${RELEASE_NAME}.tar.gz"
+    - |
+      curl --fail --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "build/${RELEASE_NAME}.tar.gz.sha256" \
+           "${PACKAGE_REGISTRY_URL}/${RELEASE_NAME}.tar.gz.sha256"
+  rules:
+    - if: $CI_COMMIT_TAG
+
+# ----------------------------------------------------------------------
+# Create the GitLab Release and link the package
+# Tag-only. Appears under Deploy → Releases with download links pointing
+# at the permanently stored package registry assets.
+# ----------------------------------------------------------------------
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - upload
+  script:
+    - echo "Erstelle Release ${CI_COMMIT_TAG}"
+  release:
+    tag_name: "${CI_COMMIT_TAG}"
+    name: "Saito ${CI_COMMIT_TAG}"
+    description: "Deploybarer Build ${CI_COMMIT_TAG}"
+    assets:
+      links:
+        - name: "saito-${CI_COMMIT_TAG}.tar.gz"
+          url: "${PACKAGE_REGISTRY_URL}/saito-${CI_COMMIT_TAG}.tar.gz"
+          link_type: package
+        - name: "SHA256 checksum"
+          url: "${PACKAGE_REGISTRY_URL}/saito-${CI_COMMIT_TAG}.tar.gz.sha256"
+          link_type: other
+  rules:
+    - if: $CI_COMMIT_TAG
