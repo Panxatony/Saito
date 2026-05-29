@@ -49,6 +49,19 @@ class SettingsTableTest extends SaitoTableTestCase
     }
 
     /**
+     * Email-address settings get trimmed on save so a pasted trailing
+     * tab/space can't break From-address validation and mail delivery.
+     */
+    public function testTrimsWhitespaceFromEmailSettingOnSave()
+    {
+        $setting = $this->Table->get('email_register');
+        $this->Table->patchEntity($setting, ['value' => "noreply@example.com\t "], ['fields' => ['value']]);
+        $this->assertNotFalse($this->Table->save($setting));
+
+        $this->assertSame('noreply@example.com', $this->Table->get('email_register')->get('value'));
+    }
+
+    /**
      * @dataProvider settingsDataProvider
      */
     public function testAfterSave($fixture)
