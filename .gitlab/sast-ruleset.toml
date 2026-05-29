@@ -1,0 +1,43 @@
+# GitLab SAST ruleset customization.
+#
+# Disables a few high-false-positive PHPCS-Security-Audit / njsscan rules
+# whose findings were reviewed and judged non-exploitable. The smarter
+# Semgrep default rules, Psalm taint analysis (security:psalm-taint) and
+# `composer audit` still run and gate the pipeline, so genuine issues are
+# not hidden — only this specific noise is muted.
+#
+# Reviewed 2026-05-29 against the first SAST report. Re-evaluate if usage
+# changes (e.g. if md5/sha1 ever start guarding a secret).
+
+[semgrep]
+  # "Use of weak hash" — flags every md5()/sha1() call with no data-flow
+  # analysis. In Saito these are non-cryptographic: cache keys
+  # (ParserHelper, PostingBehavior, Parser), DOM ids (embed-*, moh_*,
+  # avatar.*) and a deliberately-insecure thumbnail URL token
+  # (Upload::_getHash, documented "Isn't secure; performance preferred").
+  # The one real crypto use, Mlf2PasswordHasher's salted sha1, is an
+  # intentional legacy mylittleforum-2.x verifier paired with a bcrypt
+  # Fallback hasher that rehashes on next login.
+  [[semgrep.ruleset]]
+    disable = true
+    [semgrep.ruleset.identifier]
+      type = "semgrep_id"
+      value = "PHPCS_SecurityAudit.BadFunctions.CryptoFunctions.WarnCryptoFunc"
+
+  # phpinfo() lives only in the admin-only diagnostics page
+  # (/admin/admins/phpinfo, guarded by the admin permission).
+  [[semgrep.ruleset]]
+    disable = true
+    [semgrep.ruleset.identifier]
+      type = "semgrep_id"
+      value = "PHPCS_SecurityAudit.BadFunctions.Phpinfos.WarnPhpinfo"
+
+  # njsscan ReDoS heuristic — flags any regex touching input. The hits are
+  # frontend-only: simple bounded patterns in markup.media.ts and a
+  # third-party jquery.i18n bundle. No catastrophic backtracking; worst
+  # case is the editing user's own browser tab.
+  [[semgrep.ruleset]]
+    disable = true
+    [semgrep.ruleset.identifier]
+      type = "semgrep_id"
+      value = "nodejs_scan.javascript-dos-rule-regex_dos"
