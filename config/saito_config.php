@@ -29,6 +29,16 @@ $config = [
          */
         'language' => env('SAITO_LANGUAGE', 'en'),
 
+        /**
+         * Imprint / legal notice (Impressum)
+         *
+         * Trusted HTML rendered on the /pages/impressum page (linked from the
+         * disclaimer footer, like contact and RSS feeds). Environment-specific:
+         * set it here per installation. An empty value shows a
+         * "not configured" notice instead of the page content.
+         */
+        'imprint' => '',
+
         'Settings' => [
             /**
              * Sets the markup parser
