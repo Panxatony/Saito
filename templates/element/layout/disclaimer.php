@@ -20,7 +20,7 @@ Stopwatch::start('layout/disclaimer.ctp');
                         </a>
                     </li>
                     <li>
-                       <a href="https://macnemo.de/impressum.html">Impressum</a>
+                        <a href="<?= $this->request->getAttribute('webroot') ?>impressum.html">Impressum</a>
                     </li>
                      
                 </ul>
