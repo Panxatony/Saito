@@ -80,6 +80,11 @@ class ThumbnailController extends Controller
 
         return $this->response
             ->withHeader('Content-Type', $type)
+            // Defense-in-depth: never let an image response be sniffed into
+            // something else, and sandbox it so any (legacy) SVG that still
+            // carries inline script cannot execute in our origin.
+            ->withHeader('X-Content-Type-Options', 'nosniff')
+            ->withHeader('Content-Security-Policy', 'sandbox; default-src \'none\'')
             ->withStringBody($raw)
             ->withCache('-1 minute', '+1 year');
     }

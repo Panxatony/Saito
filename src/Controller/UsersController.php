@@ -80,6 +80,12 @@ class UsersController extends AppController
             // AuthenticationService puts the full local path into the redirect
             // parameter, so we have to strip the base-path off again.
             $target = $target ? Router::normalize($target) : '';
+            // Prevent open-redirects: only accept local paths. Reject absolute
+            // (https://evil.com) and protocol-relative (//evil.com, /\evil.com)
+            // URLs that would otherwise send the user off-site after login.
+            if ($target !== '' && !preg_match('#^/(?![/\\\\])#', $target)) {
+                $target = '';
+            }
             // Referer from Request
             // Referer fallback only if it points somewhere other than the
             // login form itself; otherwise send the user to the front-page.

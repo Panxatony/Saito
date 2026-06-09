@@ -59,7 +59,9 @@ class Mlf2PasswordHasher extends AbstractPasswordHasher
         // compare to includes/functions.inc.php is_pw_correct() mlf 2.3
         $saltedHash = substr($hash, 0, 40);
         $salt = substr($hash, 40, 10);
-        if (sha1($password . $salt) == $saltedHash) :
+        // hash_equals: constant-time and, unlike ==, immune to PHP's
+        // numeric-string type-juggling on "magic hash" (0e…) digests.
+        if (hash_equals($saltedHash, sha1($password . $salt))) :
             $out = true;
         endif;
 
