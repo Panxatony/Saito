@@ -1,11 +1,15 @@
 image: php:8.4-cli
 
-# GitLab-managed security scanners. SAST (Semgrep-based PHP rules) and
-# Dependency-Scanning (Gemnasium, reads composer.lock) add their own jobs in
-# the `test` stage and run as their own analyzer images.
-include:
-  - template: Security/SAST.gitlab-ci.yml
-  - template: Security/Dependency-Scanning.gitlab-ci.yml
+# NOTE: We deliberately do NOT include GitLab's Security/SAST and
+# Security/Dependency-Scanning templates. This is a GitLab Community Edition
+# instance, where their useful parts are Ultimate-only:
+#   - Dependency-Scanning (Gemnasium) produces no job at all on CE.
+#   - SAST ruleset customization (.gitlab/sast-ruleset.toml) is ignored
+#     ("ruleset customization not enabled"), so reviewed false positives
+#     cannot be muted and findings are neither dashboarded nor gating.
+# The tier-independent `security:composer-audit` (CVEs) and
+# `security:psalm-taint` (code injection) jobs below cover the same ground
+# and actually block the pipeline.
 
 stages:
   - test

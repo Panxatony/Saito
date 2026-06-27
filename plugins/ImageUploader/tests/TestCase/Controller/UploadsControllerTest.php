@@ -130,49 +130,25 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->assertTrue(file_exists($upload->get('file')));
     }
 
-    public function testAddSvg()
+    /**
+     * SVG uploads are rejected: they are served inline from our origin and can
+     * carry executable script (stored XSS). The MIME whitelist must refuse them.
+     */
+    public function testAddSvgIsRejected()
     {
         $this->loginJwt(1);
+        $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
+        $count = $Uploads->find()->count();
 
         $this->file = TMP . 'tmp_svg.svg';
         file_put_contents($this->file, '<?xml version="1.0" encoding="UTF-8" ?>
-            <svg width="9" height="9" style="background:red;"></svg>');
+            <svg width="9" height="9" onload="alert(1)" style="background:red;"></svg>');
+
+        // SVG is not in the MIME whitelist -> upload is refused, nothing stored.
+        $this->expectException(GenericApiException::class);
         $this->upload($this->file);
 
-        $response = json_decode((string)$this->_response->getBody(), true);
-
-        $this->assertResponseCode(200);
-
-        $this->assertWithinRange(
-            time(),
-            strtotime($response['data']['attributes']['created']),
-            3
-        );
-        unset($response['data']['attributes']['created']);
-
-        $expected = [
-            'data' => [
-                'id' => 3,
-                'type' => 'uploads',
-                'attributes' => [
-                    'id' => 3,
-                    'mime' => 'image/svg+xml',
-                    'name' => '1_853fe7aa4ef213b0c11f4b739cf444a8.svg',
-                    'size' => 108,
-                    'thumbnail_url' => 'http://localhost/api/v2/uploads/thumb/3?h=1d57b148ad44d4caf90fa1cd98729678',
-                    'title' => 'tmp_svg.svg',
-                    'url' => 'http://localhost/useruploads/1_853fe7aa4ef213b0c11f4b739cf444a8.svg',
-                ],
-            ],
-        ];
-        $this->assertEquals($expected, $response);
-
-        $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
-        $upload = $Uploads->get(3);
-
-        $this->assertSame('1_853fe7aa4ef213b0c11f4b739cf444a8.svg', $upload->get('name'));
-        $this->assertSame('image/svg+xml', $upload->get('type'));
-        $this->assertTrue(file_exists($upload->get('file')));
+        $this->assertEquals($count, $Uploads->find()->count());
     }
 
     public function testAddMimeTypeConversion()

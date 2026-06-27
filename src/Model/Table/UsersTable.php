@@ -329,7 +329,10 @@ class UsersTable extends AppTable
                 'activate_code',
                 [
                     'numeric' => ['rule' => ['numeric']],
-                    'between' => ['rule' => ['range', 0, 9999999]],
+                    // Full positive signed-INT range: lets activate_code carry
+                    // real entropy (random_int) instead of a brute-forceable
+                    // 7-digit number, while still fitting the integer column.
+                    'between' => ['rule' => ['range', 0, 2147483647]],
                 ]
             );
 
@@ -671,7 +674,10 @@ class UsersTable extends AppTable
         ];
 
         if ($activate !== true) {
-            $defaults['activate_code'] = mt_rand(1000000, 9999999);
+            // Cryptographically secure, full positive signed-INT range. Stays an
+            // integer (column type + the "= 0 means activated" sentinel rely on
+            // it) but is no longer brute-forceable like the old 7-digit mt_rand.
+            $defaults['activate_code'] = random_int(10000000, 2147483647);
             $fields[] = 'activate_code';
         }
 
