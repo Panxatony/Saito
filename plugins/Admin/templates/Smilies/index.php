@@ -64,8 +64,8 @@ $this->Breadcrumbs->add(__('Smilies'), false);
                     <td><?php echo $smiley->get('sort'); ?>&nbsp;</td>
                     <td><?php echo $smiley->get('icon'); ?>&nbsp;</td>
                     <td><?php echo $smiley->get('image'); ?>&nbsp;</td>
-                    <td><?= $smiley->get('title') ?>&nbsp;</td>
-                    <td><?php echo __d('nondynamic', (string)$smiley->get('title')); ?>
+                    <td><?= h($smiley->get('title')) ?>&nbsp;</td>
+                    <td><?php echo h(__d('nondynamic', (string)$smiley->get('title'))); ?>
                         &nbsp;</td>
                     <td class="actions">
                         <?php

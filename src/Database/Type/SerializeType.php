@@ -38,7 +38,8 @@ class SerializeType extends BaseType
             return [];
         }
 
-        return unserialize($value);
+        // Never instantiate objects from stored data (object-injection hardening).
+        return unserialize($value, ['allowed_classes' => false]);
     }
 
     /**

@@ -99,7 +99,7 @@ $schemaMeta = [];
     <?php if ($signature) : ?>
         <footer class="postingBody-signature">
             <div class="postingBody-signature-divider">
-                <?= Configure::read('Saito.Settings.signature_separator') ?>
+                <?= h(Configure::read('Saito.Settings.signature_separator')) ?>
             </div>
             <?php
             $multimedia = ($CurrentUser->isLoggedIn()) ? !$CurrentUser->get(

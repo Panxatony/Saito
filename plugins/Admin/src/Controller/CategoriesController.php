@@ -59,9 +59,11 @@ class CategoriesController extends AdminAppController
     {
         $category = $this->Categories->newEmptyEntity();
         if ($this->request->is('post')) {
+            // Block primary-key mass-assignment from the admin form.
             $category = $this->Categories->patchEntity(
                 $category,
-                $this->request->getData()
+                $this->request->getData(),
+                ['accessibleFields' => ['id' => false]]
             );
             if ($this->Categories->save($category)) {
                 $this->Flash->set(
@@ -104,9 +106,11 @@ class CategoriesController extends AdminAppController
             return $this->redirect(['action' => 'index']);
         }
         if ($this->request->is(['post', 'put'])) {
+            // Block primary-key mass-assignment from the admin form.
             $category = $this->Categories->patchEntity(
                 $category,
-                $this->request->getData()
+                $this->request->getData(),
+                ['accessibleFields' => ['id' => false]]
             );
             if ($this->Categories->save($category)) {
                 $this->Flash->set(

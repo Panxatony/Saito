@@ -150,7 +150,8 @@ class UploadsController extends ApiAppController
             'image/gif'      => 'gif',
             'image/jpeg'     => 'jpg',
             'image/png'      => 'png',
-            'image/svg+xml'  => 'svg',
+            // 'image/svg+xml' deliberately NOT allowed: SVGs are served inline
+            // from our origin and can carry executable script (stored XSS).
             'image/webp'     => 'webp',
             'text/plain'     => 'txt',
             'video/mp4'      => 'mp4',

@@ -158,13 +158,13 @@ class AdminHelper extends AppHelper
     public function jqueryTable($selector, $sort)
     {
         $this->Html->css(
-            '../js/node_modules/datatables.net-bs4/css/dataTables.bootstrap4.css',
+            '../js/datatables/datatables.net-bs4/css/dataTables.bootstrap4.css',
             ['block' => 'script']
         );
         $this->Html->script(
             [
-                '../js/node_modules/datatables.net/js/jquery.dataTables.js',
-                '../js/node_modules/datatables.net-bs4/js/dataTables.bootstrap4.js',
+                '../js/datatables/datatables.net/js/jquery.dataTables.js',
+                '../js/datatables/datatables.net-bs4/js/dataTables.bootstrap4.js',
             ],
             ['block' => 'script']
         );
