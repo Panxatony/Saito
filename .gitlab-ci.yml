@@ -79,7 +79,11 @@ test:
 # Known CVEs in (locked) dependencies. Reads composer.lock against the
 # Packagist advisory DB; fails the build on any new advisory. Accepted
 # advisories are listed under config.audit.ignore in composer.json
-# (currently the geshi cssgen.php XSS, which is not web-reachable).
+# (currently the geshi cssgen.php XSS / CVE-2025-2123: not web-reachable, and
+# GeSHi is EOL at 1.0.9.1 so there is no fixed release to update to. The
+# vulnerable contrib/cssgen.php is additionally deleted on every composer
+# install/update by the `remove-insecure-vendor-files` script, so the ignore
+# only silences the version-pinned advisory for a file we no longer ship).
 security:composer-audit:
   stage: security
   before_script:

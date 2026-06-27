@@ -12,6 +12,20 @@
 
 ### Changes
 
+#### Security
+
+- ✓ Fixes stored XSS via `[iframe]` BBCode attribute injection (only an allow-list of iframe attributes is rendered; event-handler attributes are dropped)
+- ✓ Fixes server-side request forgery (SSRF) via `[embed]` BBCode: server-side URL fetches are restricted to public http(s) hosts and can no longer reach loopback/private/cloud-metadata addresses
+- ✓ Fixes stored XSS via uploaded SVG images (SVG removed from the upload allow-list)
+- ✓ Fixes open-redirect after login (redirect target restricted to local paths)
+- ✓ Hardens activation-code entropy (cryptographically secure over the full integer range)
+- ✓ Hardens legacy password-hash comparison against timing and type-juggling attacks (`hash_equals`)
+- ✓ Hardens the help-page route against path traversal
+- ✓ Hardens admin forms against primary-key mass-assignment and stored data against object injection (`unserialize` allow-list)
+- Δ Updates cakephp/authentication to 3.3.6 (CVE-2026-55590, open-redirect via backslash bypass)
+- Δ Updates firebase/php-jwt to 7.1.0
+- − Removes the vulnerable GeSHi `contrib/cssgen.php` (CVE-2025-2123) on every composer install/update
+
 ## [6.0.0] - 2026-05-24
 
 - [Full commit-log](https://github.com/Schlaefer/Saito/compare/5.7.1...6.0.0)
