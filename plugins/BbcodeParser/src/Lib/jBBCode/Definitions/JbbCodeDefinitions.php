@@ -84,6 +84,13 @@ class Embed extends CodeDefinition
         $loader = function () use ($url) {
             $embed = ['url' => $url];
 
+            // SSRF guard: never let the server fetch a URL that points at an
+            // internal/loopback/link-local address (cloud metadata, intranet,
+            // localhost services). On rejection we return the bare URL unfetched.
+            if (!self::_isFetchableUrl($url)) {
+                return $embed;
+            }
+
             try {
                 $info = \Embed\Embed::create(
                     $url,
@@ -121,6 +128,75 @@ class Embed extends CodeDefinition
         $info = Cache::remember($uid, $callable, 'bbcodeParserEmbed');
 
         return $this->_sHelper->Html->div('js-embed', '', ['id' => $uid, 'data-embed' => json_encode($info)]);
+    }
+
+    /**
+     * SSRF guard for the [embed] URL fetch.
+     *
+     * Only permits http(s) URLs whose host does not resolve to a loopback,
+     * private or otherwise reserved IP range. Without this an author could make
+     * the server request internal services or cloud-metadata endpoints
+     * (e.g. http://169.254.169.254/…, http://127.0.0.1:6379/…) via [embed].
+     *
+     * Note: this validates the *initial* host only. The embed library may still
+     * follow redirects; restricting providers to an allowlist and upgrading
+     * embed/embed remain recommended follow-ups for full coverage.
+     *
+     * @param string $url user-supplied URL
+     * @return bool true if the URL is safe to fetch server-side
+     */
+    private static function _isFetchableUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (
+            $parts === false
+            || empty($parts['scheme'])
+            || empty($parts['host'])
+            || !in_array(strtolower($parts['scheme']), ['http', 'https'], true)
+        ) {
+            return false;
+        }
+
+        $host = trim($parts['host'], '[]');
+
+        $ips = [];
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips[] = $host;
+        } else {
+            $records = @dns_get_record($host, DNS_A | DNS_AAAA);
+            foreach ($records ?: [] as $record) {
+                if (!empty($record['ip'])) {
+                    $ips[] = $record['ip'];
+                }
+                if (!empty($record['ipv6'])) {
+                    $ips[] = $record['ipv6'];
+                }
+            }
+            if (!$ips) {
+                $resolved = gethostbyname($host);
+                if ($resolved && $resolved !== $host) {
+                    $ips[] = $resolved;
+                }
+            }
+        }
+
+        // Could not resolve to any address → refuse rather than risk it.
+        if (!$ips) {
+            return false;
+        }
+
+        foreach ($ips as $ip) {
+            $public = filter_var(
+                $ip,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            );
+            if ($public === false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
@@ -169,9 +245,21 @@ class Iframe extends CodeDefinition
         }
         $attributes['src'] .= '&amp;wmode=Opaque';
 
+        // Emit only a fixed allowlist of iframe attributes. Attribute *values*
+        // are h()-escaped upstream (BbcodePreparePreprocessor), but the BBCode
+        // author can also inject arbitrary attribute *names* — e.g. an
+        // "onmouseover" event handler, which needs no HTML-special characters
+        // and would otherwise pass through verbatim as stored XSS. Anything not
+        // on the allowlist (and any on*-handler) is dropped.
+        $allowedAttributes = [
+            'src', 'width', 'height', 'frameborder',
+            'allow', 'allowfullscreen', 'title',
+        ];
         $atrStr = '';
         foreach ($attributes as $attributeName => $attributeValue) {
-            // Attributes are already HTML-encoded by BbcodePreparePreprocessor (h())
+            if (!in_array(strtolower((string)$attributeName), $allowedAttributes, true)) {
+                continue;
+            }
             $atrStr .= "$attributeName=\"$attributeValue\" ";
         }
         $atrStr = rtrim($atrStr);

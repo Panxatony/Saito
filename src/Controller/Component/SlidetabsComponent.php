@@ -80,7 +80,8 @@ class SlidetabsComponent extends Component
 
         $order = $user->get('slidetab_order');
         if (!empty($order)) {
-            $slidetabsUser = unserialize($order);
+            // Never instantiate objects from stored data (object-injection hardening).
+            $slidetabsUser = unserialize($order, ['allowed_classes' => false]);
             // disabled missing tabs still set in user-prefs
             $slidetabsUser = array_intersect($slidetabsUser, $available);
             // add new tabs not set in user-prefs

@@ -55,7 +55,12 @@ class SmiliesController extends AdminAppController
     {
         $smiley = $this->Smilies->newEmptyEntity();
         if ($this->request->is('post')) {
-            $this->Smilies->patchEntity($smiley, $this->request->getData());
+            // Block primary-key mass-assignment from the admin form.
+            $this->Smilies->patchEntity(
+                $smiley,
+                $this->request->getData(),
+                ['accessibleFields' => ['id' => false]]
+            );
             if ($this->Smilies->save($smiley)) {
                 $this->Flash->set(
                     __('The smily has been saved'),
@@ -91,7 +96,12 @@ class SmiliesController extends AdminAppController
 
         $smiley = $this->Smilies->get($id);
         if (!empty($this->request->getData())) {
-            $this->Smilies->patchEntity($smiley, $this->request->getData());
+            // Block primary-key mass-assignment from the admin form.
+            $this->Smilies->patchEntity(
+                $smiley,
+                $this->request->getData(),
+                ['accessibleFields' => ['id' => false]]
+            );
             if ($this->Smilies->save($smiley)) {
                 $this->Flash->set(
                     __('The smily has been saved'),

@@ -29,5 +29,7 @@ $routes->connect(
         'controller' => 'SaitoHelps',
         'action' => 'view',
     ],
-    ['pass' => ['lang', 'id']]
+    // Constrain :lang to a language token. It is concatenated into a
+    // filesystem path (docs/help/<lang>), so values like ".." must not pass.
+    ['pass' => ['lang', 'id'], 'lang' => '[a-zA-Z_]+']
 );
