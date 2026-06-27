@@ -106,8 +106,16 @@
     }
   },
   "scripts": {
-    "post-install-cmd": "App\\Console\\Installer::postInstall",
-    "post-create-project-cmd": "App\\Console\\Installer::postInstall",
+    "remove-insecure-vendor-files": "rm -f vendor/geshi/geshi/contrib/cssgen.php",
+    "post-install-cmd": [
+      "App\\Console\\Installer::postInstall",
+      "@remove-insecure-vendor-files"
+    ],
+    "post-update-cmd": "@remove-insecure-vendor-files",
+    "post-create-project-cmd": [
+      "App\\Console\\Installer::postInstall",
+      "@remove-insecure-vendor-files"
+    ],
     "post-autoload-dump": "Cake\\Composer\\Installer\\PluginInstaller::postAutoloadDump",
 
     "cs-check": "unset XDEBUG_CONFIG; phpcs --parallel=4 -p --colors --runtime-set ignore_warnings_on_exit true",
