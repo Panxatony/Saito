@@ -102,6 +102,15 @@ $routes->scope('/entries', function ($routes) {
         '/threadLine/*',
         ['controller' => 'Entries', 'action' => 'threadLine']
     );
+    // The frontend (models/threadline.ts) requests the lowercase URL
+    // `entries/threadline/<id>`. CakePHP 5 resolves the action name to the
+    // method case-sensitively, so without this explicit lowercase route the
+    // request would hit a MissingActionException for `threadline` (the method
+    // is `threadLine`) — breaking the live append of a new posting after reply.
+    $routes->connect(
+        '/threadline/*',
+        ['controller' => 'Entries', 'action' => 'threadLine']
+    );
 });
 
 $routes->scope('/api/v2/', function ($routes) {
