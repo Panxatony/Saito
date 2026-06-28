@@ -5,7 +5,11 @@ $this->extend('_default');
 
 $this->start('theme_head');
 ?>
-    <link rel="icon" type="image/vnd.microsoft.icon" href="<?= $this->request->getAttribute('webroot') ?>favicon.ico"/>
+    <?php $iconBase = $this->request->getAttribute('webroot'); ?>
+    <link rel="icon" href="<?= $iconBase ?>favicon.ico" sizes="32x32">
+    <link rel="icon" href="<?= $iconBase ?>favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="<?= $iconBase ?>apple-touch-icon.png">
+    <link rel="manifest" href="<?= $iconBase ?>site.webmanifest">
 
     <script>
         (function (SaitoApp) {
