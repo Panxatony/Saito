@@ -193,7 +193,10 @@ class UserOnlineTable extends Table
                     'fields' => ['id', 'user_type', 'username'],
                 ],
             ],
-            conditions: ['UserOnline.logged_in' => true],
+            // user_id > 0 excludes guest/anonymous online entries (user_id
+            // NULL or 0): they have no associated Users row, so the contained
+            // ->user would be null and crash the registered-users widget.
+            conditions: ['UserOnline.logged_in' => true, 'UserOnline.user_id >' => 0],
             fields: ['id'],
             order: ['LOWER(Users.username)' => 'ASC'],
         );

@@ -14,7 +14,7 @@ $config = [
     'Saito' =>
         [
             'v' => '7.0.2',
-            'saitoHomepage' => 'https://saito.siezi.com/',
+            'saitoHomepage' => 'https://github.com/Panxatony/Saito',
         ],
 ];
 
