@@ -94,6 +94,10 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         $this->addPlugin(\SaitoSearch\SaitoSearchPlugin::class, ['routes' => true]);
         $this->addPlugin(\Sitemap\SitemapPlugin::class, ['bootstrap' => true, 'routes' => true]);
         $this->addPlugin(\ImageUploader\ImageUploaderPlugin::class, ['routes' => true]);
+        // Base theme: load it so its webroot assets (e.g. the smilies icon-font
+        // referenced by themes extending Bota) are served at /bota/... even when
+        // a derived theme like Local is the active one.
+        $this->addPlugin(\Bota\BotaPlugin::class);
 
         $this->addPlugin(\Cron\CronPlugin::class);
         $this->addPlugin(\Commonmark\CommonmarkPlugin::class);
