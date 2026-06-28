@@ -26,6 +26,11 @@
     <ul class="slidetab-list">
         <?php foreach ($online as $userOnline) :
             $user = $userOnline->user;
+            // Defense in depth: skip entries without an associated user
+            // (guests). getLoggedIn() already filters these out at the query.
+            if ($user === null) {
+                continue;
+            }
             ?>
             <li>
                 <?php // for performance reasons we don't use $this->Html->link() here
