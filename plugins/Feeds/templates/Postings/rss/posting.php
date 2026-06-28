@@ -7,7 +7,8 @@ $channel = $this->Feeds->getChannel();
 $feed = $this->Feeds->getFeed();
 
 foreach ($entries as $entry) {
-    $url = Router::url('/entries/view/' . $entry->get('id'));
+    // Absolute URL (fullBase): RSS item links/guids must be fully-qualified.
+    $url = Router::url('/entries/view/' . $entry->get('id'), true);
     $body = $this->Parser->parse($entry->get('text'), ['return' => 'text']);
     (new Item())
         ->title(html_entity_decode($entry->get('subject'), ENT_NOQUOTES, 'UTF-8'))
