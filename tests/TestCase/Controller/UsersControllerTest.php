@@ -190,6 +190,65 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertResponseContains('is locked.');
     }
 
+    /**
+     * Full lifecycle of a new account: register via the form, activate with
+     * the e-mailed code, then log in with the chosen credentials.
+     *
+     * The per-step tests (testRegister*, testActivate*, testLogin) only
+     * exercise these stages in isolation; this walks the register -> activate
+     * -> login path end-to-end in a single flow.
+     */
+    public function testRegisterActivateAndLoginLifecycle()
+    {
+        Configure::write('Saito.Settings.tos_enabled', false);
+
+        $Users = TableRegistry::getTableLocator()->get('Users');
+        $username = 'Newcomer';
+        $password = 'newcomerssecret';
+        $data = [
+            'username' => $username,
+            'user_email' => 'newcomer@example.com',
+            'password' => $password,
+            'password_confirm' => $password,
+        ];
+
+        $this->assertFalse(
+            $Users->exists(['username' => $username]),
+            'Precondition: the account does not exist yet.'
+        );
+
+        //# 1. Register via the form.
+        $this->mockSecurity();
+        $this->session(['Register.formLoadTime' => time() - 30]);
+        $this->post('/users/register', $data);
+
+        $user = $Users->find()->where(['username' => $username])->first();
+        $this->assertNotNull($user, 'Registration created the account.');
+        $id = $user->get('id');
+        $activateCode = $user->get('activate_code');
+        // A fresh registration is inactive: activate_code is a non-zero secret.
+        $this->assertGreaterThan(0, $activateCode);
+
+        //# 2. While inactive, the credentials must not grant a login.
+        $this->mockSecurity();
+        $this->post('/login', ['username' => $username, 'password' => $password]);
+        $this->assertResponseContains('is not activated yet.');
+        $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
+
+        //# 3. Activate via the e-mailed link (/users/rs/<id>?c=<code>).
+        $this->get("/users/rs/{$id}?c={$activateCode}");
+        $activated = $Users->get($id, fields: ['id', 'activate_code']);
+        // "0" is the "activated" sentinel for activate_code.
+        $this->assertEquals(0, $activated->get('activate_code'));
+
+        //# 4. Now the same credentials log the user in.
+        $this->mockSecurity();
+        $this->post('/login', ['username' => $username, 'password' => $password]);
+        $this->assertTrue($this->_controller->CurrentUser->isLoggedIn());
+        $this->assertArrayHasKey('Auth', $_SESSION);
+        $this->assertRedirect('/');
+    }
+
     public function testRegisterEmailFailed()
     {
         $this->mockSecurity();
