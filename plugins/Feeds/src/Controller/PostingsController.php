@@ -96,6 +96,11 @@ class PostingsController extends AppController
     private function checkRss(): void
     {
         if ($this->request->accepts('application/rss+xml') || $this->request->getParam('_ext') === 'rss') {
+            // Cake 5 removed RequestHandlerComponent, which in 3.x set the
+            // content type from the `.rss` extension automatically. Set it
+            // explicitly so feed readers receive application/rss+xml.
+            $this->response = $this->response->withType('rss');
+
             return;
         }
         throw new BadRequestException();
