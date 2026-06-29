@@ -148,6 +148,13 @@ $btn-strip-top-width: 25px;
   overflow: hidden;
   margin-left: $btn-strip-top-width;
 
+  // ...but let an open actions dropdown escape the clip. On short postings the
+  // slider is barely taller than the menu trigger, so overflow:hidden would cut
+  // off the lower menu items (edit/pin/lock/merge/delete).
+  &:has(.dropdown-menu.show) {
+    overflow: visible;
+  }
+
   .postingLayout {
     // inline opened posting's content is left-aligned
     margin-left: 0;
