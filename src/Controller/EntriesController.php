@@ -437,7 +437,12 @@ class EntriesController extends AppController
 
         $posting = $this->Entries->get($id);
         $data = ['id' => (int)$id, $toggle => !$posting->get($toggle)];
-        $this->Posting->update($posting, $data, $this->CurrentUser);
+        // Pinning/locking is authorized via authorizeAction('ajaxToggle',
+        // 'saito.core.posting.pinAndLock') above, so update the toggle field
+        // directly. Going through PostingComponent::update() would also require
+        // edit permission (isEditingAllowed), which would wrongly block a
+        // moderator from pinning/locking threads they may not edit.
+        $this->Entries->updateEntry($posting, $data);
 
         $this->response = $this->response->withType('json');
         $this->response = $this->response->withStringBody(json_encode('OK'));
