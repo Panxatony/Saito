@@ -98,6 +98,31 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * Regression: pinning/locking is authorized by saito.core.posting.pinAndLock,
+     * so a moderator must be able to toggle a thread even when they may not
+     * *edit* it. Make root entry 10 the moderator's own, past the edit window and
+     * unpinned -> isEditingAllowed() is false. ajaxToggle used to route through
+     * PostingComponent::update() (which requires edit permission) and threw a
+     * SaitoForbiddenException here.
+     */
+    public function testAjaxToggleFixedAllowedForModerator()
+    {
+        $this->Table->updateAll(
+            ['user_id' => 2, 'time' => '2015-01-01 00:00:00', 'fixed' => 0],
+            ['id' => 10]
+        );
+
+        // Mitch (role mod): has pinAndLock but not edit.unrestricted.
+        $this->_loginUser(2);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->get('/entries/ajaxToggle/10/fixed');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('OK');
+        $this->assertTrue((bool)$this->Table->get(10)->get('fixed'));
+    }
+
+    /**
      * only logged in users should be able to answer
      */
     public function testAddUserNotLoggedInGet()
