@@ -26,6 +26,10 @@
 - Δ Updates firebase/php-jwt to 7.1.0
 - − Removes the vulnerable GeSHi `contrib/cssgen.php` (CVE-2025-2123) on every composer install/update
 
+#### Fixed
+
+- ✓ Fixes the "remember me" login not surviving a browser restart: under CakePHP 5 the persistent auth-cookie was emitted without an expiry (a session cookie), logging users out daily. The cookie is now persistent again and carries the `HttpOnly`, `Secure` and `SameSite=Lax` flags.
+
 ## [6.0.0] - 2026-05-24
 
 - [Full commit-log](https://github.com/Schlaefer/Saito/compare/5.7.1...6.0.0)

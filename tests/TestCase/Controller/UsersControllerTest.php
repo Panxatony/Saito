@@ -7,6 +7,7 @@ use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
+use Cake\Http\Cookie\CookieCollection;
 use Cake\Mailer\Message;
 use Cake\ORM\TableRegistry;
 use Saito\Exception\SaitoForbiddenException;
@@ -120,6 +121,49 @@ class UsersControllerTest extends IntegrationTestCase
         $Users = TableRegistry::getTableLocator()->get('Users');
         $user = $Users->get(3, fields: 'last_login');
         $this->assertWithinRange($user->get('last_login')->toUnixString(), time(), 2);
+    }
+
+    /**
+     * Logging in with "remember me" must set a *persistent* auth cookie.
+     *
+     * Regression: the Cookie authenticator was configured with the Cake 3
+     * keys 'expire'/'httpOnly', which Cake 5's Cookie::create() silently
+     * drops. The remember-me cookie then had no expiry (= session cookie) and
+     * no HttpOnly flag, so users were logged out as soon as they closed the
+     * browser (effectively a daily re-login).
+     *
+     * @return void
+     */
+    public function testLoginRememberMeSetsPersistentCookie()
+    {
+        $this->mockSecurity();
+        $this->post('/login', [
+            'username' => 'Ulysses',
+            'password' => 'test',
+            'remember_me' => 1,
+        ]);
+
+        $this->assertTrue($this->_controller->CurrentUser->isLoggedIn());
+        $this->assertRedirect('/');
+
+        $cookieName = Configure::read('Security.cookieAuthName');
+        // The CookieAuthenticator emits the cookie as a raw Set-Cookie header
+        // (not via the response CookieCollection), so parse the headers back.
+        $cookies = CookieCollection::createFromHeader($this->_response->getHeader('Set-Cookie'));
+        $this->assertTrue($cookies->has($cookieName), 'remember-me cookie was not set');
+
+        $cookie = $cookies->get($cookieName);
+        $this->assertNotEmpty($cookie->getValue());
+
+        //# must be persistent, not a session cookie
+        $this->assertNotNull(
+            $cookie->getExpiresTimestamp(),
+            'remember-me cookie must have an expiry (must not be a session cookie)'
+        );
+        $this->assertGreaterThan(time(), $cookie->getExpiresTimestamp());
+
+        //# and carry its security flags
+        $this->assertTrue($cookie->isHttpOnly(), 'remember-me cookie must be HttpOnly');
     }
 
     public function testLoginShowForm()

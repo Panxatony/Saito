@@ -245,9 +245,13 @@ class AuthUserComponentTest extends IntegrationTestCase
             ->getAuthenticationService()
             ->authenticators()
             ->get('Cookie');
-        $expire = $authProvider->getConfig('cookie.expire');
+        $expire = $authProvider->getConfig('cookie.expires');
         $this->assertWithinRange($expire->getTimestamp(), (int)$cookie['expires'], 2);
         $this->assertEquals($webroot, $cookie['path']);
+
+        /// Refresh must preserve the security flags (not strip them)
+        $this->assertTrue($cookie['httponly']);
+        $this->assertEquals('Lax', $cookie['samesite']);
     }
 
     private function _setup(?ServerRequestInterface $request = null)
