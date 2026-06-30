@@ -7,8 +7,35 @@
 
 ## [next] -
 
-- [Full commit-log](https://github.com/Schlaefer/Saito/compare/6.0.0...<next>)
-- [Download release-zip](https://github.com/Schlaefer/Saito/releases/download/<next>/saito-release-master-<next>.zip)
+- Unreleased changes go here.
+
+## [7.0.4] - 2026-06-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.2...7.0.4)
+
+### Changes
+
+- ✓ Fixes the "remember me" login not surviving a browser restart: under CakePHP 5 the persistent auth-cookie was emitted without an expiry (a session cookie), logging users out daily. The cookie is now persistent again and carries the `HttpOnly`, `Secure` and `SameSite=Lax` flags.
+
+## [7.0.3] - 2026-06-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.2...7.0.3)
+
+Post-cutover fixes shipped after the production upgrade to Saito 7 (these went out under the 7.0.2 version string; grouped here as 7.0.3).
+
+### Changes
+
+- ✓ Fixes new postings not appearing live in the threaded view — the lowercase `entries/threadline` URL now resolves to the `threadLine` action (CakePHP 5 matches action names case-sensitively)
+- ✓ Fixes the online-users widget crashing the page when a guest has an `useronline` row (rows without a user are skipped)
+- ✓ Fixes missing smilies — ships the smilies icon-font in the Local theme webroot and loads the Bota base-theme plugin so its webroot assets are served
+- ✓ Fixes RSS feeds to emit `application/rss+xml` with absolute item URLs
+- ✓ Fixes moderators being unable to pin/lock threads they may not edit
+- ✓ Fixes the posting-actions dropdown being clipped on short threaded postings
+- ＋ Adds a modern favicon/PWA head to the Local theme (SVG icon, apple-touch-icon, web manifest)
+
+## [7.0.2] - 2026-06-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.1...7.0.2)
 
 ### Changes
 
@@ -26,9 +53,42 @@
 - Δ Updates firebase/php-jwt to 7.1.0
 - − Removes the vulnerable GeSHi `contrib/cssgen.php` (CVE-2025-2123) on every composer install/update
 
-#### Fixed
+#### Other
 
-- ✓ Fixes the "remember me" login not surviving a browser restart: under CakePHP 5 the persistent auth-cookie was emitted without an expiry (a session cookie), logging users out daily. The cookie is now persistent again and carries the `HttpOnly`, `Secure` and `SameSite=Lax` flags.
+- Δ Converts the remaining legacy utf8mb3 tables to utf8mb4
+- ＋ Serves the imprint ("Impressum") as a Saito page with per-environment config content
+
+## [7.0.1] - 2026-06-04
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.0...7.0.1)
+
+### Changes
+
+- Δ Declares PHP >= 8.4 in composer to match the resolved dependencies
+- Δ Updates firebase/php-jwt to ^7 (CVE-2025-45769)
+- ✓ Fixes several admin pages 500-ing under CakePHP 5 (smilies and smiley-codes pagination/sort)
+- ✓ Fixes JWT-cookie / 401 handling by restoring the component shutdown callbacks under CakePHP 5
+- ✓ Fixes the profile "Joined" date format
+- Δ Serves the admin DataTables assets from a node_modules-free path
+- Δ Trims whitespace from e-mail-address settings on save
+- Δ Silences PHP 8.4 engine deprecations in the production log
+- ＋ Adds CI dependency- and static-security scanning
+
+## [7.0.0] - 2026-05-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/6.0.0...7.0.0)
+
+The "Saito 7" release line. Existing 5.7.x installations can upgrade straight to 7.0.0.
+
+### Changes
+
+- Δ Upgrades the framework from CakePHP 3.10 to **CakePHP 5** and requires **PHP 8.4**
+- Δ Migrates from `SecurityComponent` to `FormProtectionComponent`
+- Δ Renames plugins to the CakePHP 5.3 `<Name>Plugin` convention
+- ✓ Resolves framework and PHP deprecations throughout (events, behaviors, finders, result sets, entities)
+- ✓ Ports the JSON:API exception renderer to CakePHP 5
+- ✓ Fixes admin pages 500-ing from the renamed cache config under CakePHP 5
+- Internal: full test-suite green on CakePHP 5 (test-DB auto-migration, `Email` → `Mailer` port, `Shell` → `Command` port)
 
 ## [6.0.0] - 2026-05-24
 
