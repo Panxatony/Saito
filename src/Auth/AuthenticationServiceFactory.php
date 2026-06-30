@@ -88,11 +88,22 @@ class AuthenticationServiceFactory
             'Authentication.Cookie',
             [
                 'identifier' => $passwordIdentifier,
+                // Cake 5's Cookie::create() only understands the lower-case
+                // keys expires/httponly/secure/samesite; the legacy Cake 3
+                // spellings ('expire', 'httpOnly') are silently dropped, which
+                // turned the remember-me cookie into a flag-less session cookie
+                // (no expiry -> users logged out daily). Keep these in sync with
+                // AuthUserComponent::refreshAuthenticationProvider().
                 'cookie' => [
-                    'expire' => new \DateTimeImmutable('+10 days'),
-                    'httpOnly' => true,
-                    'name' => Configure::read('Security.cookieAuthName'),
+                    'expires' => new \DateTimeImmutable('+10 days'),
                     'path' => Router::url('/', false),
+                    'name' => Configure::read('Security.cookieAuthName'),
+                    'httponly' => true,
+                    'secure' => str_starts_with(
+                        (string)Configure::read('App.fullBaseUrl'),
+                        'https',
+                    ),
+                    'samesite' => 'Lax',
                 ],
             ]
         );

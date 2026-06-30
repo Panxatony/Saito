@@ -305,11 +305,18 @@ class AuthUserComponent extends Component
                 );
             }
 
-            $expire = $authenticationProvider->getConfig('cookie.expire');
+            // Keys mirror the cookie config in AuthenticationServiceFactory
+            // (Cake 5 spelling). Re-apply the security flags too: the cookie
+            // parsed from the request carries none, so without this the rolling
+            // refresh would strip HttpOnly/Secure/SameSite again.
+            $cookieConfig = $authenticationProvider->getConfig('cookie');
             $refreshedCookie = $cookie
-                ->withExpiry($expire)
+                ->withExpiry($cookieConfig['expires'])
                 // Can't read path from cookies, so the default would be root '/'.
-                ->withPath($this->getController()->getRequest()->getAttribute('webroot'));
+                ->withPath($this->getController()->getRequest()->getAttribute('webroot'))
+                ->withHttpOnly(!empty($cookieConfig['httponly']))
+                ->withSecure(!empty($cookieConfig['secure']))
+                ->withSameSite($cookieConfig['samesite'] ?? null);
 
             $response = $controller->getResponse()->withCookie($refreshedCookie);
             $controller->setResponse($response);
