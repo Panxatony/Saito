@@ -54,9 +54,19 @@ class SaitoEmailComponent extends Component
         $systemFrom = new SaitoEmailContact('system');
         $to = new SaitoEmailContact($params['recipient']);
 
+        // A person contacting via a form (member or anonymous visitor) must not
+        // be used as the From address: the forum's server can't send as their
+        // (external) domain, so SPF/DMARC would junk the mail at the recipient.
+        // Send as the forum instead and carry the person in Reply-To so the
+        // recipient can still reply to them. Predefined forum senders (system,
+        // register, …) are legitimate From addresses and stay as-is.
+        $fromContact = SaitoEmailContact::isPredefined($params['sender'])
+            ? $from
+            : $systemFrom;
+
         $email = new Mailer('saito');
         $email->setEmailFormat('text')
-            ->setFrom($from->toCake())
+            ->setFrom($fromContact->toCake())
             ->setReplyTo($from->toCake())
             ->setTo($to->toCake())
             ->setSubject($params['subject'])
@@ -88,7 +98,9 @@ class SaitoEmailComponent extends Component
         $subject = Text::insert($subject, $data);
         $email->setSubject($subject);
 
-        $email->setTo($email->getFrom());
+        // The copy goes to the original sender, who is now carried in Reply-To
+        // (From is the forum address, see email()).
+        $email->setTo($email->getReplyTo());
         $from = new SaitoEmailContact('system');
         $email->setFrom($from->toCake());
 

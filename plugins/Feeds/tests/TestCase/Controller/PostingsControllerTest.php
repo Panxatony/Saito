@@ -43,6 +43,28 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertResponseContains('<dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alice</dc:creator>');
     }
 
+    public function testUploadedImageRendersAsImgInFeed()
+    {
+        // An uploaded image is stored as [img src=upload]<file>[/img]. The feed
+        // must render it as an <img> with a full-base /useruploads/ URL so
+        // readers show the picture — not the bare filename. Regression: the RSS
+        // body used getAsText() (text mode), which strips every tag to its
+        // inner text and collapsed the image to just "<file>".
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
+        $Entries->updateAll(
+            ['text' => '[img src=upload]22_testimage.jpg[/img]'],
+            ['id' => 1]
+        );
+
+        $this->get('/feeds/postings/new.rss');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('<img');
+        $this->assertResponseContains('useruploads/22_testimage.jpg');
+        // The bare filename must not appear as plain text (only inside the src).
+        $this->assertResponseNotContains('>22_testimage.jpg<');
+    }
+
     public function testThreads()
     {
         $this->get('/feeds/postings/threads.rss');

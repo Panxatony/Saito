@@ -41,7 +41,14 @@ class CommonmarkHelper extends Helper
         if ($this->_converter !== null) {
             return $this->_converter;
         }
-        $this->_converter = new CommonMarkConverter();
+        // Harden against XSS: escape raw HTML in the input and drop unsafe
+        // link schemes (javascript:, data:, …). league/commonmark defaults to
+        // allowing both. Currently only trusted help pages are rendered, but
+        // this keeps the helper safe if ever pointed at user input.
+        $this->_converter = new CommonMarkConverter([
+            'html_input' => 'escape',
+            'allow_unsafe_links' => false,
+        ]);
 
         return $this->_converter;
     }

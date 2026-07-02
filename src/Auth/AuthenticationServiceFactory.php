@@ -37,6 +37,11 @@ class AuthenticationServiceFactory
         // actual User entity from the database when needed.
         $service->loadAuthenticator('Authentication.Jwt', [
             'returnPayload' => true,
+            // Do not accept the JWT via a `?token=` query parameter (the Cake
+            // default): bearer tokens in URLs leak into access logs, browser
+            // history and Referer headers. The token travels in the header or
+            // the Saito-JWT cookie only.
+            'queryParam' => null,
             'secretKey' => Configure::read('Security.jwtSalt')
                 ?: Configure::read('Security.cookieSalt'),
         ]);
