@@ -14,6 +14,7 @@ namespace Saito\User\Cookie;
 
 use Cake\Chronos\Chronos;
 use Cake\Controller\Controller;
+use Cake\Core\Configure;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Http\Cookie\Cookie;
 use Cake\Routing\Router;
@@ -37,6 +38,9 @@ class Storage
     private $_defaultConfig = [
         'expire' => '+1 month',
         'http' => true,
+        // null => derive from App.fullBaseUrl (https deployment => Secure).
+        'secure' => null,
+        'samesite' => 'Lax',
     ];
 
     /**
@@ -120,11 +124,21 @@ class Storage
      */
     private function createCookie(): Cookie
     {
-        $cookie = (new Cookie($this->_key))
+        // Send the cookie only over HTTPS when the site runs on HTTPS, so a
+        // bearer token (e.g. Saito-JWT) can't be sniffed on a plain-HTTP hop.
+        $secure = $this->getConfig('secure');
+        if ($secure === null) {
+            $secure = str_starts_with(
+                (string)Configure::read('App.fullBaseUrl'),
+                'https',
+            );
+        }
+
+        return (new Cookie($this->_key))
             ->withPath(Router::url('/', false))
             ->withHttpOnly($this->getConfig('http'))
+            ->withSecure($secure)
+            ->withSameSite($this->getConfig('samesite'))
             ->withExpiry(new Chronos($this->getConfig('expire')));
-
-        return $cookie;
     }
 }

@@ -38,6 +38,15 @@ class UploaderConfig
     private $jpegCompression = 92;
 
     /**
+     * Max allowed image resolution in pixels (width * height).
+     * Guards image decoding (GD/SimpleImage) against decompression bombs:
+     * a small, highly-compressible file can otherwise declare enormous
+     * dimensions and exhaust memory when rasterized. 40 MP covers ordinary
+     * camera/phone photos while rejecting absurd sizes.
+     */
+    private int $maxImagePixels = 40000000;
+
+    /**
      * Set image compression quality
      *
      * @param int $quality Integer between 0 and 100
@@ -118,6 +127,36 @@ class UploaderConfig
     public function getMaxResize(): int
     {
         return $this->defaultResize;
+    }
+
+    /**
+     * Set max allowed image resolution (width * height) in pixels.
+     *
+     * @param int $pixels Max number of pixels; must be positive.
+     * @return self
+     * @throws \InvalidArgumentException if the value isn't positive.
+     */
+    public function setMaxImagePixels(int $pixels): self
+    {
+        if ($pixels < 1) {
+            throw new \InvalidArgumentException(
+                'Max image pixels must be a positive number.',
+                1719910000,
+            );
+        }
+        $this->maxImagePixels = $pixels;
+
+        return $this;
+    }
+
+    /**
+     * Get max allowed image resolution (width * height) in pixels.
+     *
+     * @return int max pixels
+     */
+    public function getMaxImagePixels(): int
+    {
+        return $this->maxImagePixels;
     }
 
     /**

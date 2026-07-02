@@ -35,7 +35,10 @@ class AvatarFileType extends BaseType
         if ($upload !== null) {
             return $upload;
         }
-        if ($value === null || $value === '') {
+        // A raw array that RequestUpload rejected is an untrusted/forged upload
+        // payload (or an empty file field) — never persist it as a stringified
+        // value ("Array"); treat it as "no avatar change".
+        if ($value === null || $value === '' || is_array($value)) {
             return null;
         }
 

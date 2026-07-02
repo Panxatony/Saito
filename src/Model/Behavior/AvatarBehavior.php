@@ -18,7 +18,6 @@ use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\Utility\Text;
 use claviska\SimpleImage;
-use Saito\RequestUpload;
 
 /**
  * Handles avatar file uploads: moving files, generating thumbnails, and
@@ -63,12 +62,16 @@ class AvatarBehavior extends Behavior
             return;
         }
 
-        $upload = RequestUpload::toArray($value);
-        if ($upload === null || empty($upload['tmp_name'])) {
+        // The AvatarFileType column type has already normalized a genuine
+        // upload into the $_FILES-style array (and rejected client-forged
+        // arrays to null). Use it directly — do NOT re-run
+        // RequestUpload::toArray() here: it now only accepts PSR-7 upload
+        // objects, and the value at this point is the already-normalized array.
+        if (!is_array($value) || empty($value['tmp_name'])) {
             return;
         }
 
-        $this->_processUpload($entity, $upload);
+        $this->_processUpload($entity, $value);
     }
 
     /**

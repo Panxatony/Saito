@@ -24,12 +24,16 @@ use Psr\Http\Message\UploadedFileInterface;
 class RequestUpload
 {
     /**
-     * Normalize a request-data value that may be a PSR-7 UploadedFile,
-     * a Cake-3-style upload array, or `null`.
+     * Normalize a request-data value into a legacy `$_FILES`-style array.
+     *
+     * Only a genuine PSR-7 UploadedFile is accepted as an upload. Any other
+     * value — including a client-supplied array — yields null, because a real
+     * multipart upload always arrives as an UploadedFileInterface; a plain
+     * array is an attacker-forged payload (see the security note below).
      *
      * @param mixed $value
      * @return array|null Legacy `$_FILES`-style array, or null if the
-     *                    value wasn't a recognizable upload.
+     *                    value wasn't a genuine upload.
      */
     public static function toArray($value): ?array
     {
@@ -43,6 +47,15 @@ class RequestUpload
             ];
         }
 
-        return is_array($value) ? $value : null;
+        // SECURITY: never trust a client-supplied upload array. A genuine
+        // multipart upload is delivered by the PSR-7 layer as an
+        // UploadedFileInterface whose `tmp_name` is a server-generated temp
+        // path. A plain array reaching this point means the client hand-crafted
+        // the request body (JSON or nested form fields like
+        // `upload[0][file][tmp_name]=…`) to forge `tmp_name` — which the
+        // downstream copy()/rename()/move_uploaded_file() sinks would otherwise
+        // read or move from an attacker-chosen server path (arbitrary file
+        // disclosure / relocation). Reject anything that is not a real upload.
+        return null;
     }
 }

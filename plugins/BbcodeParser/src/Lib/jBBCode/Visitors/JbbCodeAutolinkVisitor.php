@@ -155,8 +155,11 @@ class JbbCodeAutolinkVisitor extends JbbCodeTextVisitor
         };
 
         //# autolink http://urls
+        // The scheme is followed by a single run of non-terminator characters;
+        // the previous ".*?[^…]*" combination could backtrack catastrophically
+        // (ReDoS) on long crafted lines.
         $string = preg_replace_callback(
-            "#(?<=^|[\n (])(?P<element>[\w]+?://.*?[^ \"\n\r\t<]*)#is",
+            "#(?<=^|[\n (])(?P<element>[\w]+://[^ \"\n\r\t<]*)#is",
             $replace,
             $string
         );
@@ -169,8 +172,11 @@ class JbbCodeAutolinkVisitor extends JbbCodeTextVisitor
         );
 
         //# autolink email
+        // Domain is label(.label)+ with a mandatory dot before each following
+        // label; the previous "([\w\-\.]+\.)*" nested quantifier over a class
+        // containing "." could backtrack catastrophically (ReDoS).
         $string = preg_replace_callback(
-            "#(?<=^|[\n ])(?P<content>([a-z0-9&\-_.]+?)@([\w\-]+\.([\w\-\.]+\.)*[\w]+))#i",
+            "#(?<=^|[\n ])(?P<content>([a-z0-9&\-_.]+?)@([\w\-]+(?:\.[\w\-]+)+))#i",
             function ($matches) {
                 return $this->_email($matches['content']);
             },
