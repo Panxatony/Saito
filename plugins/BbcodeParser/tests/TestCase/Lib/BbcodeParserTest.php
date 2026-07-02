@@ -910,6 +910,50 @@ EOF;
     }
 
     /**
+     * The email autolink regex was linearized to remove a nested quantifier
+     * (ReDoS). A bare multi-label email must still autolink.
+     *
+     * @return void
+     */
+    public function testAutolinkEmailWithHardenedPattern()
+    {
+        $MO = $this->getMockBuilder(MailObfuscatorHelper::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['link'])
+            ->getMock();
+        $MO->expects($this->once())
+            ->method('link')
+            ->with('user@sub.domain.co.uk', null);
+        $this->_Helper->MailObfuscator = $MO;
+
+        $this->_Parser->parse('mail me at user@sub.domain.co.uk please');
+    }
+
+    /**
+     * ReDoS guard: inputs crafted against the old nested-quantifier autolink
+     * patterns must parse quickly. (PCRE's backtrack_limit is the ultimate
+     * backstop, but the linearized patterns avoid burning CPU up to it.)
+     *
+     * @return void
+     */
+    public function testAutolinkIsNotReDoSVulnerable()
+    {
+        $payloads = [
+            'x@' . str_repeat('a.', 60),
+            'http://' . str_repeat('a', 8000) . ' end',
+        ];
+        foreach ($payloads as $payload) {
+            $start = microtime(true);
+            $this->_Parser->parse($payload);
+            $this->assertLessThan(
+                2.0,
+                microtime(true) - $start,
+                'autolink took too long -> possible ReDoS',
+            );
+        }
+    }
+
+    /**
      * test scaling with 1 parameter
      */
     public function testExternalImageAbsoluteAutoLinkedScaledByOne()

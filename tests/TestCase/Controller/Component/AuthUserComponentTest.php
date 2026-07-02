@@ -116,7 +116,10 @@ class AuthUserComponentTest extends IntegrationTestCase
         $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
         $this->assertNotEmpty($cookie);
         $this->assertSame('Saito-JWT', $cookie['name']);
+        // httponly stays false (the SPA reads the token in JS), but the cookie
+        // must carry SameSite to reduce cross-site exposure of the token.
         $this->assertFalse($cookie['httponly']);
+        $this->assertSame('Lax', $cookie['samesite']);
     }
 
     /**
