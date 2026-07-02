@@ -37,7 +37,7 @@ jobs:
       DATABASE_TEST_URL: "mysql://saito:saito@mariadb/saito_test?encoding=utf8mb4&timezone=UTC"
       COMPOSER_ALLOW_SUPERUSER: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install system + PHP extensions
         run: |
@@ -70,7 +70,7 @@ jobs:
     env:
       COMPOSER_ALLOW_SUPERUSER: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install system + PHP extensions
         run: |
@@ -84,7 +84,10 @@ jobs:
             --install-dir=/usr/local/bin --filename=composer
 
       - name: Security gate — known CVEs in dependencies
-        run: composer audit
+        # --locked audits composer.lock directly (incl. dev deps and the
+        # config.audit.ignore entries) without needing an installed vendor/
+        # tree, so it works on a clean CI checkout.
+        run: composer audit --locked
 
       - name: composer install (production only)
         run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
@@ -142,7 +145,7 @@ jobs:
           ls -lh build/
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-tarball
           path: build/saito-*
@@ -158,10 +161,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-tarball
           path: build
