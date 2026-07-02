@@ -33,3 +33,6 @@ msgstr "Error: File size exceeds allowed limit of {0}."
 
 msgid "validation.error.mimeType"
 msgstr "Error: This file type is not allowed."
+
+msgid "validation.error.imageDimension"
+msgstr "Error: Image resolution exceeds the allowed maximum of {0} pixels."

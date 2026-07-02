@@ -152,6 +152,37 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->assertEquals($count, $Uploads->find()->count());
     }
 
+    /**
+     * An image whose pixel resolution exceeds the configured cap is rejected
+     * before anything decodes it (decompression-bomb guard). The cap is
+     * lowered here so the test doesn't need to allocate a real multi-megapixel
+     * bomb.
+     */
+    public function testAddImageExceedingPixelCapIsRejected()
+    {
+        $this->loginJwt(1);
+        $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
+        $count = $Uploads->find()->count();
+
+        $config = Configure::read('Saito.Settings.uploader');
+        $original = $config->getMaxImagePixels();
+        // A 10x10 image is 100 px; cap it below that.
+        $config->setMaxImagePixels(50);
+
+        $this->file = TMP . 'oversized.png';
+        $im = imagecreatetruecolor(10, 10);
+        imagepng($im, $this->file);
+        imagedestroy($im);
+
+        try {
+            $this->expectException(GenericApiException::class);
+            $this->upload($this->file, 1);
+        } finally {
+            $config->setMaxImagePixels($original);
+            $this->assertEquals($count, $Uploads->find()->count());
+        }
+    }
+
     public function testAddMimeTypeConversion()
     {
         $this->loginJwt(1);

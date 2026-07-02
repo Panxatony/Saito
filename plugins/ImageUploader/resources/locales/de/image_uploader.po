@@ -33,3 +33,6 @@ msgstr "Fehler: Maximale Anzahl an {0} Uploads erreicht."
 
 msgid "validation.error.mimeType"
 msgstr "Fehler: Dieser Dateityp kann nicht hochgeladen werden."
+
+msgid "validation.error.imageDimension"
+msgstr "Fehler: Die Bildauflösung überschreitet das erlaubte Maximum von {0} Pixeln."

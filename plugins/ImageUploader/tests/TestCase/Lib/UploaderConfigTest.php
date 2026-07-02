@@ -131,4 +131,23 @@ class UploaderConfigTest extends TestCase
         $config->addType('text/plain');
         $this->assertTrue($config->hasType('text/plain'));
     }
+
+    public function testMaxImagePixels()
+    {
+        $config = new UploaderConfig();
+        $this->assertEquals(40000000, $config->getMaxImagePixels());
+
+        $config->setMaxImagePixels(1000000);
+        $this->assertEquals(1000000, $config->getMaxImagePixels());
+    }
+
+    public function testMaxImagePixelsNotValid()
+    {
+        $config = new UploaderConfig();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionCode(1719910000);
+
+        $config->setMaxImagePixels(0);
+    }
 }

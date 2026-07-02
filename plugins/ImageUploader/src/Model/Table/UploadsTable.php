@@ -333,6 +333,23 @@ class UploadsTable extends AppTable
             );
         }
 
+        /// Reject image "decompression bombs" before anything decodes the
+        /// bitmap. getimagesize() only reads the header, so it does not
+        /// rasterize the image; a small file can still declare huge
+        /// dimensions that would exhaust memory in GD/SimpleImage (both on
+        /// upload processing and later thumbnail generation).
+        $dimensions = $filePath ? @getimagesize((string)$filePath) : false;
+        if ($dimensions !== false) {
+            $maxPixels = $UploaderConfig->getMaxImagePixels();
+            if ($dimensions[0] * $dimensions[1] > $maxPixels) {
+                return __d(
+                    'image_uploader',
+                    'validation.error.imageDimension',
+                    Number::format($maxPixels),
+                );
+            }
+        }
+
         return true;
     }
 }
