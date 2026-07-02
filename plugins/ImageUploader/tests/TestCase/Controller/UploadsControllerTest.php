@@ -19,6 +19,7 @@ use Cake\Core\Plugin;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\ORM\TableRegistry;
 use ImageUploader\Model\Table\UploadsTable;
+use Laminas\Diactoros\UploadedFile;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
 
@@ -382,15 +383,19 @@ class UploadsControllerTest extends IntegrationTestCase
      */
     private function upload(string $filePath, $userId = 1)
     {
+        // Deliver the upload the way the PSR-7 layer does for a real multipart
+        // request: as an UploadedFileInterface object, not a raw array (raw
+        // arrays are now rejected as forged uploads — see RequestUpload).
         $data = [
             'upload' => [
                 0 => [
-                    'file' => [
-                        'tmp_name' => $filePath,
-                        'name' => pathinfo($filePath, PATHINFO_FILENAME) . '.' . pathinfo($filePath, PATHINFO_EXTENSION),
-                        'size' => filesize($filePath),
-                        'type' => mime_content_type($filePath),
-                    ],
+                    'file' => new UploadedFile(
+                        $filePath,
+                        filesize($filePath),
+                        UPLOAD_ERR_OK,
+                        pathinfo($filePath, PATHINFO_FILENAME) . '.' . pathinfo($filePath, PATHINFO_EXTENSION),
+                        mime_content_type($filePath),
+                    ),
                 ],
             ],
         ];
