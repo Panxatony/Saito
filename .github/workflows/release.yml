@@ -72,6 +72,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # composer install (post-install) rewrites the __SALT__ placeholders in
+      # config/app.php with a random salt. Keep the committed placeholder so the
+      # installer regenerates a fresh salt on the first deploy — save it now and
+      # restore it before packaging (git isn't available for a `git checkout`:
+      # this job runs in a container without git at checkout time, so the repo
+      # arrives as an API tarball with no .git directory).
+      - name: Preserve committed config/app.php
+        run: cp config/app.php /tmp/app.php.committed
+
       - name: Install system + PHP extensions
         run: |
           apt-get update -qq
@@ -106,11 +115,9 @@ jobs:
         run: |
           set -eu
           RELEASE_NAME="saito-${GITHUB_REF_NAME}"
-          # composer post-install rewrites the __SALT__ placeholders in
-          # config/app.php; restore the committed placeholder so the installer
-          # regenerates a fresh salt on the first deploy.
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git checkout HEAD -- config/app.php
+          # Restore the committed config/app.php placeholder (see the
+          # "Preserve committed config/app.php" step above).
+          cp /tmp/app.php.committed config/app.php
           mkdir -p build
           tar czf "build/${RELEASE_NAME}.tar.gz" \
             --transform "s,^,${RELEASE_NAME}/," \
