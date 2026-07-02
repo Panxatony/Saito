@@ -19,6 +19,7 @@ use Cake\Core\Plugin;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\ORM\TableRegistry;
 use ImageUploader\Model\Table\UploadsTable;
+use Laminas\Diactoros\UploadedFile;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
 
@@ -149,6 +150,37 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->upload($this->file);
 
         $this->assertEquals($count, $Uploads->find()->count());
+    }
+
+    /**
+     * An image whose pixel resolution exceeds the configured cap is rejected
+     * before anything decodes it (decompression-bomb guard). The cap is
+     * lowered here so the test doesn't need to allocate a real multi-megapixel
+     * bomb.
+     */
+    public function testAddImageExceedingPixelCapIsRejected()
+    {
+        $this->loginJwt(1);
+        $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
+        $count = $Uploads->find()->count();
+
+        $config = Configure::read('Saito.Settings.uploader');
+        $original = $config->getMaxImagePixels();
+        // A 10x10 image is 100 px; cap it below that.
+        $config->setMaxImagePixels(50);
+
+        $this->file = TMP . 'oversized.png';
+        $im = imagecreatetruecolor(10, 10);
+        imagepng($im, $this->file);
+        imagedestroy($im);
+
+        try {
+            $this->expectException(GenericApiException::class);
+            $this->upload($this->file, 1);
+        } finally {
+            $config->setMaxImagePixels($original);
+            $this->assertEquals($count, $Uploads->find()->count());
+        }
     }
 
     public function testAddMimeTypeConversion()
@@ -382,15 +414,19 @@ class UploadsControllerTest extends IntegrationTestCase
      */
     private function upload(string $filePath, $userId = 1)
     {
+        // Deliver the upload the way the PSR-7 layer does for a real multipart
+        // request: as an UploadedFileInterface object, not a raw array (raw
+        // arrays are now rejected as forged uploads — see RequestUpload).
         $data = [
             'upload' => [
                 0 => [
-                    'file' => [
-                        'tmp_name' => $filePath,
-                        'name' => pathinfo($filePath, PATHINFO_FILENAME) . '.' . pathinfo($filePath, PATHINFO_EXTENSION),
-                        'size' => filesize($filePath),
-                        'type' => mime_content_type($filePath),
-                    ],
+                    'file' => new UploadedFile(
+                        $filePath,
+                        filesize($filePath),
+                        UPLOAD_ERR_OK,
+                        pathinfo($filePath, PATHINFO_FILENAME) . '.' . pathinfo($filePath, PATHINFO_EXTENSION),
+                        mime_content_type($filePath),
+                    ),
                 ],
             ],
         ];

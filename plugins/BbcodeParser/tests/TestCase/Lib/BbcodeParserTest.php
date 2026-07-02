@@ -864,6 +864,96 @@ EOF;
     }
 
     /**
+     * SECURITY: a top-level [img] wraps the image in a link. A javascript:
+     * URL must not survive into the href (click-to-XSS).
+     *
+     * @return void
+     */
+    public function testImageWithJavascriptSchemeIsRejected()
+    {
+        $result = $this->_Parser->parse('[img]javascript:alert(document.cookie)[/img]');
+        // Blocked -> no anchor and no "…script:" href survives. ("script:"
+        // also matches the tab/newline-obfuscated variants below.)
+        $this->assertStringNotContainsStringIgnoringCase('script:', $result);
+        $this->assertStringNotContainsString('<a ', $result);
+    }
+
+    /**
+     * SECURITY: the javascript:/data: blocklist must not be bypassable by
+     * hiding a tab or newline inside the scheme ("jav<TAB>ascript:"), which
+     * browsers strip before executing the URL.
+     *
+     * @return void
+     */
+    public function testUrlWithObfuscatedJavascriptSchemeIsRejected()
+    {
+        foreach (["jav\tascript:alert(1)", "java\nscript:alert(1)", "java\rscript:alert(1)"] as $payload) {
+            $result = $this->_Parser->parse('[url]' . $payload . '[/url]');
+            $msg = sprintf('payload %s leaked into output', json_encode($payload));
+            // "script:" survives the embedded tab/newline; a blocked URL
+            // emits no anchor at all.
+            $this->assertStringNotContainsStringIgnoringCase('script:', $result, $msg);
+            $this->assertStringNotContainsString('<a ', $result, $msg);
+        }
+    }
+
+    /**
+     * SECURITY: the plain javascript: scheme stays blocked in [url].
+     *
+     * @return void
+     */
+    public function testUrlWithJavascriptSchemeIsRejected()
+    {
+        $result = $this->_Parser->parse('[url]javascript:alert(1)[/url]');
+        $this->assertStringNotContainsStringIgnoringCase('javascript:', $result);
+        $this->assertStringNotContainsString('<a ', $result);
+    }
+
+    /**
+     * The email autolink regex was linearized to remove a nested quantifier
+     * (ReDoS). A bare multi-label email must still autolink.
+     *
+     * @return void
+     */
+    public function testAutolinkEmailWithHardenedPattern()
+    {
+        $MO = $this->getMockBuilder(MailObfuscatorHelper::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['link'])
+            ->getMock();
+        $MO->expects($this->once())
+            ->method('link')
+            ->with('user@sub.domain.co.uk', null);
+        $this->_Helper->MailObfuscator = $MO;
+
+        $this->_Parser->parse('mail me at user@sub.domain.co.uk please');
+    }
+
+    /**
+     * ReDoS guard: inputs crafted against the old nested-quantifier autolink
+     * patterns must parse quickly. (PCRE's backtrack_limit is the ultimate
+     * backstop, but the linearized patterns avoid burning CPU up to it.)
+     *
+     * @return void
+     */
+    public function testAutolinkIsNotReDoSVulnerable()
+    {
+        $payloads = [
+            'x@' . str_repeat('a.', 60),
+            'http://' . str_repeat('a', 8000) . ' end',
+        ];
+        foreach ($payloads as $payload) {
+            $start = microtime(true);
+            $this->_Parser->parse($payload);
+            $this->assertLessThan(
+                2.0,
+                microtime(true) - $start,
+                'autolink took too long -> possible ReDoS',
+            );
+        }
+    }
+
+    /**
      * test scaling with 1 parameter
      */
     public function testExternalImageAbsoluteAutoLinkedScaledByOne()

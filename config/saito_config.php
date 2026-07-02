@@ -131,6 +131,12 @@ $config['Saito']['Settings']['uploader'] = (new UploaderConfig())
      */
     ->setImageCompressionQuality(92)
     /**
+     * Max allowed image resolution in pixels (width * height). Rejects
+     * "decompression bomb" images that are small on disk but huge when
+     * decoded. 40 MP covers ordinary camera/phone photos.
+     */
+    ->setMaxImagePixels(40000000)
+    /**
      * Allowed mime/types
      */
     ->addType('audio/mpeg')

@@ -10,6 +10,7 @@ use Cake\Event\EventManager;
 use Cake\Http\Cookie\CookieCollection;
 use Cake\Mailer\Message;
 use Cake\ORM\TableRegistry;
+use Laminas\Diactoros\UploadedFile;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
 use Saito\User\Permission\ResourceAC;
@@ -1355,13 +1356,13 @@ class UsersControllerTest extends IntegrationTestCase
             file_put_contents($testFile, $imageData);
 
             $data = [
-                'avatar' => [
-                    'tmp_name' => $testFile,
-                    'error' => 0,
-                    'name' => 'test.png',
-                    'type' => 'image/png',
-                    'size' => strlen($imageData),
-                ],
+                'avatar' => new UploadedFile(
+                    $testFile,
+                    strlen($imageData),
+                    UPLOAD_ERR_OK,
+                    'test.png',
+                    'image/png',
+                ),
                 'avatarDelete' => null,
             ];
 
@@ -1419,12 +1420,13 @@ class UsersControllerTest extends IntegrationTestCase
         file_put_contents($testFile, $imageData);
 
         $data = [
-            'avatar' => [
-                'tmp_name' => $testFile,
-                'error' => 0,
-                'name' => 'test.png',
-                'type' => 'image/png',
-            ],
+            'avatar' => new UploadedFile(
+                $testFile,
+                filesize($testFile),
+                UPLOAD_ERR_OK,
+                'test.png',
+                'image/png',
+            ),
             'avatarDelete' => null,
         ];
 
@@ -1454,12 +1456,13 @@ class UsersControllerTest extends IntegrationTestCase
         file_put_contents($testFile, $imageData);
 
         $data = [
-            'avatar' => [
-                'tmp_name' => $testFile,
-                'error' => 0,
-                'name' => 'test.png',
-                'type' => 'image/png',
-            ],
+            'avatar' => new UploadedFile(
+                $testFile,
+                filesize($testFile),
+                UPLOAD_ERR_OK,
+                'test.png',
+                'image/png',
+            ),
             'avatarDelete' => null,
         ];
 
@@ -1489,12 +1492,13 @@ class UsersControllerTest extends IntegrationTestCase
         file_put_contents($testFile, $imageData);
 
         $data = [
-            'avatar' => [
-                'tmp_name' => $testFile,
-                'error' => 0,
-                'name' => 'test.mp4',
-                'type' => 'image/png',
-            ],
+            'avatar' => new UploadedFile(
+                $testFile,
+                filesize($testFile),
+                UPLOAD_ERR_OK,
+                'test.mp4',
+                'image/png',
+            ),
             'avatarDelete' => null,
         ];
 

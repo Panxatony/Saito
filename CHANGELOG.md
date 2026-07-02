@@ -9,6 +9,21 @@
 
 - Unreleased changes go here.
 
+## [7.0.5] - 2026-07-02
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.4...7.0.5)
+
+### Changes
+
+#### Security
+
+- ✓ Fixes arbitrary file read via a forged upload `tmp_name`: image and avatar uploads accepted a client-supplied file path, letting an authenticated member copy any server-readable file into the public uploads directory (and retrieve it) — only genuine PSR-7 uploads are now accepted
+- ✓ Fixes an image "decompression bomb" denial-of-service: uploads are rejected above a pixel-resolution cap (default 40 MP) using a header-only check, before the image is ever decoded — mirroring the existing avatar limit
+- ✓ Fixes stored XSS via `[img]javascript:…`: a top-level image wrapped its URL in a link whose `href` was not scheme-validated
+- ✓ Fixes the `javascript:`/`data:` URL blocklist being bypassable by hiding a tab or newline inside the scheme (`jav<TAB>ascript:`), which browsers strip before executing the URL
+- ✓ Hardens the `Saito-JWT` bearer-token cookie (and the `lastRefresh`/`Saito-Read` cookies) with the `Secure` and `SameSite=Lax` flags
+- ✓ Hardens the URL and e-mail autolink patterns against regular-expression denial-of-service (ReDoS)
+
 ## [7.0.4] - 2026-06-30
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.2...7.0.4)
