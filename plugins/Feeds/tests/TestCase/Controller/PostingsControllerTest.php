@@ -65,6 +65,24 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertResponseNotContains('>22_testimage.jpg<');
     }
 
+    public function testSiteRelativeUrlsAreAbsolutizedInFeed()
+    {
+        // A feed reader has no site to resolve root-relative URLs against, so
+        // smilies / internal links / relative images must be made absolute.
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
+        $Entries->updateAll(
+            ['text' => '[img]/pics/foo.png[/img]'],
+            ['id' => 1]
+        );
+
+        $this->get('/feeds/postings/new.rss');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('http://localhost/pics/foo.png');
+        $this->assertResponseNotContains('src="/pics/foo.png"');
+        $this->assertResponseNotContains('href="/pics/foo.png"');
+    }
+
     public function testThreads()
     {
         $this->get('/feeds/postings/threads.rss');
