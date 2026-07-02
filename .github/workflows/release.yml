@@ -1,0 +1,199 @@
+name: Release
+
+# Tag-driven releases (mirrors the GitLab CI release pipeline). Push a version
+# tag on main — e.g. `git tag 7.0.6 && git push github 7.0.6` — to run the
+# tests, build the deployable tarball and publish a GitHub Release with the
+# tarball + checksum as assets.
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
+
+# Only first-party actions (actions/*) plus the pre-installed `gh` CLI are
+# used, so there is no third-party action in the supply chain.
+permissions:
+  contents: read
+
+jobs:
+  # --------------------------------------------------------------------
+  # Run the PHPUnit suite against MariaDB before building a release.
+  # --------------------------------------------------------------------
+  test:
+    runs-on: ubuntu-latest
+    container: php:8.4-cli
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: saito_test
+          MARIADB_USER: saito
+          MARIADB_PASSWORD: saito
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DATABASE_TEST_URL: "mysql://saito:saito@mariadb/saito_test?encoding=utf8mb4&timezone=UTC"
+      COMPOSER_ALLOW_SUPERUSER: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system + PHP extensions
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends \
+            git zip unzip libicu-dev libpng-dev libjpeg-dev libwebp-dev \
+            libonig-dev default-mysql-client
+          docker-php-ext-configure gd --with-jpeg --with-webp
+          docker-php-ext-install -j"$(nproc)" pdo_mysql gd intl mbstring exif
+          curl -sS https://getcomposer.org/installer | php -- \
+            --install-dir=/usr/local/bin --filename=composer
+
+      - name: composer install
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      - name: Wait for MariaDB
+        run: until mysql -h mariadb -u saito -psaito saito_test -e "SELECT 1" >/dev/null 2>&1; do sleep 1; done
+
+      - name: PHPUnit
+        run: vendor/bin/phpunit --colors=never
+
+  # --------------------------------------------------------------------
+  # Build the deployable tarball (PHP prod deps + compiled frontend
+  # assets) and its checksum. Blocks on a dependency CVE (composer audit).
+  # --------------------------------------------------------------------
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    container: php:8.4-cli
+    env:
+      COMPOSER_ALLOW_SUPERUSER: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system + PHP extensions
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends \
+            git zip unzip ca-certificates curl gnupg \
+            libicu-dev libpng-dev libjpeg-dev libwebp-dev libonig-dev
+          docker-php-ext-configure gd --with-jpeg --with-webp
+          docker-php-ext-install -j"$(nproc)" pdo_mysql gd intl mbstring exif
+          curl -sS https://getcomposer.org/installer | php -- \
+            --install-dir=/usr/local/bin --filename=composer
+
+      - name: Security gate — known CVEs in dependencies
+        run: composer audit
+
+      - name: composer install (production only)
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      - name: Build frontend assets (Node 20 + yarn + grunt)
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs
+          npm install -g --silent yarn grunt-cli
+          yarn install --frozen-lockfile --non-interactive
+          # Webpack 4 uses OpenSSL's MD4, disabled by OpenSSL 3 (Node 17+);
+          # the legacy provider re-enables it just for this build.
+          NODE_OPTIONS=--openssl-legacy-provider grunt release
+
+      - name: Package tarball
+        run: |
+          set -eu
+          RELEASE_NAME="saito-${GITHUB_REF_NAME}"
+          # composer post-install rewrites the __SALT__ placeholders in
+          # config/app.php; restore the committed placeholder so the installer
+          # regenerates a fresh salt on the first deploy.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git checkout HEAD -- config/app.php
+          mkdir -p build
+          tar czf "build/${RELEASE_NAME}.tar.gz" \
+            --transform "s,^,${RELEASE_NAME}/," \
+            --exclude='./.git' \
+            --exclude='./.github' \
+            --exclude='./.gitlab-ci.yml' \
+            --exclude='./.gitignore' \
+            --exclude='./.phpunit.result.cache' \
+            --exclude='./build' \
+            --exclude='./dev' \
+            --exclude='./docs' \
+            --exclude='./frontend' \
+            --exclude='./node_modules' \
+            --exclude='./logs' \
+            --exclude='./tmp' \
+            --exclude='./tests' \
+            --exclude='./pipeline-failed.log' \
+            --exclude='./Gruntfile.js' \
+            --exclude='./karma.conf.js' \
+            --exclude='./package.json' \
+            --exclude='./phpcs.xml.dist' \
+            --exclude='./phpstan.neon' \
+            --exclude='./phpunit.xml.dist' \
+            --exclude='./tsconfig.json' \
+            --exclude='./tslint.json' \
+            --exclude='./webpack.config.js' \
+            --exclude='./yarn.lock' \
+            --exclude='./build.xml' \
+            --exclude='*/tests' \
+            .
+          sha256sum "build/${RELEASE_NAME}.tar.gz" > "build/${RELEASE_NAME}.tar.gz.sha256"
+          ls -lh build/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-tarball
+          path: build/saito-*
+          retention-days: 30
+
+  # --------------------------------------------------------------------
+  # Publish the GitHub Release with the tarball + checksum as assets and
+  # the matching CHANGELOG section as release notes.
+  # --------------------------------------------------------------------
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-tarball
+          path: build
+
+      - name: Extract CHANGELOG section for this version
+        run: |
+          set -eu
+          VERSION="${GITHUB_REF_NAME}"
+          # Pull the "## [<version>] …" block (up to the next "## [") out of the
+          # CHANGELOG; fall back to a generic note if the section is missing.
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" {grab=1; print; next}
+            grab && /^## \[/ {exit}
+            grab {print}
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "Saito ${VERSION}" > release-notes.md
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -eu
+          PRERELEASE=""
+          case "$VERSION" in
+            *-*) PRERELEASE="--prerelease" ;;
+          esac
+          gh release create "$VERSION" \
+            build/saito-*.tar.gz \
+            build/saito-*.tar.gz.sha256 \
+            --title "Saito ${VERSION}" \
+            --notes-file release-notes.md \
+            $PRERELEASE
