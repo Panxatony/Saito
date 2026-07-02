@@ -31,6 +31,18 @@ class SaitoEmailContact implements ContactInterface
     ];
 
     /**
+     * Whether $contact refers to a predefined, forum-owned system address
+     * (e.g. 'system', 'register') rather than a member or an arbitrary address.
+     *
+     * @param mixed $contact contact identifier
+     * @return bool
+     */
+    public static function isPredefined(mixed $contact): bool
+    {
+        return is_string($contact) && isset(static::$systemContacts[$contact]);
+    }
+
+    /**
      * Constructor.
      *
      * @param string|int|array $contact contact

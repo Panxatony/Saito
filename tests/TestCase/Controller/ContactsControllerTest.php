@@ -47,19 +47,22 @@ class ContactsControllerTest extends IntegrationTestCase
                     );
                     $this->assertEmpty($email->getSender());
                 } else {
-                    // main mail
+                    // main mail: From is the forum address (deliverability),
+                    // the original sender is carried in Reply-To.
                     $this->assertEquals(
                         $email->getFrom(),
+                        ['system@example.com' => 'macnemo']
+                    );
+                    $this->assertEquals(
+                        $email->getReplyTo(),
                         ['fo3@example.com' => 'fo3@example.com']
                     );
                     $this->assertEquals(
                         $email->getTo(),
                         ['contact@example.com' => 'macnemo']
                     );
-                    $this->assertEquals(
-                        $email->getSender(),
-                        ['system@example.com' => 'macnemo']
-                    );
+                    // From already equals the system sender: no envelope Sender.
+                    $this->assertEmpty($email->getSender());
                 }
                 $callCount++;
                 return [];
@@ -133,18 +136,20 @@ class ContactsControllerTest extends IntegrationTestCase
             ->with(
                 $this->callback(
                     function (Message $email) {
+                        // From = forum address; sender in Reply-To.
                         $this->assertEquals(
                             $email->getFrom(),
+                            ['system@example.com' => 'macnemo']
+                        );
+                        $this->assertEquals(
+                            $email->getReplyTo(),
                             ['fo3@example.com' => 'fo3@example.com']
                         );
                         $this->assertEquals(
                             $email->getTo(),
                             ['contact@example.com' => 'macnemo']
                         );
-                        $this->assertEquals(
-                            $email->getSender(),
-                            ['system@example.com' => 'macnemo']
-                        );
+                        $this->assertEmpty($email->getSender());
                         $this->assertStringContainsString(
                             'message-text',
                             $email->getBodyText()
@@ -180,18 +185,21 @@ class ContactsControllerTest extends IntegrationTestCase
             ->with(
                 $this->callback(
                     function (Message $email) {
+                        // From = forum address; the logged-in sender is in
+                        // Reply-To so the owner can reply to the member.
                         $this->assertEquals(
                             $email->getFrom(),
+                            ['system@example.com' => 'macnemo']
+                        );
+                        $this->assertEquals(
+                            $email->getReplyTo(),
                             ['ulysses@example.com' => 'Ulysses']
                         );
                         $this->assertEquals(
                             $email->getTo(),
                             ['contact@example.com' => 'macnemo']
                         );
-                        $this->assertEquals(
-                            $email->getSender(),
-                            ['system@example.com' => 'macnemo']
-                        );
+                        $this->assertEmpty($email->getSender());
 
                         return true;
                     }
