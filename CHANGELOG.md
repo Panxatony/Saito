@@ -9,6 +9,27 @@
 
 - Unreleased changes go here.
 
+## [7.0.6] - 2026-07-02
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.5...7.0.6)
+
+### Changes
+
+- ✓ Fixes uploaded images not showing in RSS readers: the feed body was rendered in text mode, which collapsed an uploaded `[img]` to its bare filename; it is now rendered as HTML with a full-base `/useruploads/` URL
+- ✓ Fixes contact-form mail not arriving: the mail was sent `From` the sender's own address (a member's or visitor's external mailbox), which failed SPF/DMARC and was silently spam-filtered; it is now sent `From` the forum address with the sender in `Reply-To`
+
+#### Security
+
+- ✓ No longer accepts the API JWT via a `?token=` query parameter (bearer tokens in URLs leak into logs, history and `Referer` headers)
+- ✓ Throttles failed logins per client (brute-force / credential-stuffing protection)
+- ✓ Enforces the user-list sort allow-list (the `sortWhitelist` paginate option was renamed to `sortableFields` in CakePHP 5 and had silently become a no-op)
+- ✓ Hardens the CommonMark renderer (escape raw HTML, drop unsafe link schemes)
+- ✓ Validates the field name in `AppTable::increment()` against the table's real columns before it is used in raw SQL
+
+#### CI
+
+- ＋ Adds a tag-driven GitHub Actions release pipeline (test → build tarball → publish a GitHub Release with the tarball + checksum)
+
 ## [7.0.5] - 2026-07-02
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.4...7.0.5)
