@@ -42,6 +42,33 @@ trait UrlParserTrait
     }
 
     /**
+     * Checks whether a URL uses a scheme that is safe to emit in an href/src.
+     *
+     * Browsers strip ASCII tab and newline characters from a URL before they
+     * resolve its scheme, so "jav&#9;ascript:…" is read as "javascript:…".
+     * The same normalization must be applied before parsing the scheme,
+     * otherwise parse_url() reports a mangled/empty scheme and the
+     * javascript:/data:/vbscript: blocklist is silently bypassed. An empty
+     * scheme (a relative URL) is allowed.
+     *
+     * @param string $url URL as delivered by JBBCode (may be HTML-encoded)
+     * @return bool true if the scheme is http/https/ftp or the URL is relative
+     */
+    protected function _hasSafeUrlScheme(string $url): bool
+    {
+        // Decode HTML entities (incl. HTML5 named refs) first: JBBCode
+        // pre-encodes attribute values, and browsers decode them too.
+        $rawUrl = html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Remove the characters a browser strips from a URL (tab, LF, CR)
+        // anywhere, plus any leading C0 control characters or spaces.
+        $rawUrl = (string)preg_replace('/[\x09\x0a\x0d]+/', '', $rawUrl);
+        $rawUrl = (string)preg_replace('/^[\x00-\x20]+/', '', $rawUrl);
+        $scheme = strtolower((string)parse_url($rawUrl, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https', 'ftp', ''], true);
+    }
+
+    /**
      * Generate email link
      *
      * @param string $url address
@@ -83,11 +110,9 @@ trait UrlParserTrait
             }
         }
 
-        // Block dangerous URL schemes (javascript:, data:, vbscript:, etc.)
-        // Decode HTML entities first since JBBCode pre-encodes attribute values
-        $rawUrl = html_entity_decode($url, ENT_QUOTES, 'UTF-8');
-        $scheme = strtolower((string)parse_url($rawUrl, PHP_URL_SCHEME));
-        if (!in_array($scheme, ['http', 'https', 'ftp', ''], true)) {
+        // Block dangerous URL schemes (javascript:, data:, vbscript:, etc.),
+        // including tab/newline-obfuscated variants (see _hasSafeUrlScheme()).
+        if (!$this->_hasSafeUrlScheme($url)) {
             return '';
         }
 

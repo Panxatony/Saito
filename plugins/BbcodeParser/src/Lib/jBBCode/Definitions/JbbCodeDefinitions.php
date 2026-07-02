@@ -454,6 +454,14 @@ class Image extends CodeDefinition
         }
 
         $url = $this->_urlToHttps($url);
+
+        // Reject dangerous schemes (javascript:, data:, …). A top-level [img]
+        // wraps the image in a link whose href is this URL, so an unvalidated
+        // "javascript:" URL would be click-to-XSS.
+        if (!$this->_hasSafeUrlScheme($url)) {
+            return '';
+        }
+
         $image = $this->Html->image($url, $options);
 
         if ($node->getParent()->getTagName() === 'Document') {
