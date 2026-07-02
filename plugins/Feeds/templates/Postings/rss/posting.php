@@ -9,7 +9,12 @@ $feed = $this->Feeds->getFeed();
 foreach ($entries as $entry) {
     // Absolute URL (fullBase): RSS item links/guids must be fully-qualified.
     $url = Router::url('/entries/view/' . $entry->get('id'), true);
-    $body = $this->Parser->parse($entry->get('text'), ['return' => 'text']);
+    // Render the body as HTML (delivered as CDATA, see preferCdata below) so
+    // feed readers show embedded images. In text mode jBBCode's getAsText()
+    // strips every tag to its inner text, so an uploaded image
+    // ([img src=upload]<file>[/img]) collapsed to the bare filename. Uploaded
+    // images resolve to a full-base /useruploads/ URL, so they load in a reader.
+    $body = $this->Parser->parse($entry->get('text'), ['return' => 'html']);
     (new Item())
         ->title(html_entity_decode($entry->get('subject'), ENT_NOQUOTES, 'UTF-8'))
         ->description($body)

@@ -310,6 +310,9 @@ msgstr "Login required"
 msgid "user.authe.e.generic"
 msgstr "Name or password are wrong."
 
+msgid "user.authe.throttled"
+msgstr "Too many failed login attempts. Please wait a few minutes and try again."
+
 #: src/Controller/UsersController.php:107 src/Template/Users/index.ctp:51
 #: src/Template/Users/view.ctp:35
 msgid "user.actv.ny"

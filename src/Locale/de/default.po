@@ -323,6 +323,9 @@ msgstr "Authentifizierung nötig"
 msgid "user.authe.e.generic"
 msgstr "Der Name oder das Passwort sind nicht korrekt."
 
+msgid "user.authe.throttled"
+msgstr "Zu viele fehlgeschlagene Anmeldeversuche. Bitte warte ein paar Minuten und versuche es erneut."
+
 #: src/Controller/UsersController.php:107 src/Template/Users/index.ctp:51
 #: src/Template/Users/view.ctp:35
 msgid "user.actv.ny"
