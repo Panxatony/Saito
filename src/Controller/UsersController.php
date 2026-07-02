@@ -14,6 +14,7 @@ namespace App\Controller;
 
 use App\Form\BlockForm;
 use App\Model\Entity\User;
+use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
@@ -74,7 +75,25 @@ class UsersController extends AppController
             return;
         }
 
+        // Brute-force / credential-stuffing throttle: block a client that has
+        // burned through its failed-attempt budget for the current window,
+        // before even trying to authenticate.
+        if ($this->_isLoginThrottled()) {
+            (new ForbiddenLogger())->write(
+                "Throttled login for user: {$data['username']}",
+                ['msgs' => [__('user.authe.throttled')]],
+            );
+            $this->setRequest($this->getRequest()->withData('password', ''));
+            $this->Flash->set(__('user.authe.throttled'), [
+                'element' => 'error',
+                'params' => ['title' => __('user.authe.e.t')],
+            ]);
+
+            return;
+        }
+
         if ($this->AuthUser->login()) {
+            $this->_clearLoginThrottle();
             // Redirect query-param in URL.
             $target = $this->getRequest()->getQuery('redirect');
             // AuthenticationService puts the full local path into the redirect
@@ -104,6 +123,7 @@ class UsersController extends AppController
         }
 
         /// error on login
+        $this->_registerFailedLogin();
         $username = $this->request->getData('username');
         /** @var User */
         $User = $this->Users->find()
@@ -143,6 +163,68 @@ class UsersController extends AppController
         $this->Flash->set($message, [
             'element' => 'error', 'params' => ['title' => __('user.authe.e.t')],
         ]);
+    }
+
+    /** @var int max failed login attempts per client and window */
+    private const LOGIN_MAX_ATTEMPTS = 10;
+
+    /** @var int throttle window in seconds */
+    private const LOGIN_THROTTLE_WINDOW = 900;
+
+    /**
+     * Cache key for the per-client failed-login counter.
+     *
+     * @return string
+     */
+    private function _loginThrottleKey(): string
+    {
+        return 'login-throttle-' . $this->getRequest()->clientIp();
+    }
+
+    /**
+     * Whether the client has exhausted its failed-login budget for the current
+     * window.
+     *
+     * @return bool
+     */
+    private function _isLoginThrottled(): bool
+    {
+        $record = Cache::read($this->_loginThrottleKey());
+        if (!is_array($record)) {
+            return false;
+        }
+        if (time() - $record['first'] >= self::LOGIN_THROTTLE_WINDOW) {
+            return false;
+        }
+
+        return $record['count'] >= self::LOGIN_MAX_ATTEMPTS;
+    }
+
+    /**
+     * Records a failed login attempt for the client (starts a fresh window
+     * once the previous one has elapsed).
+     *
+     * @return void
+     */
+    private function _registerFailedLogin(): void
+    {
+        $key = $this->_loginThrottleKey();
+        $record = Cache::read($key);
+        if (!is_array($record) || (time() - $record['first']) >= self::LOGIN_THROTTLE_WINDOW) {
+            $record = ['count' => 0, 'first' => time()];
+        }
+        $record['count']++;
+        Cache::write($key, $record);
+    }
+
+    /**
+     * Clears the client's failed-login counter after a successful login.
+     *
+     * @return void
+     */
+    private function _clearLoginThrottle(): void
+    {
+        Cache::delete($this->_loginThrottleKey());
     }
 
     /**
@@ -303,7 +385,11 @@ class UsersController extends AppController
 
         $this->paginate = $options = [
             'contain' => ['UserOnline'],
-            'sortWhitelist' => array_keys($menuItems),
+            // `sortableFields` (renamed from the removed `sortWhitelist` in
+            // CakePHP 5) restricts sorting to these columns — otherwise a user
+            // could sort the list by any column, incl. sensitive ones like
+            // `password`/`activate_code`, as an ordering oracle.
+            'sortableFields' => array_keys($menuItems),
             'finder' => 'paginated',
             'limit' => 400,
             'order' => [

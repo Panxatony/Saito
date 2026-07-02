@@ -18,6 +18,7 @@ use Cake\Database\Expression\QueryExpression;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\ORM\Table;
+use InvalidArgumentException;
 use Saito\Event\SaitoEventManager;
 
 class AppTable extends Table
@@ -63,7 +64,15 @@ class AppTable extends Table
     public function increment($where, $field, $amount = 1)
     {
         if (!is_int($amount)) {
-            throw new \InvalidArgumentException();
+            throw new InvalidArgumentException();
+        }
+
+        // $field is interpolated into raw SQL below, so it must be a real
+        // column of this table — never untrusted input (defense-in-depth).
+        if (!in_array($field, $this->getSchema()->columns(), true)) {
+            throw new InvalidArgumentException(
+                sprintf('Unknown field "%s".', $field),
+            );
         }
 
         if (is_numeric($where)) {

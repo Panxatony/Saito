@@ -3,6 +3,7 @@
 namespace App\Test\TestCase\Controller;
 
 use Authentication\PasswordHasher\DefaultPasswordHasher;
+use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
@@ -122,6 +123,35 @@ class UsersControllerTest extends IntegrationTestCase
         $Users = TableRegistry::getTableLocator()->get('Users');
         $user = $Users->get(3, fields: 'last_login');
         $this->assertWithinRange($user->get('last_login')->toUnixString(), time(), 2);
+    }
+
+    /**
+     * Brute-force throttle: after too many failed logins from a client, the
+     * next attempt is blocked (before authentication) for the throttle window.
+     *
+     * @return void
+     */
+    public function testLoginThrottledAfterTooManyFailures()
+    {
+        Cache::clear('default');
+        try {
+            $this->mockSecurity();
+            $bad = ['username' => 'Ulysses', 'password' => 'wrong'];
+
+            // Exhaust the failed-attempt budget (LOGIN_MAX_ATTEMPTS = 10).
+            for ($i = 0; $i < 10; $i++) {
+                $this->post('/login', $bad);
+                $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
+            }
+
+            // The next attempt is throttled: blocked before authentication.
+            $this->post('/login', $bad);
+            $this->assertResponseContains('Too many failed login attempts');
+            $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
+        } finally {
+            // Isolate from other login tests (ArrayEngine persists in-process).
+            Cache::clear('default');
+        }
     }
 
     /**

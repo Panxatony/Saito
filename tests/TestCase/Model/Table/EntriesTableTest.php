@@ -5,6 +5,7 @@ namespace App\Test\TestCase\Model\Table;
 use App\Model\Entity\Entry;
 use App\Model\Table\EntriesTable;
 use Cake\Datasource\Exception\RecordNotFoundException;
+use InvalidArgumentException;
 use Saito\Test\Model\Table\SaitoTableTestCase;
 use Saito\User\CurrentUser\CurrentUserFactory;
 
@@ -146,6 +147,21 @@ class EntriesTableTest extends SaitoTableTestCase
     {
         $this->expectException(RecordNotFoundException::class);
         $this->Table->getThreadId(999);
+    }
+
+    public function testIncrementRealField()
+    {
+        $before = $this->Table->get(1)->get('views');
+        $this->Table->increment(1, 'views');
+        $this->assertSame($before + 1, $this->Table->get(1)->get('views'));
+    }
+
+    public function testIncrementRejectsUnknownField()
+    {
+        // $field is interpolated into raw SQL, so a non-column (e.g. an
+        // injection attempt) must be rejected.
+        $this->expectException(InvalidArgumentException::class);
+        $this->Table->increment(1, 'views = views, subject = 0');
     }
 
     public function testTrimSubjectAndText()
