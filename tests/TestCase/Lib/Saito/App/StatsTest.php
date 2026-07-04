@@ -27,14 +27,18 @@ class StatsTest extends SaitoTestCase
 
         $UserOnline->setOnline(1, false);
         $UserOnline->setOnline(2, true);
+        // a bot/crawler is stored with a "bot" uuid prefix (see AuthUserComponent)
+        $UserOnline->setOnline('bot' . str_repeat('a', 8), false);
 
         $Stats = new Stats();
 
-        $this->assertEquals(2, $Stats->getNumberOfUsersOnline());
+        $this->assertEquals(3, $Stats->getNumberOfUsersOnline());
         $this->assertEquals(11, $Stats->getNumberOfRegisteredUsers());
         $this->assertEquals(15, $Stats->getNumberOfPostings());
         $this->assertEquals(7, $Stats->getNumberOfThreads());
         $this->assertEquals(1, $Stats->getNumberOfRegisteredUsersOnline());
+        // bots are counted separately and excluded from the guest count
+        $this->assertEquals(1, $Stats->getNumberOfBotsOnline());
         $this->assertEquals(1, $Stats->getNumberOfAnonUsersOnline());
     }
 }

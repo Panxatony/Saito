@@ -821,7 +821,7 @@ msgstr "Settings"
 msgid "discl.status"
 msgstr ""
 ":entries entries in :threads threads; :registered members, :loggedin logged-"
-"in, :anon guests."
+"in, :anon guests, :bots bots/crawlers."
 
 #: src/Template/Cell/AppStatus/display.ctp:44
 #, fuzzy
