@@ -83,6 +83,18 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertResponseNotContains('href="/pics/foo.png"');
     }
 
+    public function testUnknownFeedSubpathIsNotRouted()
+    {
+        // A feed reader probing autodiscovery variants (…/new.rss/feed,
+        // …/new.rss/rss) must not fall through to the auth-gated feed action
+        // that 302-redirects to /login (readers misparse the login HTML as the
+        // feed). With no feed route matching, the path resolves to nothing and
+        // raises a 404-class exception instead. (Before the fix this returned a
+        // 302 login redirect and no exception was thrown.)
+        $this->expectException(\Cake\Http\Exception\MissingControllerException::class);
+        $this->get('/feeds/postings/new.rss/feed');
+    }
+
     public function testThreads()
     {
         $this->get('/feeds/postings/threads.rss');
