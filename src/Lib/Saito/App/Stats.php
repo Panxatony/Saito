@@ -76,11 +76,23 @@ class Stats
     {
         $online = $this->_getCached('numberOfUsersOnline');
         $registred = $this->getNumberOfRegisteredUsersOnline();
-        $anon = $online - $registred;
+        $bots = $this->getNumberOfBotsOnline();
+        // guests = everyone online who is neither a registered user nor a bot
+        $anon = $online - $registred - $bots;
         // compensate for cached online
         $anon = ($anon < 0) ? 0 : $anon;
 
         return $anon;
+    }
+
+    /**
+     * Get number of bots/crawlers online
+     *
+     * @return int
+     */
+    public function getNumberOfBotsOnline()
+    {
+        return $this->_getCached('numberOfBotsOnline');
     }
 
     /**
@@ -156,6 +168,13 @@ class Stats
                             ->first();
                         $stats['numberOfUsersOnline'] = $UserOnline
                             ->find()
+                            ->count();
+                        // Bots/crawlers are stored with a "bot" uuid prefix
+                        // (see AuthUserComponent) so they can be counted apart
+                        // from human guests.
+                        $stats['numberOfBotsOnline'] = $UserOnline
+                            ->find()
+                            ->where(['uuid LIKE' => 'bot%'])
                             ->count();
 
                         return $stats;

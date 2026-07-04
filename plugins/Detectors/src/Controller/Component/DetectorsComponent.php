@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Detectors\Controller\Component;
 
 use Cake\Controller\Component;
+use Cake\Core\Configure;
 
 /**
  * Detectors for Saito
@@ -81,6 +82,69 @@ class DetectorsComponent extends Component
         'siteexplorer.info',
         'proximic',
         'changedetection',
+        // AI/LLM crawlers whose UA has no generic "bot"/"crawl" token
+        'anthropic-ai',
+        'cohere-ai',
+        'Google-Extended',
+        'meta-externalagent',
+        'meta-externalfetcher',
+        'omgili',
+        'img2dataset',
+        // HTTP client libraries / scraping tools
+        'Go-http-client',
+        'okhttp',
+        'python-requests',
+        'aiohttp',
+        'axios',
+        'node-fetch',
+        'Guzzle',
+        'PostmanRuntime',
+        'Apache-HttpClient',
+        'Faraday',
+        'undici',
+        'scrapy',
+        'lua-resty-http',
+        'Dart/',
+        // Feed readers (fetch RSS/Atom, cannot solve challenges, not human)
+        'Feedly',
+        'Feedbin',
+        'NewsBlur',
+        'NetNewsWire',
+        'Akregator',
+        'Miniflux',
+        'Inoreader',
+        'FreshRSS',
+        'Liferea',
+        'newsboat',
+        'feedparser',
+        // Link-preview / social unfurlers (facebookexternalhit already via "facebook")
+        'WhatsApp',
+        'SkypeUriPreview',
+        'Pinterest',
+        'vkShare',
+        'Embedly',
+        'Iframely',
+        'Google-InspectionTool',
+        'GoogleOther',
+        // Uptime / performance monitoring
+        'Pingdom',
+        'StatusCake',
+        'Site24x7',
+        'Datadog',
+        'Zabbix',
+        'Nagios',
+        'check_http',
+        'HetrixTools',
+        // Headless browsers / automation (often used for scraping)
+        'HeadlessChrome',
+        'PhantomJS',
+        'Selenium',
+        'Playwright',
+        'puppeteer',
+        // Site auditing / SEO tools
+        'Lighthouse',
+        'GTmetrix',
+        'sistrix',
     ];
 
     protected $_isBot = null;
@@ -111,8 +175,22 @@ class DetectorsComponent extends Component
             if (empty($agent)) {
                 return false;
             }
-            $imploded = implode('|', $this->_bots);
-            $this->_isBot = (bool)preg_match('/' . $imploded . '/i', $agent);
+            $bots = $this->_bots;
+            // An installation can add its own user-agent snippets without
+            // patching core, e.g. in config/app_local.php:
+            //   'Saito' => ['bots' => ['MyCustomAgent', 'another-bot']]
+            $additional = Configure::read('Saito.bots');
+            if (is_array($additional)) {
+                $bots = array_merge($bots, $additional);
+            }
+            // The snippets are literal substrings; quote them so a regex
+            // metacharacter (especially in a config-supplied value) can't break
+            // the pattern or match unintentionally.
+            $pattern = implode('|', array_map(
+                fn(string $bot): string => preg_quote($bot, '/'),
+                $bots
+            ));
+            $this->_isBot = (bool)preg_match('/' . $pattern . '/i', $agent);
         }
 
         return $this->_isBot;

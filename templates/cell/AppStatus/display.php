@@ -32,6 +32,7 @@ use Cake\Utility\Text;
             ),
             'loggedin' => $loggedin,
             'anon' => $Stats->getNumberOfAnonUsersOnline(),
+            'bots' => $Stats->getNumberOfBotsOnline(),
         ]
     );
 

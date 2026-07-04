@@ -23,6 +23,7 @@ use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\Http\Exception\ForbiddenException;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Security;
 use DateTimeImmutable;
 use Firebase\JWT\JWT;
 use Saito\Exception\SaitoForbiddenException;
@@ -91,12 +92,20 @@ class AuthUserComponent extends Component
         $UsersTable = TableRegistry::getTableLocator()->get('Users');
         $this->UsersTable = $UsersTable;
 
+        $controller = $this->getController();
+        $request = $controller->getRequest();
+        // Bots/crawlers and guests are counted per client IP (hashed), not per
+        // session: cookieless clients start a new session on every request,
+        // which massively inflated the online counts. Salted so the raw IP is
+        // not stored.
+        $ipHash = md5(Security::getSalt() . (string)$request->clientIp());
+
         if ($this->isBot()) {
             $CurrentUser = CurrentUserFactory::createDummy();
+            // Track detected bots/crawlers separately (uuid "bot" prefix) so
+            // they can be shown apart from human guests instead of ignored.
+            $this->UsersTable->UserOnline->setOnline('bot' . substr($ipHash, 0, 29), false);
         } else {
-            $controller = $this->getController();
-            $request = $controller->getRequest();
-
             $user = $this->authenticate();
             if (!empty($user)) {
                 $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
@@ -104,7 +113,7 @@ class AuthUserComponent extends Component
                 $isLoggedIn = true;
             } else {
                 $CurrentUser = CurrentUserFactory::createVisitor($controller);
-                $userId = $request->getSession()->id();
+                $userId = $ipHash;
                 $isLoggedIn = false;
             }
 
@@ -133,7 +142,18 @@ class AuthUserComponent extends Component
      */
     public function isBot()
     {
-        return $this->remember('isBot', $this->getController()->getRequest()->is('bot'));
+        // Prefer the Detectors component directly over the request's `is('bot')`
+        // detector: at the time this component runs that detector is not
+        // reliably registered on the request, so `is('bot')` returned false even
+        // for obvious crawlers (bots were then miscounted as guests). Fall back
+        // to `is('bot')` where the Detectors component isn't loaded (e.g. tests).
+        $controller = $this->getController();
+        $registry = $controller->components();
+        $isBot = $registry->has('Detectors')
+            ? $registry->get('Detectors')->isBot()
+            : $controller->getRequest()->is('bot');
+
+        return $this->remember('isBot', $isBot);
     }
 
     /**

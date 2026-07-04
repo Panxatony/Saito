@@ -9,6 +9,18 @@
 
 - Unreleased changes go here.
 
+## [7.0.7] - 2026-07-04
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.6...7.0.7)
+
+### Changes
+
+- ＋ The online-users list now shows bots/crawlers separately from human guests ("… N guests, M bots/crawlers")
+- Δ Counts anonymous guests per client IP instead of per session, so cookieless clients (bots, crawlers, feed readers) that open a new session on every request no longer inflate the guest count
+- ＋ Broadens the built-in bot user-agent list (AI crawlers, HTTP client libraries, feed readers, link-preview fetchers, uptime monitors, headless automation) and makes it extensible per installation via the `Saito.bots` config
+- ✓ Fixes bot detection in the online tracker: it relied on a request detector that is not reliably registered at that point and returned false even for obvious crawlers, so bots were miscounted as guests
+- ✓ Fixes site-relative URLs (smilies, internal links, relative images) in the RSS feed body not being made absolute for feed readers
+
 ## [7.0.6] - 2026-07-02
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.5...7.0.6)

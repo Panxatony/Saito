@@ -81,6 +81,7 @@
       "Bota\\": "./plugins/Bota/src",
       "Commonmark\\": "./plugins/Commonmark/src",
       "Detectors\\": "./plugins/Detectors/src",
+      "Detectors\\Test\\": "./plugins/Detectors/tests",
       "Cron\\": "./plugins/Cron/src",
       "MailObfuscator\\": "./plugins/MailObfuscator/src",
       "Feeds\\": "./plugins/Feeds/src",

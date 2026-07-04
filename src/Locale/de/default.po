@@ -843,7 +843,7 @@ msgstr "Einstellungen"
 msgid "discl.status"
 msgstr ""
 ":entries Beiträge in :threads Themen; :registered Mitglieder, :loggedin "
-"angemeldet, :anon Gäste."
+"angemeldet, :anon Gäste, :bots Bots/Crawler."
 
 #: src/Template/Cell/AppStatus/display.ctp:44
 #, fuzzy
