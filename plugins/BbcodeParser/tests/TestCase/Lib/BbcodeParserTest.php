@@ -1231,16 +1231,19 @@ EOF;
     {
         $input = '[code]text[/code]';
         $result = $this->_Parser->parse($input);
-        $expected = 'lang="text"';
-        $this->assertStringContainsString($expected, $result);
+        // wrapped as a code block; plain text is passed through (escaped)
+        $this->assertStringContainsString('<code class="hl-code">', $result);
+        $this->assertStringContainsString('text', $result);
     }
 
     public function testCodeLangAttribute()
     {
-        $input = '[code=php]text[/code]';
+        // The language attribute drives syntax highlighting: PHP source gets
+        // highlight colours (inline styles), which plain text would not.
+        $input = '[code=php]function foo(){}[/code]';
         $result = $this->_Parser->parse($input);
-        $expected = 'lang="php"';
-        $this->assertStringContainsString($expected, $result);
+        $this->assertStringContainsString('<span style="color:', $result);
+        $this->assertStringContainsString('function', $result);
     }
 
     /**
@@ -1501,7 +1504,6 @@ EOF;
             'webroot' => '',
         ]);
         $this->_Helper = $ParserHelper = new ParserHelper($View);
-        $ParserHelper->beforeRender(null);
 
         //= Smiley Renderer
         $this->_Helper->getView()->set('smiliesData', $SmileyLoader);

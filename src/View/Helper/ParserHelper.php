@@ -14,7 +14,6 @@ namespace App\View\Helper;
 
 use Cake\View\Helper\FormHelper;
 use Cake\View\Helper\HtmlHelper;
-use Geshi\View\Helper\GeshiHelper;
 use SaitoHelp\View\Helper\SaitoHelpHelper;
 use Saito\App\Registry;
 use Saito\Markup\MarkupInterface;
@@ -23,7 +22,6 @@ use Stopwatch\Lib\Stopwatch;
 /**
  * Parser Helper
  *
- * @property GeshiHelper $Geshi
  * @property FormHelper $Form
  * @property HtmlHelper $Html
  * @property SaitoHelpHelper $SaitoHelp
@@ -36,7 +34,6 @@ class ParserHelper extends AppHelper
      */
     public array $helpers = [
         'MailObfuscator.MailObfuscator',
-        'Geshi.Geshi',
         'Form',
         'Html',
         'Text',
@@ -65,16 +62,6 @@ class ParserHelper extends AppHelper
         /** @var MarkupInterface */
         $Markup = Registry::get('Markup');
         $this->Markup = $Markup;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function beforeRender($viewFile)
-    {
-        if (isset($this->request) && $this->request->getParam('action') === 'preview') {
-            $this->Geshi->showPlainTextButton = false;
-        }
     }
 
     /**

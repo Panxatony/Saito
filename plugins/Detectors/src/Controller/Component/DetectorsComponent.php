@@ -105,11 +105,13 @@ class DetectorsComponent extends Component
         'scrapy',
         'lua-resty-http',
         'Dart/',
+        'CFNetwork',
         // Feed readers (fetch RSS/Atom, cannot solve challenges, not human)
         'Feedly',
         'Feedbin',
         'NewsBlur',
         'NetNewsWire',
+        'Reeder',
         'Akregator',
         'Miniflux',
         'Inoreader',

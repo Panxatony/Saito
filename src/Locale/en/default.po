@@ -1620,3 +1620,18 @@ msgstr ""
 #~ "config/email.php.default</code> as template. <a href=\"http://book."
 #~ "cakephp.org/2.0/en/core-utility-libraries/email.html#configuration\">See "
 #~ "also.</a>"
+
+msgid "delete_confirm.title"
+msgstr "Really delete?"
+
+msgid "delete_confirm.warning_thread"
+msgstr "This posting and the entire thread will be permanently deleted."
+
+msgid "delete_confirm.warning_answer"
+msgstr "This posting and all replies below it will be permanently deleted."
+
+msgid "delete_confirm.confirm"
+msgstr "Delete"
+
+msgid "delete_confirm.cancel"
+msgstr "Cancel"

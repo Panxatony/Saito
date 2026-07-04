@@ -11,12 +11,17 @@ declare(strict_types=1);
  */
 
 use Cake\Routing\Router;
-use Cake\Routing\Route\DashedRoute;
 
 $routes->plugin(
     'Feeds',
     function ($routes) {
         $routes->setExtensions(['rss']);
-        $routes->fallbacks(DashedRoute::class);
+        // Only the two real feeds are routed. Without a catch-all fallback,
+        // anything else under /feeds/ — e.g. a reader probing new.rss/feed or
+        // new.rss/rss for autodiscovery — returns a clean 404 instead of
+        // falling through to an auth-gated route that 302-redirects to /login
+        // (which readers misparse as the feed).
+        $routes->connect('/postings/new', ['controller' => 'Postings', 'action' => 'new']);
+        $routes->connect('/postings/threads', ['controller' => 'Postings', 'action' => 'threads']);
     }
 );

@@ -68,7 +68,7 @@ $schemaMeta = [];
                         '{0} edited by {1}',
                         [
                             $this->TimeH->formatTime($entry->get('edited')),
-                            $entry->get('edited_by'),
+                            h($entry->get('edited_by')),
                         ]
                     );
                 }

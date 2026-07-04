@@ -289,7 +289,6 @@ class EntriesController extends AppController
      */
     public function delete(string $id)
     {
-        //$this->request->allowMethod(['post', 'delete']);
         $id = (int)$id;
         if (!$id) {
             throw new NotFoundException();
@@ -302,6 +301,15 @@ class EntriesController extends AppController
             ->permission($action, $posting->get('category_id'));
         if (!$allowed) {
             throw new SaitoForbiddenException();
+        }
+
+        // A bare GET only renders a CSRF-protected confirmation form; the actual
+        // deletion requires POST/DELETE. This stops a lured cross-site GET
+        // (which carries no CSRF/FormProtection token) from destroying content.
+        if (!$this->request->is(['post', 'delete'])) {
+            $this->set('posting', $posting);
+
+            return null;
         }
 
         $success = $this->Entries->deletePosting($id);
