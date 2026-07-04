@@ -157,7 +157,12 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                     'cookieName' => Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF',
                 ]))
                     ->skipCheckCallback(function ($request) {
-                        return strpos($request->getUri()->getPath(), '/api/') !== false;
+                        // Only the JWT-authenticated /api/v2 API is CSRF-exempt.
+                        // A substring match on '/api/' let an attacker append
+                        // '/api/' as trailing pass-args to a session-authed
+                        // route (fallback DashedRoute) and skip CSRF, so this
+                        // must be an anchored prefix, matching the JWT scope.
+                        return str_starts_with($request->getUri()->getPath(), '/api/v2/');
                     })
             )
 
