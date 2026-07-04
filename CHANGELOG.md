@@ -9,6 +9,18 @@
 
 - Unreleased changes go here.
 
+## [7.0.9] - 2026-07-04
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.8...7.0.9)
+
+### Changes
+
+- Δ Deleting a posting now goes through the JWT API (`DELETE /api/v2/postings/<id>`) instead of a GET redirect, so a single confirmation deletes cleanly
+
+#### Security
+
+- ✓ Adds the `DELETE /api/v2/postings/<id>` endpoint with the same two-layer authorization as the web delete (general posting-delete permission + per-category permission), and switches the SPA to it — completing the CSRF hardening of posting deletion begun in 7.0.8
+
 ## [7.0.8] - 2026-07-04
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.7...7.0.8)
