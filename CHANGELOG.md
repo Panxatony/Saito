@@ -9,6 +9,23 @@
 
 - Unreleased changes go here.
 
+## [7.0.8] - 2026-07-04
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.7...7.0.8)
+
+### Changes
+
+- Δ Replaces the abandoned GeSHi syntax highlighter with the maintained `tempest/highlight`; `[code]` blocks are highlighted server-side with self-contained inline styles (no external stylesheet)
+- ✓ Fixes the garbled subject of the contact "copy of your message" mail (a non-ASCII subject was double-encoded into a raw `=?UTF-8?…?=`)
+- ✓ Feed-reader autodiscovery variants (e.g. `…/new.rss/feed`) now return 404 instead of redirecting to the login page
+- ＋ Recognises the Reeder app and CFNetwork clients (and a broader set of feed readers / HTTP libraries) as bots/crawlers in the online list
+
+#### Security
+
+- ✓ Fixes a stored XSS in the posting-edit API: the server-managed `edited_by`/`edited` fields were client-settable and rendered unescaped, allowing an account/forum takeover; they are now server-set and the output is escaped
+- ✓ Requires a POST and a confirmation to delete a posting: deletion was reachable via a plain `GET /entries/delete/<id>` with no CSRF token, so a lured moderator could have a thread destroyed cross-site
+- ✓ Narrows the API CSRF-exemption to the `/api/v2/` prefix (it matched the substring `/api/` anywhere in the path, which a fallback route could exploit)
+
 ## [7.0.7] - 2026-07-04
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.6...7.0.7)
