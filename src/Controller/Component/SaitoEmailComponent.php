@@ -92,7 +92,13 @@ class SaitoEmailComponent extends Component
         /* set new subject */
         $email = clone $email;
         $to = new SaitoEmailContact($email->getTo());
-        $subject = $email->getSubject();
+        // getOriginalSubject(), not getSubject(): the latter returns the already
+        // MIME-encoded header value ("=?UTF-8?…?=" for a non-ASCII subject).
+        // Embedding that inside the copy's quotes yields an encoded-word glued
+        // to a '"', which violates RFC 2047 so mail clients show it raw instead
+        // of the decoded text. Build the copy from the readable subject and let
+        // setSubject() encode the whole header once.
+        $subject = $email->getOriginalSubject();
         $data = ['subject' => $subject, 'recipient-name' => $to->getName()];
         $subject = __('Copy of your message: ":subject" to ":recipient-name"');
         $subject = Text::insert($subject, $data);

@@ -14,8 +14,7 @@
   "config": {
     "discard-changes": true,
     "audit": {
-      "abandoned": "report",
-      "ignore": ["CVE-2025-2123"]
+      "abandoned": "report"
     },
     "allow-plugins": {
       "cakephp/plugin-installer": true,
@@ -32,7 +31,6 @@
 
     "aura/di": "^4.0",
     "jbbcode/jbbcode": "~1.4",
-    "markstory/geshi": "^5",
     "yzalis/identicon": "*",
     "league/commonmark": "^2.8",
     "suin/php-rss-writer": "^1.6",
@@ -42,7 +40,8 @@
     "embed/embed": "^3.3",
     "jeremykendall/php-domain-parser": "^6.3",
     "cakephp/authentication": "^3",
-    "firebase/php-jwt": "^7.0"
+    "firebase/php-jwt": "^7.0",
+    "tempest/highlight": "^2.27"
   },
   "require-dev": {
     "cakephp/bake": "^3",
@@ -107,15 +106,11 @@
     }
   },
   "scripts": {
-    "remove-insecure-vendor-files": "rm -f vendor/geshi/geshi/contrib/cssgen.php",
     "post-install-cmd": [
-      "App\\Console\\Installer::postInstall",
-      "@remove-insecure-vendor-files"
+      "App\\Console\\Installer::postInstall"
     ],
-    "post-update-cmd": "@remove-insecure-vendor-files",
     "post-create-project-cmd": [
-      "App\\Console\\Installer::postInstall",
-      "@remove-insecure-vendor-files"
+      "App\\Console\\Installer::postInstall"
     ],
     "post-autoload-dump": "Cake\\Composer\\Installer\\PluginInstaller::postAutoloadDump",
 

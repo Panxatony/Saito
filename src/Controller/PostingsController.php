@@ -95,7 +95,11 @@ class PostingsController extends ApiAppController
         }
 
         $data = $this->getRequest()->getData();
-        $allowedFields = ['category_id', 'edited', 'edited_by', 'subject', 'text'];
+        // `edited` and `edited_by` are server-set below — they must NOT be
+        // client-supplied. Leaving them in the whitelist let a user pass their
+        // own values (the `+=` union does not overwrite existing keys), which
+        // enabled a stored-XSS payload in edited_by and a forged edit time.
+        $allowedFields = ['category_id', 'subject', 'text'];
         $data = array_intersect_key($data, array_fill_keys($allowedFields, 1));
 
         $data += [

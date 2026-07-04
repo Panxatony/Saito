@@ -250,6 +250,27 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertEquals($newText, $posting->get('text'));
     }
 
+    public function testEditRejectsClientSuppliedEditedByAndEdited()
+    {
+        // Regression: `edited_by` and `edited` are server-set. A client must
+        // not be able to inject them (stored-XSS payload in edited_by, forged
+        // edit time), even when editing their own posting.
+        $this->loginJwt(1);
+        $malicious = '<img src=x onerror=alert(1)>';
+        $this->put('api/v2/postings/2', [
+            'id' => 2,
+            'subject' => 'edited',
+            'text' => 'edited',
+            'edited' => '2099-01-01 00:00:00',
+            'edited_by' => $malicious,
+        ]);
+        $this->assertResponseCode(200);
+
+        $posting = TableRegistry::getTableLocator()->get('Entries')->get(2);
+        $this->assertStringNotContainsString('<img', (string)$posting->get('edited_by'));
+        $this->assertStringNotContainsString('2099', (string)$posting->get('edited'));
+    }
+
     public function testEditFailureNoId()
     {
         $this->loginJwt(1);

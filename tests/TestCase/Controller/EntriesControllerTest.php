@@ -299,6 +299,22 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertEquals(4, $count);
     }
 
+    public function testDeleteGetShowsConfirmationAndDoesNotDelete()
+    {
+        // Regression (CSRF): a bare GET must NOT delete — it renders a
+        // CSRF-protected confirmation form; only POST/DELETE performs the
+        // deletion. A lured cross-site GET therefore destroys nothing.
+        $this->_loginUser(1);
+        $before = $this->Table->postingsForThread(1)->getThread()->count();
+
+        $this->get('/entries/delete/9');
+
+        $this->assertResponseOk();
+        $after = $this->Table->postingsForThread(1)->getThread()->count();
+        $this->assertEquals($before, $after);
+        $this->assertResponseContains('action="/entries/delete/9"');
+    }
+
     public function testDeleteNoAuthorization()
     {
         $this->_loginUser(3);

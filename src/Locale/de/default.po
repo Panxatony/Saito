@@ -2426,3 +2426,18 @@ msgstr "Alle anzeigen"
 
 #~ msgid "lock_linkname"
 #~ msgstr "sperren"
+
+msgid "delete_confirm.title"
+msgstr "Wirklich löschen?"
+
+msgid "delete_confirm.warning_thread"
+msgstr "Dieser Beitrag und der gesamte Thread werden unwiderruflich gelöscht."
+
+msgid "delete_confirm.warning_answer"
+msgstr "Dieser Beitrag und alle Antworten darunter werden unwiderruflich gelöscht."
+
+msgid "delete_confirm.confirm"
+msgstr "Löschen"
+
+msgid "delete_confirm.cancel"
+msgstr "Abbrechen"

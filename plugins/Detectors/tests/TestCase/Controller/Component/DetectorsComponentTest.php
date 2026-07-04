@@ -53,6 +53,14 @@ class DetectorsComponentTest extends TestCase
         $this->assertTrue($this->isBot('Feedly/1.0 (+http://www.feedly.com/fetcher.html)'));
     }
 
+    public function testDetectsAppleAppFetchers(): void
+    {
+        // The Reeder feed reader and the CFNetwork stack that native
+        // macOS/iOS fetchers use — neither carries a bot/crawl/spider token.
+        $this->assertTrue($this->isBot('Reeder/5050102 CFNetwork/3860.600.21 Darwin/25.5.0'));
+        $this->assertTrue($this->isBot('NetSomething/1.0 CFNetwork/1410 Darwin/22.0'));
+    }
+
     public function testDoesNotFlagRegularBrowser(): void
     {
         $chrome = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
