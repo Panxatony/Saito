@@ -275,3 +275,6 @@ msgstr "Letzte Beiträge"
 #, fuzzy
 #~ msgid "answer.load.e.exp"
 #~ msgstr "Es konnte keine Verbindung zum Internet-Server hergestellt werden."
+
+msgid "posting.delete.error"
+msgstr "Der Beitrag konnte nicht gelöscht werden."
