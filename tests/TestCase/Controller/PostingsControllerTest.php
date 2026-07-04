@@ -271,6 +271,27 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertStringNotContainsString('2099', (string)$posting->get('edited'));
     }
 
+    public function testDeleteSuccess()
+    {
+        $this->loginJwt(1);
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
+        $this->assertEquals(1, $Entries->find()->where(['id' => 9])->count());
+
+        $this->delete('api/v2/postings/9');
+
+        $this->assertResponseCode(204);
+        $this->assertEquals(0, $Entries->find()->where(['id' => 9])->count());
+    }
+
+    public function testDeleteForbidden()
+    {
+        // A regular user (no saito.core.posting.delete permission) must not be
+        // able to delete via the API — even their own thread.
+        $this->loginJwt(3);
+        $this->expectException(SaitoForbiddenException::class);
+        $this->delete('api/v2/postings/1');
+    }
+
     public function testEditFailureNoId()
     {
         $this->loginJwt(1);

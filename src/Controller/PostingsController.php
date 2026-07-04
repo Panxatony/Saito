@@ -126,6 +126,47 @@ class PostingsController extends ApiAppController
     }
 
     /**
+     * Delete a posting (a thread-root deletes its whole subtree).
+     *
+     * DELETE /api/v2/postings/<id> — JWT-authenticated, so it needs no CSRF
+     * token and is not FormProtection-gated.
+     *
+     * @param string $id posting-id
+     * @return \Cake\Http\Response
+     */
+    public function delete(string $id)
+    {
+        $id = (int)$id;
+        if (!$id) {
+            throw new BadRequestException('No posting-id provided.');
+        }
+        /** @var Entry $posting */
+        $posting = $this->Entries->get($id);
+        if (!$posting) {
+            throw new NotFoundException('Posting not found.');
+        }
+
+        // Same two-layer authorization as the server-side EntriesController
+        // (beforeFilter authorizeAction + in-action category check): the general
+        // posting-delete permission (moderator/admin), then the per-category
+        // thread/answer permission. Without the first layer any JWT user could
+        // delete via the API.
+        if (!$this->CurrentUser->permission('saito.core.posting.delete')) {
+            throw new SaitoForbiddenException();
+        }
+        $action = $posting->isRoot() ? 'thread' : 'answer';
+        if (!$this->CurrentUser->getCategories()->permission($action, $posting->get('category_id'))) {
+            throw new SaitoForbiddenException();
+        }
+
+        if (!$this->Entries->deletePosting($id)) {
+            throw new BadRequestException('Posting could not be deleted.');
+        }
+
+        return $this->getResponse()->withStatus(204);
+    }
+
+    /**
      * Serves meta information required to add or edit a posting
      *
      * @param string|null $id ID of the posting (send on edit)

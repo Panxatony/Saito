@@ -278,3 +278,6 @@ msgstr "Recent Postings"
 #~ msgstr ""
 #~ "Couldn't reach to the internet server. Check that you're connected and "
 #~ "try again."
+
+msgid "posting.delete.error"
+msgstr "The posting could not be deleted."
