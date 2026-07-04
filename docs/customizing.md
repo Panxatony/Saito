@@ -40,3 +40,17 @@ Theming resources:
 - [Boostrap variables](https://github.com/twbs/bootstrap/blob/v4.3.0/scss/_variables.scss)
 - [SASS documentation](https://sass-lang.com/documentation)
 - [Simple GUI crossplatform SASS processor](https://scout-app.io/)
+
+## Bot detection ##
+
+Saito recognizes non-human clients (search engines, crawlers, HTTP libraries, feed readers, link-preview fetchers, monitors, …) by their `User-Agent`, so they can be handled and counted apart from human visitors (e.g. in the online-users list). A generic list of user-agent snippets ships built-in.
+
+To recognize additional agents on your installation, add snippets via the `Saito.bots` configuration (for example in `config/app_local.php`). They are merged with the built-in list:
+
+```
+'Saito' => [
+    'bots' => ['MyCorpScanner', 'some-other-agent'],
+],
+```
+
+A client is treated as a bot when its `User-Agent` contains any of the snippets (case-insensitive substring match).
