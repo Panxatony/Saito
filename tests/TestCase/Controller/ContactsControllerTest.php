@@ -25,7 +25,8 @@ class ContactsControllerTest extends IntegrationTestCase
         $this->session(['Contact.formLoadTime' => time() - 10]);
         $data = [
             'sender_contact' => 'fo3@example.com',
-            'subject' => 'subject',
+            // non-ASCII subject to exercise MIME header encoding on the copy
+            'subject' => 'Sicherheitslücken in Saito',
             'text' => 'text',
             'cc' => '1',
         ];
@@ -46,6 +47,15 @@ class ContactsControllerTest extends IntegrationTestCase
                         ['fo3@example.com' => 'fo3@example.com']
                     );
                     $this->assertEmpty($email->getSender());
+                    // Regression: the copy embedded the already-MIME-encoded
+                    // subject inside quotes ("=?UTF-8?…?=" glued to a '"'),
+                    // which clients render raw. The copy must be one properly
+                    // encoded header carrying the readable original subject.
+                    $this->assertStringNotContainsString('"=?', $email->getSubject());
+                    $this->assertStringContainsString(
+                        'Sicherheitslücken in Saito',
+                        $email->getOriginalSubject()
+                    );
                 } else {
                     // main mail: From is the forum address (deliverability),
                     // the original sender is carried in Reply-To.
