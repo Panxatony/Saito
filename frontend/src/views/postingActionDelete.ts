@@ -50,8 +50,23 @@ export default class extends View<Model> {
     private _onSubmit(event: Event) {
         event.preventDefault();
         const id = this.model.get('id');
-        const url = App.settings.get('webroot') + 'entries/delete/' + id;
-        window.redirect(url);
+        // Delete via the JWT API (DELETE /api/v2/postings/<id>) instead of a
+        // GET redirect: a GET was CSRF-able. The global ajaxPrefilter adds the
+        // bearer token; the endpoint enforces the delete permission.
+        $.ajax({
+            url: App.settings.get('apiroot') + 'postings/' + id,
+            method: 'DELETE',
+        })
+            .then(() => {
+                ModalDialog.hide();
+                // The posting (and, for a thread-root, the whole thread) is
+                // gone — return to the front page.
+                window.redirect(App.settings.get('webroot'));
+            })
+            .fail(() => {
+                ModalDialog.hide();
+                window.alert($.i18n.__('posting.delete.error'));
+            });
     }
 
     private onBeforeClose() {
