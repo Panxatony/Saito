@@ -8,6 +8,26 @@
 
 import { JsonApiModel } from 'lib/backbone/jsonApi';
 
+/** An editor markup button; `type` selects the concrete button view. */
+interface IEditorButton {
+    type: string;
+    className?: string;
+    title?: string;
+}
+
+/** A category option for the posting's category <select>. */
+interface ICategoryOption {
+    id: number;
+    title: string;
+}
+
+/** A smiley the editor can insert; `icon` is unique per code. */
+interface ISmiley {
+    code: string;
+    icon: string;
+    type?: string;
+}
+
 interface IAnswerMetaData {
     draft?: {
         id: number,
@@ -15,9 +35,9 @@ interface IAnswerMetaData {
         text: string|null,
     };
     editor: {
-        buttons: any[],
-        categories: any[],
-        smilies: any[],
+        buttons: IEditorButton[],
+        categories: ICategoryOption[],
+        smilies: ISmiley[],
     };
     meta: {
         autoselectCategory: boolean,
