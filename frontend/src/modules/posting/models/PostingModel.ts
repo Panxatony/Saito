@@ -30,7 +30,7 @@ class PostingModel extends PostingMdl {
                 if (options && options.success) { (options.success as () => void)(); }
             },
             type: 'POST',
-            url: App.settings.get('webroot') + 'entries/view/' + this.get('id'),
+            url: `${App.settings.get('webroot')}entries/view/${this.get('id')}`,
         });
     }
 
@@ -38,7 +38,7 @@ class PostingModel extends PostingMdl {
         $.ajax({
             dataType: 'json',
             type: 'POST',
-            url: App.settings.get('webroot') + 'entries/solve/' + this.get('id'),
+            url: `${App.settings.get('webroot')}entries/solve/${this.get('id')}`,
         });
     }
 }

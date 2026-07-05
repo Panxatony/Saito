@@ -42,7 +42,7 @@ class ProgressBarVw extends View<Model> {
      * @param value The progress between 0 and 100 percent
      */
     protected onChangeProgress(model: Model, value: number) {
-        this.getUI('bar').css('width', value + '%');
+        this.getUI('bar').css('width', `${value}%`);
     }
 }
 

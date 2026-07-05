@@ -33,11 +33,11 @@ class SlidetabsView extends View<Model> {
         sortable.on('sortupdate', function(event, ui) {
             let slidetabsOrder = $(this).sortable('toArray', { attribute: 'data-id' });
             slidetabsOrder = slidetabsOrder.map((name) => {
-                return 'slidetab_' + name;
+                return `slidetab_${name}`;
             });
             // @todo make model/collection
             $.post(
-                App.settings.get('webroot') + 'users/slidetabOrder',
+                `${App.settings.get('webroot')}users/slidetabOrder`,
                 { slidetabOrder: slidetabsOrder },
             );
         });

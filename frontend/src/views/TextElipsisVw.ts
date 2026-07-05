@@ -25,7 +25,7 @@ class TextElipsisVw extends View<Model> {
             `),
         });
 
-        options.modelEvents['change:' + options.field] = 'render';
+        options.modelEvents[`change:${options.field}`] = 'render';
 
         super(options);
     }

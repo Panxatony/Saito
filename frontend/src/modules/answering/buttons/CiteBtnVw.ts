@@ -41,7 +41,7 @@ export default class CiteBtn extends View<Model> {
             let text = selection ? selection.toString() : '';
 
             if (text !== '') {
-                text = this.model.get('quoteSymbol') + ' ' + text;
+                text = `${this.model.get('quoteSymbol')} ${text}`;
             } else {
                 text = unescapeHTML(this.model.get('text'));
             }

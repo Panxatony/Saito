@@ -118,7 +118,7 @@ class Bootstrap {
             if (xhr.crossDomain) {
                 return;
             }
-            xhr.setRequestHeader('Authorization', 'bearer ' + App.settings.get('jwt'));
+            xhr.setRequestHeader('Authorization', `bearer ${App.settings.get('jwt')}`);
         });
     }
 }

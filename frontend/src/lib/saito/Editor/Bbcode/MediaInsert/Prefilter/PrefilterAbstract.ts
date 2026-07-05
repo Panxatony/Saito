@@ -34,12 +34,12 @@ abstract class PrefilterAbstract implements IPrefilter {
         _.defaults(attr, defaults);
 
         const reducer = (memo: string, value: string, key: string) => {
-            return memo + key + '="' + value + '" ';
+            return `${memo}${key}="${value}" `;
         };
         let attributes = _.reduce(attr, reducer, '');
         attributes = attributes.trim();
 
-        return '<iframe ' + attributes + '></iframe>';
+        return `<iframe ${attributes}></iframe>`;
     }
 }
 

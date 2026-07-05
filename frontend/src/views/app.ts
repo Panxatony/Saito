@@ -154,7 +154,7 @@ class AppView extends View<Model> {
 
         this.listenTo(answeringForm, 'answering:send:success', (model) => {
             const root = App.settings.get('webroot');
-            window.redirect(root + 'entries/view/' + model.get('id'));
+            window.redirect(`${root}entries/view/${model.get('id')}`);
         });
 
         return answeringForm; // testing
@@ -295,7 +295,7 @@ class AppView extends View<Model> {
     }
 
     private scrollToThread(tid: number) {
-        const box = $('.threadBox[data-id=' + tid + ']')[0].scrollIntoView(true);
+        $(`.threadBox[data-id=${tid}]`)[0].scrollIntoView(true);
     }
 
     private showLoginForm(event: JQueryEventObject) {
@@ -314,7 +314,7 @@ class AppView extends View<Model> {
         if (event) {
             event.preventDefault();
         }
-        window.redirect(App.settings.get('webroot') + 'entries/update');
+        window.redirect(`${App.settings.get('webroot')}entries/update`);
     }
 }
 

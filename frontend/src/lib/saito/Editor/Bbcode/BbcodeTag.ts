@@ -65,15 +65,15 @@ class BbcodeTag implements IStringable {
      * Get the whole tag as string
      */
     public toString(): string {
-        let out = '[' + this.params.tag;
+        let out = `[${this.params.tag}`;
         if (this.getAttributes()) {
-            out +=  ' ' + this.getAttributes();
+            out += ` ${this.getAttributes()}`;
         }
         out += ']';
         if (this.getContent()) {
             out += this.getContent();
         }
-        out += '[/' + this.getTag() + ']';
+        out += `[/${this.getTag()}]`;
 
         // Insert whitespace esp. after to not trigger iOS 12/13 autocorrect.
         // @see https://github.com/Schlaefer/Saito/issues/360

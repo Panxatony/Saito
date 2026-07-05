@@ -36,7 +36,7 @@ class PostingRichtextView extends View<Model> {
             const id = element.getAttribute('id') as string;
             const data = $(element).data('embed');
 
-            this.addRegion(id, { el: '#' + id, replaceElement: true });
+            this.addRegion(id, { el: `#${id}`, replaceElement: true });
             const view = new PostingRichtextEmbedView({ model: new PostingRichtextEmbedModel(data) });
             this.showChildView(id, view);
         });

@@ -88,7 +88,7 @@ export default class Marionette extends View<Model> {
         }
 
         const root: string = App.settings.get('webroot');
-        window.redirect(root + 'entries/' + action + '/' + id);
+        window.redirect(`${root}entries/${action}/${id}`);
     }
 
     private onChildviewAnsweringLoadError() {
