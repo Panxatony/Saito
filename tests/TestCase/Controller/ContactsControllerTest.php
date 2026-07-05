@@ -2,8 +2,29 @@
 
 namespace App\Test\TestCase\Controller;
 
+use Cake\Mailer\AbstractTransport;
+use Cake\Mailer\Mailer;
 use Cake\Mailer\Message;
+use Cake\Mailer\TransportFactory;
 use Saito\Test\IntegrationTestCase;
+
+/**
+ * Records the recipient of every message it is asked to send. Unlike a PHPUnit
+ * mock it snapshots the real `To` at send time, so it detects a mail whose
+ * address was mutated by a shared Message.
+ */
+class RecordingMailTransport extends AbstractTransport
+{
+    /** @var array<int, string> recipient email of each sent message, in order */
+    public static array $recipients = [];
+
+    public function send(Message $message): array
+    {
+        self::$recipients[] = (string)array_key_first($message->getTo());
+
+        return [];
+    }
+}
 
 class ContactsControllerTest extends IntegrationTestCase
 {
@@ -18,6 +39,35 @@ class ContactsControllerTest extends IntegrationTestCase
         'app.UserRead',
         'app.Setting',
     ];
+
+    public function testCcCopyDoesNotHijackTheMainMailRecipient()
+    {
+        // Regression: the cc copy was a shallow `clone` of the Mailer sharing
+        // its Message object, so setting the copy's To mutated the main mail
+        // too — the recipient's message was delivered to the sender instead.
+        // Uses a real recording transport (snapshots the actual To at send
+        // time), which a PHPUnit mock of the transport fails to catch.
+        RecordingMailTransport::$recipients = [];
+        TransportFactory::drop('saito');
+        TransportFactory::setConfig('saito', ['className' => RecordingMailTransport::class]);
+        Mailer::drop('saito');
+        Mailer::setConfig('saito', ['transport' => 'saito', 'from' => 'system@example.com']);
+
+        $this->mockSecurity();
+        $this->session(['Contact.formLoadTime' => time() - 10]);
+        $this->post('/contacts/owner', [
+            'sender_contact' => 'fo3@example.com',
+            'subject' => 'subject',
+            'text' => 'text',
+            'cc' => '1',
+        ]);
+
+        $recipients = RecordingMailTransport::$recipients;
+        // The main mail must reach the recipient (the forum owner)…
+        $this->assertContains('contact@example.com', $recipients, 'Main mail did not reach the recipient.');
+        // …and the cc copy the sender.
+        $this->assertContains('fo3@example.com', $recipients, 'The cc copy did not reach the sender.');
+    }
 
     public function testContactEmailSuccessWithCc()
     {
