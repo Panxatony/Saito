@@ -113,7 +113,7 @@ class SitemapEntries extends SitemapGenerator
             }
             $urls[] = [
                     'loc' => 'entries/view/' . $entry['id'],
-                    'lastmod' => Date('c', $lastmod),
+                    'lastmod' => date('c', $lastmod),
                     'changefreq' => $changefreq,
             ];
         }
