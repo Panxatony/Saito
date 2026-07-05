@@ -11,9 +11,6 @@ $this->set('titleForPage', $title);
         <?= $this->Layout->panelHeading($title) ?>
     </div>
     <div class="card-body panel-content richtext">
-        <?= $this->Html->nestedList([
-            $this->Html->link(__d('feeds', 'postings.new.t'), '/feeds/postings/new.rss'),
-            $this->Html->link(__d('feeds', 'threads.new.t'), '/feeds/postings/threads.rss'),
-        ]); ?>
+        <?= $this->cell('Feeds.FeedLinks', [$CurrentUser]) ?>
     </div>
 </div>

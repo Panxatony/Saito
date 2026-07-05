@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Feeds\Test\TestCase\Controller;
 
 use Cake\ORM\TableRegistry;
+use Feeds\Auth\FeedToken;
 use Saito\Test\IntegrationTestCase;
 
 class PostingsControllerTest extends IntegrationTestCase
@@ -93,6 +94,82 @@ class PostingsControllerTest extends IntegrationTestCase
         // 302 login redirect and no exception was thrown.)
         $this->expectException(\Cake\Http\Exception\MissingControllerException::class);
         $this->get('/feeds/postings/new.rss/feed');
+    }
+
+    /**
+     * Build the personal feed token for a fixture user.
+     */
+    private function feedToken(int $userId): string
+    {
+        $user = TableRegistry::getTableLocator()->get('Users')
+            ->find()->select(['id', 'password'])->where(['Users.id' => $userId])->first();
+
+        return FeedToken::build($userId, (string)$user->get('password'));
+    }
+
+    /**
+     * Category-ids present in the rendered feed's `entries` view variable.
+     */
+    private function feedCategoryIds(): array
+    {
+        return $this->viewVariable('entries')->all()->extract('category_id')->toList();
+    }
+
+    public function testAnonymousFeedShowsOnlyPublicCategories()
+    {
+        // Baseline: without a token a guest only sees public categories
+        // (accession 0). Category 4 (accession 1) must be absent.
+        $this->get('/feeds/postings/new.rss');
+        $this->assertResponseOk();
+        $this->assertNotContains(4, $this->feedCategoryIds());
+    }
+
+    public function testValidTokenUnlocksNonPublicCategories()
+    {
+        // User 3 (Ulysses, a regular user) may read category 4 (accession 1),
+        // which a guest cannot. Their signed feed token must unlock it.
+        $this->get('/feeds/f/' . $this->feedToken(3) . '/postings/new.rss');
+        $this->assertResponseOk();
+        $this->assertContains(4, $this->feedCategoryIds());
+    }
+
+    public function testValidTokenAuthenticatesEvenForBotClient()
+    {
+        // Feed readers (curl, Reeder, CFNetwork, HTTP libraries) are on the bot
+        // list. A bot must still be authenticated by its personal feed token —
+        // otherwise the bot short-circuit in AuthUserComponent would serve it
+        // only the public feed and personalized feeds would never work in a
+        // real reader.
+        $this->configRequest(['headers' => ['User-Agent' => 'curl/8.7.1']]);
+        $this->get('/feeds/f/' . $this->feedToken(3) . '/postings/new.rss');
+        $this->assertResponseOk();
+        $this->assertContains(4, $this->feedCategoryIds());
+    }
+
+    public function testBotWithoutTokenStillGetsOnlyPublicFeed()
+    {
+        // The bot classification must still apply when there is no valid token:
+        // a crawler sees only public categories.
+        $this->configRequest(['headers' => ['User-Agent' => 'curl/8.7.1']]);
+        $this->get('/feeds/postings/new.rss');
+        $this->assertResponseOk();
+        $this->assertNotContains(4, $this->feedCategoryIds());
+    }
+
+    public function testTamperedTokenFallsBackToPublicFeed()
+    {
+        // A forged signature must not unlock non-public categories: the request
+        // falls through to the public (guest) feed instead of being rejected.
+        $this->get('/feeds/f/3-' . str_repeat('0', 32) . '/postings/new.rss');
+        $this->assertResponseOk();
+        $this->assertNotContains(4, $this->feedCategoryIds());
+    }
+
+    public function testTokenForUnknownUserFallsBackToPublicFeed()
+    {
+        $this->get('/feeds/f/9999-' . str_repeat('0', 32) . '/postings/new.rss');
+        $this->assertResponseOk();
+        $this->assertNotContains(4, $this->feedCategoryIds());
     }
 
     public function testThreads()

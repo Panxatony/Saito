@@ -23,6 +23,27 @@ msgstr "Letzte Beiträge"
 msgid "threads.new.t"
 msgstr "Letzte Themen"
 
+msgid "feeds.personalized.hint"
+msgstr "Dies sind deine persönlichen Feed-Adressen. Sie enthalten auch nicht-öffentliche Kategorien, die du lesen darfst. Gib sie nicht weiter – wer die Adresse hat, kann diese Beiträge mitlesen. Bei einer Passwortänderung werden sie ungültig und müssen im Reader neu eingetragen werden."
+
+msgid "feeds.public.hint"
+msgstr "Diese Feeds zeigen nur öffentliche Beiträge. Melde dich an, um persönliche Feed-Adressen inklusive deiner nicht-öffentlichen Kategorien zu erhalten."
+
+msgid "feeds.copy.btn"
+msgstr "Kopieren"
+
+msgid "feeds.copied.btn"
+msgstr "Kopiert!"
+
+msgid "feeds.subscribe.btn"
+msgstr "Abonnieren"
+
+msgid "feeds.subscribe.title"
+msgstr "Im installierten RSS-Reader abonnieren"
+
+msgid "feeds.profile.t"
+msgstr "Persönliche RSS-Feeds"
+
 #~ msgid "Last Postings"
 #~ msgstr "Letzte Beiträge"
 

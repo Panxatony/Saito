@@ -23,5 +23,19 @@ $routes->plugin(
         // (which readers misparse as the feed).
         $routes->connect('/postings/new', ['controller' => 'Postings', 'action' => 'new']);
         $routes->connect('/postings/threads', ['controller' => 'Postings', 'action' => 'threads']);
+
+        // Personalized feeds: the signed token in the path lets a logged-in
+        // user's RSS reader authenticate (see FeedTokenAuthenticator), so the
+        // feed shows their non-public categories. The token is consumed by the
+        // authenticator middleware; the action ignores it (not passed).
+        $tokenPattern = ['token' => '\d+-[0-9a-f]+'];
+        $routes->connect(
+            '/f/{token}/postings/new',
+            ['controller' => 'Postings', 'action' => 'new']
+        )->setPatterns($tokenPattern);
+        $routes->connect(
+            '/f/{token}/postings/threads',
+            ['controller' => 'Postings', 'action' => 'threads']
+        )->setPatterns($tokenPattern);
     }
 );
