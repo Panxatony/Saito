@@ -85,7 +85,11 @@ class AuthenticationServiceFactory
         ];
 
         // Authenticators are checked in order of registration.
-        // Leave Session first.
+        // Personalized RSS feed token (Feeds plugin). Checked first so a signed
+        // feed URL identifies the user; on any other path it reports
+        // credentials-missing and the session/cookie authenticators take over.
+        $service->loadAuthenticator('Feeds.FeedToken');
+        // Leave Session first (after the stateless feed token).
         // `identify` stays false: Saito does not configure an Identifier
         // for the session, so the session payload is the source of truth.
         $service->loadAuthenticator('Authentication.Session');

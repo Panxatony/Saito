@@ -22,3 +22,24 @@ msgstr "New Postings"
 #: Controller/PostingsController.php:70
 msgid "threads.new.t"
 msgstr "New Threads"
+
+msgid "feeds.personalized.hint"
+msgstr "These are your personal feed URLs. They include the non-public categories you are allowed to read. Do not share them — anyone with the URL can read those postings. They stop working when you change your password and must be re-added to your reader."
+
+msgid "feeds.public.hint"
+msgstr "These feeds only show public postings. Log in to get personal feed URLs that include your non-public categories."
+
+msgid "feeds.copy.btn"
+msgstr "Copy"
+
+msgid "feeds.copied.btn"
+msgstr "Copied!"
+
+msgid "feeds.subscribe.btn"
+msgstr "Subscribe"
+
+msgid "feeds.subscribe.title"
+msgstr "Subscribe in your installed RSS reader"
+
+msgid "feeds.profile.t"
+msgstr "Personal RSS feeds"

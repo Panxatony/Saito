@@ -100,24 +100,22 @@ class AuthUserComponent extends Component
         // not stored.
         $ipHash = md5(Security::getSalt() . (string)$request->clientIp());
 
-        if ($this->isBot()) {
+        // Authenticate first, even for bots: a feed reader is classified as a
+        // bot (for the online count), but it may still present a valid
+        // personalized-feed token and must then be served as that logged-in
+        // user. Only fall back to bot/guest handling when there is no identity.
+        $user = $this->authenticate();
+        if (!empty($user)) {
+            $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
+            $this->UsersTable->UserOnline->setOnline((string)$CurrentUser->getId(), true);
+        } elseif ($this->isBot()) {
             $CurrentUser = CurrentUserFactory::createDummy();
             // Track detected bots/crawlers separately (uuid "bot" prefix) so
             // they can be shown apart from human guests instead of ignored.
             $this->UsersTable->UserOnline->setOnline('bot' . substr($ipHash, 0, 29), false);
         } else {
-            $user = $this->authenticate();
-            if (!empty($user)) {
-                $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
-                $userId = (string)$CurrentUser->getId();
-                $isLoggedIn = true;
-            } else {
-                $CurrentUser = CurrentUserFactory::createVisitor($controller);
-                $userId = $ipHash;
-                $isLoggedIn = false;
-            }
-
-            $this->UsersTable->UserOnline->setOnline($userId, $isLoggedIn);
+            $CurrentUser = CurrentUserFactory::createVisitor($controller);
+            $this->UsersTable->UserOnline->setOnline($ipHash, false);
         }
 
         $this->setCurrentUser($CurrentUser);
