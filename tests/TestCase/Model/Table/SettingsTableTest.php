@@ -15,6 +15,7 @@ namespace App\Test\TestCase\Model\Table;
 use App\Model\Table\EntriesTable;
 use App\Test\Fixture\SettingFixture;
 use Cake\Core\Configure;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Saito\Test\Model\Table\SaitoTableTestCase;
 
 class SettingsTableTest extends SaitoTableTestCase
@@ -61,9 +62,7 @@ class SettingsTableTest extends SaitoTableTestCase
         $this->assertSame('noreply@example.com', $this->Table->get('email_register')->get('value'));
     }
 
-    /**
-     * @dataProvider settingsDataProvider
-     */
+    #[DataProvider('settingsDataProvider')]
     public function testAfterSave($fixture)
     {
         $setting = $this->Table->get('forum_name');
@@ -78,9 +77,7 @@ class SettingsTableTest extends SaitoTableTestCase
         $this->assertEquals($result, $expected);
     }
 
-    /**
-     * @dataProvider settingsDataProvider
-     */
+    #[DataProvider('settingsDataProvider')]
     public function testGetSettings($fixture)
     {
         $result = $this->Table->getSettings();
@@ -92,9 +89,8 @@ class SettingsTableTest extends SaitoTableTestCase
      *
      *
      * preset must force a refresh
-     *
-     * @dataProvider settingsDataProvider
      */
+    #[DataProvider('settingsDataProvider')]
     public function testLoadWithPreset($fixture)
     {
         $this->Table->load();
@@ -108,9 +104,7 @@ class SettingsTableTest extends SaitoTableTestCase
         $this->assertEquals($result, $expected);
     }
 
-    /**
-     * @dataProvider settingsDataProvider
-     */
+    #[DataProvider('settingsDataProvider')]
     public function testLoad($fixture)
     {
         Configure::write('Saito.Settings', null);

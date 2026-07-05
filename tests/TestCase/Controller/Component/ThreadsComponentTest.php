@@ -66,9 +66,7 @@ class ThreadsComponentTest extends SaitoTableTestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['isBot'])
             ->getMock();
-        $this->component->AuthUser->expects($this->once())->method('isBot')->will(
-            $this->returnValue(false)
-        );
+        $this->component->AuthUser->expects($this->once())->method('isBot')->willReturn(false);
         $CU = CurrentUserFactory::createDummy();
 
         $posting = $this->Table->get(4);
@@ -91,9 +89,7 @@ class ThreadsComponentTest extends SaitoTableTestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['isBot'])
             ->getMock();
-        $this->component->AuthUser->expects($this->once())->method('isBot')->will(
-            $this->returnValue(false)
-        );
+        $this->component->AuthUser->expects($this->once())->method('isBot')->willReturn(false);
         $CU = CurrentUserFactory::createDummy(['id' => 1]);
         $posting = $this->Table->get(4);
 
@@ -115,9 +111,7 @@ class ThreadsComponentTest extends SaitoTableTestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['isBot'])
             ->getMock();
-        $this->component->AuthUser->expects($this->once())->method('isBot')->will(
-            $this->returnValue(false)
-        );
+        $this->component->AuthUser->expects($this->once())->method('isBot')->willReturn(false);
         $CU = CurrentUserFactory::createDummy();
 
         $posting = $this->Table->get(4);
@@ -139,9 +133,7 @@ class ThreadsComponentTest extends SaitoTableTestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['isBot'])
             ->getMock();
-        $this->component->AuthUser->expects($this->once())->method('isBot')->will(
-            $this->returnValue(false)
-        );
+        $this->component->AuthUser->expects($this->once())->method('isBot')->willReturn(false);
         $CU = CurrentUserFactory::createDummy(['id' => 3]);
 
         $posting = $this->Table->get(4);

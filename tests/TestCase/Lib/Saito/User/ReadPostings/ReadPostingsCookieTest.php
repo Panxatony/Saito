@@ -65,7 +65,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         $this->mock();
         $this->cookieMock->expects($this->once())
             ->method('read')
-            ->will($this->returnValue('1.6'));
+            ->willReturn('1.6');
 
         $this->lastRefreshMock->expects($this->never())
             ->method('isNewerThan');
@@ -80,7 +80,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         $this->mock();
         $this->cookieMock->expects($this->once())
             ->method('read')
-            ->will($this->returnValue('1'));
+            ->willReturn('1');
 
         $time = time();
 
@@ -114,7 +114,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         $this->mock();
         $this->cookieMock->expects($this->once())
             ->method('read')
-            ->will($this->returnValue('1.6'));
+            ->willReturn('1.6');
 
         $this->ReadPostings->isRead(1);
 
@@ -134,7 +134,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
             ->method('_gc');
         $this->ReadPostings->expects($this->once())
             ->method('_get')
-            ->will($this->returnValue([1 => 1, 2 => 1]));
+            ->willReturn([1 => 1, 2 => 1]);
 
         $time = time();
         $callCount = 0;
@@ -176,7 +176,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
 
         $this->lastRefreshMock->expects($this->once())
             ->method('isNewerThan')
-            ->will($this->returnValue(false));
+            ->willReturn(false);
         $this->cookieMock->expects($this->once())
             ->method('write')
             ->with('4');

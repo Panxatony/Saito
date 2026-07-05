@@ -10,7 +10,6 @@ use Saito\Test\SaitoTestCase;
  * Class SaitoEmailContactTest
  *
  * @package Saito\Test\Contact
- * @group Saito\Test\Contact
  */
 class SaitoEmailContactTest extends SaitoTestCase
 {

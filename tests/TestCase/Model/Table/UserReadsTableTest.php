@@ -35,13 +35,16 @@ class UserReadsTableTest extends SaitoTableTestCase
         $userId = 1;
         $entryId = 2;
 
-        $User = $this->getMockForModel('UserReads', ['create', 'getUser']);
+        $User = $this->getMockForModel('UserReads', ['getUser', 'save']);
 
         $User->expects($this->once())
             ->method('getUser')
             ->with($userId)
-            ->will($this->returnValue([$entryId]));
-        $User->expects($this->never())->method('create');
+            ->willReturn([$entryId]);
+        // The entry already exists (getUser returns it), so the dedup filter
+        // short-circuits and nothing is persisted. (Was mocking a non-existent
+        // `create` method, a Cake-3 relic PHPUnit now deprecates.)
+        $User->expects($this->never())->method('save');
 
         $User->setEntriesForUser([$entryId], $userId);
     }

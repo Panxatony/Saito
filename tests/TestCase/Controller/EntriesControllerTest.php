@@ -450,7 +450,7 @@ class EntriesControllerTest extends IntegrationTestCase
         $Entries->expects($this->exactly(1))
             ->method('threadMerge')
             ->with(4, 2)
-            ->will($this->returnValue(true));
+            ->willReturn(true);
 
         $this->_loginUser(2);
         $this->mockSecurity();
@@ -758,7 +758,7 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->_loginUser(3);
         $Entries->expects($this->once())
             ->method('updateEntry')
-            ->will($this->returnValue(null));
+            ->willReturn(null);
         $this->expectException(
             'Cake\Http\Exception\BadRequestException'
         );
@@ -771,7 +771,7 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->_loginUser(3);
         $Entries->expects($this->once())
             ->method('updateEntry')
-            ->will($this->returnValue(new Entry()));
+            ->willReturn(new Entry());
         $this->get('/entries/solve/2');
         $this->assertResponseOk();
         $this->assertResponseEquals('');

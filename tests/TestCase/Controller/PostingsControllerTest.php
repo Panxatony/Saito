@@ -79,7 +79,7 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->getMockOnController('Posting', ['create'])
             ->expects($this->once())
             ->method('create')
-            ->will($this->returnValue(null));
+            ->willReturn(null);
 
         $this->expectException(BadRequestException::class);
 
@@ -320,7 +320,7 @@ class PostingsControllerTest extends IntegrationTestCase
         $entries = $this->getMockOnController('Posting', ['update'])
             ->expects($this->once())
             ->method('update')
-            ->will($this->returnValue(null));
+            ->willReturn(null);
 
         $this->expectException(BadRequestException::class);
 
