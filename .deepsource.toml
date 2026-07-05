@@ -6,6 +6,11 @@ exclude_patterns = [
   "frontend/**",
   "webroot/**",
   "config/Migrations/**",
+  # CakePHP view templates: their variables are injected by the controller
+  # via $this->set()/compact(), so the analyzer can't see the definitions and
+  # reports every one as "used but not defined" (PHP-W1066). Not real bugs.
+  "templates/**",
+  "plugins/*/templates/**",
 ]
 
 # Marked as tests so test-only patterns aren't reported as production issues.
