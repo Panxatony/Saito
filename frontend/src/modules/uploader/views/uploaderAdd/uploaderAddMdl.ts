@@ -31,7 +31,7 @@ class UploaderAddMdl extends Model {
      * @param attrs Attributes to check
      * @param options Options
      */
-    public validate(attrs: Record<string, unknown>, options?: Record<string, unknown>): string|undefined {
+    public validate(attrs: Record<string, unknown>, _options?: Record<string, unknown>): string|undefined {
         if (attrs.fileToUpload === undefined) {
             return $.i18n.__('upl.vald.e.dad');
         }

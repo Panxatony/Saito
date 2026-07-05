@@ -66,7 +66,7 @@ class StatsVw extends View<Model> {
      * @param model This view's model
      * @param value The progress between 0 and 100 percent
      */
-    protected onChangeProgress(model: Model, value: number) {
+    protected onChangeProgress(model: Model, _value: number) {
         let bitrate = 0;
         const now =  (new Date()).getTime() / 1000;
         const period = now - model.get('start');

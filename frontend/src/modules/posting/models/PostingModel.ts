@@ -1,4 +1,3 @@
-import { Model } from 'backbone';
 import * as $ from 'jquery';
 import App from 'models/app';
 import PostingMdl from 'models/PostingMdl';

@@ -47,7 +47,7 @@ export default class Marionette extends View<Model> {
         this.parentThreadline = (options.parentThreadline as PostingModel) || null;
     }
 
-    public initialize(options: Record<string, unknown>) {
+    public initialize(_options: Record<string, unknown>) {
         this.listenTo(this.model, 'change:isAnsweringFormShown', this.toggleAnsweringForm);
     }
 
