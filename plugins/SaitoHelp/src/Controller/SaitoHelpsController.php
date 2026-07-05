@@ -66,6 +66,10 @@ class SaitoHelpsController extends AppController
         $this->set(compact('isCore'));
 
         $this->set('titleForPage', __('Help'));
+
+        // Render the help page; explicit null so all paths return (the
+        // redirect paths above return a Response).
+        return null;
     }
 
     /**
