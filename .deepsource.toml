@@ -4,7 +4,10 @@ exclude_patterns = [
   # Third-party code and build output — not ours to fix, only adds noise.
   "vendor/**",
   "webroot/**",
-  "config/Migrations/**",
+  # App config/bootstrap: framework context that uses bootstrap constants
+  # (ROOT, DS, APP) defined at runtime, so a standalone analysis reports them
+  # as undefined (PHP-W1038). Not app logic.
+  "config/**",
   # CakePHP view templates: their variables are injected by the controller
   # via $this->set()/compact(), so the analyzer can't see the definitions and
   # reports every one as "used but not defined" (PHP-W1066). Not real bugs.
