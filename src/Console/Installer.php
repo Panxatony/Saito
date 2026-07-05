@@ -121,7 +121,7 @@ class Installer
         foreach (static::WRITABLE_DIRS as $path) {
             $path = $dir . '/' . $path;
             if (!file_exists($path)) {
-                mkdir($path);
+                mkdir($path, 0755);
                 $io->write('Created `' . $path . '` directory');
             }
         }
