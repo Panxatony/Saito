@@ -221,16 +221,6 @@ parameters:
 			path: src/Controller/UsersController.php
 
 		-
-			message: "#^Method App\\\\Database\\\\Type\\\\AvatarFileType\\:\\:toDatabase\\(\\) has invalid return type Cake\\\\Database\\\\Expression\\\\ExpressionInterface\\.$#"
-			count: 1
-			path: src/Database/Type/AvatarFileType.php
-
-		-
-			message: "#^Method App\\\\Database\\\\Type\\\\SerializeType\\:\\:toDatabase\\(\\) has invalid return type Cake\\\\Database\\\\Expression\\\\ExpressionInterface\\.$#"
-			count: 1
-			path: src/Database/Type/SerializeType.php
-
-		-
 			message: "#^Unreachable statement \\- code above always terminates\\.$#"
 			count: 1
 			path: src/Lib/BaseFunctions.php

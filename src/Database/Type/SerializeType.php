@@ -45,7 +45,7 @@ class SerializeType extends BaseType
     /**
      * {@inheritDoc}
      */
-    public function toDatabase(mixed $value, Driver $driver): string|int|float|bool|\Cake\Database\Expression\ExpressionInterface|null
+    public function toDatabase(mixed $value, Driver $driver): string|int|float|bool|\Cake\Database\ExpressionInterface|null
     {
         return serialize($value);
     }

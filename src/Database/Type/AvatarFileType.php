@@ -54,7 +54,7 @@ class AvatarFileType extends BaseType
         return (string)$value;
     }
 
-    public function toDatabase(mixed $value, Driver $driver): string|int|float|bool|\Cake\Database\Expression\ExpressionInterface|null
+    public function toDatabase(mixed $value, Driver $driver): string|int|float|bool|\Cake\Database\ExpressionInterface|null
     {
         if (is_array($value)) {
             // Behavior did not run — should not happen in practice
