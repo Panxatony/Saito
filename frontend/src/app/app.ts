@@ -17,7 +17,7 @@ import moment from 'moment';
 import numeral from 'numeral';
 // load locales for numeral.js
 /* tslint:disable */
-require('numeral/locales');
+require('numeral/locales'); // side-effect load of numeral locales; require kept for the legacy build toolchain skipcq: JS-0359
 /* tslint:enable */
 
 interface ISaitoCallbacks {
@@ -28,11 +28,11 @@ interface ISaitoCallbacks {
 
 interface ISaitoAppParams {
     app: {
-        settings: any,
+        settings: Record<string, unknown>,
     };
     callbacks: ISaitoCallbacks;
-    currentUser: any;
-    request: any;
+    currentUser: Record<string, unknown>;
+    request: Record<string, unknown>;
     assets: {
         lang: string,
     };
@@ -75,7 +75,7 @@ class Bootstrap {
         });
     }
 
-    private whenReady(callback: () => any) {
+    private whenReady(callback: () => void) {
         if ($.isReady) {
             callback();
         } else {
@@ -118,7 +118,7 @@ class Bootstrap {
             if (xhr.crossDomain) {
                 return;
             }
-            xhr.setRequestHeader('Authorization', 'bearer ' + App.settings.get('jwt'));
+            xhr.setRequestHeader('Authorization', `bearer ${App.settings.get('jwt')}`);
         });
     }
 }

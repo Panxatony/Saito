@@ -55,7 +55,7 @@ class UploaderAddVw extends View<Model> {
                 sendBtn: '.js-sendBtn',
             },
         });
-        super(...arguments);
+        super(options);
         this.model.set('userId', options.userId);
     }
 
@@ -84,8 +84,8 @@ class UploaderAddVw extends View<Model> {
      */
     protected onUploadBtn(event: Event) {
         event.preventDefault();
-        const input: any = this.getUI('inputFile')[0];
-        this.model.set('fileToUpload', input.files[0], {validate: true});
+        const input = this.getUI("inputFile")[0] as HTMLInputElement;
+        this.model.set('fileToUpload', input.files?.[0], {validate: true});
         const error = this.model.validationError;
         if (error) {
             App.eventBus.trigger('notification', {message: error, type: 'error'});
@@ -105,9 +105,9 @@ class UploaderAddVw extends View<Model> {
 
         this.xhr = new XMLHttpRequest();
         const xhr = this.xhr;
-        xhr.open('POST', App.settings.get('apiroot') + 'uploads');
+        xhr.open('POST', `${App.settings.get('apiroot')}uploads`);
         xhr.setRequestHeader('Accept', 'application/json, text/javascript');
-        xhr.setRequestHeader('Authorization', 'bearer ' + App.settings.get('jwt'));
+        xhr.setRequestHeader('Authorization', `bearer ${App.settings.get('jwt')}`);
 
         xhr.onloadstart = () => this.onUploadStart();
         xhr.onabort = () => this.onUploadAbort();
@@ -128,7 +128,7 @@ class UploaderAddVw extends View<Model> {
                 return;
             }
 
-            if (('' + xhr.status)[0] === '2') {
+            if (`${xhr.status}`[0] === '2') {
                 /// Upload was successful.
                 this.collection.add(JSON.parse(xhr.responseText).data.attributes);
                 return;

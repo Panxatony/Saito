@@ -103,7 +103,7 @@ class SaitoDummyDataCommand extends Command
 
             $posting = $this->Entries->createEntry($posting);
             if ($posting->hasErrors()) {
-                var_dump($posting->errors());
+                $io->err('Posting has validation errors: ' . print_r($posting->errors(), true));
             }
 
             if (empty($posting)) {

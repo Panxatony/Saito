@@ -9,7 +9,7 @@
 import { Model } from 'backbone';
 import { View, ViewOptions } from 'backbone.marionette';
 import $ from 'jquery';
-import { defaults, template, unique } from 'underscore';
+import { defaults, template } from 'underscore';
 import UploaderMenuMdl from './uploaderMenuMdl';
 
 /**
@@ -60,7 +60,7 @@ class UploaderMenuSortVw extends View<Model> {
 
     protected onChangeSort(model: UploaderMenuMdl) {
         const newSort = model.get('sort');
-        const input = this.$('input[value=' + newSort + ']')[0] as HTMLFormElement;
+        const input = this.$(`input[value=${newSort}]`)[0] as HTMLFormElement;
         if (!input.checked) {
             input.checked = true;
         }

@@ -9,7 +9,7 @@ import _ from 'underscore';
  * Dialog for deleteing a posting.
  */
 export default class extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click @ui.abort': '_onAbort',
@@ -54,7 +54,7 @@ export default class extends View<Model> {
         // GET redirect: a GET was CSRF-able. The global ajaxPrefilter adds the
         // bearer token; the endpoint enforces the delete permission.
         $.ajax({
-            url: App.settings.get('apiroot') + 'postings/' + id,
+            url: `${App.settings.get('apiroot')}postings/${id}`,
             method: 'DELETE',
         })
             .then(() => {

@@ -13,7 +13,7 @@ import * as _ from 'underscore';
 import { unescapeHTML } from 'underscore.string';
 
 export default class CiteBtn extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             className: 'form-group',
             events: {
@@ -41,7 +41,7 @@ export default class CiteBtn extends View<Model> {
             let text = selection ? selection.toString() : '';
 
             if (text !== '') {
-                text = this.model.get('quoteSymbol') + ' ' + text;
+                text = `${this.model.get('quoteSymbol')} ${text}`;
             } else {
                 text = unescapeHTML(this.model.get('text'));
             }

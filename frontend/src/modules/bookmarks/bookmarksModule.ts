@@ -1,4 +1,5 @@
 import * as Mn from 'backbone.marionette';
+import { Model } from 'backbone';
 import * as $ from 'jquery';
 import App from 'models/app';
 import * as _ from 'underscore';
@@ -6,8 +7,8 @@ import { SpinnerView } from 'views/SpinnerView';
 import BookmarksCl from './collections/bookmarksCl';
 import BookmarksView from './views/bookmarksVw';
 
-export default class extends Mn.View<any> {
-    constructor(options: any = {}) {
+export default class extends Mn.View<Model> {
+    constructor(options: Record<string, unknown> = {}) {
         options.template = _.template(`
 <div class="panel">
     <div class="panel-content">

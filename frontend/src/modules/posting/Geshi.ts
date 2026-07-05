@@ -16,7 +16,7 @@ class GeshiView extends View<GeshiModel> {
     public htmlText!: string | undefined;
     public plainText!: string | undefined;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click .geshi-plain-text': 'togglePlaintext',
@@ -45,7 +45,7 @@ class GeshiView extends View<GeshiModel> {
 
     private setPlaintextButton() {
         const icon = this.model.get('isPlaintext') ? 'fa-list-ol' : 'fa-align-justify';
-        this.$('.geshi-plain-text').html('<i class="fa ' + icon + '"></i>');
+        this.$('.geshi-plain-text').html(`<i class="fa ${icon}"></i>`);
     }
 
     private togglePlaintext(event: Event) {

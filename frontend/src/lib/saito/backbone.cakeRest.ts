@@ -1,5 +1,4 @@
 import Backbone, { Model } from 'backbone';
-import { defaults } from 'underscore';
 
 interface ICakeRest {
     read: string;
@@ -13,7 +12,7 @@ export default abstract class CakeRestModel extends Model {
 
     public webroot!: string;
 
-    public initialize(attributes: any, options: any) {
+    public initialize(_attributes: Record<string, unknown>, _options: Record<string, unknown>) {
         this.methodToCakePhpUrl = {
             create: 'add',
             delete: 'delete',
@@ -22,17 +21,15 @@ export default abstract class CakeRestModel extends Model {
         };
     }
 
-    public sync(method: string, model: Model, options: any = {}): JQueryXHR {
+    public sync(method: string, model: Model, options: Record<string, unknown> = {}): JQueryXHR {
         this.urlRoot = this.webroot;
         options = options || {};
         const key: keyof ICakeRest = method.toLocaleLowerCase() as keyof ICakeRest;
-        options.url = this.urlRoot + this.methodToCakePhpUrl[key];
+        let url = this.urlRoot + this.methodToCakePhpUrl[key];
         if (!this.isNew()) {
-            options.url =
-                options.url +
-                (options.url.charAt(options.url.length - 1) === '/' ? '' : '/') +
-                this.id;
+            url += (url.charAt(url.length - 1) === '/' ? '' : '/') + this.id;
         }
+        options.url = url;
 
         return Backbone.sync(method, model, options);
     }

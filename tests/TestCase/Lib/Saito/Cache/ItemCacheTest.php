@@ -145,7 +145,7 @@ class ItemCacheTest extends SaitoTestCase
         ];
 
         $this->CacheEngine->expects($this->once())->method('read')
-            ->will($this->returnValue($data));
+            ->willReturn($data);
 
         $cache = $this->ItemCache->get();
         $this->assertArrayNotHasKey(0, $cache);

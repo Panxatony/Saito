@@ -383,8 +383,10 @@ class UsersController extends AppController
             ];
         }
 
-        $this->paginate = $options = [
-            'contain' => ['UserOnline'],
+        $this->paginate = [
+            // UserOnline is eager-loaded by the `paginated` finder; passing
+            // `contain` (a query option) as a paginator setting is deprecated
+            // since CakePHP 5.1.
             // `sortableFields` (renamed from the removed `sortWhitelist` in
             // CakePHP 5) restricts sorting to these columns — otherwise a user
             // could sort the list by any column, incl. sensitive ones like
@@ -930,6 +932,11 @@ class UsersController extends AppController
         }
 
         $this->set(compact('user'));
+
+        // Render the form. Explicit null (the action's return type is
+        // Response|null) so all paths return; the redirect paths above return
+        // a Response.
+        return null;
     }
 
     /**

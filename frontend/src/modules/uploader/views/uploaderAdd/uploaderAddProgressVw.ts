@@ -15,7 +15,7 @@ class ProgressBarVw extends View<Model> {
      * Constructor
      * @param options Ma options
      */
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             modelEvents: {
                 'change:progress': 'onChangeProgress',
@@ -32,7 +32,7 @@ class ProgressBarVw extends View<Model> {
                 bar: '.progress-bar',
             },
         });
-        super(...arguments);
+        super(options);
     }
 
     /**
@@ -42,7 +42,7 @@ class ProgressBarVw extends View<Model> {
      * @param value The progress between 0 and 100 percent
      */
     protected onChangeProgress(model: Model, value: number) {
-        this.getUI('bar').css('width', value + '%');
+        this.getUI('bar').css('width', `${value}%`);
     }
 }
 

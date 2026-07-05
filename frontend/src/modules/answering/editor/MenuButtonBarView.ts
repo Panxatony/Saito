@@ -19,7 +19,7 @@ enum MenuButtonType {
 }
 
 class MenuButtonBarView extends CollectionView<Model, AbstractMenuButtonView, Collection<Model>> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             childView: (model: Model) => {
                 const type = model.get('type');
@@ -37,7 +37,7 @@ class MenuButtonBarView extends CollectionView<Model, AbstractMenuButtonView, Co
                     case MenuButtonType.smilies:
                         return MenuButtonSmiliesView;
                     default:
-                        throw new Error('Editor button type "' + type + '" not recognized.');
+                        throw new Error(`Editor button type "${type}" not recognized.`);
                 }
             },
             className: 'markupButtons',

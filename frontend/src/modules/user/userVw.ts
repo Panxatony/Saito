@@ -7,7 +7,7 @@ import * as _ from 'underscore';
 import RecentPostsVw from './userRecentPostsVw';
 
 export default class extends Mn.View<Bb.Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         options.template = _.template(`
 <ul class="nav nav-tabs" id="userTab" role="tablist">
 <li class="nav-item">

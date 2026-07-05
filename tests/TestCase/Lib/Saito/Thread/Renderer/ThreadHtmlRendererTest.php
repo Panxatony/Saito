@@ -48,7 +48,7 @@ class ThreadHtmlRendererTest extends SaitoTestCase
         $entries->withCurrentUser($this->SaitoUser);
         $entries->expects($this->once())
             ->method('isIgnored')
-            ->will($this->returnValue(true));
+            ->willReturn(true);
 
         $xPathQuery = '//ul[@data-id=1]/li[contains(@class,"ignored")]';
 

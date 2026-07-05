@@ -6,35 +6,34 @@
  * @license http://opensource.org/licenses/MIT
  */
 
+import { Model } from 'backbone';
 import CakeRestModel from 'lib/saito/backbone.cakeRest';
-import _ from 'underscore';
 
 class AppStatusModel extends CakeRestModel {
     private stream!: EventSource;
 
-    private settings: any;
+    private settings!: Model;
 
-    public initialize(attributes: any, options: any) {
+    public initialize(attributes: Record<string, unknown>, options: Record<string, unknown>) {
         super.initialize(attributes, options);
-        this.settings = options.settings;
+        this.settings = options.settings as Model;
         this.methodToCakePhpUrl.read = 'status/';
     }
 
     public start(immediate = true) {
         this.setWebroot(this.settings.get('webroot'));
-        // Don't use SSE by default on unknown server-configs
-        /*
-        if (!!window.EventSource) {
-          this._eventStream();
-          return;
+        // Prefer server-sent events where the browser supports them; the
+        // backend disables response buffering so nginx flushes each update.
+        if (window.EventSource) {
+            this.eventStream();
+            return;
         }
-        */
-        // slow polling just to keep the user online
+        // fall back to slow polling to keep the user online
         this._poll(90000, 180000, immediate);
     }
 
     public setWebroot(webroot: string) {
-        this.webroot = webroot + 'status/';
+        this.webroot = `${webroot}status/`;
     }
 
     /**
@@ -83,6 +82,10 @@ class AppStatusModel extends CakeRestModel {
             refreshTimeAct = refreshTimeBase;
         };
 
+        // Forward declaration: setTimer and updateAppStatus are mutually
+        // recursive (the timer reschedules the fetch, which resets the timer).
+        let updateAppStatus: () => void; // skipcq: JS-0242 - const would reintroduce JS-0357 (used before definition)
+
         const setTimer = () => {
             timerId = window.setTimeout(
                 updateAppStatus,
@@ -90,7 +93,7 @@ class AppStatusModel extends CakeRestModel {
             );
         };
 
-        const updateAppStatus = () => {
+        updateAppStatus = () => {
             setTimer();
             this.fetch({
                 success() {

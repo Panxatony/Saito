@@ -46,11 +46,7 @@ class Html5Notification {
   }
 
   private isEnabled() {
-    if ('Notification' in window) {
-      return true;
-    } else {
-      return false;
-    }
+    return 'Notification' in window;
   }
 }
 

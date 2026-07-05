@@ -33,7 +33,7 @@ class StatusController extends AppController
     {
         $data = [];
         $data = json_encode($data);
-        if ($this->request->accepts('text/event-streams')) {
+        if ($this->request->accepts('text/event-stream')) {
             $body = $this->_statusAsEventStream($data);
         } else {
             $body = $this->_statusAsJson($data);
@@ -53,9 +53,16 @@ class StatusController extends AppController
     {
         // time in ms to next request
         $retry = '10000';
-        $this->response = $this->response->withType(['eventstream' => 'text/event-stream']);
-        $this->response = $this->response->withType('eventstream');
-        $this->response->disableCache();
+        // Cake 5: withType() takes a string (a full mime type when it contains
+        // a slash); the immutable response's cache is disabled via
+        // withDisabledCache() (disableCache() was removed).
+        // X-Accel-Buffering tells nginx not to buffer the response so each
+        // event is flushed to the client immediately (the frontend reconnects
+        // after `retry` ms, so buffering would otherwise delay every update).
+        $this->response = $this->response
+            ->withType('text/event-stream')
+            ->withDisabledCache()
+            ->withHeader('X-Accel-Buffering', 'no');
         $out = '';
         $out .= "retry: $retry\n";
         $out .= 'data: ' . $data . "\n\n";

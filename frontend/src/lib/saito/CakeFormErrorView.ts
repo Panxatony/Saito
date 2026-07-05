@@ -19,7 +19,7 @@ import * as _ from 'underscore';
  * - title - The Error message.
  */
 export default class CakeFormErrorView extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             collection: new Collection(),
             template: _.noop,

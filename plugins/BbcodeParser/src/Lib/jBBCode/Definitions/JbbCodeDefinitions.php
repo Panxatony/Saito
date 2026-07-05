@@ -124,7 +124,7 @@ class Embed extends CodeDefinition
 
         $callable = \Closure::fromCallable($loader);
 
-        $uid = 'embed-' . md5($url);
+        $uid = 'embed-' . md5($url); // DOM id for the embed, not password hashing skipcq: PHP-A1004
         $info = Cache::remember($uid, $callable, 'bbcodeParserEmbed');
 
         return $this->_sHelper->Html->div('js-embed', '', ['id' => $uid, 'data-embed' => json_encode($info)]);
@@ -163,7 +163,7 @@ class Embed extends CodeDefinition
         if (filter_var($host, FILTER_VALIDATE_IP)) {
             $ips[] = $host;
         } else {
-            $records = @dns_get_record($host, DNS_A | DNS_AAAA);
+            $records = @dns_get_record($host, DNS_A | DNS_AAAA); // dns_get_record warns on unresolvable hosts; return guarded via ?: [] skipcq: PHP-W1078
             foreach ($records ?: [] as $record) {
                 if (!empty($record['ip'])) {
                     $ips[] = $record['ip'];

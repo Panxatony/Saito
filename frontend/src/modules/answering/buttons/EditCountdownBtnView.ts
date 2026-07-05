@@ -24,9 +24,9 @@ export default class EditCountdownView extends View<Model> {
 
     private $countdownDummy!: JQuery;
 
-    private doneAction: string = 'remove';
+    private doneAction = 'remove';
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         super(options);
     }
 
@@ -36,15 +36,15 @@ export default class EditCountdownView extends View<Model> {
      * @param options
      * - startTime: Date - start time
      */
-    public initialize(options: any) {
-        this.editEnd = moment(options.startTime).unix() + (App.settings.get('editPeriod') * 60);
+    public initialize(options: Record<string, unknown>) {
+        this.editEnd = moment(options.startTime as Date).unix() + (App.settings.get('editPeriod') * 60);
         // this.editEnd = moment().unix() + 5 ; // debug
 
         if (moment().unix() > this.editEnd) {
             return;
         }
         if (options.done) {
-            this.doneAction = options.done;
+            this.doneAction = options.done as string;
         }
         this.buttonText = this.$el.html();
         this.$countdownDummy = $('<span style="display: none;"></span>');
@@ -53,17 +53,17 @@ export default class EditCountdownView extends View<Model> {
     }
 
     private _setButtonText(timeText: string) {
-        this.$el.text(this.buttonText + ' ' + timeText);
+        this.$el.text(`${this.buttonText} ${timeText}`);
     }
 
     private _onTick(remaining: TinyTimer.TinyTimerCallbackArgs) {
         if (remaining.m > 1 || (remaining.m === 1 && remaining.s > 30)) {
             remaining.m = remaining.m + 1;
-            this._setButtonText('(' + remaining.m + ' min)');
+            this._setButtonText(`(${remaining.m} min)`);
         } else if (remaining.m === 1) {
-            this._setButtonText('(' + remaining.m + ' min ' + remaining.s + ' s)');
+            this._setButtonText(`(${remaining.m} min ${remaining.s} s)`);
         } else {
-            this._setButtonText('(' + remaining.s + ' s)');
+            this._setButtonText(`(${remaining.s} s)`);
         }
     }
 

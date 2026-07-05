@@ -5,7 +5,7 @@ import { GeshiView } from './Geshi';
 import { PostingRichtextEmbedModel, PostingRichtextEmbedView } from './postingRichtextEmbed';
 
 class PostingRichtextView extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             template: _.noop,
         });
@@ -22,8 +22,8 @@ class PostingRichtextView extends View<Model> {
         if (!elements.length) {
             return;
         }
-        elements.each((key, element) => {
-            const view = new GeshiView({ el: element });
+        elements.each((_key, element) => {
+            const _geshiView = new GeshiView({ el: element });
         });
     }
 
@@ -32,11 +32,11 @@ class PostingRichtextView extends View<Model> {
         if (!elements.length) {
             return;
         }
-        elements.each((key, element) => {
+        elements.each((_key, element) => {
             const id = element.getAttribute('id') as string;
             const data = $(element).data('embed');
 
-            this.addRegion(id, { el: '#' + id, replaceElement: true });
+            this.addRegion(id, { el: `#${id}`, replaceElement: true });
             const view = new PostingRichtextEmbedView({ model: new PostingRichtextEmbedModel(data) });
             this.showChildView(id, view);
         });

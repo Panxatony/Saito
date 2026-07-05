@@ -130,7 +130,7 @@ class ParserHelper extends AppHelper
         $defaults = ['return' => 'html', 'embed' => true, 'multimedia' => true, 'wrap' => true];
         $options += $defaults;
 
-        $cacheId = md5(serialize($options) . $string);
+        $cacheId = md5(serialize($options) . $string); // render cache key, not password hashing skipcq: PHP-A1004
         if (isset($this->_parserCache[$cacheId])) {
             $html = $this->_parserCache[$cacheId];
         } else {

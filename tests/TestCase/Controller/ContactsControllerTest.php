@@ -87,7 +87,25 @@ class ContactsControllerTest extends IntegrationTestCase
             ->method('send')
             ->willReturnCallback(function (Message $email) use (&$callCount) {
                 if ($callCount === 0) {
-                    // cc mail
+                    // main mail (sent first): From is the forum address
+                    // (deliverability), the original sender is carried in
+                    // Reply-To.
+                    $this->assertEquals(
+                        $email->getFrom(),
+                        ['system@example.com' => 'macnemo']
+                    );
+                    $this->assertEquals(
+                        $email->getReplyTo(),
+                        ['fo3@example.com' => 'fo3@example.com']
+                    );
+                    $this->assertEquals(
+                        $email->getTo(),
+                        ['contact@example.com' => 'macnemo']
+                    );
+                    // From already equals the system sender: no envelope Sender.
+                    $this->assertEmpty($email->getSender());
+                } else {
+                    // cc copy (sent after the main mail)
                     $this->assertEquals(
                         $email->getFrom(),
                         ['system@example.com' => 'macnemo']
@@ -106,23 +124,6 @@ class ContactsControllerTest extends IntegrationTestCase
                         'Sicherheitslücken in Saito',
                         $email->getOriginalSubject()
                     );
-                } else {
-                    // main mail: From is the forum address (deliverability),
-                    // the original sender is carried in Reply-To.
-                    $this->assertEquals(
-                        $email->getFrom(),
-                        ['system@example.com' => 'macnemo']
-                    );
-                    $this->assertEquals(
-                        $email->getReplyTo(),
-                        ['fo3@example.com' => 'fo3@example.com']
-                    );
-                    $this->assertEquals(
-                        $email->getTo(),
-                        ['contact@example.com' => 'macnemo']
-                    );
-                    // From already equals the system sender: no envelope Sender.
-                    $this->assertEmpty($email->getSender());
                 }
                 $callCount++;
                 return [];

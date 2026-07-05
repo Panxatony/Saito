@@ -199,7 +199,7 @@ class UserHelper extends AppHelper
         };
 
         $name = $user->get('username');
-        $hash = 'avatar.' . md5($name . serialize($options));
+        $hash = 'avatar.' . md5($name . serialize($options)); // avatar cache key, not password hashing skipcq: PHP-A1004
 
         return $this->remember($hash, $getAvatar);
     }

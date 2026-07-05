@@ -14,7 +14,7 @@ import AnswerModel from '../models/AnswerModel';
 import PreviewModel from '../models/PreviewModel';
 
 export default class PreviewView extends View<PreviewModel> {
-    constructor(options: any = {}) {
+    constructor(options: Record<string, unknown> = {}) {
         options = _.extend(options, {
             className: 'preview-wrapper',
             model: new PreviewModel(),
@@ -62,7 +62,7 @@ export default class PreviewView extends View<PreviewModel> {
                         type: 'error',
                     });
                 },
-                success: (mode, response, options) => {
+                success: (_mode, response, _options) => {
                     if ('errors' in response) {
                         this.trigger('answer:validation:error', response.errors);
 

@@ -4,7 +4,7 @@ import ModalDialog from 'modules/modalDialog/modalDialog';
 import { defaults, template } from 'underscore';
 
 class CategoryChooserVw extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         defaults(options, {
             model: new Model({ defaults: { isOpen: false } }),
             modelEvents: { 'change:isOpen': '_handleStateIsOpen' },

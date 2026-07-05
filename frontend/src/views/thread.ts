@@ -14,7 +14,7 @@ export default class extends View<ThreadModel> {
 
     private postings!: PostingCollection;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             className: 'threadBox',
             events: {
@@ -24,8 +24,8 @@ export default class extends View<ThreadModel> {
         super(options);
     }
 
-    public initialize(options: any) {
-        this.postings = options.postings;
+    public initialize(options: Record<string, unknown>) {
+        this.postings = options.postings as PostingCollection;
 
         this.$rootUl = this.$('ul.root');
         this.$subThreadRootIl = $(this.$rootUl.find('li:not(:first-child)')[0]);
@@ -45,7 +45,6 @@ export default class extends View<ThreadModel> {
     }
 
     private _showNewThreadLine(model: AnswerModel) {
-        let threadLine;
         // only append to the id it belongs to
         if (model.get('tid') !== this.model.get('id')) {
             return;
@@ -56,16 +55,16 @@ export default class extends View<ThreadModel> {
             isNewToUser: true,
         };
 
-        threadLine = new ThreadLineView({
+        const threadLine = new ThreadLineView({
             collection: this.model.threadlines,
             leafData,
             postings: this.postings,
         });
-        this._appendThreadlineToThread(model.get('pid') + '', threadLine.render().$el);
+        this._appendThreadlineToThread(`${model.get('pid')}`, threadLine.render().$el);
     }
 
     private _appendThreadlineToThread(pid: string, $el: JQuery) {
-        const parent = this.$('.threadLeaf[data-id="' + pid + '"]');
+        const parent = this.$(`.threadLeaf[data-id="${pid}"]`);
         const existingSubthread = (parent.next().not('.js_threadline').find('ul:first'));
         if (existingSubthread.length === 0) {
             $el.wrap('<ul class="threadTree-node"></ul>')

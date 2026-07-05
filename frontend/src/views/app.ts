@@ -32,7 +32,7 @@ class AppView extends View<Model> {
 
     private threadLines!: ThreadLineCollection;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click #btn-manuallyMarkAsRead': 'manuallyMarkAsRead',
@@ -66,7 +66,7 @@ class AppView extends View<Model> {
 
     public initialize() {
         this._initNotifications();
-        const nv = new NavigationBreak();
+        const _navigationBreak = new NavigationBreak();
 
         this.threads = new ThreadCollection();
         if (App.request.getController() === 'Entries' && App.request.getAction() === 'index') {
@@ -110,16 +110,16 @@ class AppView extends View<Model> {
          */
         if (window.location.href.indexOf('jump=') > -1) {
             const url = window.location.href;
-            const jumpTarget = /[\?\&]jump=(\d+)/.exec(url);
+            const jumpTarget = /[?&]jump=(\d+)/.exec(url);
             if (!jumpTarget) {
                 return;
             }
             try {
                 this.scrollToThread(parseInt(jumpTarget[1], 10));
-            } catch (error) {
+            } catch (_error) {
                 // do nothing
             } finally {
-                const newLocation = url.replace(/[\?\&]jump=\d+/, '');
+                const newLocation = url.replace(/[?&]jump=\d+/, '');
                 window.history.replaceState(null, '', newLocation);
             }
         }
@@ -131,7 +131,7 @@ class AppView extends View<Model> {
         User.render();
     }
 
-    public _initSlideTabs(element: JQuery) {
+    public _initSlideTabs(_element: JQuery) {
         this.showChildView('slidetabs', new SlidetabsView({ el: '#slidetabs' }));
     }
 
@@ -142,7 +142,7 @@ class AppView extends View<Model> {
      * @private
      */
     public _initAnsweringNotInlined(element: JQuery) {
-        const data: any = {};
+        const data: Record<string, unknown> = {};
         const id = element.data('edit');
         if (id) {
             data.id = parseInt(id, 10);
@@ -154,7 +154,7 @@ class AppView extends View<Model> {
 
         this.listenTo(answeringForm, 'answering:send:success', (model) => {
             const root = App.settings.get('webroot');
-            window.redirect(root + 'entries/view/' + model.get('id'));
+            window.redirect(`${root}entries/view/${model.get('id')}`);
         });
 
         return answeringForm; // testing
@@ -195,7 +195,7 @@ class AppView extends View<Model> {
                     },
                 ], { silent: true });
             }
-            const threadView = new ThreadView({
+            const _threadView = new ThreadView({
                 el: $(element),
                 model: this.threads.get(threadId),
                 postings: this.postings,
@@ -221,7 +221,7 @@ class AppView extends View<Model> {
                 threadlineCollection = this.threadLines;
             }
 
-            const threadLineView = new ThreadLineView({
+            const _threadLineView = new ThreadLineView({
                 collection: threadlineCollection,
                 el: $(element),
                 leafData,
@@ -242,7 +242,7 @@ class AppView extends View<Model> {
      *
      * @private
      */
-    private handleLogout(event: JQueryEventObject, element: JQuery) {
+    private handleLogout(event: JQueryEventObject, _element: JQuery) {
         event.preventDefault();
 
         // clear JS-storage
@@ -295,7 +295,7 @@ class AppView extends View<Model> {
     }
 
     private scrollToThread(tid: number) {
-        const box = $('.threadBox[data-id=' + tid + ']')[0].scrollIntoView(true);
+        $(`.threadBox[data-id=${tid}]`)[0].scrollIntoView(true);
     }
 
     private showLoginForm(event: JQueryEventObject) {
@@ -314,7 +314,7 @@ class AppView extends View<Model> {
         if (event) {
             event.preventDefault();
         }
-        window.redirect(App.settings.get('webroot') + 'entries/update');
+        window.redirect(`${App.settings.get('webroot')}entries/update`);
     }
 }
 

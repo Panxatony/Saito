@@ -1,0 +1,371 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: plugins/Admin/src/Controller/CategoriesController.php
+
+		-
+			message: "#^Variable \\$setting in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: plugins/Admin/src/Controller/SettingsController.php
+
+		-
+			message: "#^Parameter \\#1 \\$smiley of method Admin\\\\Controller\\\\SmileyCodesController\\:\\:_addEditCommon\\(\\) expects Cake\\\\ORM\\\\Entity, Cake\\\\Datasource\\\\EntityInterface given\\.$#"
+			count: 2
+			path: plugins/Admin/src/Controller/SmileyCodesController.php
+
+		-
+			message: "#^Result of \\|\\| is always true\\.$#"
+			count: 1
+			path: plugins/Admin/src/Controller/SmiliesController.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: plugins/Admin/src/Controller/SmiliesController.php
+
+		-
+			message: "#^Variable \\$id in empty\\(\\) always exists and is always falsy\\.$#"
+			count: 2
+			path: plugins/Admin/src/Controller/SmiliesController.php
+
+		-
+			message: "#^Variable \\$user in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: plugins/Admin/src/Controller/UsersController.php
+
+		-
+			message: "#^Parameter \\#2 \\$array of function implode expects array\\|null, string given\\.$#"
+			count: 1
+			path: plugins/Admin/src/Lib/CakeLogEntry.php
+
+		-
+			message: "#^Parameter \\#1 \\$timestamp of method App\\\\View\\\\Helper\\\\TimeHHelper\\:\\:formatTime\\(\\) expects DateTime, string given\\.$#"
+			count: 1
+			path: plugins/Admin/src/View/Helper/AdminHelper.php
+
+		-
+			message: "#^Parameter \\#1 \\$settings of class Plugin\\\\BbcodeParser\\\\src\\\\Lib\\\\Preprocessor constructor expects array, Saito\\\\Markup\\\\MarkupSettings\\|null given\\.$#"
+			count: 1
+			path: plugins/BbcodeParser/src/Lib/Markup.php
+
+		-
+			message: "#^Parameter \\#1 \\$Helper of class Plugin\\\\BbcodeParser\\\\src\\\\Lib\\\\jBBCode\\\\Visitors\\\\JbbCodeSmileyVisitor constructor expects App\\\\View\\\\Helper\\\\ParserHelper, Cake\\\\View\\\\Helper given\\.$#"
+			count: 1
+			path: plugins/BbcodeParser/src/Lib/Parser.php
+
+		-
+			message: "#^PHPDoc tag @var above assignment does not specify variable name\\.$#"
+			count: 1
+			path: plugins/Feeds/src/Controller/PostingsController.php
+
+		-
+			message: "#^Method Installer\\\\Controller\\\\InstallController\\:\\:beforeFilter\\(\\) with return type void returns Cake\\\\Http\\\\Response\\|null but should not return anything\\.$#"
+			count: 1
+			path: plugins/Installer/src/Controller/InstallController.php
+
+		-
+			message: "#^Expression in empty\\(\\) is not falsy\\.$#"
+			count: 1
+			path: plugins/Installer/src/Lib/InstallerState.php
+
+		-
+			message: "#^Parameter \\#2 \\$options of method Cake\\\\View\\\\Helper\\\\UrlHelper\\:\\:build\\(\\) expects array\\{fullBase\\?\\: bool, escape\\?\\: bool\\}, true given\\.$#"
+			count: 1
+			path: plugins/SaitoHelp/src/View/Helper/SaitoHelpHelper.php
+
+		-
+			message: "#^Parameter \\#2 \\$replace of function str_replace expects array\\|string, int given\\.$#"
+			count: 1
+			path: plugins/SaitoHelp/src/View/Helper/SaitoHelpHelper.php
+
+		-
+			message: "#^Access to an undefined property SaitoSearch\\\\Controller\\\\SearchesController\\:\\:\\$Search\\.$#"
+			count: 2
+			path: plugins/SaitoSearch/src/Controller/SearchesController.php
+
+		-
+			message: "#^Variable \\$entries in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: plugins/Sitemap/src/Lib/SitemapEntries.php
+
+		-
+			message: "#^Class Cake\\\\Routing\\\\Middleware\\\\RoutingMiddleware constructor invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: src/Application.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Command\\\\SaitoDummyDataCommand\\:\\:\\$Entries\\.$#"
+			count: 2
+			path: src/Command/SaitoDummyDataCommand.php
+
+		-
+			message: "#^Access to an undefined property App\\\\Command\\\\SaitoDummyDataCommand\\:\\:\\$Users\\.$#"
+			count: 2
+			path: src/Command/SaitoDummyDataCommand.php
+
+		-
+			message: "#^Method App\\\\Controller\\\\AppController\\:\\:beforeFilter\\(\\) with return type void returns null but should not return anything\\.$#"
+			count: 1
+			path: src/Controller/AppController.php
+
+		-
+			message: "#^Call to an undefined method Cake\\\\Controller\\\\Component\\:\\:isBot\\(\\)\\.$#"
+			count: 1
+			path: src/Controller/Component/AuthUserComponent.php
+
+		-
+			message: "#^Method App\\\\Controller\\\\Component\\\\AuthUserComponent\\:\\:authenticate\\(\\) should return App\\\\Model\\\\Entity\\\\User\\|null but returns Cake\\\\Datasource\\\\EntityInterface\\.$#"
+			count: 1
+			path: src/Controller/Component/AuthUserComponent.php
+
+		-
+			message: "#^Parameter \\#1 \\$user of method App\\\\Controller\\\\Component\\\\AuthUserComponent\\:\\:isAuthorized\\(\\) expects Saito\\\\User\\\\CurrentUser\\\\CurrentUser, Saito\\\\User\\\\CurrentUser\\\\CurrentUserInterface given\\.$#"
+			count: 1
+			path: src/Controller/Component/AuthUserComponent.php
+
+		-
+			message: "#^Property App\\\\Controller\\\\Component\\\\AuthUserComponent\\:\\:\\$CurrentUser \\(Saito\\\\User\\\\CurrentUser\\\\CurrentUserInterface\\) in empty\\(\\) is not falsy\\.$#"
+			count: 1
+			path: src/Controller/Component/AuthUserComponent.php
+
+		-
+			message: "#^Variable \\$cookie in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Controller/Component/AuthUserComponent.php
+
+		-
+			message: "#^Call to an undefined method Cake\\\\Mailer\\\\Mailer\\:\\:getOriginalSubject\\(\\)\\.$#"
+			count: 1
+			path: src/Controller/Component/SaitoEmailComponent.php
+
+		-
+			message: "#^Parameter \\#1 \\$message of method App\\\\Controller\\\\Component\\\\SaitoEmailComponent\\:\\:log\\(\\) expects string\\|Stringable, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: src/Controller/Component/SaitoEmailComponent.php
+
+		-
+			message: "#^PHPDoc type array of property App\\\\Controller\\\\Component\\\\ThemesComponent\\:\\:\\$_defaultConfig is not covariant with PHPDoc type array\\<string, mixed\\> of overridden property Cake\\\\Controller\\\\Component\\:\\:\\$_defaultConfig\\.$#"
+			count: 1
+			path: src/Controller/Component/ThemesComponent.php
+
+		-
+			message: "#^Parameter \\#2 \\$callback of function array_reduce expects callable\\(array\\|float\\|int, Cake\\\\Datasource\\\\EntityInterface\\)\\: \\(array\\|float\\|int\\), Closure\\(mixed, Cake\\\\ORM\\\\Entity\\)\\: \\(array\\|float\\|int\\) given\\.$#"
+			count: 1
+			path: src/Controller/Component/ThreadsComponent.php
+
+		-
+			message: "#^Method App\\\\Controller\\\\ContactsController\\:\\:owner\\(\\) with return type void returns Cake\\\\Http\\\\Response\\|null but should not return anything\\.$#"
+			count: 1
+			path: src/Controller/ContactsController.php
+
+		-
+			message: "#^Cannot call method isRoot\\(\\) on array\\|Cake\\\\Datasource\\\\EntityInterface\\.$#"
+			count: 1
+			path: src/Controller/EntriesController.php
+
+		-
+			message: "#^Method App\\\\Controller\\\\EntriesController\\:\\:delete\\(\\) with return type void returns null but should not return anything\\.$#"
+			count: 1
+			path: src/Controller/EntriesController.php
+
+		-
+			message: "#^Parameter \\#1 \\$posting of method App\\\\Controller\\\\Component\\\\TitleComponent\\:\\:setFromPosting\\(\\) expects Saito\\\\Posting\\\\Posting, Saito\\\\Posting\\\\PostingInterface given\\.$#"
+			count: 1
+			path: src/Controller/EntriesController.php
+
+		-
+			message: "#^Variable \\$posting in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Controller/EntriesController.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 2
+			path: src/Controller/PostingsController.php
+
+		-
+			message: "#^Variable \\$posting in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Controller/PostingsController.php
+
+		-
+			message: "#^Parameter \\#1 \\$conditions of method App\\\\Lib\\\\Model\\\\Table\\\\AppTable\\:\\:exists\\(\\) expects array\\|ArrayAccess\\|int, string given\\.$#"
+			count: 1
+			path: src/Controller/UsersController.php
+
+		-
+			message: "#^Result of && is always false\\.$#"
+			count: 1
+			path: src/Controller/UsersController.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: src/Controller/UsersController.php
+
+		-
+			message: "#^Variable \\$User in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Controller/UsersController.php
+
+		-
+			message: "#^Variable \\$id in empty\\(\\) always exists and is always falsy\\.$#"
+			count: 2
+			path: src/Controller/UsersController.php
+
+		-
+			message: "#^Variable \\$user in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Controller/UsersController.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: src/Lib/BaseFunctions.php
+
+		-
+			message: "#^Property App\\\\Lib\\\\Model\\\\Table\\\\AppTable\\:\\:\\$_SEM \\(Saito\\\\Event\\\\SaitoEventManager\\) in empty\\(\\) is not falsy\\.$#"
+			count: 1
+			path: src/Lib/Model/Table/AppTable.php
+
+		-
+			message: "#^Parameter \\#2 \\$callable of method Saito\\\\Event\\\\SaitoEventManager\\:\\:attach\\(\\) expects null, array\\<int, mixed\\> given\\.$#"
+			count: 1
+			path: src/Lib/Saito/Event/SaitoEventManager.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between 'NULL' and 'array' will always evaluate to false\\.$#"
+			count: 1
+			path: src/Lib/Saito/Event/SaitoEventManager.php
+
+		-
+			message: "#^Method Saito\\\\Exception\\\\Logger\\\\ExceptionLogger\\:\\:_filterData\\(\\) should return array but returns mixed\\.$#"
+			count: 1
+			path: src/Lib/Saito/Exception/Logger/ExceptionLogger.php
+
+		-
+			message: "#^Parameter \\#1 \\$smiley of method Saito\\\\Smiley\\\\SmileyLoader\\:\\:_getType\\(\\) expects array, Cake\\\\Datasource\\\\EntityInterface given\\.$#"
+			count: 1
+			path: src/Lib/Saito/Smiley/SmileyLoader.php
+
+		-
+			message: "#^Result of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEquals\\(\\) \\(void\\) is used\\.$#"
+			count: 1
+			path: src/Lib/Saito/Test/IntegrationTestCase.php
+
+		-
+			message: "#^Result of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEquals\\(\\) \\(void\\) is used\\.$#"
+			count: 1
+			path: src/Lib/Saito/Test/SaitoTestCase.php
+
+		-
+			message: "#^Variable \\$user in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Lib/Saito/User/Blocker/ManualBlocker.php
+
+		-
+			message: "#^Variable \\$new in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Lib/Saito/User/ReadPostings/ReadPostingsCookie.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: src/Model/Behavior/PostingBehavior.php
+
+		-
+			message: "#^Parameter \\#1 \\$postings of method Saito\\\\Posting\\\\TreeBuilder\\:\\:build\\(\\) expects array, Traversable given\\.$#"
+			count: 1
+			path: src/Model/Behavior/PostingBehavior.php
+
+		-
+			message: "#^Call to App\\\\Model\\\\Table\\\\EntriesTable\\:\\:hasMany could not find the class for \"Bookmarks\"$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:deletePosting\\(\\)\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:getRecentPostings\\(\\)\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:postingsForThread\\(\\)\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:postingsForThreads\\(\\)\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:threadMerge\\(\\)\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Parameter \\#1 \\$entry of method App\\\\Model\\\\Table\\\\DraftsTable\\:\\:deleteDraftForPosting\\(\\) expects App\\\\Model\\\\Entity\\\\Entry, Cake\\\\ORM\\\\Entity given\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Variable \\$new in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Variable \\$posting in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Variable \\$result in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Model/Table/EntriesTable.php
+
+		-
+			message: "#^Variable \\$settings in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Model/Table/SettingsTable.php
+
+		-
+			message: "#^Dead catch \\- PDOException is never thrown in the try block\\.$#"
+			count: 1
+			path: src/Model/Table/UserOnlineTable.php
+
+		-
+			message: "#^Call to App\\\\Model\\\\Table\\\\UsersTable\\:\\:hasMany could not find the class for \"Bookmarks\"$#"
+			count: 1
+			path: src/Model/Table/UsersTable.php
+
+		-
+			message: "#^Variable \\$user in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: src/Model/Table/UsersTable.php
+
+		-
+			message: "#^PHPDoc type array of property App\\\\View\\\\Cell\\\\AppStatusCell\\:\\:\\$_validCellOptions is not covariant with PHPDoc type array\\<string\\> of overridden property Cake\\\\View\\\\Cell\\<Cake\\\\View\\\\View\\>\\:\\:\\$_validCellOptions\\.$#"
+			count: 1
+			path: src/View/Cell/AppStatusCell.php
+
+		-
+			message: "#^Property App\\\\View\\\\Helper\\\\JsDataHelper\\:\\:\\$Notifications \\(Saito\\\\JsData\\\\Notifications\\) in empty\\(\\) is not falsy\\.$#"
+			count: 1
+			path: src/View/Helper/JsDataHelper.php
+
+		-
+			message: "#^Method Yzalis\\\\Identicon\\\\Identicon\\:\\:getImageDataUri\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: src/View/Helper/UserHelper.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between Saito\\\\User\\\\ForumsUserInterface and null will always evaluate to false\\.$#"
+			count: 1
+			path: src/View/Helper/UserHelper.php

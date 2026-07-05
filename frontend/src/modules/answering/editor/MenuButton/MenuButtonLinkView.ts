@@ -8,7 +8,7 @@ class MenuButtonLinkView extends AbstractMenuButtonView {
         const model = new Model({ title, url: '' });
         const view = new LinkView({ model });
         this.listenTo(view, 'link', (link) => {
-            const markup = '[url=' + link.url + ']' + link.title + '[/url]';
+            const markup = `[url=${link.url}]${link.title}[/url]`;
             this.channel.request('insert:text', markup);
         });
         view.render();

@@ -108,7 +108,7 @@ class Stopwatch
         }
 
         // phpcs:disable Generic.PHP.NoSilencedErrors.Discouraged
-        $dat = @getrusage();
+        $dat = @getrusage(); // getrusage is platform-dependent and may warn; return is checked skipcq: PHP-W1078
         // phpcs:enable Generic.PHP.NoSilencedErrors.Discouraged
         if (empty($dat)) {
             // some hosters disable getrusage() while hardening their PHP

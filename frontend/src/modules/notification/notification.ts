@@ -19,7 +19,7 @@ interface INotification {
 }
 
 class NotificationView extends Mn.View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             attributes: {
                 'aria-atomic': 'true',
@@ -69,7 +69,7 @@ class NotificationView extends Mn.View<Model> {
 }
 
 class NotificationsCollectionView extends Mn.CollectionView<Model, Mn.View<Model>, Collection<Model>> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             childView: NotificationView,
         });
@@ -78,7 +78,7 @@ class NotificationsCollectionView extends Mn.CollectionView<Model, Mn.View<Model
 }
 
 export default class NotificationsView extends Mn.View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             template: _.template(`<div class="notifications";"></div>`),
             ui: {

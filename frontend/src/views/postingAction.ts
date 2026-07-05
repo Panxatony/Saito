@@ -11,7 +11,7 @@ import SolvesBtn from 'views/postingActionSolves';
 export default class extends View<Model> {
     private jsButtons: any[];
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click .js-btn-setAnsweringForm': 'onBtnAnswer',
@@ -39,7 +39,7 @@ export default class extends View<Model> {
         });
         const $editButton = this.$('.js-btn-edit');
         if ($editButton.length > 0) {
-            const editCountdown = new EditCountdownView({
+            const _editCountdown = new EditCountdownView({
                 el: $editButton,
                 startTime: this.model.get('time'),
             });
@@ -55,7 +55,7 @@ export default class extends View<Model> {
      * Delete posting button click
      */
     private onBtnDelete(event: Event) {
-        const diag = new DelModal({ model: this.model }).render();
+        new DelModal({ model: this.model }).render();
         event.preventDefault();
     }
 
@@ -73,7 +73,7 @@ export default class extends View<Model> {
     private _sendToggle(key: string) {
         const id = this.model.get('id');
         const webroot = App.settings.get('webroot');
-        const url = webroot + 'entries/ajaxToggle/' + id + '/' + key;
+        const url = `${webroot}entries/ajaxToggle/${id}/${key}`;
 
         $.ajax({ url, cache: false })
             .done(() => { window.location.reload(true); });

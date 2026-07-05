@@ -63,7 +63,7 @@ class DomainParser
     private static function rules(): Rules
     {
         if (self::$rules === null) {
-            self::$rules = Rules::fromPath(ROOT . DS . 'data' . DS . 'public_suffix_list.dat');
+            self::$rules = Rules::fromPath(ROOT . DS . 'data' . DS . 'public_suffix_list.dat'); // ROOT/DS are CakePHP bootstrap constants skipcq: PHP-W1038
         }
 
         return self::$rules;

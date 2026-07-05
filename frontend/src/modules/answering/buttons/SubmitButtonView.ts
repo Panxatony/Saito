@@ -12,7 +12,7 @@ import { defaults, template } from 'underscore';
 import EditCountdownView from './EditCountdownBtnView';
 
 export default class SubmitButtonView extends View<Model> {
-    constructor(options: any = {}) {
+    constructor(options: Record<string, unknown> = {}) {
         options = defaults(options, {
             attributes: {
                 tabindex: 4,
@@ -33,7 +33,7 @@ export default class SubmitButtonView extends View<Model> {
 
     public onRender() {
         if (this.model.get('time')) {
-            const cd = new EditCountdownView({
+            const _editCountdown = new EditCountdownView({
                 done: 'disable',
                 el: this.$el,
                 startTime: this.model.get('time'),

@@ -3,7 +3,7 @@ import App from 'models/app';
 import _ from 'underscore';
 
 class ThreadLineModel extends CakeRestModel {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             html: '',
             isAlwaysShownInline: false,
@@ -15,9 +15,9 @@ class ThreadLineModel extends CakeRestModel {
         super(options);
     }
 
-    public initialize(attributes: any, options: any) {
+    public initialize(attributes: Record<string, unknown>, options: Record<string, unknown>) {
         super.initialize(attributes, options);
-        this.webroot = App.settings.get('webroot') + 'entries/';
+        this.webroot = `${App.settings.get('webroot')}entries/`;
         this.methodToCakePhpUrl.read = 'threadline/';
 
         this.set('isAlwaysShownInline', App.currentUser.get('user_show_inline') || false);

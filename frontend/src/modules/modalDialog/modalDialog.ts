@@ -7,7 +7,7 @@
  */
 
 import { Model } from 'backbone';
-import { View, ViewOptions } from 'backbone.marionette';
+import { View } from 'backbone.marionette';
 import App from 'models/app';
 import Tpl from 'modules/modalDialog/templates/modalDialog.html';
 import { defaults, delay } from 'underscore';
@@ -29,7 +29,7 @@ class ModalDialogView extends View<Model> {
 
     private defaults: Partial<IModalDialogOptions>;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         options = defaults(options, {
             regions: {
                 content: '#saito-modal-dialog-content',

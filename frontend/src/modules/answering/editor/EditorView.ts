@@ -16,7 +16,7 @@ import { SmiliesCollectionView } from './Menu/Smilies';
 import { MenuButtonBarView } from './MenuButtonBarView';
 
 class EditorView extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             channelName: 'editor',
             className: 'form-group',
@@ -132,7 +132,7 @@ class EditorView extends View<Model> {
                 // additional space to prevent smiley concatenation:
                 // `:cry:` and `(-.-)zzZ` becomes `:cry:(-.-)zzZ` which outputs
                 // smiley image for `:(`
-                this.insertText(smiley.code + ' ');
+                this.insertText(`${smiley.code} `);
             });
         }
         this.getChildView('smilies').$el.collapse('toggle');

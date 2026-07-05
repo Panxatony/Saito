@@ -258,7 +258,7 @@ class UsersControllerTest extends IntegrationTestCase
             ->expects($this->once())
             ->method('getBlockEndsForUser')
             ->with('8')
-            ->will($this->returnValue(false));
+            ->willReturn(false);
         $Users->getAssociation('UserBlocks')->setTarget($UserBlocks);
         $data = ['username' => 'Walt', 'password' => 'test'];
         $this->post('/login', $data);
@@ -345,7 +345,7 @@ class UsersControllerTest extends IntegrationTestCase
         /*
         $Users->User->expects($this->once())
             ->method('register')
-            ->will($this->returnValue(true));
+            ->willReturn(true);
         $Users->SaitoEmail->expects($this->once())
             ->method('email')
             ->will($this->throwException(new Exception));
@@ -773,7 +773,7 @@ class UsersControllerTest extends IntegrationTestCase
         $UsersTable->expects($this->once())
             ->method('countSolved')
             ->with($userId)
-            ->will($this->returnValue(2013531));
+            ->willReturn(2013531);
         $this->_loginUser(1);
 
         $this->get("/users/view/$userId");
@@ -1030,7 +1030,9 @@ class UsersControllerTest extends IntegrationTestCase
             return is_string($v) ? strtolower($v) : $v;
         };
 
-        $values = array_map($norm, $this->viewVariable('users')->extract($field)->toList());
+        // items() first: `users` is a PaginatedResultSet, and calling ResultSet
+        // methods (extract) on it directly is deprecated since CakePHP 5.1.
+        $values = array_map($norm, $this->viewVariable('users')->items()->extract($field)->toList());
         for ($i = 0, $n = count($values) - 1; $i < $n; $i++) {
             $cmp = $values[$i] <=> $values[$i + 1];
             $message = sprintf('User list is not ordered by %s %s (at index %d).', $field, $direction, $i);

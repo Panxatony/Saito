@@ -22,22 +22,22 @@ class SlidetabsView extends View<Model> {
     private makeSortable() {
         const sortable = this.$el.sortable({
             handle: '.slidetab-tab',
-            start: (event, ui) => {
+            start: () => {
                 this.$el.css('overflow', 'visible');
             },
-            stop: (event, ui) => {
+            stop: () => {
                 this.$el.css('overflow', 'hidden');
             },
         });
 
-        sortable.on('sortupdate', function(event, ui) {
+        sortable.on('sortupdate', function() {
             let slidetabsOrder = $(this).sortable('toArray', { attribute: 'data-id' });
             slidetabsOrder = slidetabsOrder.map((name) => {
-                return 'slidetab_' + name;
+                return `slidetab_${name}`;
             });
             // @todo make model/collection
             $.post(
-                App.settings.get('webroot') + 'users/slidetabOrder',
+                `${App.settings.get('webroot')}users/slidetabOrder`,
                 { slidetabOrder: slidetabsOrder },
             );
         });

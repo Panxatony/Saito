@@ -17,7 +17,7 @@ class StatsVw extends View<Model> {
      * Constructor
      * @param options Ma options
      */
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             classTag: 'imageUploader-card-details',
             modelEvents: {
@@ -46,7 +46,7 @@ class StatsVw extends View<Model> {
                 total: '.js-total',
             },
         });
-        super(...arguments);
+        super(options);
     }
 
     protected onChangeFile(model: Model, file: File) {
@@ -66,14 +66,14 @@ class StatsVw extends View<Model> {
      * @param model This view's model
      * @param value The progress between 0 and 100 percent
      */
-    protected onChangeProgress(model: Model, value: number) {
+    protected onChangeProgress(model: Model, _value: number) {
         let bitrate = 0;
         const now =  (new Date()).getTime() / 1000;
         const period = now - model.get('start');
         if (period !== 0) {
             bitrate = Math.round(model.get('loaded') / period);
         }
-        this.getUI('speed').html(numeral(bitrate).format('0 b') + '/s');
+        this.getUI('speed').html(`${numeral(bitrate).format('0 b')}/s`);
 
         const total = model.get('fileToUpload').size;
         let remaining = Math.floor((total - model.get('loaded')) / bitrate) + 1;

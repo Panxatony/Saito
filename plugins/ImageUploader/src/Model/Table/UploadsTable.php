@@ -338,7 +338,7 @@ class UploadsTable extends AppTable
         /// rasterize the image; a small file can still declare huge
         /// dimensions that would exhaust memory in GD/SimpleImage (both on
         /// upload processing and later thumbnail generation).
-        $dimensions = $filePath ? @getimagesize((string)$filePath) : false;
+        $dimensions = $filePath ? @getimagesize((string)$filePath) : false; // getimagesize warns on non-image files; return is checked skipcq: PHP-W1078
         if ($dimensions !== false) {
             $maxPixels = $UploaderConfig->getMaxImagePixels();
             if ($dimensions[0] * $dimensions[1] > $maxPixels) {

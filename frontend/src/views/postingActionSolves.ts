@@ -1,13 +1,12 @@
 import { View } from 'backbone.marionette';
 import $ from 'jquery';
-import App from 'models/app';
 import _ from 'underscore';
 import { isNumber } from 'util';
 import PostingModel from '../models/PostingMdl';
 
 export default class extends View<PostingModel> {
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
 
             className: 'btn btn-link btn-solves',
@@ -85,7 +84,7 @@ export default class extends View<PostingModel> {
      * @param html
      */
     private _toggleGlobal(html: string) {
-        const $globalIconHook = $('.solves.' + this.model.get('id'));
+        const $globalIconHook = $(`.solves.${this.model.get('id')}`);
         $globalIconHook.html(html);
     }
 }
