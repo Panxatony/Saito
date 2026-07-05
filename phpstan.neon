@@ -1,20 +1,28 @@
+includes:
+    # CakePHP-aware type extensions: resolves magic table finders, entity
+    # accessors, magically loaded components/helpers, associations, etc.
+    - vendor/cakedc/cakephp-phpstan/extension.neon
+    # Existing findings are frozen here so only NEW issues fail the build.
+    - phpstan-baseline.neon
+
 parameters:
-    level: 4
+    level: 5
     inferPrivatePropertyTypeFromConstructor: true
     paths:
-        - plugins/
         - src/
-    excludes_analyse:
-        - **/*.ctp
-        - **/TestCase/*
-        # Inline classes are not picked up by phpstan
-        - */BbcodeParser/src/Lib/jBBCode/Definitions/*
-    autoload_files:
+        - plugins/
+    excludePaths:
+        # Only analyse application PHP: skip each plugin's tests, templates,
+        # config, locale resources and webroot (paths don't take globs, but
+        # excludePaths do).
+        - plugins/*/tests/*
+        - plugins/*/templates/*
+        - plugins/*/config/*
+        - plugins/*/resources/*
+        - plugins/*/webroot/*
+        # Composer post-install hook, not application code.
+        - src/Console/Installer.php
+        # Inline jBBCode class definitions aren't autoloadable for PHPStan.
+        - plugins/BbcodeParser/src/Lib/jBBCode/Definitions/*
+    bootstrapFiles:
         - tests/bootstrap.php
-    ignoreErrors:
-        # CakePHP magic find functions
-        - '#Call to an undefined method.*Table::findBy.*\(\)#'
-        # 3rd party search plugin
-        -
-            message: '#.*searchManager.*#'
-            path: %currentWorkingDirectory%/src/Model/Table/EntriesTable.php
