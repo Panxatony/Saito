@@ -932,6 +932,11 @@ class UsersController extends AppController
         }
 
         $this->set(compact('user'));
+
+        // Render the form. Explicit null (the action's return type is
+        // Response|null) so all paths return; the redirect paths above return
+        // a Response.
+        return null;
     }
 
     /**

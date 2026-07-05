@@ -71,11 +71,6 @@ parameters:
 			path: plugins/Installer/src/Lib/InstallerState.php
 
 		-
-			message: "#^Method SaitoHelp\\\\Controller\\\\SaitoHelpsController\\:\\:view\\(\\) should return Cake\\\\Http\\\\Response\\|null but return statement is missing\\.$#"
-			count: 1
-			path: plugins/SaitoHelp/src/Controller/SaitoHelpsController.php
-
-		-
 			message: "#^Parameter \\#2 \\$options of method Cake\\\\View\\\\Helper\\\\UrlHelper\\:\\:build\\(\\) expects array\\{fullBase\\?\\: bool, escape\\?\\: bool\\}, true given\\.$#"
 			count: 1
 			path: plugins/SaitoHelp/src/View/Helper/SaitoHelpHelper.php
@@ -194,11 +189,6 @@ parameters:
 			message: "#^Variable \\$posting in empty\\(\\) always exists and is not falsy\\.$#"
 			count: 1
 			path: src/Controller/PostingsController.php
-
-		-
-			message: "#^Method App\\\\Controller\\\\UsersController\\:\\:setpassword\\(\\) should return Cake\\\\Http\\\\Response\\|null but return statement is missing\\.$#"
-			count: 1
-			path: src/Controller/UsersController.php
 
 		-
 			message: "#^Parameter \\#1 \\$conditions of method App\\\\Lib\\\\Model\\\\Table\\\\AppTable\\:\\:exists\\(\\) expects array\\|ArrayAccess\\|int, string given\\.$#"
