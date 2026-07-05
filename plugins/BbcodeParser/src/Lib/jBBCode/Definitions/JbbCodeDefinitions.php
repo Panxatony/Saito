@@ -124,7 +124,7 @@ class Embed extends CodeDefinition
 
         $callable = \Closure::fromCallable($loader);
 
-        $uid = 'embed-' . md5($url);
+        $uid = 'embed-' . md5($url); // DOM id for the embed, not password hashing skipcq: PHP-A1004
         $info = Cache::remember($uid, $callable, 'bbcodeParserEmbed');
 
         return $this->_sHelper->Html->div('js-embed', '', ['id' => $uid, 'data-embed' => json_encode($info)]);

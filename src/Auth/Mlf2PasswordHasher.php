@@ -28,7 +28,7 @@ class Mlf2PasswordHasher extends AbstractPasswordHasher
     {
         // compare to includes/functions.inc.php generate_pw_hash() mlf 2.3
         $salt = self::_generateRandomString(10);
-        $saltedHash = sha1($password . $salt);
+        $saltedHash = sha1($password . $salt); // legacy mylittleforum 2.x format; new passwords use bcrypt via the Fallback hasher skipcq: PHP-A1004
         $hashWithSalt = $saltedHash . $salt;
 
         return $hashWithSalt;
@@ -61,7 +61,7 @@ class Mlf2PasswordHasher extends AbstractPasswordHasher
         $salt = substr($hash, 40, 10);
         // hash_equals: constant-time and, unlike ==, immune to PHP's
         // numeric-string type-juggling on "magic hash" (0e…) digests.
-        if (hash_equals($saltedHash, sha1($password . $salt))) :
+        if (hash_equals($saltedHash, sha1($password . $salt))) : // verifies legacy mlf2 passwords (constant-time); upgraded to bcrypt on next login skipcq: PHP-A1004
             $out = true;
         endif;
 

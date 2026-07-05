@@ -1,0 +1,19 @@
+version = 1
+
+# Third-party code and build output — not ours to fix, only adds noise.
+exclude_patterns = [
+  "vendor/**",
+  "frontend/**",
+  "webroot/**",
+  "config/Migrations/**",
+]
+
+# Marked as tests so test-only patterns aren't reported as production issues.
+test_patterns = [
+  "tests/**",
+  "plugins/*/tests/**",
+]
+
+[[analyzers]]
+name = "php"
+enabled = true
