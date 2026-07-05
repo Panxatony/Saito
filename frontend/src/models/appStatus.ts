@@ -22,14 +22,13 @@ class AppStatusModel extends CakeRestModel {
 
     public start(immediate = true) {
         this.setWebroot(this.settings.get('webroot'));
-        // Don't use SSE by default on unknown server-configs
-        /*
+        // Prefer server-sent events where the browser supports them; the
+        // backend disables response buffering so nginx flushes each update.
         if (!!window.EventSource) {
-          this._eventStream();
-          return;
+            this.eventStream();
+            return;
         }
-        */
-        // slow polling just to keep the user online
+        // fall back to slow polling to keep the user online
         this._poll(90000, 180000, immediate);
     }
 

@@ -7,7 +7,12 @@
 
 ## [next] -
 
-- Unreleased changes go here.
+### Changes
+
+- Δ Live status updates now use server-sent events (SSE) where the browser supports them, falling back to polling otherwise. The status endpoint's content negotiation was broken (it tested for `text/event-streams` and so never matched the real `text/event-stream` Accept header, always returning 400 to an `EventSource`); it now serves a proper event-stream and disables proxy buffering (`X-Accel-Buffering: no`) so nginx flushes each update.
+- ✓ Fixed several latent Cake 5 API regressions surfaced by framework-aware static analysis: the installer's database-connection check, the debug-mode mail transport override, the locale-specific template lookup, and the serialize/avatar database type hints.
+- ✓ Sitemap: use `date()` instead of a miscased `Date()` call.
+- Δ Developer tooling: added a framework-aware PHPStan setup with a CI static-analysis step, and reduced explicit `any` in the frontend TypeScript from ~100 to ~26.
 
 ## [7.1.0] - 2026-07-05
 
