@@ -33,7 +33,7 @@ class StatusController extends AppController
     {
         $data = [];
         $data = json_encode($data);
-        if ($this->request->accepts('text/event-streams')) {
+        if ($this->request->accepts('text/event-stream')) {
             $body = $this->_statusAsEventStream($data);
         } else {
             $body = $this->_statusAsJson($data);

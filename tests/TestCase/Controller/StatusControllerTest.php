@@ -40,4 +40,17 @@ class StatusControllerTest extends IntegrationTestCase
         $expected = json_encode([]);
         $this->assertResponseContains($expected);
     }
+
+    public function testStatusAsEventStream()
+    {
+        $this->mockSecurity();
+        $this->configRequest(['headers' => ['Accept' => 'text/event-stream']]);
+
+        $this->get('/status/status');
+
+        $this->assertResponseOk();
+        $this->assertContentType('text/event-stream');
+        $this->assertResponseContains('data: ');
+        $this->assertResponseContains('retry: ');
+    }
 }
