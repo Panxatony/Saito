@@ -392,8 +392,11 @@ class UsersController extends AppController
             'sortableFields' => array_keys($menuItems),
             'finder' => 'paginated',
             'limit' => 400,
+            // Default order when no column is selected. Kept as username ASC —
+            // what the list has always shown (the paginated finder used to force
+            // this order, which is also what broke sorting by other columns).
             'order' => [
-                'UserOnline.logged_in' => 'desc',
+                'Users.username' => 'asc',
             ],
         ];
         $users = $this->paginate($this->Users);
