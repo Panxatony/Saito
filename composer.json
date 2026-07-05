@@ -56,7 +56,8 @@
     "symfony/css-selector": "^5.4|^6.0",
     "symfony/dom-crawler": "^5.4|^6.0",
     "doctrine/instantiator": "^1.5",
-    "vimeo/psalm": "^6"
+    "vimeo/psalm": "^6",
+    "cakedc/cakephp-phpstan": "^3.2"
   },
   "suggest": {
     "cakephp/cakephp-codesniffer": "Allows to check the code against the coding standards used in CakePHP."
