@@ -11,31 +11,19 @@ $this->end();
     ) ?>
     <div class="panel-content richtext">
         <?php if ($status === 'activated') : ?>
-            <h2>Success</h2>
-            <p>
-                Your registration is now finished.
-            </p>
-            <p>
-                <?= $this->Html->link('Have fun!', '/') ?>
-            </p>
+            <h2><?= __('register_confirm_success_title') ?></h2>
+            <p><?= __('register_confirm_success_text') ?></p>
+            <p><?= $this->Html->link(__('register_confirm_success_link'), '/') ?></p>
         <?php elseif ($status === 'already') : ?>
-            <h2>Already Registered</h2>
-            <p>
-                The registration was already finished in the past.
-            </p>
+            <h2><?= __('register_confirm_already_title') ?></h2>
+            <p><?= __('register_confirm_already_text') ?></p>
             <?php
         else : ?>
-            <h2>Registration Failed</h2>
-            <p>
-                The registration wasn't confirmed. Please check that:
-            </p>
+            <h2><?= __('register_confirm_failed_title') ?></h2>
+            <p><?= __('register_confirm_failed_text') ?></p>
             <ul>
-                <li>
-                    the URL is correct
-                </li>
-                <li>
-                    the registration was made within the last 24 hours
-                </li>
+                <li><?= __('register_confirm_failed_url') ?></li>
+                <li><?= __('register_confirm_failed_time') ?></li>
             </ul>
         <?php endif; ?>
     </div>
