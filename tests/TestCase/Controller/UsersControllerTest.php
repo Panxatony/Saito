@@ -353,7 +353,7 @@ class UsersControllerTest extends IntegrationTestCase
 
         $this->session(['Register.formLoadTime' => time() - 30]);
         $this->post('users/register', $data);
-        $this->assertResponseContains('Sending Confirmation Email Failed');
+        $this->assertResponseContains('Sending the confirmation email failed');
 
         $Users = TableRegistry::getTableLocator()->get('Users');
         $exists = $Users->exists(
@@ -577,6 +577,32 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertResponseContains('Email address is already used.');
         $this->assertResponseContains('Passwords don&#039;t match.');
         $this->assertResponseContains('Name is already used.');
+    }
+
+    public function testRegistrationStringsAreTranslated()
+    {
+        // Regression: the registration + confirmation pages had their text
+        // hard-coded in English, so a German (or any non-English) forum showed
+        // English. The strings now go through i18n; verify they resolve to the
+        // localized text (and never leak the raw message key).
+        \Cake\Cache\Cache::clear('_cake_translations_');
+        \Cake\I18n\I18n::setLocale('de');
+        try {
+            $keys = [
+                'register_success_title' => 'Danke für deine Registrierung',
+                'register_success_login_note' => 'Du kannst dich erst anmelden, nachdem du deine Registrierung bestätigt hast.',
+                'register_fail_email_title' => 'Bestätigungs-E-Mail konnte nicht gesendet werden',
+                'register_confirm_success_text' => 'Deine Registrierung ist jetzt abgeschlossen.',
+                'register_confirm_success_link' => 'Viel Spaß!',
+                'register_confirm_already_title' => 'Bereits registriert',
+                'register_confirm_failed_title' => 'Registrierung fehlgeschlagen',
+            ];
+            foreach ($keys as $key => $expected) {
+                $this->assertSame($expected, __($key), sprintf('Key "%s" is not translated to German.', $key));
+            }
+        } finally {
+            \Cake\I18n\I18n::setLocale('en_US');
+        }
     }
 
     public function testRsSuccess()
@@ -955,6 +981,84 @@ class UsersControllerTest extends IntegrationTestCase
         $this->_loginUser(1);
         $this->get('/users/index');
         $this->assertResponseOk();
+    }
+
+    /**
+     * Assert the paginated `users` view variable is monotonically ordered by
+     * $field/$direction. Monotonicity (not full-sequence equality) is asserted
+     * so the check is robust to the arbitrary order of ties and to DB-vs-PHP
+     * collation differences.
+     */
+    private function assertUsersSortedBy(string $field, string $direction): void
+    {
+        // Normalize each value to a comparable scalar matching the DB's order:
+        // NULL sorts first in ASC / last in DESC (MySQL) -> smallest; dates ->
+        // timestamp; bool -> int; strings compared case-insensitively.
+        $norm = function ($v) {
+            if ($v === null) {
+                return PHP_INT_MIN;
+            }
+            if ($v instanceof \DateTimeInterface) {
+                return $v->getTimestamp();
+            }
+            if (is_bool($v)) {
+                return (int)$v;
+            }
+            return is_string($v) ? strtolower($v) : $v;
+        };
+
+        $values = array_map($norm, $this->viewVariable('users')->extract($field)->toList());
+        for ($i = 0, $n = count($values) - 1; $i < $n; $i++) {
+            $cmp = $values[$i] <=> $values[$i + 1];
+            $message = sprintf('User list is not ordered by %s %s (at index %d).', $field, $direction, $i);
+            if ($direction === 'asc') {
+                $this->assertLessThanOrEqual(0, $cmp, $message);
+            } else {
+                $this->assertGreaterThanOrEqual(0, $cmp, $message);
+            }
+        }
+    }
+
+    public function testIndexSortByUserType()
+    {
+        $this->_loginUser(1);
+        $this->get('/users?sort=user_type&direction=asc');
+        $this->assertResponseOk();
+        $this->assertUsersSortedBy('user_type', 'asc');
+    }
+
+    public function testIndexSortByRegistered()
+    {
+        $this->_loginUser(1);
+        $this->get('/users?sort=registered&direction=desc');
+        $this->assertResponseOk();
+        $this->assertUsersSortedBy('registered', 'desc');
+    }
+
+    public function testIndexSortByUsernameStillWorks()
+    {
+        $this->_loginUser(1);
+        $this->get('/users?sort=username&direction=asc');
+        $this->assertResponseOk();
+        $this->assertUsersSortedBy('username', 'asc');
+    }
+
+    public function testIndexSortByOnline()
+    {
+        // Sorting by the associated UserOnline.logged_in column (hasOne, joined).
+        $this->_loginUser(1);
+        $this->get('/users?sort=UserOnline.logged_in&direction=desc');
+        $this->assertResponseOk();
+        $this->assertUsersSortedBy('user_online.logged_in', 'desc');
+    }
+
+    public function testIndexSortByLock()
+    {
+        // `user_lock` is only sortable for a user with the lock-view permission.
+        $this->_loginUser(1);
+        $this->get('/users?sort=user_lock&direction=desc');
+        $this->assertResponseOk();
+        $this->assertUsersSortedBy('user_lock', 'desc');
     }
 
     public function testIgnore()

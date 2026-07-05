@@ -924,9 +924,13 @@ class UsersTable extends AppTable
      */
     public function findPaginated(Query $query, array $options)
     {
-        $query
-            ->contain(['UserOnline'])
-            ->orderBy(['Users.username' => 'ASC']);
+        // Only eager-load UserOnline (needed for the online column and for
+        // sorting by it). Do NOT impose an order here: the finder runs before
+        // the paginator applies the requested sort, and orderBy() appends, so a
+        // fixed order here would become the *primary* sort and silently defeat
+        // sorting by any other column. The default/requested order comes from
+        // the controller's paginate options instead.
+        $query->contain(['UserOnline']);
 
         return $query;
     }

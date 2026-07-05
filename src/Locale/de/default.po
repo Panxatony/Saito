@@ -964,6 +964,48 @@ msgstr "Generiert in {time,number} s."
 msgid "register_linkname"
 msgstr "Registrieren"
 
+msgid "register_success_title"
+msgstr "Danke für deine Registrierung"
+
+msgid "register_success_text"
+msgstr "Eine E-Mail mit einem Bestätigungslink wurde an dich gesendet. Bitte klicke innerhalb der nächsten 24 Stunden auf diesen Link, um deine Registrierung zu bestätigen."
+
+msgid "register_success_login_note"
+msgstr "Du kannst dich erst anmelden, nachdem du deine Registrierung bestätigt hast."
+
+msgid "register_fail_email_title"
+msgstr "Bestätigungs-E-Mail konnte nicht gesendet werden"
+
+msgid "register_fail_email_text"
+msgstr "Bitte kontaktiere einen Administrator."
+
+msgid "register_confirm_success_title"
+msgstr "Erfolg"
+
+msgid "register_confirm_success_text"
+msgstr "Deine Registrierung ist jetzt abgeschlossen."
+
+msgid "register_confirm_success_link"
+msgstr "Viel Spaß!"
+
+msgid "register_confirm_already_title"
+msgstr "Bereits registriert"
+
+msgid "register_confirm_already_text"
+msgstr "Die Registrierung wurde bereits in der Vergangenheit abgeschlossen."
+
+msgid "register_confirm_failed_title"
+msgstr "Registrierung fehlgeschlagen"
+
+msgid "register_confirm_failed_text"
+msgstr "Die Registrierung wurde nicht bestätigt. Bitte prüfe, dass:"
+
+msgid "register_confirm_failed_url"
+msgstr "die URL korrekt ist"
+
+msgid "register_confirm_failed_time"
+msgstr "die Registrierung innerhalb der letzten 24 Stunden erfolgt ist"
+
 #: src/Template/Element/layout/header_login.ctp:15
 #: src/Template/Element/layout/header_login.ctp:17
 #: src/Template/Element/users/login_form.ctp:54

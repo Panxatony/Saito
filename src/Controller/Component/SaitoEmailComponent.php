@@ -90,7 +90,13 @@ class SaitoEmailComponent extends Component
     protected function _sendCopyToOriginalSender(Mailer $email)
     {
         /* set new subject */
+        // Cake's Mailer has no __clone(), so `clone` keeps a reference to the
+        // SAME Message object. Because setTo()/setFrom()/setSubject() below are
+        // delegated (via __call) to that shared Message, they would mutate the
+        // original mail too — sending the *main* mail to the sender instead of
+        // the recipient. Give the copy its own Message so it is fully isolated.
         $email = clone $email;
+        $email->setMessage(clone $email->getMessage());
         $to = new SaitoEmailContact($email->getTo());
         // getOriginalSubject(), not getSubject(): the latter returns the already
         // MIME-encoded header value ("=?UTF-8?…?=" for a non-ASCII subject).

@@ -9,6 +9,16 @@
 
 - Unreleased changes go here.
 
+## [7.0.10] - 2026-07-05
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.9...7.0.10)
+
+### Changes
+
+- ✓ Fixes the user list ignoring the chosen sort column: sorting by type, online, registered or lock had no effect because the paginated finder forced `username` as the primary order, which always won. The finder no longer imposes an order, so the selected column sorts correctly (the default view stays username A–Z).
+- ✓ Fixes the registration and confirmation pages always showing English: the "thanks for registering", confirmation-email-sent and "registration finished/failed" texts were hard-coded and bypassed translation. They now use i18n message keys (German translations included), so they follow the forum language.
+- ✓ Fixes a forum message being delivered to the sender instead of the recipient when the "send me a copy" option was on (the default): the copy was a shallow clone of the mailer sharing its message object, so addressing the copy to the sender also re-addressed the main mail. The copy now uses its own message.
+
 ## [7.0.9] - 2026-07-04
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.8...7.0.9)
