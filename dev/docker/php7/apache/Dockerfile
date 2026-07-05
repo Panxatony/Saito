@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y \
       libzip-dev \
       unzip \
       # chromium for headless testing
-      chromium
+      chromium \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
     && docker-php-ext-install \
@@ -76,7 +77,7 @@ RUN a2enmod rewrite
 
 # Install Nodejs
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
-RUN apt-get update && apt-get install -y nodejs
+RUN apt-get update && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/*
 RUN npm install -g yarn grunt-cli
 
 #copy source files and run composer
