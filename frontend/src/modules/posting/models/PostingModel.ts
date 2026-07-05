@@ -27,7 +27,7 @@ class PostingModel extends PostingMdl {
             dataType: 'html',
             success: (data) => {
                 this.set('html', data);
-                if (options && options.success) { (options.success as () => void)(); }
+                if (options?.success) { (options.success as () => void)(); }
             },
             type: 'POST',
             url: `${App.settings.get('webroot')}entries/view/${this.get('id')}`,

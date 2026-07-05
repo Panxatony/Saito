@@ -55,7 +55,7 @@ class UploaderAddVw extends View<Model> {
                 sendBtn: '.js-sendBtn',
             },
         });
-        super(...arguments);
+        super(options);
         this.model.set('userId', options.userId);
     }
 

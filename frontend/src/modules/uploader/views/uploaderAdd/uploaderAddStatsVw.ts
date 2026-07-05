@@ -46,7 +46,7 @@ class StatsVw extends View<Model> {
                 total: '.js-total',
             },
         });
-        super(...arguments);
+        super(options);
     }
 
     protected onChangeFile(model: Model, file: File) {

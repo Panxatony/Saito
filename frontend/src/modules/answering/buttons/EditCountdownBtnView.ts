@@ -24,7 +24,7 @@ export default class EditCountdownView extends View<Model> {
 
     private $countdownDummy!: JQuery;
 
-    private doneAction: string = 'remove';
+    private doneAction = 'remove';
 
     public constructor(options: Record<string, unknown> = {}) {
         super(options);
