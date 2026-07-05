@@ -303,7 +303,7 @@ class AppController extends Controller
 
         $path = $check($locale);
         if ($path) {
-            $this->viewBuilder()->templatePath($path);
+            $this->viewBuilder()->setTemplatePath($path);
 
             return;
         }
@@ -312,7 +312,7 @@ class AppController extends Controller
             list($locale) = explode('_', $locale);
             $path = $check($locale);
             if ($path) {
-                $this->viewBuilder()->templatePath($path);
+                $this->viewBuilder()->setTemplatePath($path);
             }
         }
     }

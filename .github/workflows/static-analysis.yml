@@ -1,0 +1,52 @@
+name: Static Analysis
+
+on:
+  pull_request:
+  push:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-latest
+    container: php:8.4-cli
+    # PHPStan bootstraps tests/bootstrap.php, which runs the migrations against
+    # the `test` connection, so a database is required just like for PHPUnit.
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: saito_test
+          MARIADB_USER: saito
+          MARIADB_PASSWORD: saito
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DATABASE_TEST_URL: "mysql://saito:saito@mariadb/saito_test?encoding=utf8mb4&timezone=UTC"
+      COMPOSER_ALLOW_SUPERUSER: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install system + PHP extensions
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends \
+            git zip unzip libicu-dev libpng-dev libjpeg-dev libwebp-dev \
+            libonig-dev default-mysql-client
+          docker-php-ext-configure gd --with-jpeg --with-webp
+          docker-php-ext-install -j"$(nproc)" pdo_mysql gd intl mbstring exif
+          curl -sS https://getcomposer.org/installer | php -- \
+            --install-dir=/usr/local/bin --filename=composer
+
+      - name: composer install
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      - name: Wait for MariaDB
+        run: until mysql -h mariadb -u saito -psaito saito_test -e "SELECT 1" >/dev/null 2>&1; do sleep 1; done
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --no-progress --error-format=github --memory-limit=2G

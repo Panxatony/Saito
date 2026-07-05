@@ -61,11 +61,6 @@ parameters:
 			path: plugins/Feeds/src/Controller/PostingsController.php
 
 		-
-			message: "#^Call to an undefined method Cake\\\\Database\\\\Connection\\:\\:connect\\(\\)\\.$#"
-			count: 1
-			path: plugins/Installer/src/Controller/InstallController.php
-
-		-
 			message: "#^Method Installer\\\\Controller\\\\InstallController\\:\\:beforeFilter\\(\\) with return type void returns Cake\\\\Http\\\\Response\\|null but should not return anything\\.$#"
 			count: 1
 			path: plugins/Installer/src/Controller/InstallController.php
@@ -74,11 +69,6 @@ parameters:
 			message: "#^Expression in empty\\(\\) is not falsy\\.$#"
 			count: 1
 			path: plugins/Installer/src/Lib/InstallerState.php
-
-		-
-			message: "#^Call to an undefined method Cake\\\\Datasource\\\\ConnectionInterface\\:\\:execute\\(\\)\\.$#"
-			count: 2
-			path: plugins/Installer/src/Lib/IntegrationTestCase.php
 
 		-
 			message: "#^Method SaitoHelp\\\\Controller\\\\SaitoHelpsController\\:\\:view\\(\\) should return Cake\\\\Http\\\\Response\\|null but return statement is missing\\.$#"
@@ -121,11 +111,6 @@ parameters:
 			path: src/Command/SaitoDummyDataCommand.php
 
 		-
-			message: "#^Call to an undefined method Cake\\\\View\\\\ViewBuilder\\:\\:templatePath\\(\\)\\.$#"
-			count: 2
-			path: src/Controller/AppController.php
-
-		-
 			message: "#^Method App\\\\Controller\\\\AppController\\:\\:beforeFilter\\(\\) with return type void returns null but should not return anything\\.$#"
 			count: 1
 			path: src/Controller/AppController.php
@@ -157,11 +142,6 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method Cake\\\\Mailer\\\\Mailer\\:\\:getOriginalSubject\\(\\)\\.$#"
-			count: 1
-			path: src/Controller/Component/SaitoEmailComponent.php
-
-		-
-			message: "#^Call to an undefined method Cake\\\\Mailer\\\\Mailer\\:\\:transport\\(\\)\\.$#"
 			count: 1
 			path: src/Controller/Component/SaitoEmailComponent.php
 
@@ -214,16 +194,6 @@ parameters:
 			message: "#^Variable \\$posting in empty\\(\\) always exists and is not falsy\\.$#"
 			count: 1
 			path: src/Controller/PostingsController.php
-
-		-
-			message: "#^Call to an undefined method Cake\\\\Http\\\\Response\\:\\:disableCache\\(\\)\\.$#"
-			count: 1
-			path: src/Controller/StatusController.php
-
-		-
-			message: "#^Parameter \\#1 \\$contentType of method Cake\\\\Http\\\\Response\\:\\:withType\\(\\) expects string, array\\<string, string\\> given\\.$#"
-			count: 1
-			path: src/Controller/StatusController.php
 
 		-
 			message: "#^Method App\\\\Controller\\\\UsersController\\:\\:setpassword\\(\\) should return Cake\\\\Http\\\\Response\\|null but return statement is missing\\.$#"

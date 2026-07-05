@@ -80,11 +80,13 @@ class InstallController extends AppController
         try {
             /** @var Connection */
             $connection = ConnectionManager::get('default');
-            if ($connection->connect()) {
-                $this->log('Database connection found.');
+            // Cake 5 removed Connection::connect() (connections are lazy);
+            // force the connection via the driver — it throws if it can't
+            // connect, which the catch below handles.
+            $connection->getDriver()->connect();
+            $this->log('Database connection found.');
 
-                return $this->installerRedirect('salt');
-            }
+            return $this->installerRedirect('salt');
         } catch (\Throwable $connectionError) {
             // connection manager will throw error if no connection
         }
