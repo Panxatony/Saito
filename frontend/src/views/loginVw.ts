@@ -3,7 +3,7 @@ import { View } from 'backbone.marionette';
 import * as _ from 'underscore';
 
 class LoginVw extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             template: _.template($('#tpl-modalLoginDialog').html()),
         });

@@ -11,7 +11,7 @@ import { View } from 'backbone.marionette';
 import * as _ from 'underscore';
 
 export default class CategorySelectVw extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             autoselectCategory: false,
             className: 'form-group',

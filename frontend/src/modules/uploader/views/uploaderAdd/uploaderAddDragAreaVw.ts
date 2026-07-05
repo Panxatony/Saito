@@ -19,7 +19,7 @@ class DragAreaVw extends View<Model> {
      * Constructor
      * @param options Ma view options
      */
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             className: 'card-upload-container card-body',
             events: {

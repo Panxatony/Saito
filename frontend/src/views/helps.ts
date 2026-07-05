@@ -13,7 +13,7 @@ class SaitoHelpView extends View<Model> {
     // cache for DOM-elements
     private elements: JQuery | null;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 click: 'toggle',

@@ -49,7 +49,7 @@ interface JQuery {
 
 declare namespace Marionette {
     interface Application {
-        onStart(app: any, options: any): void;
+        onStart(app: any, options: Record<string, unknown>): void;
     }
 }
 
@@ -104,8 +104,8 @@ declare module 'views/app';
  * Browser-vendor specific properties on the global document object
  */
 interface Document {
-    msHidden: any;
-    webkitHidden: any;
+    msHidden: boolean | undefined;
+    webkitHidden: boolean | undefined;
 }
 
 interface Window {

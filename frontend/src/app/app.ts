@@ -28,11 +28,11 @@ interface ISaitoCallbacks {
 
 interface ISaitoAppParams {
     app: {
-        settings: any,
+        settings: Record<string, unknown>,
     };
     callbacks: ISaitoCallbacks;
-    currentUser: any;
-    request: any;
+    currentUser: Record<string, unknown>;
+    request: Record<string, unknown>;
     assets: {
         lang: string,
     };
@@ -75,7 +75,7 @@ class Bootstrap {
         });
     }
 
-    private whenReady(callback: () => any) {
+    private whenReady(callback: () => void) {
         if ($.isReady) {
             callback();
         } else {

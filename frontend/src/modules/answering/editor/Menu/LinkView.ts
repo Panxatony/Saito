@@ -5,7 +5,7 @@ import * as _ from 'underscore';
 import tpl from './template/linkView.html';
 
 class LinkView extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click @ui.submit': 'insert',

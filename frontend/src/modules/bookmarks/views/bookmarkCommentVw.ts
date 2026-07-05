@@ -1,12 +1,13 @@
 import { View } from 'backbone.marionette';
+import { Model } from 'backbone';
 import * as _ from 'underscore';
 import * as Tpl from '../templates/bookmarkCommentTpl.html';
 
 /**
  * Comment as input
  */
-export class CommentInputView extends View<any> {
-    constructor(options: any) {
+export class CommentInputView extends View<Model> {
+    constructor(options: Record<string, unknown>) {
         options.template = Tpl;
         options.className = 'm-1';
         options.ui = {

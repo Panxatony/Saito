@@ -13,7 +13,7 @@ abstract class JsonApiModel extends Bb.Model {
     }
 
     /** Bb respone parser */
-    public parse(response: any, options?: any) {
+    public parse(response: any, options?: Record<string, unknown>) {
         let data = response;
 
         // empty response from server (204)
@@ -43,7 +43,7 @@ abstract class JsonApiCollection extends Bb.Collection<JsonApiModel> {
     public url = () => EventBus.vent.request('apiroot') + this.saitoUrl;
 
     /** Bb response parser */
-    public parse(response: any, options?: any) {
+    public parse(response: any, options?: Record<string, unknown>) {
         return response.data;
     }
 }

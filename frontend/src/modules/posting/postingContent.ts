@@ -4,7 +4,7 @@ import { PostingModel } from './models/PostingModel';
 import { PostingRichtextView } from './postingRichtext';
 
 class PostingContentView extends View<PostingModel> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             regions: {
                 postingBody: '.postingBody-text',

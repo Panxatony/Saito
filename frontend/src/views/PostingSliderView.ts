@@ -22,7 +22,7 @@ export default class Marionette extends View<Model> {
 
     public parentThreadline: PostingModel | null;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             childViewEvents: {
                 'answering:form:rendered': 'onAnsweringFormRendered',
@@ -44,10 +44,10 @@ export default class Marionette extends View<Model> {
         super(options);
 
         this.answeringForm = false;
-        this.parentThreadline = options.parentThreadline || null;
+        this.parentThreadline = (options.parentThreadline as PostingModel) || null;
     }
 
-    public initialize(options: any) {
+    public initialize(options: Record<string, unknown>) {
         this.listenTo(this.model, 'change:isAnsweringFormShown', this.toggleAnsweringForm);
     }
 

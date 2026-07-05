@@ -10,7 +10,7 @@ import App from 'models/app';
 class ThreadModel extends Model {
     public threadlines!: ThreadLinesCollection;
 
-    public constructor(attributes?: any, options?: any) {
+    public constructor(attributes?: Record<string, unknown>, options?: Record<string, unknown>) {
         _.defaults(options, {
             defaults: {
                 isThreadCollapsed: false,

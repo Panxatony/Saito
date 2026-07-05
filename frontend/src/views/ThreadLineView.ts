@@ -17,7 +17,7 @@ class ThreadLineView extends View<ThreadLineModel> {
 
     private spinnerTpl: string;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             className: 'threadLeaf',
             events: {
@@ -38,14 +38,14 @@ class ThreadLineView extends View<ThreadLineModel> {
         });
         super(options);
 
-        this.spinnerTpl = options.spinnerTpl;
-        this.postings = options.postings;
+        this.spinnerTpl = options.spinnerTpl as string;
+        this.postings = options.postings as PostingCollection;
     }
 
-    public initialize(options: any) {
+    public initialize(options: Record<string, unknown>) {
         this.model = new ThreadLineModel({
-            id: options.leafData.id,
-            isNewToUser: options.leafData.isNewToUser,
+            id: (options.leafData as { id: number; isNewToUser: boolean }).id,
+            isNewToUser: (options.leafData as { id: number; isNewToUser: boolean }).isNewToUser,
         });
         if (options.el === undefined) {
             this.model.fetch();

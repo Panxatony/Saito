@@ -19,7 +19,7 @@ enum MenuButtonType {
 }
 
 class MenuButtonBarView extends CollectionView<Model, AbstractMenuButtonView, Collection<Model>> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             childView: (model: Model) => {
                 const type = model.get('type');

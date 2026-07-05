@@ -29,7 +29,7 @@ class ModalDialogView extends View<Model> {
 
     private defaults: Partial<IModalDialogOptions>;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         options = defaults(options, {
             regions: {
                 content: '#saito-modal-dialog-content',

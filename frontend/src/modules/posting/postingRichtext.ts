@@ -5,7 +5,7 @@ import { GeshiView } from './Geshi';
 import { PostingRichtextEmbedModel, PostingRichtextEmbedView } from './postingRichtextEmbed';
 
 class PostingRichtextView extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             template: _.noop,
         });

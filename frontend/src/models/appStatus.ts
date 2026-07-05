@@ -14,7 +14,7 @@ class AppStatusModel extends CakeRestModel {
 
     private settings: any;
 
-    public initialize(attributes: any, options: any) {
+    public initialize(attributes: Record<string, unknown>, options: Record<string, unknown>) {
         super.initialize(attributes, options);
         this.settings = options.settings;
         this.methodToCakePhpUrl.read = 'status/';

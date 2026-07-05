@@ -7,7 +7,7 @@ import PostingModel from '../models/PostingMdl';
 
 export default class extends View<PostingModel> {
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
 
             className: 'btn btn-link btn-solves',

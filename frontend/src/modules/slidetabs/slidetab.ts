@@ -32,7 +32,7 @@ class SlidetabCollection extends Collection<SlidetabModel> {
 }
 
 class SlidetabView extends View<SlidetabModel> {
-    public constructor(options: any) {
+    public constructor(options: Record<string, unknown>) {
         _.defaults(options, {
             modelEvents: {
                 'change:isOpen': 'toggleSlidetab',

@@ -31,11 +31,11 @@ class UploaderAddMdl extends Model {
      * @param attrs Attributes to check
      * @param options Options
      */
-    public validate(attrs: any, options?: any): string|undefined {
+    public validate(attrs: Record<string, unknown>, options?: Record<string, unknown>): string|undefined {
         if (attrs.fileToUpload === undefined) {
             return $.i18n.__('upl.vald.e.dad');
         }
-        const exists = this.collection.findWhere({ title: attrs.fileToUpload.name });
+        const exists = this.collection.findWhere({ title: (attrs.fileToUpload as File).name });
         if (exists !== undefined) {
             return $.i18n.__('upl.vald.e.fileExists');
         }
