@@ -36,9 +36,9 @@ export default class MarkupMultimedia {
         let textv = $.trim(text);
         const patternEnd = '([\\/?]|$)';
 
-        const patternImage = new RegExp('\\.(png|gif|jpg|jpeg|webp|svg)' + patternEnd, 'i');
-        const patternHtml = new RegExp('\\.(mp4|webm|m4v)' + patternEnd, 'i');
-        const patternAudio = new RegExp('\\.(m4a|ogg|mp3|wav|opus)' + patternEnd, 'i');
+        const patternImage = new RegExp(`\\.(png|gif|jpg|jpeg|webp|svg)${patternEnd}`, 'i');
+        const patternHtml = new RegExp(`\\.(mp4|webm|m4v)${patternEnd}`, 'i');
+        const patternAudio = new RegExp(`\\.(m4a|ogg|mp3|wav|opus)${patternEnd}`, 'i');
         const patternIframe = /<iframe/i;
 
         _.each(this.preFilters, (cleaner) => {

@@ -73,7 +73,7 @@ export default class extends View<Model> {
     private _sendToggle(key: string) {
         const id = this.model.get('id');
         const webroot = App.settings.get('webroot');
-        const url = webroot + 'entries/ajaxToggle/' + id + '/' + key;
+        const url = `${webroot}entries/ajaxToggle/${id}/${key}`;
 
         $.ajax({ url, cache: false })
             .done(() => { window.location.reload(true); });

@@ -353,7 +353,7 @@ export default class AnsweringView extends View<AnswerModel> {
         const fields: string[] = ['subject', 'text'];
         const found = fields.find((field) => Boolean(this.model.get(field)));
         const state: string = found ? 'disallow' : 'allow';
-        App.eventBus.request('app:navigation:' + state);
+        App.eventBus.request(`app:navigation:${state}`);
     }
 
     /**

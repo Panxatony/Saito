@@ -61,11 +61,11 @@ export default class extends View<ThreadModel> {
             leafData,
             postings: this.postings,
         });
-        this._appendThreadlineToThread(model.get('pid') + '', threadLine.render().$el);
+        this._appendThreadlineToThread(`${model.get('pid')}`, threadLine.render().$el);
     }
 
     private _appendThreadlineToThread(pid: string, $el: JQuery) {
-        const parent = this.$('.threadLeaf[data-id="' + pid + '"]');
+        const parent = this.$(`.threadLeaf[data-id="${pid}"]`);
         const existingSubthread = (parent.next().not('.js_threadline').find('ul:first'));
         if (existingSubthread.length === 0) {
             $el.wrap('<ul class="threadTree-node"></ul>')

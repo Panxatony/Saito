@@ -54,7 +54,7 @@ export default class extends View<Model> {
         // GET redirect: a GET was CSRF-able. The global ajaxPrefilter adds the
         // bearer token; the endpoint enforces the delete permission.
         $.ajax({
-            url: App.settings.get('apiroot') + 'postings/' + id,
+            url: `${App.settings.get('apiroot')}postings/${id}`,
             method: 'DELETE',
         })
             .then(() => {

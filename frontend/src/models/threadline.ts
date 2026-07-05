@@ -17,7 +17,7 @@ class ThreadLineModel extends CakeRestModel {
 
     public initialize(attributes: Record<string, unknown>, options: Record<string, unknown>) {
         super.initialize(attributes, options);
-        this.webroot = App.settings.get('webroot') + 'entries/';
+        this.webroot = `${App.settings.get('webroot')}entries/`;
         this.methodToCakePhpUrl.read = 'threadline/';
 
         this.set('isAlwaysShownInline', App.currentUser.get('user_show_inline') || false);

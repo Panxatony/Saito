@@ -70,7 +70,7 @@ class UploaderMenuTypeVw extends View<Model> {
                     // PRs welcome.
                     continue;
             }
-            this.$el.append('<option value="' + escape(value) + '">' + escape(l10n) + '</option>');
+            this.$el.append(`<option value="${escape(value)}">${escape(l10n)}</option>`);
         }
     }
 

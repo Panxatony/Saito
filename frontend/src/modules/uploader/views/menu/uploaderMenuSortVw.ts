@@ -60,7 +60,7 @@ class UploaderMenuSortVw extends View<Model> {
 
     protected onChangeSort(model: UploaderMenuMdl) {
         const newSort = model.get('sort');
-        const input = this.$('input[value=' + newSort + ']')[0] as HTMLFormElement;
+        const input = this.$(`input[value=${newSort}]`)[0] as HTMLFormElement;
         if (!input.checked) {
             input.checked = true;
         }

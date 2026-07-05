@@ -84,7 +84,7 @@ export default class extends View<PostingModel> {
      * @param html
      */
     private _toggleGlobal(html: string) {
-        const $globalIconHook = $('.solves.' + this.model.get('id'));
+        const $globalIconHook = $(`.solves.${this.model.get('id')}`);
         $globalIconHook.html(html);
     }
 }

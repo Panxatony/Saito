@@ -73,7 +73,7 @@ class StatsVw extends View<Model> {
         if (period !== 0) {
             bitrate = Math.round(model.get('loaded') / period);
         }
-        this.getUI('speed').html(numeral(bitrate).format('0 b') + '/s');
+        this.getUI('speed').html(`${numeral(bitrate).format('0 b')}/s`);
 
         const total = model.get('fileToUpload').size;
         let remaining = Math.floor((total - model.get('loaded')) / bitrate) + 1;

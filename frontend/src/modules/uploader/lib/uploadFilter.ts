@@ -68,7 +68,7 @@ class UploadFilter {
 
         /// Check for title
         if (this.title !== undefined) {
-            const title = model.get('title') + ' ' + model.get('name');
+            const title = `${model.get('title')} ${model.get('name')}`;
             if (title.toLowerCase().indexOf(this.title.toLowerCase()) === -1) {
                 return false;
             }

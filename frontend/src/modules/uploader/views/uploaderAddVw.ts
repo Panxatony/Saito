@@ -105,9 +105,9 @@ class UploaderAddVw extends View<Model> {
 
         this.xhr = new XMLHttpRequest();
         const xhr = this.xhr;
-        xhr.open('POST', App.settings.get('apiroot') + 'uploads');
+        xhr.open('POST', `${App.settings.get('apiroot')}uploads`);
         xhr.setRequestHeader('Accept', 'application/json, text/javascript');
-        xhr.setRequestHeader('Authorization', 'bearer ' + App.settings.get('jwt'));
+        xhr.setRequestHeader('Authorization', `bearer ${App.settings.get('jwt')}`);
 
         xhr.onloadstart = () => this.onUploadStart();
         xhr.onabort = () => this.onUploadAbort();
@@ -128,7 +128,7 @@ class UploaderAddVw extends View<Model> {
                 return;
             }
 
-            if (('' + xhr.status)[0] === '2') {
+            if (`${xhr.status}`[0] === '2') {
                 /// Upload was successful.
                 this.collection.add(JSON.parse(xhr.responseText).data.attributes);
                 return;

@@ -151,7 +151,7 @@ export default class SubjectInputView extends View<Model> {
 
     private updateProgressBar() {
         const $progress = this.getUI('progressBar');
-        $progress.css('width', this.stateModel.get('percentage') + '%');
+        $progress.css('width', `${this.stateModel.get('percentage')}%`);
 
         const remaining = this.stateModel.get('remaining');
         if (remaining === 0) {

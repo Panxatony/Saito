@@ -132,7 +132,7 @@ class EditorView extends View<Model> {
                 // additional space to prevent smiley concatenation:
                 // `:cry:` and `(-.-)zzZ` becomes `:cry:(-.-)zzZ` which outputs
                 // smiley image for `:(`
-                this.insertText(smiley.code + ' ');
+                this.insertText(`${smiley.code} `);
             });
         }
         this.getChildView('smilies').$el.collapse('toggle');

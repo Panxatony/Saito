@@ -45,7 +45,7 @@ class GeshiView extends View<GeshiModel> {
 
     private setPlaintextButton() {
         const icon = this.model.get('isPlaintext') ? 'fa-list-ol' : 'fa-align-justify';
-        this.$('.geshi-plain-text').html('<i class="fa ' + icon + '"></i>');
+        this.$('.geshi-plain-text').html(`<i class="fa ${icon}"></i>`);
     }
 
     private togglePlaintext(event: Event) {

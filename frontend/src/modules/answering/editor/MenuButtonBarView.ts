@@ -37,7 +37,7 @@ class MenuButtonBarView extends CollectionView<Model, AbstractMenuButtonView, Co
                     case MenuButtonType.smilies:
                         return MenuButtonSmiliesView;
                     default:
-                        throw new Error('Editor button type "' + type + '" not recognized.');
+                        throw new Error(`Editor button type "${type}" not recognized.`);
                 }
             },
             className: 'markupButtons',

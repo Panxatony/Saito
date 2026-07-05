@@ -7,7 +7,7 @@ class LayoutHelper {
 
         let out = '';
         _.each(elements, (element: string, key) => {
-            out += '<div class="' + key + '">';
+            out += `<div class="${key}">`;
             out += _.escape(element);
             out += '</div>';
         });
