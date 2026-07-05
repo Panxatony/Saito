@@ -192,7 +192,7 @@ class UsersTable extends AppTable
                         if ($upload === null || empty($upload['tmp_name'])) {
                             return true;
                         }
-                        $size = @getimagesize($upload['tmp_name']);
+                        $size = @getimagesize($upload['tmp_name']); // getimagesize warns on non-image uploads; return is checked below skipcq: PHP-W1078
                         if (!$size) {
                             return false;
                         }

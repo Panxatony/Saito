@@ -163,7 +163,7 @@ class Embed extends CodeDefinition
         if (filter_var($host, FILTER_VALIDATE_IP)) {
             $ips[] = $host;
         } else {
-            $records = @dns_get_record($host, DNS_A | DNS_AAAA);
+            $records = @dns_get_record($host, DNS_A | DNS_AAAA); // dns_get_record warns on unresolvable hosts; return guarded via ?: [] skipcq: PHP-W1078
             foreach ($records ?: [] as $record) {
                 if (!empty($record['ip'])) {
                     $ips[] = $record['ip'];

@@ -286,16 +286,6 @@ parameters:
 			path: src/Lib/Saito/User/Blocker/ManualBlocker.php
 
 		-
-			message: "#^Property Saito\\\\User\\\\Cookie\\\\Storage\\:\\:\\$_defaultConfig is never read, only written\\.$#"
-			count: 1
-			path: src/Lib/Saito/User/Cookie/Storage.php
-
-		-
-			message: "#^Property Saito\\\\User\\\\LastRefresh\\\\LastRefreshDatabase\\:\\:\\$initialized is never read, only written\\.$#"
-			count: 1
-			path: src/Lib/Saito/User/LastRefresh/LastRefreshDatabase.php
-
-		-
 			message: "#^Variable \\$new in empty\\(\\) always exists and is not falsy\\.$#"
 			count: 1
 			path: src/Lib/Saito/User/ReadPostings/ReadPostingsCookie.php

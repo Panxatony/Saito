@@ -31,8 +31,6 @@ class LastRefreshDatabase extends LastRefreshAbstract
      */
     protected $storage;
 
-    private $initialized = false;
-
     /**
      * {@inheritdoc}
      */

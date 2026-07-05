@@ -35,7 +35,7 @@ class Storage
      *
      * @var array
      */
-    private $_defaultConfig = [
+    protected $_defaultConfig = [
         'expire' => '+1 month',
         'http' => true,
         // null => derive from App.fullBaseUrl (https deployment => Secure).
