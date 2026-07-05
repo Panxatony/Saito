@@ -110,7 +110,7 @@ class AppView extends View<Model> {
          */
         if (window.location.href.indexOf('jump=') > -1) {
             const url = window.location.href;
-            const jumpTarget = /[\?\&]jump=(\d+)/.exec(url);
+            const jumpTarget = /[?&]jump=(\d+)/.exec(url);
             if (!jumpTarget) {
                 return;
             }
@@ -119,7 +119,7 @@ class AppView extends View<Model> {
             } catch (_error) {
                 // do nothing
             } finally {
-                const newLocation = url.replace(/[\?\&]jump=\d+/, '');
+                const newLocation = url.replace(/[?&]jump=\d+/, '');
                 window.history.replaceState(null, '', newLocation);
             }
         }

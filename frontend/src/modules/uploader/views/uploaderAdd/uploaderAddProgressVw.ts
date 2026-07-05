@@ -32,7 +32,7 @@ class ProgressBarVw extends View<Model> {
                 bar: '.progress-bar',
             },
         });
-        super(...arguments);
+        super(options);
     }
 
     /**

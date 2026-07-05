@@ -9,7 +9,7 @@
 import { Model } from 'backbone';
 import { View, ViewOptions } from 'backbone.marionette';
 import $ from 'jquery';
-import { defaults, template, unique } from 'underscore';
+import { defaults, template } from 'underscore';
 import UploaderMenuMdl from './uploaderMenuMdl';
 
 /**

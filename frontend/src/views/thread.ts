@@ -45,7 +45,6 @@ export default class extends View<ThreadModel> {
     }
 
     private _showNewThreadLine(model: AnswerModel) {
-        let threadLine;
         // only append to the id it belongs to
         if (model.get('tid') !== this.model.get('id')) {
             return;
@@ -56,7 +55,7 @@ export default class extends View<ThreadModel> {
             isNewToUser: true,
         };
 
-        threadLine = new ThreadLineView({
+        const threadLine = new ThreadLineView({
             collection: this.model.threadlines,
             leafData,
             postings: this.postings,
