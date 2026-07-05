@@ -946,6 +946,29 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertRedirect('/users/view/3');
     }
 
+    public function testEditOwnProfileShowsPersonalFeedLinks()
+    {
+        // A user editing their own profile sees their personal, tokenized feed
+        // URLs so they can copy them into a reader.
+        $this->_loginUser(3);
+        $this->get('/users/edit/3');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('/feeds/f/3-');
+    }
+
+    public function testEditOtherUsersProfileHidesPersonalFeedLinks()
+    {
+        // The feed URL is a credential: an admin editing *another* user's
+        // profile must not see any personal feed URL (neither the edited
+        // user's nor their own).
+        $this->_loginUser(1);
+        $this->get('/users/edit/3');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('/feeds/f/');
+    }
+
     public function testIndex()
     {
         $url = '/users/index';

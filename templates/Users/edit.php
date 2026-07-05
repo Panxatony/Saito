@@ -383,6 +383,14 @@ $this->end();
         </table>
 
 
+        <?php if ($user->isUser($CurrentUser)) : ?>
+            <hr>
+            <h2 class="text-center pt-3"><?= __d('feeds', 'feeds.profile.t') ?></h2>
+            <div class="richtext">
+                <?= $this->cell('Feeds.FeedLinks', [$CurrentUser]) ?>
+            </div>
+        <?php endif; ?>
+
         <?php
         //= get additional profile info from plugins
         $items = $SaitoEventManager->dispatch(

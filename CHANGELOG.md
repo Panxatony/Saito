@@ -7,7 +7,7 @@
 
 ## [next] -
 
-- Unreleased changes go here.
+- ＋ Personalized RSS feeds: a logged-in user gets signed feed URLs (both the postings and the threads feed) that include the non-public categories they may read. The signature is derived from the app salt and the user's password hash, so it needs no schema change, exposes no password, is read-only, and stops working when the password changes. Feed readers authenticate by the URL alone (they cannot run the SPA login); anonymous feeds keep showing only public postings. The personal URLs are shown on the RSS-feeds page and in the user's own profile, each with a copy button and a one-click "subscribe" link (`feed:` scheme) for the installed reader.
 
 ## [7.0.9] - 2026-07-04
 
