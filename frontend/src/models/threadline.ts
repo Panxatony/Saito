@@ -15,7 +15,7 @@ class ThreadLineModel extends CakeRestModel {
         super(options);
     }
 
-    public initialize(attributes: any, options: Record<string, unknown>) {
+    public initialize(attributes: Record<string, unknown>, options: Record<string, unknown>) {
         super.initialize(attributes, options);
         this.webroot = App.settings.get('webroot') + 'entries/';
         this.methodToCakePhpUrl.read = 'threadline/';

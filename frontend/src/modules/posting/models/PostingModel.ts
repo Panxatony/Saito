@@ -7,7 +7,7 @@ import _ from 'underscore';
 class PostingModel extends PostingMdl {
     public saitoUrl: string;
 
-    public constructor(defaults: any = {}, options: Record<string, unknown> = {}) {
+    public constructor(defaults: Record<string, unknown> = {}, options: Record<string, unknown> = {}) {
         _.defaults(defaults, {
             html: '',
             isAnsweringFormShown: false,

@@ -13,7 +13,7 @@ export default abstract class CakeRestModel extends Model {
 
     public webroot!: string;
 
-    public initialize(attributes: any, options: Record<string, unknown>) {
+    public initialize(attributes: Record<string, unknown>, options: Record<string, unknown>) {
         this.methodToCakePhpUrl = {
             create: 'add',
             delete: 'delete',

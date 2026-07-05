@@ -15,7 +15,7 @@ export default abstract class PostingModel extends JsonApiModel {
      *
      * @param options Bb options
      */
-    public constructor(defaults: any = {}, options: Record<string, unknown> = {}) {
+    public constructor(defaults: Record<string, unknown> = {}, options: Record<string, unknown> = {}) {
         _.defaults(defaults, {
             category_id: undefined,
             id: undefined,

@@ -142,7 +142,7 @@ class AppView extends View<Model> {
      * @private
      */
     public _initAnsweringNotInlined(element: JQuery) {
-        const data: any = {};
+        const data: Record<string, unknown> = {};
         const id = element.data('edit');
         if (id) {
             data.id = parseInt(id, 10);

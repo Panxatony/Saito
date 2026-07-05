@@ -104,8 +104,8 @@ declare module 'views/app';
  * Browser-vendor specific properties on the global document object
  */
 interface Document {
-    msHidden: any;
-    webkitHidden: any;
+    msHidden: boolean | undefined;
+    webkitHidden: boolean | undefined;
 }
 
 interface Window {
