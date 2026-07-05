@@ -133,6 +133,29 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertContains(4, $this->feedCategoryIds());
     }
 
+    public function testValidTokenAuthenticatesEvenForBotClient()
+    {
+        // Feed readers (curl, Reeder, CFNetwork, HTTP libraries) are on the bot
+        // list. A bot must still be authenticated by its personal feed token —
+        // otherwise the bot short-circuit in AuthUserComponent would serve it
+        // only the public feed and personalized feeds would never work in a
+        // real reader.
+        $this->configRequest(['headers' => ['User-Agent' => 'curl/8.7.1']]);
+        $this->get('/feeds/f/' . $this->feedToken(3) . '/postings/new.rss');
+        $this->assertResponseOk();
+        $this->assertContains(4, $this->feedCategoryIds());
+    }
+
+    public function testBotWithoutTokenStillGetsOnlyPublicFeed()
+    {
+        // The bot classification must still apply when there is no valid token:
+        // a crawler sees only public categories.
+        $this->configRequest(['headers' => ['User-Agent' => 'curl/8.7.1']]);
+        $this->get('/feeds/postings/new.rss');
+        $this->assertResponseOk();
+        $this->assertNotContains(4, $this->feedCategoryIds());
+    }
+
     public function testTamperedTokenFallsBackToPublicFeed()
     {
         // A forged signature must not unlock non-public categories: the request
