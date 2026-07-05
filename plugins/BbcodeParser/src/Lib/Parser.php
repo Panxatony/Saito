@@ -297,7 +297,7 @@ class Parser
                 return !is_object($value);
             }
         );
-        $parserId = md5(serialize($serializable));
+        $parserId = md5(serialize($serializable)); // parser cache id, not password hashing skipcq: PHP-A1004
         if (isset($this->_initializedParsers[$parserId])) {
             $this->_Parser = $this->_initializedParsers[$parserId];
 

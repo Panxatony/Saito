@@ -218,7 +218,7 @@ class PostingBehavior extends Behavior
             return $result;
         };
 
-        $key = 'Entry.recentEntries-' . md5(serialize($options));
+        $key = 'Entry.recentEntries-' . md5(serialize($options)); // cache key, not password hashing skipcq: PHP-A1004
         $results = Cache::remember($key, $read, 'entries');
 
         $threads = [];

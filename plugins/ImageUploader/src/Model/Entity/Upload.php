@@ -65,6 +65,6 @@ class Upload extends Entity
      */
     public function _getHash(): string
     {
-        return md5($this->get('name'));
+        return md5($this->get('name')); // content-addressed upload filename, not password hashing skipcq: PHP-A1004
     }
 }

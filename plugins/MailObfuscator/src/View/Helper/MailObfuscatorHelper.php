@@ -39,7 +39,7 @@ class MailObfuscatorHelper extends Helper
         if (empty($title) === false) {
             $hasTitle = 1;
         }
-        $rand = "moh_" . md5(mt_rand(1, 10000) . $addr);
+        $rand = "moh_" . md5(mt_rand(1, 10000) . $addr); // random DOM id, not password hashing skipcq: PHP-A1004
         list($ttl, $dom) = explode('@', $addr);
 
         // missing  style='unicode-bidi:bidi-override;direction:rtl;'
