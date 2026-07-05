@@ -169,7 +169,7 @@ export default class AnsweringView extends View<AnswerModel> {
         this.model.set(data.posting);
 
         /// init drafts (no drafts for edits)
-        const isEdit: boolean = !!this.model.get('id');
+        const isEdit = Boolean(this.model.get('id'));
         if (!isEdit) {
             const draftModel = new DraftModel({ pid: this.model.get('pid') });
 
@@ -325,7 +325,7 @@ export default class AnsweringView extends View<AnswerModel> {
      * Check form validity and trigger error messages in browser
      */
     private checkFormValidity(): boolean {
-        const form: HTMLFormElement & any = this.getUI('form')[0];
+        const form = this.getUI('form')[0] as HTMLFormElement;
 
         if (form.checkValidity()) {
             return true;
@@ -351,7 +351,7 @@ export default class AnsweringView extends View<AnswerModel> {
     private onAnswerModelChange() {
         /// warn user on input when navigating away
         const fields: string[] = ['subject', 'text'];
-        const found = fields.find((field) => !!this.model.get(field));
+        const found = fields.find((field) => Boolean(this.model.get(field)));
         const state: string = found ? 'disallow' : 'allow';
         App.eventBus.request('app:navigation:' + state);
     }
