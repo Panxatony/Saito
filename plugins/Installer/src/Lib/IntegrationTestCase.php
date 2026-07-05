@@ -80,6 +80,7 @@ abstract class IntegrationTestCase extends SaitoIntegrationTestCase
 
     private function _dropAllKnownTables(): void
     {
+        /** @var \Cake\Database\Connection $connection */
         $connection = ConnectionManager::get('test');
         $allTables = array_merge(self::$knownTables, self::$legacyTables);
         foreach ($allTables as $table) {
@@ -110,6 +111,7 @@ abstract class IntegrationTestCase extends SaitoIntegrationTestCase
 
     private function _truncateAllKnownTables(): void
     {
+        /** @var \Cake\Database\Connection $connection */
         $connection = ConnectionManager::get('test');
         foreach (self::$knownTables as $table) {
             $connection->execute('TRUNCATE TABLE `' . $table . '`;');

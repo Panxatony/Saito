@@ -134,7 +134,7 @@ class SaitoEmailComponent extends Component
         $debug = Configure::read('Saito.debug.email');
         if ($debug) {
             $transport = new DebugTransport();
-            $email->transport($transport);
+            $email->setTransport($transport);
         };
 
         $sender = (new SaitoEmailContact('system'))->toCake();

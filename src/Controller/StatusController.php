@@ -53,9 +53,12 @@ class StatusController extends AppController
     {
         // time in ms to next request
         $retry = '10000';
-        $this->response = $this->response->withType(['eventstream' => 'text/event-stream']);
-        $this->response = $this->response->withType('eventstream');
-        $this->response->disableCache();
+        // Cake 5: withType() takes a string (a full mime type when it contains
+        // a slash); the immutable response's cache is disabled via
+        // withDisabledCache() (disableCache() was removed).
+        $this->response = $this->response
+            ->withType('text/event-stream')
+            ->withDisabledCache();
         $out = '';
         $out .= "retry: $retry\n";
         $out .= 'data: ' . $data . "\n\n";
