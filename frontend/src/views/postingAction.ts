@@ -11,7 +11,7 @@ import SolvesBtn from 'views/postingActionSolves';
 export default class extends View<Model> {
     private jsButtons: any[];
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click .js-btn-setAnsweringForm': 'onBtnAnswer',

@@ -16,7 +16,7 @@ class GeshiView extends View<GeshiModel> {
     public htmlText!: string | undefined;
     public plainText!: string | undefined;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click .geshi-plain-text': 'togglePlaintext',

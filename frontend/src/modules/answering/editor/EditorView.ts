@@ -16,7 +16,7 @@ import { SmiliesCollectionView } from './Menu/Smilies';
 import { MenuButtonBarView } from './MenuButtonBarView';
 
 class EditorView extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             channelName: 'editor',
             className: 'form-group',

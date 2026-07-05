@@ -12,7 +12,7 @@ import { defaults, template } from 'underscore';
 import EditCountdownView from './EditCountdownBtnView';
 
 export default class SubmitButtonView extends View<Model> {
-    constructor(options: any = {}) {
+    constructor(options: Record<string, unknown> = {}) {
         options = defaults(options, {
             attributes: {
                 tabindex: 4,

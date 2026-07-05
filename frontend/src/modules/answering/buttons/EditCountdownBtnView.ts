@@ -26,7 +26,7 @@ export default class EditCountdownView extends View<Model> {
 
     private doneAction: string = 'remove';
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         super(options);
     }
 
@@ -36,15 +36,15 @@ export default class EditCountdownView extends View<Model> {
      * @param options
      * - startTime: Date - start time
      */
-    public initialize(options: any) {
-        this.editEnd = moment(options.startTime).unix() + (App.settings.get('editPeriod') * 60);
+    public initialize(options: Record<string, unknown>) {
+        this.editEnd = moment(options.startTime as Date).unix() + (App.settings.get('editPeriod') * 60);
         // this.editEnd = moment().unix() + 5 ; // debug
 
         if (moment().unix() > this.editEnd) {
             return;
         }
         if (options.done) {
-            this.doneAction = options.done;
+            this.doneAction = options.done as string;
         }
         this.buttonText = this.$el.html();
         this.$countdownDummy = $('<span style="display: none;"></span>');

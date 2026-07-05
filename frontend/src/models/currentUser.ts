@@ -1,6 +1,11 @@
 import { Model } from 'backbone';
-import _ from 'underscore';
 import BookmarksCl from '../modules/bookmarks/collections/bookmarksCl';
+
+interface IGetBookmarksOptions {
+    success?: (collection: BookmarksCl, response?: unknown, options?: unknown) => void;
+    error?: (collection: BookmarksCl, response?: unknown, options?: unknown) => void;
+    context?: unknown;
+}
 
 export default class extends Model {
     private bookmarks!: BookmarksCl;
@@ -15,8 +20,7 @@ export default class extends Model {
      * - {callback} error
      * @returns {Backbone.Collection} bookmarks collection
      */
-    public getBookmarks(options: any) {
-        _.defaults(options, { success: null, error: null });
+    public getBookmarks(options: IGetBookmarksOptions = {}) {
         if (!this.bookmarks) {
             this.bookmarks = new BookmarksCl();
             this.bookmarks.fetch({
@@ -24,7 +28,7 @@ export default class extends Model {
                 success: options.success,
             });
         } else {
-            options.success.call(options.context, this.bookmarks, null, options);
+            options.success?.call(options.context, this.bookmarks, null, options);
         }
         return this.bookmarks;
     }

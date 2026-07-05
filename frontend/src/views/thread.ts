@@ -14,7 +14,7 @@ export default class extends View<ThreadModel> {
 
     private postings!: PostingCollection;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             className: 'threadBox',
             events: {
@@ -24,8 +24,8 @@ export default class extends View<ThreadModel> {
         super(options);
     }
 
-    public initialize(options: any) {
-        this.postings = options.postings;
+    public initialize(options: Record<string, unknown>) {
+        this.postings = options.postings as PostingCollection;
 
         this.$rootUl = this.$('ul.root');
         this.$subThreadRootIl = $(this.$rootUl.find('li:not(:first-child)')[0]);

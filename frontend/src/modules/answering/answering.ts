@@ -35,7 +35,7 @@ export default class AnsweringView extends View<AnswerModel> {
 
     private metaModel: MetaModel;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             childViewEvents: {
                 'answer:send:submit': 'onSubmit',
@@ -120,10 +120,10 @@ export default class AnsweringView extends View<AnswerModel> {
 
         this.loaded = false;
         this.sendInProgress = false;
-        this.metaModel = options.meta;
+        this.metaModel = options.meta as MetaModel;
     }
 
-    public initialize(options: any) {
+    public initialize(options: Record<string, unknown>) {
         /// init Cake Form Error View
         this.errorVw = new CakeFormErrorView({ el: this.$el });
     }

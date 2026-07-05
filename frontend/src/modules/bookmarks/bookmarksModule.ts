@@ -7,7 +7,7 @@ import BookmarksCl from './collections/bookmarksCl';
 import BookmarksView from './views/bookmarksVw';
 
 export default class extends Mn.View<any> {
-    constructor(options: any = {}) {
+    constructor(options: Record<string, unknown> = {}) {
         options.template = _.template(`
 <div class="panel">
     <div class="panel-content">

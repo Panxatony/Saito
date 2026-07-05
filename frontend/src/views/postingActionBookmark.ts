@@ -6,7 +6,7 @@ import _ from 'underscore';
 import BookmarksCl from '../modules/bookmarks/collections/bookmarksCl';
 
 export default class extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             className: 'btn btn-link',
             events: {

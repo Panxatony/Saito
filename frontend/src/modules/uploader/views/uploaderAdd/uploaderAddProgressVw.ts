@@ -15,7 +15,7 @@ class ProgressBarVw extends View<Model> {
      * Constructor
      * @param options Ma options
      */
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             modelEvents: {
                 'change:progress': 'onChangeProgress',

@@ -10,7 +10,7 @@ import { CommentInputView } from './bookmarkCommentVw';
  * Comment as text
  */
 class CommentTextView extends Mn.View<any> {
-    constructor(options: any) {
+    constructor(options: Record<string, unknown>) {
         options.template = _.template('<%- comment %>');
         options.className = 'm-1';
         super(options);
@@ -21,7 +21,7 @@ class CommentTextView extends Mn.View<any> {
  * Bookmark Item View
  */
 export default class extends Mn.View<any> {
-    constructor(options: any = {}) {
+    constructor(options: Record<string, unknown> = {}) {
         options = _.extend(options, {
             className: 'list-group-item flex-column align-items-start',
             events: {

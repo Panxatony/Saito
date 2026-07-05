@@ -17,7 +17,7 @@ class StatsVw extends View<Model> {
      * Constructor
      * @param options Ma options
      */
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             classTag: 'imageUploader-card-details',
             modelEvents: {

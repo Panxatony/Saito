@@ -19,7 +19,7 @@ export default class PreviewModel extends AnswerModel {
      *
      * @param options Bb options
      */
-    public constructor(defaults: any = {}, options: any = {}) {
+    public constructor(defaults: any = {}, options: Record<string, unknown> = {}) {
         _defaults(defaults, {
             html: undefined,
         });

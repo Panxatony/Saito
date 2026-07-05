@@ -6,7 +6,7 @@ import * as _ from 'underscore';
 abstract class AbstractMenuButtonView extends View<Model> {
     protected channel: Radio.Channel;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             className: 'markupButtonItem',
             events: {

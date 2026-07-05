@@ -49,7 +49,7 @@ interface JQuery {
 
 declare namespace Marionette {
     interface Application {
-        onStart(app: any, options: any): void;
+        onStart(app: any, options: Record<string, unknown>): void;
     }
 }
 

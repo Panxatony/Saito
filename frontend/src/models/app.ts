@@ -31,7 +31,7 @@ class AppModel extends Model {
      */
     public request: CakeRequest;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         super(options);
         this.eventBus = EventBus.vent;
         this.request = new CakeRequest();

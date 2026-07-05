@@ -13,7 +13,7 @@ import * as _ from 'underscore';
 import { unescapeHTML } from 'underscore.string';
 
 export default class CiteBtn extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             className: 'form-group',
             events: {

@@ -9,7 +9,7 @@ import _ from 'underscore';
  * Dialog for deleteing a posting.
  */
 export default class extends View<Model> {
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click @ui.abort': '_onAbort',

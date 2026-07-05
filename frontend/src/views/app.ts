@@ -32,7 +32,7 @@ class AppView extends View<Model> {
 
     private threadLines!: ThreadLineCollection;
 
-    public constructor(options: any = {}) {
+    public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
             events: {
                 'click #btn-manuallyMarkAsRead': 'manuallyMarkAsRead',
