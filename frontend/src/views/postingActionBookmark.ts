@@ -34,10 +34,7 @@ export default class extends View<Model> {
     }
 
     private _shouldRender() {
-        if (!App.currentUser.isLoggedIn()) {
-            return false;
-        }
-        return true;
+        return App.currentUser.isLoggedIn();
     }
 
     private handleClick() {

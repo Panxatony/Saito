@@ -17,7 +17,7 @@ import moment from 'moment';
 import numeral from 'numeral';
 // load locales for numeral.js
 /* tslint:disable */
-require('numeral/locales');
+require('numeral/locales'); // side-effect load of numeral locales; require kept for the legacy build toolchain skipcq: JS-0359
 /* tslint:enable */
 
 interface ISaitoCallbacks {
