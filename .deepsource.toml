@@ -1,9 +1,8 @@
 version = 1
 
-# Third-party code and build output — not ours to fix, only adds noise.
 exclude_patterns = [
+  # Third-party code and build output — not ours to fix, only adds noise.
   "vendor/**",
-  "frontend/**",
   "webroot/**",
   "config/Migrations/**",
   # CakePHP view templates: their variables are injected by the controller
@@ -11,14 +10,28 @@ exclude_patterns = [
   # reports every one as "used but not defined" (PHP-W1066). Not real bugs.
   "templates/**",
   "plugins/*/templates/**",
+  # Frontend: analyse our own TypeScript source under frontend/src, but skip
+  # dependencies, build output and vendored/minified third-party libraries.
+  "frontend/node_modules/**",
+  "frontend/**/*.min.js",
+  "frontend/src/lib/jquery-ui/**",
+  "frontend/src/lib/jquery.i18n/**",
 ]
 
-# Marked as tests so test-only patterns aren't reported as production issues.
 test_patterns = [
   "tests/**",
   "plugins/*/tests/**",
+  "frontend/test/**",
 ]
 
 [[analyzers]]
 name = "php"
 enabled = true
+
+[[analyzers]]
+name = "javascript"
+enabled = true
+
+  [analyzers.meta]
+  # Browser SPA (jQuery / Backbone / Marionette).
+  environment = ["browser"]
