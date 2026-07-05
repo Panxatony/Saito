@@ -7,6 +7,14 @@
 
 ## [next] -
 
+- Unreleased changes go here.
+
+## [7.1.0] - 2026-07-05
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.0.10...7.1.0)
+
+### Changes
+
 - ＋ Personalized RSS feeds: a logged-in user gets signed feed URLs (both the postings and the threads feed) that include the non-public categories they may read. The signature is derived from the app salt and the user's password hash, so it needs no schema change, exposes no password, is read-only, and stops working when the password changes. Feed readers authenticate by the URL alone (they cannot run the SPA login); anonymous feeds keep showing only public postings. The personal URLs are shown on the RSS-feeds page and in the user's own profile, each with a copy button and a one-click "subscribe" link (`feed:` scheme) for the installed reader. Feed readers are classified as bots for the online count, but a valid feed token still authenticates them, so a reader receives its personalized (non-public) content instead of only the public feed.
 
 ## [7.0.10] - 2026-07-05
