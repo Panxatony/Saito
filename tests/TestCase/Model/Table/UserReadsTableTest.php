@@ -40,7 +40,7 @@ class UserReadsTableTest extends SaitoTableTestCase
         $User->expects($this->once())
             ->method('getUser')
             ->with($userId)
-            ->will($this->returnValue([$entryId]));
+            ->willReturn([$entryId]);
         // The entry already exists (getUser returns it), so the dedup filter
         // short-circuits and nothing is persisted. (Was mocking a non-existent
         // `create` method, a Cake-3 relic PHPUnit now deprecates.)

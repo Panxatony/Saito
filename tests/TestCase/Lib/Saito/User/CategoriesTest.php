@@ -6,7 +6,6 @@ use Saito\User\CurrentUser\CurrentUserFactory;
 /**
  * Class CategoriesTest
  *
- * @group Saito\Test\User\CategoriesTest
  */
 class CategoriesTest extends SaitoTestCase
 {

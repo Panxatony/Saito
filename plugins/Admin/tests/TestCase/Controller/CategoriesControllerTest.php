@@ -19,7 +19,6 @@ use Saito\Test\IntegrationTestCase;
  * Class CategoriesControllerTest
  *
  * @package App\Test\TestCase\Controller\Admin
- * @group App\Test\TestCase\Controller\Admin
  */
 class CategoriesControllerTest extends IntegrationTestCase
 {

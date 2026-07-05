@@ -210,10 +210,11 @@ class UsersTableTest extends SaitoTableTestCase
             [false, 'user_ignore', 'test']
         );
         $this->Table->getAssociation('UserIgnores')->setTarget($userIgnores);
+        // deleteUser() returns void, so the mock must not stub a return value
+        // (willReturn(true) is rejected as an incompatible return type).
         $userIgnores->expects($this->once())
             ->method('deleteUser')
-            ->with(3)
-            ->will($this->returnValue(true));
+            ->with(3);
 
         //
         $result = $this->Table->exists(3);
