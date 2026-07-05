@@ -6,17 +6,17 @@
  * @license http://opensource.org/licenses/MIT
  */
 
+import { Model } from 'backbone';
 import CakeRestModel from 'lib/saito/backbone.cakeRest';
-import _ from 'underscore';
 
 class AppStatusModel extends CakeRestModel {
     private stream!: EventSource;
 
-    private settings: any;
+    private settings!: Model;
 
     public initialize(attributes: Record<string, unknown>, options: Record<string, unknown>) {
         super.initialize(attributes, options);
-        this.settings = options.settings;
+        this.settings = options.settings as Model;
         this.methodToCakePhpUrl.read = 'status/';
     }
 
@@ -24,7 +24,7 @@ class AppStatusModel extends CakeRestModel {
         this.setWebroot(this.settings.get('webroot'));
         // Prefer server-sent events where the browser supports them; the
         // backend disables response buffering so nginx flushes each update.
-        if (!!window.EventSource) {
+        if (window.EventSource) {
             this.eventStream();
             return;
         }
@@ -33,7 +33,7 @@ class AppStatusModel extends CakeRestModel {
     }
 
     public setWebroot(webroot: string) {
-        this.webroot = webroot + 'status/';
+        this.webroot = `${webroot}status/`;
     }
 
     /**
@@ -82,6 +82,10 @@ class AppStatusModel extends CakeRestModel {
             refreshTimeAct = refreshTimeBase;
         };
 
+        // Forward declaration: setTimer and updateAppStatus are mutually
+        // recursive (the timer reschedules the fetch, which resets the timer).
+        let updateAppStatus: () => void;
+
         const setTimer = () => {
             timerId = window.setTimeout(
                 updateAppStatus,
@@ -89,7 +93,7 @@ class AppStatusModel extends CakeRestModel {
             );
         };
 
-        const updateAppStatus = () => {
+        updateAppStatus = () => {
             setTimer();
             this.fetch({
                 success() {
