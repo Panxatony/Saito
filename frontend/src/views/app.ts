@@ -66,7 +66,7 @@ class AppView extends View<Model> {
 
     public initialize() {
         this._initNotifications();
-        new NavigationBreak();
+        const _navigationBreak = new NavigationBreak();
 
         this.threads = new ThreadCollection();
         if (App.request.getController() === 'Entries' && App.request.getAction() === 'index') {
@@ -195,7 +195,7 @@ class AppView extends View<Model> {
                     },
                 ], { silent: true });
             }
-            new ThreadView({
+            const _threadView = new ThreadView({
                 el: $(element),
                 model: this.threads.get(threadId),
                 postings: this.postings,
@@ -221,7 +221,7 @@ class AppView extends View<Model> {
                 threadlineCollection = this.threadLines;
             }
 
-            new ThreadLineView({
+            const _threadLineView = new ThreadLineView({
                 collection: threadlineCollection,
                 el: $(element),
                 leafData,

@@ -14,7 +14,7 @@ class InitFromDom {
         view: new(options: Record<string, unknown>) => void ) {
         const createElement = (collection: Collection<Model>, id: string, el: JQuery) => {
             collection.add({ id });
-            new view({
+            const _view = new view({
                 collection,
                 el,
                 model: collection.get(id),

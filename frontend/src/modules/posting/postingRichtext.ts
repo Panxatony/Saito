@@ -23,7 +23,7 @@ class PostingRichtextView extends View<Model> {
             return;
         }
         elements.each((_key, element) => {
-            new GeshiView({ el: element });
+            const _geshiView = new GeshiView({ el: element });
         });
     }
 

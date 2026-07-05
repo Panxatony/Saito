@@ -4,6 +4,9 @@ exclude_patterns = [
   # Third-party code and build output — not ours to fix, only adds noise.
   "vendor/**",
   "webroot/**",
+  # Per-plugin webroot: served JS/CSS assets and install-specific theme code
+  # (e.g. the Local/Bota themes), not the core SPA source under frontend/src.
+  "plugins/*/webroot/**",
   # Developer scaffolding, not shipped app code: an outdated PHP7 docker dev
   # environment and helper scripts. Not worth holding to production lint rules.
   "dev/**",

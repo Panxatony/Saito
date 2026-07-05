@@ -39,7 +39,7 @@ export default class extends View<Model> {
         });
         const $editButton = this.$('.js-btn-edit');
         if ($editButton.length > 0) {
-            new EditCountdownView({
+            const _editCountdown = new EditCountdownView({
                 el: $editButton,
                 startTime: this.model.get('time'),
             });
