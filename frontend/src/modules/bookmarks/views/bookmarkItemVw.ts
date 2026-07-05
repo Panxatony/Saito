@@ -1,4 +1,5 @@
 import * as Mn from 'backbone.marionette';
+import { Model } from 'backbone';
 import * as $ from 'jquery';
 import App from 'models/app';
 import * as _ from 'underscore';
@@ -9,7 +10,7 @@ import { CommentInputView } from './bookmarkCommentVw';
 /**
  * Comment as text
  */
-class CommentTextView extends Mn.View<any> {
+class CommentTextView extends Mn.View<Model> {
     constructor(options: Record<string, unknown>) {
         options.template = _.template('<%- comment %>');
         options.className = 'm-1';
@@ -20,7 +21,7 @@ class CommentTextView extends Mn.View<any> {
 /**
  * Bookmark Item View
  */
-export default class extends Mn.View<any> {
+export default class extends Mn.View<Model> {
     constructor(options: Record<string, unknown> = {}) {
         options = _.extend(options, {
             className: 'list-group-item flex-column align-items-start',
