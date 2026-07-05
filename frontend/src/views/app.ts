@@ -66,7 +66,7 @@ class AppView extends View<Model> {
 
     public initialize() {
         this._initNotifications();
-        const nv = new NavigationBreak();
+        new NavigationBreak();
 
         this.threads = new ThreadCollection();
         if (App.request.getController() === 'Entries' && App.request.getAction() === 'index') {
@@ -116,7 +116,7 @@ class AppView extends View<Model> {
             }
             try {
                 this.scrollToThread(parseInt(jumpTarget[1], 10));
-            } catch (error) {
+            } catch (_error) {
                 // do nothing
             } finally {
                 const newLocation = url.replace(/[\?\&]jump=\d+/, '');
@@ -131,7 +131,7 @@ class AppView extends View<Model> {
         User.render();
     }
 
-    public _initSlideTabs(element: JQuery) {
+    public _initSlideTabs(_element: JQuery) {
         this.showChildView('slidetabs', new SlidetabsView({ el: '#slidetabs' }));
     }
 
@@ -195,7 +195,7 @@ class AppView extends View<Model> {
                     },
                 ], { silent: true });
             }
-            const threadView = new ThreadView({
+            new ThreadView({
                 el: $(element),
                 model: this.threads.get(threadId),
                 postings: this.postings,
@@ -221,7 +221,7 @@ class AppView extends View<Model> {
                 threadlineCollection = this.threadLines;
             }
 
-            const threadLineView = new ThreadLineView({
+            new ThreadLineView({
                 collection: threadlineCollection,
                 el: $(element),
                 leafData,
@@ -242,7 +242,7 @@ class AppView extends View<Model> {
      *
      * @private
      */
-    private handleLogout(event: JQueryEventObject, element: JQuery) {
+    private handleLogout(event: JQueryEventObject, _element: JQuery) {
         event.preventDefault();
 
         // clear JS-storage

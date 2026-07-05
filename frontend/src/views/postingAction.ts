@@ -39,7 +39,7 @@ export default class extends View<Model> {
         });
         const $editButton = this.$('.js-btn-edit');
         if ($editButton.length > 0) {
-            const editCountdown = new EditCountdownView({
+            new EditCountdownView({
                 el: $editButton,
                 startTime: this.model.get('time'),
             });
@@ -55,7 +55,7 @@ export default class extends View<Model> {
      * Delete posting button click
      */
     private onBtnDelete(event: Event) {
-        const diag = new DelModal({ model: this.model }).render();
+        new DelModal({ model: this.model }).render();
         event.preventDefault();
     }
 

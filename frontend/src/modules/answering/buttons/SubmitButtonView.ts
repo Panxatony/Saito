@@ -33,7 +33,7 @@ export default class SubmitButtonView extends View<Model> {
 
     public onRender() {
         if (this.model.get('time')) {
-            const cd = new EditCountdownView({
+            new EditCountdownView({
                 done: 'disable',
                 el: this.$el,
                 startTime: this.model.get('time'),

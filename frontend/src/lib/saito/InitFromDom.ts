@@ -1,4 +1,4 @@
-import { Collection, Model, View} from 'backbone';
+import { Collection, Model } from 'backbone';
 
 class InitFromDom {
     /**
@@ -14,7 +14,7 @@ class InitFromDom {
         view: new(options: Record<string, unknown>) => void ) {
         const createElement = (collection: Collection<Model>, id: string, el: JQuery) => {
             collection.add({ id });
-            const a = new view({
+            new view({
                 collection,
                 el,
                 model: collection.get(id),

@@ -22,8 +22,8 @@ class PostingRichtextView extends View<Model> {
         if (!elements.length) {
             return;
         }
-        elements.each((key, element) => {
-            const view = new GeshiView({ el: element });
+        elements.each((_key, element) => {
+            new GeshiView({ el: element });
         });
     }
 
@@ -32,7 +32,7 @@ class PostingRichtextView extends View<Model> {
         if (!elements.length) {
             return;
         }
-        elements.each((key, element) => {
+        elements.each((_key, element) => {
             const id = element.getAttribute('id') as string;
             const data = $(element).data('embed');
 

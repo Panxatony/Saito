@@ -1,6 +1,5 @@
 import { View } from 'backbone.marionette';
 import $ from 'jquery';
-import App from 'models/app';
 import _ from 'underscore';
 import { isNumber } from 'util';
 import PostingModel from '../models/PostingMdl';
