@@ -1030,7 +1030,9 @@ class UsersControllerTest extends IntegrationTestCase
             return is_string($v) ? strtolower($v) : $v;
         };
 
-        $values = array_map($norm, $this->viewVariable('users')->extract($field)->toList());
+        // items() first: `users` is a PaginatedResultSet, and calling ResultSet
+        // methods (extract) on it directly is deprecated since CakePHP 5.1.
+        $values = array_map($norm, $this->viewVariable('users')->items()->extract($field)->toList());
         for ($i = 0, $n = count($values) - 1; $i < $n; $i++) {
             $cmp = $values[$i] <=> $values[$i + 1];
             $message = sprintf('User list is not ordered by %s %s (at index %d).', $field, $direction, $i);

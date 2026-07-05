@@ -75,10 +75,15 @@ class SaitoEmailComponent extends Component
         $params['viewVars']['message'] = $params['message'];
         $email->setViewVars($params['viewVars'] + $defaults['viewVars']);
 
+        // Send the main mail first, then the copy. _sendCopyToOriginalSender()
+        // clones this mailer, and Cake's Mailer shares its Message object across
+        // a clone, so re-addressing the copy also mutates this mailer. Sending
+        // the main mail before that mutation happens keeps it going to the
+        // recipient instead of the sender.
+        $this->_send($email);
         if ($params['ccsender']) {
             $this->_sendCopyToOriginalSender($email);
         }
-        $this->_send($email);
     }
 
     /**
@@ -91,12 +96,11 @@ class SaitoEmailComponent extends Component
     {
         /* set new subject */
         // Cake's Mailer has no __clone(), so `clone` keeps a reference to the
-        // SAME Message object. Because setTo()/setFrom()/setSubject() below are
-        // delegated (via __call) to that shared Message, they would mutate the
-        // original mail too — sending the *main* mail to the sender instead of
-        // the recipient. Give the copy its own Message so it is fully isolated.
+        // SAME Message object: setTo()/setFrom()/setSubject() below are
+        // delegated (via __call) to that shared Message and so also mutate the
+        // caller's mailer. That is safe here because email() has already sent
+        // the main mail before calling this method.
         $email = clone $email;
-        $email->setMessage(clone $email->getMessage());
         $to = new SaitoEmailContact($email->getTo());
         // getOriginalSubject(), not getSubject(): the latter returns the already
         // MIME-encoded header value ("=?UTF-8?…?=" for a non-ASCII subject).
