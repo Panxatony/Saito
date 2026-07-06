@@ -80,7 +80,7 @@ class NotificationsCollectionView extends Mn.CollectionView<Model, Mn.View<Model
 export default class NotificationsView extends Mn.View<Model> {
     public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {
-            template: _.template(`<div class="notifications";"></div>`),
+            template: _.template('<div class="notifications";"></div>'),
             ui: {
                 inner: '.notifications',
             },
