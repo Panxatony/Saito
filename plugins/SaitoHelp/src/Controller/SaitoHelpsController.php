@@ -39,6 +39,18 @@ class SaitoHelpsController extends AppController
     }
 
     /**
+     * Central overview page listing all available help topics.
+     *
+     * @return void
+     */
+    public function index()
+    {
+        $lang = (string)Configure::read('Saito.language');
+        $this->set('topics', $this->findAll($lang));
+        $this->set('titleForPage', __('Help'));
+    }
+
+    /**
      * View a help page.
      *
      * @param string $lang language
@@ -78,7 +90,7 @@ class SaitoHelpsController extends AppController
     public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
-        $this->Authentication->allowUnauthenticated(['languageRedirect', 'view']);
+        $this->Authentication->allowUnauthenticated(['languageRedirect', 'view', 'index']);
     }
 
     /**
@@ -131,5 +143,63 @@ class SaitoHelpsController extends AppController
         $result = new Entity($data);
 
         return $result;
+    }
+
+    /**
+     * Lists all core help topics for the overview page.
+     *
+     * Topics available only in English (e.g. admin help) are still listed;
+     * the per-topic English fallback in view() serves them.
+     *
+     * @param string $lang language. Folder docs/help/<language>
+     * @return array<array{id: string, title: string}> topics sorted by id
+     */
+    private function findAll(string $lang): array
+    {
+        $collect = function (string $lang): array {
+            $folderPath = ROOT . DS . 'docs' . DS . 'help' . DS . $lang;
+            if (!is_dir($folderPath)) {
+                return [];
+            }
+
+            $topics = [];
+            foreach (array_diff(scandir($folderPath), ['.', '..']) as $file) {
+                if (!preg_match('/^(?<id>[^-.]+)(-.*?)?\.md$/', $file, $m)) {
+                    continue;
+                }
+                $text = (string)file_get_contents($folderPath . DS . $file);
+                $topics[$m['id']] = ['id' => $m['id'], 'title' => $this->extractTitle($text)];
+            }
+
+            return $topics;
+        };
+
+        // English as the baseline, overridden by the localized titles.
+        $topics = $collect('en');
+        if ($lang !== 'en') {
+            $topics = array_replace($topics, $collect($lang));
+        }
+
+        uksort($topics, 'strnatcmp');
+
+        return array_values($topics);
+    }
+
+    /**
+     * Extracts a topic title from the first Markdown heading.
+     *
+     * @param string $markdown help file contents
+     * @return string heading text, or empty string when none is found
+     */
+    private function extractTitle(string $markdown): string
+    {
+        foreach (explode("\n", $markdown) as $line) {
+            $line = trim($line);
+            if (str_starts_with($line, '#')) {
+                return trim($line, "# \t");
+            }
+        }
+
+        return '';
     }
 }
