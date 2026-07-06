@@ -5,7 +5,7 @@ class Html5Notification {
   /**
    * hides notification after this seconds
    */
-  private hideAfter: number = 10;
+  private hideAfter = 10;
 
   public constructor() {
     App.eventBus.reply('app:html5-notification:activate', this.activate, this);
