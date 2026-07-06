@@ -48,6 +48,16 @@ exclude_patterns = [
   "Gruntfile.js",
   "karma.conf.js",
   "webpack.config.js",
+  # Legacy ES-module .js among the .ts source (entry wiring + old prototype/
+  # jQuery-plugin helpers). DeepSource parses .js as a script and errors on
+  # `import` (JS-0833); they carry near-zero analysis value and converting the
+  # prototype/plugin code to strict .ts is not worth the risk. Explicit paths.
+  "frontend/src/exports.js",
+  "frontend/src/index.js",
+  "frontend/src/lib/saito/backbone.initHelper.js",
+  "frontend/src/lib/saito/jquery.scrollIntoView.js",
+  "frontend/src/lib/saito/localStorageHelper.js",
+  "frontend/src/lib/saito/templateHelpers.js",
 ]
 
 test_patterns = [
@@ -66,8 +76,3 @@ enabled = true
   [analyzers.meta]
   # Browser SPA (jQuery / Backbone / Marionette).
   environment = ["browser"]
-  # The frontend is ES modules — the .js entry/helper files (exports.js,
-  # index.js, lib/saito/*.js) use import/export just like the .ts source.
-  # Without this, the JS parser treats .js as a script and errors on `import`
-  # (JS-0833 "may appear only with sourceType: module").
-  module_system = "es-modules"
