@@ -38,6 +38,9 @@ exclude_patterns = [
   "frontend/**/*.min.js",
   "frontend/src/lib/jquery-ui/**",
   "frontend/src/lib/jquery.i18n/**",
+  # Karma/Jasmine test specs: .js ES modules using webpack-alias imports and
+  # test globals (describe/it/expect) — low analysis value and noisy.
+  "frontend/test/**",
   # Root build-tooling config (Node/CommonJS), not SPA app source — analysing
   # them as ES-module app code produces false positives (e.g. JS-0118 flags the
   # `'use strict'` that is actually correct in a CommonJS module). Explicit
@@ -50,7 +53,6 @@ exclude_patterns = [
 test_patterns = [
   "tests/**",
   "plugins/*/tests/**",
-  "frontend/test/**",
 ]
 
 [[analyzers]]
@@ -64,3 +66,8 @@ enabled = true
   [analyzers.meta]
   # Browser SPA (jQuery / Backbone / Marionette).
   environment = ["browser"]
+  # The frontend is ES modules — the .js entry/helper files (exports.js,
+  # index.js, lib/saito/*.js) use import/export just like the .ts source.
+  # Without this, the JS parser treats .js as a script and errors on `import`
+  # (JS-0833 "may appear only with sourceType: module").
+  module_system = "es-modules"
