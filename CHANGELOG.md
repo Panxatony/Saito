@@ -8,6 +8,7 @@
 ## [next] -
 
 - ＋ The central help overview lists admin-only topics (marked with an `<!-- admin -->` comment in the help file) only for admins; regular users no longer see them.
+- Δ Docs: added the missing `docs/dev-setup.md`, refreshed `contributing.md` for the current toolchain (Cake 5 / PHP 8.4, Composer, Yarn/Grunt), and pointed the links at the Panxatony repo.
 
 ## [7.2.1] - 2026-07-06
 
