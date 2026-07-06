@@ -32,6 +32,13 @@ exclude_patterns = [
   "frontend/**/*.min.js",
   "frontend/src/lib/jquery-ui/**",
   "frontend/src/lib/jquery.i18n/**",
+  # Root build-tooling config (Node/CommonJS), not SPA app source — analysing
+  # them as ES-module app code produces false positives (e.g. JS-0118 flags the
+  # `'use strict'` that is actually correct in a CommonJS module). Explicit
+  # filenames because the glob `**` does not match direct root files.
+  "Gruntfile.js",
+  "karma.conf.js",
+  "webpack.config.js",
 ]
 
 test_patterns = [
