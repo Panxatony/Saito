@@ -30,7 +30,7 @@ class UploaderClVw extends CollectionView<Model, View<Model>, Collection> {
                 };
             },
         });
-        super(...arguments);
+        super(options);
     }
 }
 

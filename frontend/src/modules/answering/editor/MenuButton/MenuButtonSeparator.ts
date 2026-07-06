@@ -1,4 +1,3 @@
-import { Model } from 'backbone';
 import * as _ from 'underscore';
 import { AbstractMenuButtonView } from './AbstractMenuButtonView';
 

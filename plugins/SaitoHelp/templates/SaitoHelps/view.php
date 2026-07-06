@@ -6,7 +6,7 @@
 
         if ($isCore) {
             echo '<hr>';
-            $url = "https://github.com/Schlaefer/Saito/tree/develop/docs/help/{$help->get('lang')}/{$help->get('file')}";
+            $url = "https://github.com/Panxatony/Saito/tree/develop/docs/help/{$help->get('lang')}/{$help->get('file')}";
             echo $this->Html->link(__d('saito_help', 'improve'), $url);
         }
         ?>

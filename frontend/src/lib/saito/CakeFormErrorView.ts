@@ -81,10 +81,10 @@ export default class CakeFormErrorView extends View<Model> {
      */
     private findDedicatedElement(element: JQuery<HTMLElement>): JQuery<HTMLElement> | false {
         let dedicatedElement: JQuery<HTMLElement> | null = null;
-        let level: number = 0;
+        let level = 0;
         let parent = element;
         // We assume that the dedicated element isn't miles up in the DOM tree.
-        const maxLevel: number = 5;
+        const maxLevel = 5;
         while (level < maxLevel) {
             parent = parent.parent();
             if (parent.get(0) === this.$el.get(0)) {
@@ -103,7 +103,7 @@ export default class CakeFormErrorView extends View<Model> {
             level++;
         }
 
-        if (dedicatedElement && dedicatedElement.length) {
+        if (dedicatedElement?.length) {
             return dedicatedElement;
         }
 

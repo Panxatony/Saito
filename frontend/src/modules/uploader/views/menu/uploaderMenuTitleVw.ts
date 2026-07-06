@@ -8,7 +8,7 @@
 
 import { $, Model } from 'backbone';
 import { View, ViewOptions } from 'backbone.marionette';
-import { debounce, defaults, isEmpty, noop} from 'underscore';
+import { debounce, defaults, noop} from 'underscore';
 import UploaderMenuMdl from './uploaderMenuMdl';
 
 /**

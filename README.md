@@ -1,5 +1,10 @@
 # Saito
 
+[![Static Analysis](https://github.com/Panxatony/Saito/actions/workflows/static-analysis.yml/badge.svg?branch=develop)](https://github.com/Panxatony/Saito/actions/workflows/static-analysis.yml)
+[![Release](https://github.com/Panxatony/Saito/actions/workflows/release.yml/badge.svg)](https://github.com/Panxatony/Saito/actions/workflows/release.yml)
+[![DeepSource](https://app.deepsource.com/gh/Panxatony/Saito.svg/?label=active+issues&show_trend=true)](https://app.deepsource.com/gh/Panxatony/Saito/)
+[![DeepSource](https://app.deepsource.com/gh/Panxatony/Saito.svg/?label=resolved+issues&show_trend=true)](https://app.deepsource.com/gh/Panxatony/Saito/)
+
 ## What is it?
 
 Saito is a web-forum with [conversation threading][ConversationThreading]. It is different from the majority of other forums as it puts the emphasis on performance and presenting conversations in a classic tree-style threaded view.
@@ -279,8 +284,6 @@ You need a more or less generic environement providing:
 -  PHP with `composer` for the server-backend (mainly build on [CakePHP][cake])
 -  node with `yarn` and `grunt-cli` for the browser-frontend (mainly build on [Marionette][marionette])
 -  a database
-
-There's a docker file for *development* in `dev/docker/…`
 
 ### Install Files
 

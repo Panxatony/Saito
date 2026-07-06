@@ -76,9 +76,9 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
          * Only try to load DebugKit in development mode
          * Debug Kit should not be installed on a production system
          */
-        if (Configure::read('debug')) {
-            // $this->addPlugin(\DebugKit\Plugin::class);
-        }
+        // DebugKit is a dev-only tool and is not installed here; enable it in a
+        // development setup by adding, under a debug check:
+        // $this->addPlugin(\DebugKit\Plugin::class);
         // Load more plugins here
 
         Registry::initialize();

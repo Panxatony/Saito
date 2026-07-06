@@ -45,7 +45,7 @@ class DragAreaVw extends View<Model> {
                 indicator: '.js-indicator',
             },
         });
-        super(...arguments);
+        super(options);
     }
 
     /**

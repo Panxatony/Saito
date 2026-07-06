@@ -49,8 +49,8 @@ class LinkView extends View<Model> {
     }
 
     private insert() {
-        let title: string = String(this.getUI('title').val());
-        const url: string = String(this.getUI('url').val());
+        let title = String(this.getUI('title').val());
+        const url = String(this.getUI('url').val());
 
         if (url === '') {
             ModalDialog.invalidInput();

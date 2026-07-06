@@ -65,7 +65,7 @@ export default class extends View<Model> {
             })
             .fail(() => {
                 ModalDialog.hide();
-                window.alert($.i18n.__('posting.delete.error'));
+                App.eventBus.trigger('notification', { message: $.i18n.__('posting.delete.error'), type: 'error' });
             });
     }
 

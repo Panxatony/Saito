@@ -75,12 +75,6 @@ export default class PreviewView extends View<PreviewModel> {
         );
     }
 
-    public onRender() {
-        if (!this.model.get('html')) {
-            return;
-        }
-    }
-
     private onRequest() {
         this.showChildView('preview', new SpinnerView());
     }

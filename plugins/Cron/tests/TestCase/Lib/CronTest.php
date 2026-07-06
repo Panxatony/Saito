@@ -18,7 +18,7 @@ use Saito\Test\SaitoTestCase;
 
 class CronCallbackTarget
 {
-    public function callback(): void
+    public function callback(): void // skipcq: PHP-W1080 - empty test-mock stub
     {
     }
 }

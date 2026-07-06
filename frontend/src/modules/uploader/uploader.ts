@@ -73,7 +73,7 @@ class UploaderVw extends View<Model> {
             data: {
                 id: this.getOption('userId'),
             },
-            success: (collection) => {
+            success: () => {
                 this.renderMenu();
                 this.uploaderClVw = new UploaderClVw({
                     collection: new Collection(),
@@ -105,7 +105,7 @@ class UploaderVw extends View<Model> {
     }
 
     protected iterativeRender() {
-        const shouldRenderAnother = (minimum: number = 5, belowFold: number = 10) => {
+        const shouldRenderAnother = (minimum = 5, belowFold = 10) => {
             const children = this.uploaderClVw.children as unknown as any;
             if (children.length <= minimum) {
                 return true;
