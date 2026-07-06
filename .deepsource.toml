@@ -19,6 +19,7 @@ exclude_patterns = [
   "plugins/Stopwatch/webroot/**",
   # Developer scaffolding, not shipped app code: an outdated PHP7 docker dev
   # environment and helper scripts. Not worth holding to production lint rules.
+  "dev/*",
   "dev/**",
   # App config/bootstrap: framework context that uses bootstrap constants
   # (ROOT, DS, APP) defined at runtime, so a standalone analysis reports them

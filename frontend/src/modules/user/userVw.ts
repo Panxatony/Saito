@@ -52,7 +52,7 @@ export default class extends Mn.View<Bb.Model> {
             'click @ui.btnUploads': 'handleBtnUploads',
         };
 
-        super(...arguments);
+        super(options);
     }
 
     public onRender() {

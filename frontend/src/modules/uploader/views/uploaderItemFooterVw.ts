@@ -35,7 +35,7 @@ class UploaderItemFooterVw extends View<Model> {
                 <% } %>
             `),
         });
-        super(...arguments);
+        super(options);
     }
 
     public onRender() {

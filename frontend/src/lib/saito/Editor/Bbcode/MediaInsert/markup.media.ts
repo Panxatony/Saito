@@ -7,7 +7,7 @@
  */
 
 import * as _ from 'underscore';
-import BbcodeTag from './../BbcodeTag';
+import BbcodeTag from '../BbcodeTag';
 import DropboxPreFilter from './Prefilter/DropboxPrefilter';
 import { IPrefilter } from './Prefilter/PrefilterAbstract';
 import YoutubePreFilter from './Prefilter/YoutubePrefilter';

@@ -73,7 +73,7 @@ class NotificationsCollectionView extends Mn.CollectionView<Model, Mn.View<Model
         _.defaults(options, {
             childView: NotificationView,
         });
-        super(...arguments);
+        super(options);
     }
 }
 
@@ -85,7 +85,7 @@ export default class NotificationsView extends Mn.View<Model> {
                 inner: '.notifications',
             },
         });
-        super(...arguments);
+        super(options);
     }
 
     public initialize() {

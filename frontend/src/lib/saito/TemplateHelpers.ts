@@ -1,6 +1,6 @@
 import * as _ from 'underscore';
 
-class LayoutHelper {
+class LayoutHelper { // skipcq: JS-0327 - deliberate static-helper namespace
     public static panelHeading(content: object): string {
         const elements = _.pick(content, 'first', 'middle', 'last');
         _.defaults(content, {first: '', middle: '', last: ''});

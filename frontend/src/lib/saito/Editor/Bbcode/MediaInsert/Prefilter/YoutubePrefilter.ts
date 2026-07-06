@@ -13,7 +13,7 @@ export default class YoutubePreFilter extends PrefilterAbstract {
         let url: string = text;
 
         if (/http/.test(text) === false) {
-            url = 'http://' + text;
+            url = `http://${text}`;
         }
 
         const regex = /(http|https):\/\/(\w+:?\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/i;
@@ -40,7 +40,7 @@ export default class YoutubePreFilter extends PrefilterAbstract {
                 const mt = url.match(domainRegex);
                 if (mt) {
                     text = this.createIframe({
-                        src: '//www.youtube-nocookie.com/embed/' + mt[1],
+                        src: `//www.youtube-nocookie.com/embed/${mt[1]}`,
                     });
                 }
             }
