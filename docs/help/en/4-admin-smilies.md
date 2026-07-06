@@ -1,3 +1,4 @@
+<!-- admin -->
 ## Admin Smilies Setup ##
 
 Smiley-files are located in `webroot/img/smilies/`.

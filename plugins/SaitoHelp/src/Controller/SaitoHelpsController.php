@@ -46,7 +46,8 @@ class SaitoHelpsController extends AppController
     public function index()
     {
         $lang = (string)Configure::read('Saito.language');
-        $this->set('topics', $this->findAll($lang));
+        $isAdmin = (bool)$this->CurrentUser->permission('saito.core.admin.backend');
+        $this->set('topics', $this->findAll($lang, $isAdmin));
         $this->set('titleForPage', __('Help'));
     }
 
@@ -149,12 +150,14 @@ class SaitoHelpsController extends AppController
      * Lists all core help topics for the overview page.
      *
      * Topics available only in English (e.g. admin help) are still listed;
-     * the per-topic English fallback in view() serves them.
+     * the per-topic English fallback in view() serves them. Admin-only topics
+     * (marked with an `<!-- admin -->` comment) are shown to admins only.
      *
      * @param string $lang language. Folder docs/help/<language>
-     * @return array<array{id: string, title: string}> topics sorted by id
+     * @param bool $isAdmin whether the current user may see admin topics
+     * @return array<array{id: string, title: string, admin: bool}> topics sorted by id
      */
-    private function findAll(string $lang): array
+    private function findAll(string $lang, bool $isAdmin): array
     {
         $collect = function (string $lang): array {
             $folderPath = ROOT . DS . 'docs' . DS . 'help' . DS . $lang;
@@ -168,7 +171,11 @@ class SaitoHelpsController extends AppController
                     continue;
                 }
                 $text = (string)file_get_contents($folderPath . DS . $file);
-                $topics[$m['id']] = ['id' => $m['id'], 'title' => $this->extractTitle($text)];
+                $topics[$m['id']] = [
+                    'id' => $m['id'],
+                    'title' => $this->extractTitle($text),
+                    'admin' => str_contains($text, '<!-- admin -->'),
+                ];
             }
 
             return $topics;
@@ -178,6 +185,10 @@ class SaitoHelpsController extends AppController
         $topics = $collect('en');
         if ($lang !== 'en') {
             $topics = array_replace($topics, $collect($lang));
+        }
+
+        if (!$isAdmin) {
+            $topics = array_filter($topics, fn(array $topic): bool => !$topic['admin']);
         }
 
         uksort($topics, 'strnatcmp');
