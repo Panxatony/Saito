@@ -5,26 +5,40 @@ exclude_patterns = [
   "vendor/**",
   "webroot/**",
   # Per-plugin webroot: served JS/CSS assets and install-specific theme code
-  # (e.g. the Local/Bota themes), not the core SPA source under frontend/src.
-  "plugins/*/webroot/**",
+  # (e.g. the Local/Bota themes, the SaitoSearch form init), not the core SPA
+  # source under frontend/src. These are non-module scripts that use globals
+  # ($, _, Backbone, Marionette, SaitoApp) loaded via <script> tags, so a
+  # module analysis flags them (JS-0125 undeclared vars, JS-R1002, ...).
+  # `**` (not `*`) for the plugin segment so the glob reliably matches.
+  "**/webroot/**",
   # Developer scaffolding, not shipped app code: an outdated PHP7 docker dev
   # environment and helper scripts. Not worth holding to production lint rules.
   "dev/**",
   # App config/bootstrap: framework context that uses bootstrap constants
   # (ROOT, DS, APP) defined at runtime, so a standalone analysis reports them
-  # as undefined (PHP-W1038). Not app logic.
+  # as undefined (PHP-W1038). Not app logic. Both `config/*` (direct files
+  # like app.php/bootstrap.php) and `config/**` (nested, e.g. Migrations) —
+  # DeepSource's `**` matches nested paths but not direct files.
+  "config/*",
   "config/**",
   # CakePHP view templates: their variables are injected by the controller
   # via $this->set()/compact(), so the analyzer can't see the definitions and
   # reports every one as "used but not defined" (PHP-W1066). Not real bugs.
   "templates/**",
-  "plugins/*/templates/**",
+  "**/templates/**",
   # Frontend: analyse our own TypeScript source under frontend/src, but skip
   # dependencies, build output and vendored/minified third-party libraries.
   "frontend/node_modules/**",
   "frontend/**/*.min.js",
   "frontend/src/lib/jquery-ui/**",
   "frontend/src/lib/jquery.i18n/**",
+  # Root build-tooling config (Node/CommonJS), not SPA app source — analysing
+  # them as ES-module app code produces false positives (e.g. JS-0118 flags the
+  # `'use strict'` that is actually correct in a CommonJS module). Explicit
+  # filenames because the glob `**` does not match direct root files.
+  "Gruntfile.js",
+  "karma.conf.js",
+  "webpack.config.js",
 ]
 
 test_patterns = [
