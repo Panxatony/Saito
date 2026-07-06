@@ -299,7 +299,7 @@ class EntriesTable extends AppTable
      * $cacheKey, mixed ...$args). The previous (array $options) form is
      * replaced — Saito only ever called get($id) anyway.
      */
-    public function get(
+    public function get( // skipcq: PHP-W1079 - variadic ...$args must be last, so the defaults before it are required (Cake 5 Table::get() override)
         mixed $primaryKey,
         array|string $finder = 'all',
         \Psr\SimpleCache\CacheInterface|string|null $cache = null,
