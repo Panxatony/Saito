@@ -8,8 +8,8 @@
 
 import Marionette from 'backbone.marionette';
 import App from 'models/app';
-// tslint:disable-next-line
-const Favico = require('favico.js'); // legacy CommonJS lib without ES-module typings; require is intentional skipcq: JS-0359
+// eslint-disable-next-line @typescript-eslint/no-var-requires -- legacy CommonJS lib without ES-module typings
+const Favico = require('favico.js'); // skipcq: JS-0359
 
 /**
  * Shows content on favicon

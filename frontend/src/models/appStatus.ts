@@ -84,6 +84,7 @@ class AppStatusModel extends CakeRestModel {
 
         // Forward declaration: setTimer and updateAppStatus are mutually
         // recursive (the timer reschedules the fetch, which resets the timer).
+        // eslint-disable-next-line prefer-const -- const would use it before its definition
         let updateAppStatus: () => void; // skipcq: JS-0242 - const would reintroduce JS-0357 (used before definition)
 
         const setTimer = () => {
