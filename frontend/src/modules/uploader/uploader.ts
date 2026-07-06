@@ -73,7 +73,7 @@ class UploaderVw extends View<Model> {
             data: {
                 id: this.getOption('userId'),
             },
-            success: (collection) => {
+            success: () => {
                 this.renderMenu();
                 this.uploaderClVw = new UploaderClVw({
                     collection: new Collection(),

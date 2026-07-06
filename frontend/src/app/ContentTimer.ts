@@ -27,7 +27,7 @@ class ContentTimer {
     }
 
     private show() {
-        const content = $('#content').css('visibility', 'visible');
+        $('#content').css('visibility', 'visible');
         // console.warn('DOM ready timed out: Show content fallback used.');
         delete this.timeoutId;
     }
