@@ -7,7 +7,7 @@
 
 ## [next] -
 
-- Unreleased changes go here.
+- ＋ The central help overview lists admin-only topics (marked with an `<!-- admin -->` comment in the help file) only for admins; regular users no longer see them.
 
 ## [7.2.1] - 2026-07-06
 
