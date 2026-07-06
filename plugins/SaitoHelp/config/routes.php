@@ -12,24 +12,24 @@ declare(strict_types=1);
 
 use Cake\Routing\Router;
 
+// Cake 5 uses `{name}` route placeholders (the old `:name` syntax is treated
+// as a literal path segment, which broke /help/… since the Cake 5 upgrade).
 $routes->connect(
-    '/help/:id',
+    '/help/{id}',
     [
         'plugin' => 'SaitoHelp',
         'controller' => 'SaitoHelps',
         'action' => 'languageRedirect',
-    ],
-    ['pass' => ['id']]
-);
+    ]
+)->setPass(['id']);
 
 $routes->connect(
-    '/help/:lang/:id',
+    '/help/{lang}/{id}',
     [
         'plugin' => 'SaitoHelp',
         'controller' => 'SaitoHelps',
         'action' => 'view',
-    ],
-    // Constrain :lang to a language token. It is concatenated into a
+    ]
+    // Constrain {lang} to a language token. It is concatenated into a
     // filesystem path (docs/help/<lang>), so values like ".." must not pass.
-    ['pass' => ['lang', 'id'], 'lang' => '[a-zA-Z_]+']
-);
+)->setPass(['lang', 'id'])->setPatterns(['lang' => '[a-zA-Z_]+']);
