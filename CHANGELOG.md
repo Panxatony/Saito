@@ -10,6 +10,7 @@
 - ✓ Fixed a regression from the theme CSS purge: the PurgeCSS content globs missed the frontend `.html` templates, so classes used only there (e.g. the uploader's `imageUploader-add-veil` file-input overlay) were stripped, breaking the upload button. Added `frontend/src/**/*.html` to the scanned content.
 - ＋ The central help overview lists admin-only topics (marked with an `<!-- admin -->` comment in the help file) only for admins; regular users no longer see them.
 - Δ Docs: added the missing `docs/dev-setup.md`, refreshed `contributing.md` for the current toolchain (Cake 5 / PHP 8.4, Composer, Yarn/Grunt), and pointed the links at the Panxatony repo.
+- Δ Frontend: resolved the DeepSource JS-0356 (unused variable) findings — dropped genuinely unused imports, trailing callback/override params and catch bindings (ES2019 optional catch), and marked the deliberate side-effect view instantiations with `skipcq`.
 - Δ Frontend linting migrated from the deprecated TSLint to ESLint (`@typescript-eslint` 5, compatible with the TypeScript 3.x toolchain), keeping the previous rules (single quotes, max-classes-per-file), and typed away the remaining explicit `any`s ESLint flagged (JQuery/Marionette/event types; only the JSON:API deserialization boundary stays `any`, with a rule exception). Removed a stray 590&nbsp;KB `pipeline-failed.log` that had been committed by accident and gitignored `*.log`.
 
 ## [7.2.1] - 2026-07-06

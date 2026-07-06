@@ -123,7 +123,7 @@ export default class AnsweringView extends View<AnswerModel> {
         this.metaModel = options.meta as MetaModel;
     }
 
-    public initialize(_options: Record<string, unknown>) {
+    public initialize() {
         /// init Cake Form Error View
         this.errorVw = new CakeFormErrorView({ el: this.$el });
     }
@@ -284,7 +284,7 @@ export default class AnsweringView extends View<AnswerModel> {
         // @todo @sm more concreate timeout handling
         this.model.save(null, {
             error: () => this.triggerMethod('answering:send:error'),
-            success: (model, response, _options) => {
+            success: (model, response) => {
                 ///  handled errors
                 if ('errors' in response) {
                     this.triggerMethod('answer:validation:error', response.errors);

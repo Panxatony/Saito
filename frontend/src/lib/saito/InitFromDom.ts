@@ -14,7 +14,7 @@ class InitFromDom { // skipcq: JS-0327 - deliberate static-helper namespace
         view: new(options: Record<string, unknown>) => void ) {
         const createElement = (collection: Collection<Model>, id: string, el: JQuery) => {
             collection.add({ id });
-            const _view = new view({
+            const _view = new view({ // skipcq: JS-0356 - side-effect instance
                 collection,
                 el,
                 model: collection.get(id),
