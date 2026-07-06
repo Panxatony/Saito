@@ -39,7 +39,7 @@ export default class extends View<Model> {
         });
         const $editButton = this.$('.js-btn-edit');
         if ($editButton.length > 0) {
-            const _editCountdown = new EditCountdownView({
+            const _editCountdown = new EditCountdownView({ // skipcq: JS-0356 - side-effect instance
                 el: $editButton,
                 startTime: this.model.get('time'),
             });

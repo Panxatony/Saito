@@ -62,7 +62,7 @@ export default class PreviewView extends View<PreviewModel> {
                         type: 'error',
                     });
                 },
-                success: (_mode, response, _options) => {
+                success: (_mode, response) => {
                     if ('errors' in response) {
                         this.trigger('answer:validation:error', response.errors);
 

@@ -1,6 +1,5 @@
 import { View } from 'backbone.marionette';
 import { Model } from 'backbone';
-import * as _ from 'underscore';
 import * as Tpl from '../templates/bookmarkCommentTpl.html';
 
 /**
