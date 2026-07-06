@@ -103,7 +103,7 @@ export default class CakeFormErrorView extends View<Model> {
             level++;
         }
 
-        if (dedicatedElement && dedicatedElement.length) {
+        if (dedicatedElement?.length) {
             return dedicatedElement;
         }
 
