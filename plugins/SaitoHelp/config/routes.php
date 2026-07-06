@@ -15,6 +15,15 @@ use Cake\Routing\Router;
 // Cake 5 uses `{name}` route placeholders (the old `:name` syntax is treated
 // as a literal path segment, which broke /help/… since the Cake 5 upgrade).
 $routes->connect(
+    '/help',
+    [
+        'plugin' => 'SaitoHelp',
+        'controller' => 'SaitoHelps',
+        'action' => 'index',
+    ]
+);
+
+$routes->connect(
     '/help/{id}',
     [
         'plugin' => 'SaitoHelp',
