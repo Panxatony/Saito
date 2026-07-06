@@ -39,6 +39,8 @@ class UploaderAddMdl extends Model {
         if (exists !== undefined) {
             return $.i18n.__('upl.vald.e.fileExists');
         }
+
+        return undefined;
     }
 }
 

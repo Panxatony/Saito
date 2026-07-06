@@ -11,7 +11,7 @@ use Saito\User\CurrentUser\CurrentUserFactory;
 
 class UserPostingTraitClassMock extends \Saito\Posting\Posting
 {
-    public function __construct()
+    public function __construct() // skipcq: PHP-W1080 - empty mock override
     {
     }
 

@@ -1,6 +1,6 @@
 import { Collection, Model } from 'backbone';
 
-class InitFromDom {
+class InitFromDom { // skipcq: JS-0327 - deliberate static-helper namespace
     /**
      * Init all subviews (models and views) from DOM elements
      *
