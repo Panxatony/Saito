@@ -5,8 +5,12 @@ exclude_patterns = [
   "vendor/**",
   "webroot/**",
   # Per-plugin webroot: served JS/CSS assets and install-specific theme code
-  # (e.g. the Local/Bota themes), not the core SPA source under frontend/src.
-  "plugins/*/webroot/**",
+  # (e.g. the Local/Bota themes, the SaitoSearch form init), not the core SPA
+  # source under frontend/src. These are non-module scripts that use globals
+  # ($, _, Backbone, Marionette, SaitoApp) loaded via <script> tags, so a
+  # module analysis flags them (JS-0125 undeclared vars, JS-R1002, ...).
+  # `**` (not `*`) for the plugin segment so the glob reliably matches.
+  "plugins/**/webroot/**",
   # Developer scaffolding, not shipped app code: an outdated PHP7 docker dev
   # environment and helper scripts. Not worth holding to production lint rules.
   "dev/**",
