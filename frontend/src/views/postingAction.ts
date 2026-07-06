@@ -9,7 +9,7 @@ import DelModal from 'views/postingActionDelete';
 import SolvesBtn from 'views/postingActionSolves';
 
 export default class extends View<Model> {
-    private jsButtons: any[];
+    private jsButtons: Array<new (options: { model: Model }) => View<Model>>;
 
     public constructor(options: Record<string, unknown> = {}) {
         _.defaults(options, {

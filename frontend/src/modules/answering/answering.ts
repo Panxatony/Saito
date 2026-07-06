@@ -314,8 +314,8 @@ export default class AnsweringView extends View<AnswerModel> {
      *
      * @param errors errors object with validation errors from server
      */
-    private onAnswerValidationError(errors?: any) {
-        this.errorVw.collection.reset(errors);
+    private onAnswerValidationError(errors?: Record<string, unknown>[]) {
+        this.errorVw.collection.reset(errors as unknown as Model[]);
         this.errorVw.render();
 
         this.enableAnswering();

@@ -50,8 +50,8 @@ class UploaderItemFooterVw extends View<Model> {
         event.preventDefault();
 
         this.model.destroy({
-            error: (model, response: any) => {
-                const msg = response.responseJSON.errors[0];
+            error: (model, response?: JQueryXHR) => {
+                const msg = response?.responseJSON.errors[0];
                 App.eventBus.trigger('notification', { message: msg, type: 'error' });
             },
         });

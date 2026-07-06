@@ -101,7 +101,7 @@ export default class DraftView extends View<Model> {
     private enabled: boolean;
 
     public constructor(options: object = {}) {
-        const deflt: { timers: DraftTimers } & any = {
+        const deflt: { timers: DraftTimers } & Record<string, unknown> = {
             attributes: { 'data-shpid': 9 },
             className: 'draft-status shp',
             model: new DraftModel(),
