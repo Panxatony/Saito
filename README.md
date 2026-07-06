@@ -1,5 +1,7 @@
 # Saito
 
+[![Static Analysis](https://github.com/Panxatony/Saito/actions/workflows/static-analysis.yml/badge.svg?branch=develop)](https://github.com/Panxatony/Saito/actions/workflows/static-analysis.yml)
+[![Release](https://github.com/Panxatony/Saito/actions/workflows/release.yml/badge.svg)](https://github.com/Panxatony/Saito/actions/workflows/release.yml)
 [![DeepSource](https://app.deepsource.com/gh/Panxatony/Saito.svg/?label=active+issues&show_trend=true&token=tZn5m575NsSsvE5iPEWkzph-)](https://app.deepsource.com/gh/Panxatony/Saito/)
 [![DeepSource](https://app.deepsource.com/gh/Panxatony/Saito.svg/?label=resolved+issues&show_trend=true&token=tZn5m575NsSsvE5iPEWkzph-)](https://app.deepsource.com/gh/Panxatony/Saito/)
 
