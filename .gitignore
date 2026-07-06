@@ -38,3 +38,6 @@ plugins/SpectrumColorpicker/webroot/*
 webroot/css/stylesheets/*
 !webroot/css/stylesheets/src/
 webroot/js/*
+
+# Compiled SCSS source maps (dev artifacts, not served)
+plugins/*/webroot/css/*.css.map
