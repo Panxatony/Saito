@@ -21,7 +21,7 @@ class LongTimer {
 
     protected lastRun: number | null = null;
 
-    protected running: boolean = false;
+    protected running = false;
 
     protected timerId: number | undefined;
 
@@ -80,7 +80,7 @@ class LongTimer {
  * Model for drafts
  */
 class DraftModel extends AnswerModel {
-    protected saitoUrl: string = 'drafts/';
+    protected saitoUrl = 'drafts/';
 }
 
 type DraftTimers = { debounce: number } & ILongTimers;
