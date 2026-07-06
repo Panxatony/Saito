@@ -19,7 +19,7 @@ use Saito\Smiley\SmileyLoader;
 class SmileyRenderer
 {
 
-    const DEBUG_SMILIES_KEY = ':smilies-debug:';
+    public const DEBUG_SMILIES_KEY = ':smilies-debug:';
 
     protected $_replacements;
 
