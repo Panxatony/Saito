@@ -41,3 +41,6 @@ webroot/js/*
 
 # Compiled SCSS source maps (dev artifacts, not served)
 plugins/*/webroot/css/*.css.map
+
+# Stray CI/pipeline logs
+*.log
