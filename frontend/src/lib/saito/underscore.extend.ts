@@ -16,7 +16,7 @@ _.mixin({
    * @return int
    */
   chars: (text: string) => {
-    const twoByteEmojis = text.match(/(\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDFFF])/g) || [];
+    const twoByteEmojis = text.match(/(\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDFFF])/g) || []; // skipcq: JS-0117 - matches UTF-16 surrogate pairs; the u flag changes surrogate semantics and breaks the emoji count
     const count = text.length - twoByteEmojis.length;
     return count;
   },

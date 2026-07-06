@@ -16,13 +16,13 @@ export default class YoutubePreFilter extends PrefilterAbstract {
             url = 'http://' + text;
         }
 
-        const regex = /(http|https):\/\/(\w+:?\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/i;
+        const regex = /(http|https):\/\/(\w+:?\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/i;
         if (!regex.test(url)) {
             return text;
         }
 
         let domainRegex: RegExp | undefined;
-        const matches = url.match(/(https?:\/\/)?(www\.)?(.[^\/:]+)/i);
+        const matches = url.match(/(https?:\/\/)?(www\.)?(.[^/:]+)/i);
         const domain = matches ? matches.pop() : null;
         switch (domain) {
             case 'youtu.be':
@@ -30,6 +30,8 @@ export default class YoutubePreFilter extends PrefilterAbstract {
                 break;
             case 'youtube.com':
                 domainRegex = /v=(.*?)(&.*)?$/;
+                break;
+            default:
                 break;
         }
 
