@@ -9,8 +9,14 @@ exclude_patterns = [
   # source under frontend/src. These are non-module scripts that use globals
   # ($, _, Backbone, Marionette, SaitoApp) loaded via <script> tags, so a
   # module analysis flags them (JS-0125 undeclared vars, JS-R1002, ...).
-  # `**` (not `*`) for the plugin segment so the glob reliably matches.
+  # DeepSource's glob does not honour a mid-pattern wildcard, so the leading
+  # `**/webroot/**` form is used, plus explicit per-plugin paths (no wildcard
+  # before the trailing `**`, like the working `webroot/**`) as a guarantee.
   "**/webroot/**",
+  "plugins/Bota/webroot/**",
+  "plugins/Local/webroot/**",
+  "plugins/SaitoSearch/webroot/**",
+  "plugins/Stopwatch/webroot/**",
   # Developer scaffolding, not shipped app code: an outdated PHP7 docker dev
   # environment and helper scripts. Not worth holding to production lint rules.
   "dev/**",
