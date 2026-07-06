@@ -3,7 +3,7 @@ import * as _ from 'underscore';
 declare module 'underscore' {
     interface UnderscoreStatic {
         char(text: string): number;
-        property(key: string|string[]): (object: object) => any;
+        property(key: string|string[]): (object: object) => unknown;
     }
 }
 

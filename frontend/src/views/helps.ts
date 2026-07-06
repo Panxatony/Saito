@@ -8,7 +8,7 @@ class SaitoHelpView extends View<Model> {
     private isHelpShown: boolean;
 
     // cache for indicator-Views
-    private popups: any[];
+    private popups: JQuery[];
 
     // cache for DOM-elements
     private elements: JQuery | null;

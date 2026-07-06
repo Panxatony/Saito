@@ -78,7 +78,7 @@ class AppView extends View<Model> {
         this.threadLines = new ThreadLineCollection();
     }
 
-    public initFromDom(options: { contentTimer: ContentTimer, SaitoApp: any }) {
+    public initFromDom(options: { contentTimer: ContentTimer, SaitoApp: { timeAppStart: number, msg?: unknown } }) {
         this.showChildView('modalDialog', ModalDialog);
 
         for (const item of this.domInitializers) {
