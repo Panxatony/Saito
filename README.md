@@ -22,11 +22,11 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 ## Requirements
 
 - PHP 8.4+ (extensions: gd, exif, intl, mbstring, pdo, simplexml)
-- Database (MySQL/MariaDB tested, [others untested](https://book.cakephp.org/3.0/en/orm/database-basics.html#supported-databases)).
+- Database (MySQL/MariaDB tested, [others untested](https://book.cakephp.org/5/en/orm/database-basics.html#supported-databases)).
 
 ## Get Started
 
-A ready-to-use ZIP containing all necessary files is available on the [release page](https://github.com/Schlaefer/Saito/releases). Unzip it, upload it to your server, open it in a browser, and follow the instructions on the screen.
+A ready-to-use ZIP containing all necessary files is available on the [release page](https://github.com/Panxatony/Saito/releases). Unzip it, upload it to your server, open it in a browser, and follow the instructions on the screen.
 
 ## Deployment on Debian 13
 
