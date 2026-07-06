@@ -14,6 +14,7 @@ module.exports = {
     '../../plugins/**/src/**/*.php',
     '../../frontend/src/**/*.ts',
     '../../frontend/src/**/*.js',
+    '../../frontend/src/**/*.html',
   ],
   css: ['webroot/css/theme.css', 'webroot/css/night.css'],
   safelist: {
