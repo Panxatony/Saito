@@ -9,6 +9,18 @@
 
 - Unreleased changes go here.
 
+## [7.2.1] - 2026-07-06
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.0...7.2.1)
+
+### Changes
+
+- ✓ The help pages had been broken since the Cake 5 upgrade. Routes still used Cake 3 `:id` / `:lang` placeholders (treated as literal path segments in Cake 5), so `/help/…` returned a *missing controller* error; and `SaitoHelpHelper` passed the Cake 3 boolean full-base argument to `UrlHelper::build()`, so once routing was fixed the pages threw a 500. Both are ported to the Cake 5 APIs.
+- ＋ Added a central help overview page (`/help`) that lists all topics, linked from the footer's resources section.
+- ＋ Added a German translation of the BBCode help (previously English-only, so German users fell back to the English page).
+- Δ Roughly halved the Local theme's stylesheets by purging unused (mostly Bootstrap) selectors (`theme.css`/`night.css` 163&nbsp;KB → 82&nbsp;KB), optimized the background SVGs, and dropped the legacy `woff` web-font fallbacks in favor of `woff2`. Removed a stray, served-but-unreferenced SCSS source map.
+- Δ README: added DeepSource and GitHub Actions status badges.
+
 ## [7.2.0] - 2026-07-06
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.1.0...7.2.0)
