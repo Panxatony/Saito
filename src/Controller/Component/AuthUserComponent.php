@@ -98,7 +98,7 @@ class AuthUserComponent extends Component
         // session: cookieless clients start a new session on every request,
         // which massively inflated the online counts. Salted so the raw IP is
         // not stored.
-        $ipHash = md5(Security::getSalt() . (string)$request->clientIp()); // salted online-list id, never stores a raw IP; not password hashing skipcq: PHP-A1004
+        $ipHash = md5(Security::getSalt() . $request->clientIp()); // salted online-list id, never stores a raw IP; not password hashing skipcq: PHP-A1004
 
         // Authenticate first, even for bots: a feed reader is classified as a
         // bot (for the online count), but it may still present a valid

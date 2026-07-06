@@ -23,9 +23,9 @@ class PostingContentView extends View<PostingModel> {
     }
 
     private initRichtext() {
-        const a = new PostingRichtextView({ el: this.$('.postingBody-text .richtext') });
-        this.showChildView('postingBody', a);
-        a.render();
+        const richtextView = new PostingRichtextView({ el: this.$('.postingBody-text .richtext') });
+        this.showChildView('postingBody', richtextView);
+        richtextView.render();
     }
 
     private _toggleAnsweringForm() {
