@@ -35,14 +35,9 @@ class Html5Notification {
   }
 
   private activate() {
-    // Chrome does not support window.Notification.permission as of Chrome 30
-    if ('permission' in Notification && Notification.permission !== 'granted') {
-      Notification.requestPermission();
-      return;
-    } else {
-      Notification.requestPermission();
-    }
-
+    // Both paths requested permission anyway (a no-op once already granted),
+    // and Chrome <30 lacked Notification.permission — so just request it.
+    Notification.requestPermission();
   }
 
   private isEnabled() {

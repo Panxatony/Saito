@@ -57,7 +57,7 @@ export default class CategorySelectVw extends View<Model> {
     private onChangeSelect() {
         let categoryId = this.getUI('select').val();
         if (!categoryId || typeof categoryId !== 'string') {
-            this.model.set('category_id', undefined);
+            this.model.set('category_id');
 
             return;
         }
