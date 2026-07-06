@@ -71,11 +71,6 @@ parameters:
 			path: plugins/Installer/src/Lib/InstallerState.php
 
 		-
-			message: "#^Parameter \\#2 \\$options of method Cake\\\\View\\\\Helper\\\\UrlHelper\\:\\:build\\(\\) expects array\\{fullBase\\?\\: bool, escape\\?\\: bool\\}, true given\\.$#"
-			count: 1
-			path: plugins/SaitoHelp/src/View/Helper/SaitoHelpHelper.php
-
-		-
 			message: "#^Parameter \\#2 \\$replace of function str_replace expects array\\|string, int given\\.$#"
 			count: 1
 			path: plugins/SaitoHelp/src/View/Helper/SaitoHelpHelper.php
