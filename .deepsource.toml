@@ -10,7 +10,7 @@ exclude_patterns = [
   # ($, _, Backbone, Marionette, SaitoApp) loaded via <script> tags, so a
   # module analysis flags them (JS-0125 undeclared vars, JS-R1002, ...).
   # `**` (not `*`) for the plugin segment so the glob reliably matches.
-  "plugins/**/webroot/**",
+  "**/webroot/**",
   # Developer scaffolding, not shipped app code: an outdated PHP7 docker dev
   # environment and helper scripts. Not worth holding to production lint rules.
   "dev/**",
@@ -25,7 +25,7 @@ exclude_patterns = [
   # via $this->set()/compact(), so the analyzer can't see the definitions and
   # reports every one as "used but not defined" (PHP-W1066). Not real bugs.
   "templates/**",
-  "plugins/**/templates/**",
+  "**/templates/**",
   # Frontend: analyse our own TypeScript source under frontend/src, but skip
   # dependencies, build output and vendored/minified third-party libraries.
   "frontend/node_modules/**",
