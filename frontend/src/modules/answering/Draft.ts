@@ -8,7 +8,7 @@
 
 import { Model } from 'backbone';
 import { View } from 'backbone.marionette';
-import { debounce, defaults, template, throttle } from 'underscore';
+import { debounce, defaults, template } from 'underscore';
 import AnswerModel from './models/AnswerModel';
 
 interface ILongTimers { early: number; long: number; }
@@ -180,7 +180,7 @@ export default class DraftView extends View<Model> {
         }
 
         this.model.save(null, {
-            success: (model, response, options) => { this.showSaved(); },
+            success: () => { this.showSaved(); },
         });
     }
 
