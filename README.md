@@ -1,5 +1,8 @@
 # Saito
 
+[![DeepSource](https://app.deepsource.com/gh/Panxatony/Saito.svg/?label=active+issues&show_trend=true&token=tZn5m575NsSsvE5iPEWkzph-)](https://app.deepsource.com/gh/Panxatony/Saito/)
+[![DeepSource](https://app.deepsource.com/gh/Panxatony/Saito.svg/?label=resolved+issues&show_trend=true&token=tZn5m575NsSsvE5iPEWkzph-)](https://app.deepsource.com/gh/Panxatony/Saito/)
+
 ## What is it?
 
 Saito is a web-forum with [conversation threading][ConversationThreading]. It is different from the majority of other forums as it puts the emphasis on performance and presenting conversations in a classic tree-style threaded view.
