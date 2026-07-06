@@ -280,8 +280,6 @@ You need a more or less generic environement providing:
 -  node with `yarn` and `grunt-cli` for the browser-frontend (mainly build on [Marionette][marionette])
 -  a database
 
-There's a docker file for *development* in `dev/docker/…`
-
 ### Install Files
 
 Checkout the files from git-repository and install the dependencies:
