@@ -12,7 +12,7 @@ export default abstract class CakeRestModel extends Model {
 
     public webroot!: string;
 
-    public initialize(_attributes: Record<string, unknown>, _options: Record<string, unknown>) {
+    public initialize(_attributes: Record<string, unknown>, _options: Record<string, unknown>) { // skipcq: JS-0356 - params required by the subclass initialize() override contract
         this.methodToCakePhpUrl = {
             create: 'add',
             delete: 'delete',

@@ -197,7 +197,7 @@ build:
       --exclude='./phpstan.neon'
       --exclude='./phpunit.xml.dist'
       --exclude='./tsconfig.json'
-      --exclude='./tslint.json'
+      --exclude='./.eslintrc.json'
       --exclude='./webpack.config.js'
       --exclude='./yarn.lock'
       --exclude='./build.xml'

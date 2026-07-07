@@ -32,7 +32,7 @@ export default class MarkupMultimedia {
      * @param options - converting options
      * @returns BBCode for multimedia element
      */
-    public multimedia(text: string, _options: object = {}): IStringable {
+    public multimedia(text: string): IStringable {
         let textv = $.trim(text);
         const patternEnd = '([\\/?]|$)';
 

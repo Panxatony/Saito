@@ -4,7 +4,7 @@ import * as $ from 'jquery';
 import { NoContentView as  EmptyView } from 'views/NoContentView';
 import ItemView from './bookmarkItemVw';
 
-export default class extends Mn.CollectionView<any, any, any> {
+export default class extends Mn.CollectionView<Bb.Model, ItemView, Bb.Collection> {
     public childView = ItemView;
     public emptyView = EmptyView;
     public emptyViewOptions = () => {

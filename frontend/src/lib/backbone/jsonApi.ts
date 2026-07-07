@@ -13,7 +13,8 @@ abstract class JsonApiModel extends Bb.Model {
     }
 
     /** Bb respone parser */
-    public parse(response: any, _options?: Record<string, unknown>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON:API deserialization boundary
+    public parse(response: any) {
         let data = response;
 
         // empty response from server (204)
@@ -43,7 +44,8 @@ abstract class JsonApiCollection extends Bb.Collection<JsonApiModel> {
     public url = () => EventBus.vent.request('apiroot') + this.saitoUrl;
 
     /** Bb response parser */
-    public parse(response: any, _options?: Record<string, unknown>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON:API deserialization boundary
+    public parse(response: any) {
         return response.data;
     }
 }

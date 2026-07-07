@@ -84,7 +84,7 @@ class UploaderAddVw extends View<Model> {
      */
     protected onUploadBtn(event: Event) {
         event.preventDefault();
-        const input = this.getUI("inputFile")[0] as HTMLInputElement;
+        const input = this.getUI('inputFile')[0] as HTMLInputElement;
         this.model.set('fileToUpload', input.files?.[0], {validate: true});
         const error = this.model.validationError;
         if (error) {

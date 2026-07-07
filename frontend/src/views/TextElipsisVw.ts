@@ -11,7 +11,7 @@ import { View } from 'backbone.marionette';
 import * as  _ from 'underscore';
 
 class TextElipsisVw extends View<Model> {
-    public constructor(options: {field?: string, model: Model, modelEvents?: any}) {
+    public constructor(options: {field?: string, model: Model, modelEvents?: Record<string, string>}) {
         _.defaults(options, {
             cutOff: 5,
             field: 'title',
@@ -25,6 +25,7 @@ class TextElipsisVw extends View<Model> {
             `),
         });
 
+        options.modelEvents = options.modelEvents || {};
         options.modelEvents[`change:${options.field}`] = 'render';
 
         super(options);

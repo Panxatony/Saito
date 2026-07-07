@@ -66,7 +66,7 @@ class AppView extends View<Model> {
 
     public initialize() {
         this._initNotifications();
-        const _navigationBreak = new NavigationBreak();
+        const _navigationBreak = new NavigationBreak(); // skipcq: JS-0356 - side-effect instance
 
         this.threads = new ThreadCollection();
         if (App.request.getController() === 'Entries' && App.request.getAction() === 'index') {
@@ -78,7 +78,7 @@ class AppView extends View<Model> {
         this.threadLines = new ThreadLineCollection();
     }
 
-    public initFromDom(options: { contentTimer: ContentTimer, SaitoApp: any }) {
+    public initFromDom(options: { contentTimer: ContentTimer, SaitoApp: { timeAppStart: number, msg?: unknown } }) {
         this.showChildView('modalDialog', ModalDialog);
 
         for (const item of this.domInitializers) {
@@ -116,7 +116,7 @@ class AppView extends View<Model> {
             }
             try {
                 this.scrollToThread(parseInt(jumpTarget[1], 10));
-            } catch (_error) {
+            } catch {
                 // do nothing
             } finally {
                 const newLocation = url.replace(/[?&]jump=\d+/, '');
@@ -131,7 +131,7 @@ class AppView extends View<Model> {
         User.render();
     }
 
-    public _initSlideTabs(_element: JQuery) {
+    public _initSlideTabs() {
         this.showChildView('slidetabs', new SlidetabsView({ el: '#slidetabs' }));
     }
 
@@ -195,7 +195,7 @@ class AppView extends View<Model> {
                     },
                 ], { silent: true });
             }
-            const _threadView = new ThreadView({
+            const _threadView = new ThreadView({ // skipcq: JS-0356 - side-effect instance
                 el: $(element),
                 model: this.threads.get(threadId),
                 postings: this.postings,
@@ -221,7 +221,7 @@ class AppView extends View<Model> {
                 threadlineCollection = this.threadLines;
             }
 
-            const _threadLineView = new ThreadLineView({
+            const _threadLineView = new ThreadLineView({ // skipcq: JS-0356 - side-effect instance
                 collection: threadlineCollection,
                 el: $(element),
                 leafData,
@@ -242,7 +242,7 @@ class AppView extends View<Model> {
      *
      * @private
      */
-    private handleLogout(event: JQueryEventObject, _element: JQuery) {
+    private handleLogout(event: JQueryEventObject) {
         event.preventDefault();
 
         // clear JS-storage

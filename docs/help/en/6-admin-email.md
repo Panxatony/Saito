@@ -1,3 +1,4 @@
+<!-- admin -->
 # Email Configuration #
 
 ## Basic Configuration ##

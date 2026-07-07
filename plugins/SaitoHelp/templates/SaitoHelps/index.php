@@ -17,6 +17,9 @@
                             $topic['title'],
                             '/help/' . rawurlencode($topic['id'])
                         ) ?>
+                        <?php if (!empty($topic['admin'])) : ?>
+                            <small>(<?= h(__('Admin')) ?>)</small>
+                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>

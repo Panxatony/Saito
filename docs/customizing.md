@@ -3,11 +3,11 @@
 
 ## Themes ##
 
-The default theme *Bota* is implemented as a [CakePHP theme plugin](https://book.cakephp.org/3.0/en/views/themes.html) and lives in `plugins/Bota`. The UI is implemented as [Bootstrap 4](https://getbootstrap.com/docs/4.3/getting-started/introduction/) theme.
+The default theme *Bota* is implemented as a [CakePHP theme plugin](https://book.cakephp.org/5/en/views/themes.html) and lives in `plugins/Bota`. The UI is implemented as [Bootstrap 4](https://getbootstrap.com/docs/4.3/getting-started/introduction/) theme.
 
 To start your own theme I recommend using SASS and referencing the default theme.
 
-A good place to start is *plugins/local*, which is an empty [CakePHP plugin](https://book.cakephp.org/4/en/plugins.html#manually-autoloading-plugin-classes) specifically created to for local customizations.
+A good place to start is *plugins/local*, which is an empty [CakePHP plugin](https://book.cakephp.org/5/en/plugins.html#manually-autoloading-plugin-classes) specifically created to for local customizations.
 
 1. Copy the theme resources (default template, webroot content) from  `plugins/Bota` to `plugins/Local`.
 
@@ -45,7 +45,7 @@ Theming resources:
 
 Saito recognizes non-human clients (search engines, crawlers, HTTP libraries, feed readers, link-preview fetchers, monitors, …) by their `User-Agent`, so they can be handled and counted apart from human visitors (e.g. in the online-users list). A generic list of user-agent snippets ships built-in.
 
-To recognize additional agents on your installation, add snippets via the `Saito.bots` configuration (for example in `config/app_local.php`). They are merged with the built-in list:
+To recognize additional agents on your installation, add snippets via the `Saito.bots` configuration (for example in `config/saito_config.php`). They are merged with the built-in list:
 
 ```
 'Saito' => [

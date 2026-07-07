@@ -106,7 +106,7 @@ class UploaderVw extends View<Model> {
 
     protected iterativeRender() {
         const shouldRenderAnother = (minimum = 5, belowFold = 10) => {
-            const children = this.uploaderClVw.children as unknown as any;
+            const children = this.uploaderClVw.children as unknown as { length: number; last(n: number): Array<{ $el: JQuery }> };
             if (children.length <= minimum) {
                 return true;
             }

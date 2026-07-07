@@ -33,7 +33,7 @@ export default class SubmitButtonView extends View<Model> {
 
     public onRender() {
         if (this.model.get('time')) {
-            const _editCountdown = new EditCountdownView({
+            const _editCountdown = new EditCountdownView({ // skipcq: JS-0356 - side-effect instance
                 done: 'disable',
                 el: this.$el,
                 startTime: this.model.get('time'),

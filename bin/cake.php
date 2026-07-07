@@ -1,5 +1,7 @@
-#!/usr/bin/php -q
+#!/usr/bin/env php
 <?php
+declare(strict_types=1);
+
 // Check platform requirements
 require dirname(__DIR__) . '/config/requirements.php';
 require dirname(__DIR__) . '/vendor/autoload.php';
