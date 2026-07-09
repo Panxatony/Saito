@@ -5,6 +5,10 @@
     <?= $this->Html->css('stylesheets/static.css') ?>
 
     <?= $this->fetch('theme_head') ?>
+
+    <?php // Operator-configured <head> HTML (e.g. privacy-friendly analytics); ?>
+    <?php // trusted, set per installation via Saito.headHtml. ?>
+    <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
 </head>
 <body>
     <div id="site">
