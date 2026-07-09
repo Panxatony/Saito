@@ -7,7 +7,7 @@
 
 ## [next] -
 
-- Unreleased changes go here.
+- Δ Security/docs: the reference nginx config (`config/nginx/saito.conf.example`) now repeats the security headers (`nosniff`, `Referrer-Policy`, HSTS) inside the static-asset and `/useruploads/` location blocks — an nginx location with its own `add_header` does not inherit the server-level ones, so uploads (served straight from disk, and attacker-controlled) were missing `nosniff`. README documents the headers and an HSTS caveat.
 
 ## [7.2.4] - 2026-07-09
 
