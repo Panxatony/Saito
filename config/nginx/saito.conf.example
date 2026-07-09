@@ -85,7 +85,13 @@ server {
     location ~* \.(?:css|js|woff2?|ttf|eot|otf|svg|ico|png|jpg|jpeg|gif|webp|avif)$ {
         expires 30d;
         access_log off;
-        add_header Cache-Control "public, immutable";
+        # A location with its own add_header does NOT inherit the server-level
+        # ones, so the security headers must be repeated here — this regex also
+        # matches uploaded images under /useruploads/.
+        add_header Cache-Control             "public, immutable";
+        add_header X-Content-Type-Options    "nosniff"                              always;
+        add_header Referrer-Policy           "strict-origin-when-cross-origin"      always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         try_files $uri =404;
     }
 
@@ -94,6 +100,11 @@ server {
     location /useruploads/ {
         expires 7d;
         access_log off;
+        # Uploads are attacker-controlled — repeat nosniff here so the browser
+        # can never MIME-sniff an upload into an executable type.
+        add_header X-Content-Type-Options    "nosniff"                              always;
+        add_header Referrer-Policy           "strict-origin-when-cross-origin"      always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         try_files $uri =404;
     }
 

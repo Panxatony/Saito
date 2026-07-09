@@ -175,6 +175,21 @@ sudo ln -s /etc/nginx/sites-available/saito.conf /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
+The reference config sets the recommended security response headers —
+`X-Frame-Options`, `X-Content-Type-Options: nosniff`, `Referrer-Policy` and HSTS
+— and repeats `nosniff` inside the static-asset and `/useruploads/` location
+blocks (a location with its own `add_header` does not inherit the server-level
+ones, and that static regex also serves uploaded images). Saito additionally
+sends `nosniff` / `Referrer-Policy` from the application layer, so dynamic pages
+stay covered even behind a different web server.
+
+> **HSTS is a one-way commitment.** The example ships
+> `Strict-Transport-Security: max-age=31536000; includeSubDomains`. Only keep it
+> once HTTPS works reliably for the domain **and all its subdomains** — while it
+> is active browsers refuse plain HTTP. Lower the `max-age` (or drop the header)
+> first if you are still testing. If TLS terminates at an upstream proxy, set
+> HSTS there (or on the edge that faces the client) rather than only here.
+
 ### 7. TLS certificate
 
 ```shell
