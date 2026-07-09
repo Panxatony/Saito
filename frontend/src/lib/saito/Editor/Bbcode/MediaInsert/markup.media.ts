@@ -33,7 +33,8 @@ export default class MarkupMultimedia {
      * @returns BBCode for multimedia element
      */
     public multimedia(text: string): IStringable {
-        let textv = $.trim(text);
+        // native trim — jQuery removed $.trim in 3.5
+        let textv = text.trim();
         const patternEnd = '([\\/?]|$)';
 
         const patternImage = new RegExp(`\\.(png|gif|jpg|jpeg|webp|svg)${patternEnd}`, 'i');
