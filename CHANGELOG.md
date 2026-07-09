@@ -7,7 +7,7 @@
 
 ## [next] -
 
-- Unreleased changes go here.
+- ✓ Security: the raw-source posting view (`/entries/source/<id>`) emitted the stored subject/text through `HtmlHelper::tag()` without escaping — a stored-XSS sink for any registered user. It now escapes. Also stopped `PostingsController::add()` from accepting client-supplied `edited` / `edited_by` (forged edit attribution/time), matching the earlier `edit()` hardening.
 
 ## [7.2.2] - 2026-07-07
 

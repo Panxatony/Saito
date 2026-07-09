@@ -48,7 +48,10 @@ class PostingsController extends ApiAppController
     public function add(): void
     {
         $data = $this->getRequest()->getData();
-        $allowedFields = ['category_id', 'edited', 'edited_by', 'pid', 'subject', 'text'];
+        // `edited` / `edited_by` must never be client-supplied (a new posting is
+        // not edited); leaving them in let a user forge the edit attribution and
+        // timestamp — same hardening as edit() below.
+        $allowedFields = ['category_id', 'pid', 'subject', 'text'];
         $data = array_intersect_key($data, array_fill_keys($allowedFields, 1));
 
         $data += [
