@@ -9,6 +9,15 @@
 
 - Unreleased changes go here.
 
+## [7.2.4] - 2026-07-09
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.3...7.2.4)
+
+### Changes
+
+- ＋ Added a `Saito.headHtml` config option that injects operator-configured, trusted HTML into every page's `<head>` (e.g. a privacy-friendly analytics snippet). Set it per installation in `saito_config.php`, like `Saito.imprint`; empty by default.
+- ✓ Security: dropped `image/svg+xml` from the uploader's allowed-types config. SVG was already rejected server-side by the upload controller, so this closes the latent config-level hole (a future upload path relying on the config alone would have accepted it).
+
 ## [7.2.3] - 2026-07-09
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.2...7.2.3)
