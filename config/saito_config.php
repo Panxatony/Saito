@@ -39,6 +39,13 @@ $config = [
          */
         'imprint' => '',
 
+        /**
+         * Custom HTML injected into every page's <head> (e.g. a privacy-friendly
+         * analytics snippet). Trusted, operator-controlled — set it per
+         * installation. Empty by default (nothing injected).
+         */
+        'headHtml' => '',
+
         'Settings' => [
             /**
              * Sets the markup parser
