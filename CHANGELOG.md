@@ -9,6 +9,16 @@
 
 - Unreleased changes go here.
 
+## [7.2.3] - 2026-07-09
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.2...7.2.3)
+
+### Changes
+
+- ✓ Security: the raw-source posting view (`/entries/source/<id>`) emitted the stored subject/text through `HtmlHelper::tag()` without escaping — a stored-XSS sink for any registered user. It now escapes. Also stopped `PostingsController::add()` from accepting client-supplied `edited` / `edited_by` (forged edit attribution/time), matching the earlier `edit()` hardening.
+- ✓ Security: bumped bundled jQuery 3.4 → 3.7.1 (fixes the DOM-manipulation XSS CVE-2020-11022 / CVE-2020-11023).
+- ✓ Security: added `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin` response headers (alongside the existing `X-Frame-Options`).
+
 ## [7.2.2] - 2026-07-07
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.1...7.2.2)
