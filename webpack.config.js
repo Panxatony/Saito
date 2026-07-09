@@ -51,11 +51,13 @@ module.exports = {
     }
   },
   resolve: {
-    /*
     alias: {
-      "underscore": "lodash",
+      // Force a single jQuery instance. Nested deps (jquery-textrange,
+      // datatables, marionette) pin older jQuery, so without this they get
+      // their own copy — plugins like textrange then register on a different
+      // jQuery than the app uses, breaking text insertion.
+      jquery: path.resolve(__dirname, 'node_modules/jquery'),
     },
-    */
     extensions: ['.js', '.ts'],
     modules: [path.join(__dirname, 'frontend/src'), 'node_modules'],
   },
