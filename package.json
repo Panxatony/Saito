@@ -17,7 +17,7 @@
     "gettext-extractor": "^3.4.3",
     "grunt": "^1.0.4",
     "jQuery-tinyTimer": "odyniec/jQuery-tinyTimer",
-    "jquery": "~3.4",
+    "jquery": "^3.7.1",
     "jquery-textrange": "^1.4.0",
     "lodash": "^4.17.10",
     "moment": "^2.22.2",
