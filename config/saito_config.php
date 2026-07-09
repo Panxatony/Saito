@@ -39,6 +39,13 @@ $config = [
          */
         'imprint' => '',
 
+        /**
+         * Custom HTML injected into every page's <head> (e.g. a privacy-friendly
+         * analytics snippet). Trusted, operator-controlled — set it per
+         * installation. Empty by default (nothing injected).
+         */
+        'headHtml' => '',
+
         'Settings' => [
             /**
              * Sets the markup parser
@@ -146,7 +153,6 @@ $config['Saito']['Settings']['uploader'] = (new UploaderConfig())
     ->addType('audio/webm')
     ->addType('image/jpeg', '19MB')
     ->addType('image/png', '19MB')
-    ->addType('image/svg+xml')
     ->addType('image/webp')
     ->addType('text/plain')
     ->addType('video/mp4')
