@@ -173,7 +173,11 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             );
 
         $security = (new SecurityHeadersMiddleware())
-            ->setXFrameOptions(strtolower(Configure::read('Saito.X-Frame-Options')));
+            ->setXFrameOptions(strtolower(Configure::read('Saito.X-Frame-Options')))
+            // Stop content-type sniffing (defence-in-depth for uploads and any
+            // reflected content) and keep referrers same-origin on downgrade.
+            ->noSniff()
+            ->setReferrerPolicy('strict-origin-when-cross-origin');
         $middlewareQueue->add($security);
 
         return $middlewareQueue;
