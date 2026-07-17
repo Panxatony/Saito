@@ -7,7 +7,16 @@
 
 ## [next] -
 
-- Unreleased changes go here.
+## [7.2.5] - 2026-07-17
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.4...7.2.5)
+
+### Changes
+
+- ✓ Security (critical): `[code]` blocks could be used for stored XSS. The syntax highlighter (`tempest/highlight`, in use since 7.0.10) does not escape via `htmlspecialchars`; its `Escape::html()` reverse-maps the private-use placeholder glyphs `U+2776`–`U+277F` back into raw `<`, `>`, `"`, `&` *after* escaping, so a member who typed those glyphs inside `[code]` could smuggle live HTML (e.g. `<img onerror=…>` / `<script>`) into every viewer's page — and into the RSS feed. The parser now strips that glyph range from code content before highlighting. Affected 7.0.10–7.2.4.
+- ✓ Security: the personalized RSS feed authenticator only matched the token substring anywhere in the path and then returned the user's full identity, so the read-only guarantee depended solely on the route table. It is now bound to exactly the two feed endpoints (`/feeds/f/<token>/postings/new|threads`), so a leaked token can never authenticate any other request.
+- ✓ Security: admin-only help topics (marked `<!-- admin -->`) were hidden from the overview for non-admins but still readable by a direct id in `SaitoHelpsController::view()`. `view()` now enforces the admin check too.
+- Δ Security/docs: the reference nginx config (`config/nginx/saito.conf.example`) now repeats the security headers (`nosniff`, `Referrer-Policy`, HSTS) inside the static-asset and `/useruploads/` location blocks — an nginx location with its own `add_header` does not inherit the server-level ones, so uploads (served straight from disk, and attacker-controlled) were missing `nosniff`. README documents the headers and an HSTS caveat.
 
 ## [7.2.4] - 2026-07-09
 

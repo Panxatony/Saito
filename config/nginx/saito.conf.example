@@ -77,6 +77,15 @@ server {
     add_header Referrer-Policy           "strict-origin-when-cross-origin"      always;
     # X-Frame-Options is set by Saito (Configure 'Saito.X-Frame-Options'),
     # so we don't duplicate it here.
+    #
+    # Content-Security-Policy adds a second line of defence against XSS but is
+    # install-specific, so it is left commented out — enabling it blind can
+    # break the page. Saito's SPA needs inline scripts, so an *effective* CSP
+    # requires nonces (not shipped yet); the policy below is a conservative
+    # starting point that keeps the app working while restricting the passive
+    # sinks. Widen `script-src`/`connect-src` for any analytics or external
+    # host you embed, and test in a browser (watch the console) before enabling.
+    # add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; font-src 'self' data:; connect-src 'self'; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'" always;
 
     # ----------------------------------------------------------------
     # Long-lived caching for fingerprinted static assets.
@@ -85,7 +94,13 @@ server {
     location ~* \.(?:css|js|woff2?|ttf|eot|otf|svg|ico|png|jpg|jpeg|gif|webp|avif)$ {
         expires 30d;
         access_log off;
-        add_header Cache-Control "public, immutable";
+        # A location with its own add_header does NOT inherit the server-level
+        # ones, so the security headers must be repeated here — this regex also
+        # matches uploaded images under /useruploads/.
+        add_header Cache-Control             "public, immutable";
+        add_header X-Content-Type-Options    "nosniff"                              always;
+        add_header Referrer-Policy           "strict-origin-when-cross-origin"      always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         try_files $uri =404;
     }
 
@@ -94,6 +109,11 @@ server {
     location /useruploads/ {
         expires 7d;
         access_log off;
+        # Uploads are attacker-controlled — repeat nosniff here so the browser
+        # can never MIME-sniff an upload into an executable type.
+        add_header X-Content-Type-Options    "nosniff"                              always;
+        add_header Referrer-Policy           "strict-origin-when-cross-origin"      always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         try_files $uri =404;
     }
 

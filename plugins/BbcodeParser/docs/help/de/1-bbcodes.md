@@ -89,7 +89,7 @@ Der Inhalt wird erst angezeigt, wenn auf einen verdeckenden Spoiler-Text geklick
 
 Wörtlich wiedergegebener Quelltext.
 
-Ist `<Sprache>` nicht `text` (Standard), wird der `<Quelltext>` in der jeweiligen Sprache hervorgehoben, z. B. `[code PHP]…`. Die verfügbaren Sprachen findest du in der [GeSHI-Dokumentation](http://qbnz.com/highlighter/).
+Ist `<Sprache>` nicht `text` (Standard), wird der `<Quelltext>` in der jeweiligen Sprache hervorgehoben, z. B. `[code PHP]…`. Die verfügbaren Sprachen findest du in der [tempest/highlight-Dokumentation](https://github.com/tempestphp/highlight).
 
 ## Zitat ##
 
