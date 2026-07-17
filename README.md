@@ -183,6 +183,13 @@ ones, and that static regex also serves uploaded images). Saito additionally
 sends `nosniff` / `Referrer-Policy` from the application layer, so dynamic pages
 stay covered even behind a different web server.
 
+A commented-out `Content-Security-Policy` starting point is included as well. It
+is off by default because CSP is install-specific and a wrong policy breaks the
+page: Saito's SPA relies on inline scripts (so a strict, nonce-based CSP is not
+shipped yet), and any analytics or external host you embed must be added to
+`script-src`/`connect-src`. Enable it only after widening it for your setup and
+checking the browser console for violations.
+
 > **HSTS is a one-way commitment.** The example ships
 > `Strict-Transport-Security: max-age=31536000; includeSubDomains`. Only keep it
 > once HTTPS works reliably for the domain **and all its subdomains** — while it

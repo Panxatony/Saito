@@ -68,6 +68,18 @@ class SaitoHelpsController extends AppController
             return $this->redirect("/help/en/$id");
         }
         if ($help) {
+            // Admin-only topics are marked with an `<!-- admin -->` comment.
+            // findAll() hides them from the overview for non-admins, but view()
+            // must enforce it too — otherwise anyone guessing the id could read
+            // an admin topic directly. Treat it as not-found for non-admins.
+            if (
+                str_contains((string)$help->get('text'), '<!-- admin -->')
+                && !$this->CurrentUser->permission('saito.core.admin.backend')
+            ) {
+                $this->Flash->set(__('sh.nf'), ['element' => 'error']);
+
+                return $this->redirect('/');
+            }
             $this->set('help', $help);
         } else {
             $this->Flash->set(__('sh.nf'), ['element' => 'error']);
