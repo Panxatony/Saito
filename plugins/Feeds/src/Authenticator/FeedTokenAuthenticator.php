@@ -38,10 +38,20 @@ use Psr\Http\Message\ServerRequestInterface;
 class FeedTokenAuthenticator extends AbstractAuthenticator implements StatelessInterface
 {
     /**
-     * Matches `/feeds/f/<userId>-<signature>/` anywhere in the path so it also
-     * works under a sub-directory webroot (`/forum/feeds/f/...`).
+     * Matches ONLY a genuine tokenized feed endpoint —
+     * `.../feeds/f/<userId>-<signature>/postings/(new|threads)[.ext]` — anchored
+     * at the end of the path and at a `/` boundary at the start (so it still
+     * works under a sub-directory webroot, e.g. `/forum/feeds/f/...`).
+     *
+     * SECURITY: the earlier pattern matched the token substring ANYWHERE in the
+     * path and, on a valid signature, returned the user's full identity. That
+     * made the read-only guarantee depend solely on the route table: any other
+     * route whose URL happened to contain `/feeds/f/<id>-<sig>/` would have been
+     * authenticated as that user. Binding the authenticator to exactly the two
+     * feed actions keeps a leaked token from ever authenticating anything else.
      */
-    private const PATH_PATTERN = '#/feeds/f/(\d+)-([0-9a-f]+)/#';
+    private const PATH_PATTERN =
+        '#(?:^|/)feeds/f/(\d+)-([0-9a-f]+)/postings/(?:new|threads)(?:\.\w+)?$#';
 
     /**
      * @inheritDoc

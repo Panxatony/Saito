@@ -89,7 +89,7 @@ Content is only shown if a masking spoiler-text is clicked.
 
 Verbatim source code with.
 
-If `<language>` is not `text` (default) the `<source>` is highlighted in the particular language, e.g. `[code PHP]…`. For available languages refer the [GeSHI documentation](http://qbnz.com/highlighter/).
+If `<language>` is not `text` (default) the `<source>` is highlighted in the particular language, e.g. `[code PHP]…`. For available languages refer the [tempest/highlight documentation](https://github.com/tempestphp/highlight).
 
 ## Citation ##
 

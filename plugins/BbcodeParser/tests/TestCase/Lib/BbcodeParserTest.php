@@ -1247,6 +1247,43 @@ EOF;
     }
 
     /**
+     * SECURITY regression: tempest/highlight's escaper uses the private-use
+     * glyphs U+2776–U+277F as internal tokens and reverse-maps them to raw
+     * <, >, ", & after escaping. A user typing those glyphs inside [code] could
+     * therefore smuggle live HTML past the escape (mutation XSS). The parser
+     * must strip the token range before highlighting.
+     */
+    public function testCodeGlyphMutationXssStripped()
+    {
+        $u2776 = "\u{2776}"; $u2777 = "\u{2777}"; $u2778 = "\u{2778}";
+        $u2779 = "\u{2779}"; $u277f = "\u{277F}";
+
+        // <img> smuggled via U+2777 / U+2778
+        $result = $this->_Parser->parse(
+            '[code]' . $u2777 . 'img src=x onerror=alert(1)' . $u2778 . '[/code]',
+            ['return' => 'html', 'cache' => false]
+        );
+        $this->assertStringNotContainsString('<img', $result);
+        $this->assertStringNotContainsString('onerror=alert(1)>', $result);
+
+        // full <script> smuggled via the glyphs
+        $result2 = $this->_Parser->parse(
+            '[code]' . $u2777 . 'script' . $u2778 . 'alert(1)' . $u2777 . '/script' . $u2778 . '[/code]',
+            ['return' => 'html', 'cache' => false]
+        );
+        $this->assertStringNotContainsString('<script>', $result2);
+
+        // none of the token glyphs survive into the output
+        foreach ([$u2776, $u2777, $u2778, $u2779, $u277f] as $glyph) {
+            $out = $this->_Parser->parse(
+                '[code]' . $glyph . 'x[/code]',
+                ['return' => 'html', 'cache' => false]
+            );
+            $this->assertStringNotContainsString($glyph, $out);
+        }
+    }
+
+    /**
      * tests that citation marks are not replaced in code-blocks
      */
     public function testCodeNoCitationMark()
