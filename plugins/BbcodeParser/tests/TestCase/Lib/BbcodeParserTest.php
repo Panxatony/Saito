@@ -1281,6 +1281,19 @@ EOF;
             );
             $this->assertStringNotContainsString($glyph, $out);
         }
+
+        // Positive control: a legitimate code block with real HTML
+        // metacharacters must still render — escaped (as text), never as a
+        // live tag, and the glyph-strip must not eat the surrounding source.
+        $normal = $this->_Parser->parse(
+            '[code]if (a < b && c > d) { echo "<b>hi</b>"; }[/code]',
+            ['return' => 'html', 'cache' => false],
+        );
+        $this->assertStringNotContainsString('<b>hi</b>', $normal);
+        // real `<`/`>` survive as inert, escaped text (h() + highlighter escape
+        // it twice — cosmetic, but never a live tag), and are not glyph-stripped.
+        $this->assertStringContainsString('&amp;lt;b&amp;gt;', $normal);
+        $this->assertStringContainsString('echo', $normal);
     }
 
     /**

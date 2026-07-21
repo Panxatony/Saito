@@ -50,7 +50,11 @@ class CodeWithoutAttributes extends CodeDefinition
         // <img>). Strip the token range from the input before highlighting so
         // the escaper's boundary holds. These are rarely-used dingbat code
         // points; dropping them from code blocks is acceptable.
-        $content = preg_replace('/[\x{2776}-\x{277F}]/u', '', trim($content));
+        // The `?? ''` guards the one way preg_replace('…/u') can fail: on
+        // invalid UTF-8 it returns null, which would be a TypeError against
+        // parse()'s `string` parameter. Input reaches here h()-sanitized (valid
+        // UTF-8), so this is belt-and-suspenders, not a live path.
+        $content = preg_replace('/[\x{2776}-\x{277F}]/u', '', trim($content)) ?? '';
 
         // parse() now HTML-escapes the sanitized content and falls back to
         // plain (escaped) text for an unknown language, so both the content and
