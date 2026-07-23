@@ -36,7 +36,11 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->get('/feeds/postings/new.rss');
         $result = $this->viewVariable('entries');
         $first = $result->first();
-        $this->assertEquals($first->get('subject'), 'First_Subject');
+        // Entries 1 and 9 carry the identical `last_answer`, so the tie-break
+        // decides which one leads. It is `id DESC` — the same direction as
+        // `last_answer DESC`, which is what lets the index serve the sort
+        // instead of a filesort (see FeedsPostingBehavior) — so id 9 wins.
+        $this->assertEquals('Sixth_Subject', $first->get('subject'));
         $this->assertNull($first->get('password'));
 
         $this->assertResponseOk();

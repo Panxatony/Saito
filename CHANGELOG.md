@@ -7,6 +7,15 @@
 
 ## [next] -
 
+## [7.2.6] - 2026-07-23
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.5...7.2.6)
+
+### Changes
+
+- ✓ Performance: the RSS feeds took seconds to render on large forums. `find('feed')` sorted by `last_answer DESC, id ASC`; the mixed sort direction cannot be read off an index (InnoDB appends the primary key to every secondary index, so the `last_answer` index is physically `(last_answer, id)` and serves both keys only in the same direction). The database therefore filesorted every candidate row before applying `LIMIT 10`. The tie-break is now `id DESC`, which the index serves directly. Measured on a 680k-posting forum: `threads.rss` 4.5s → 0.01s (118292 rows sorted → 56 rows examined), `new.rss` 2.2s → 0.01s. Only the relative order of postings sharing the very same `last_answer` second changes.
+- Δ Hardening: the `[code]` glyph-strip introduced in 7.2.5 now falls back to an empty string if `preg_replace` returns `null` on invalid UTF-8, instead of raising a `TypeError`. Input reaches the parser `h()`-sanitized, so this is defence in depth rather than a live path. Covered by an added positive-control test asserting that a normal code block with real HTML metacharacters still renders escaped and is not eaten by the strip.
+
 ## [7.2.5] - 2026-07-17
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.4...7.2.5)
