@@ -100,6 +100,4 @@ export default defineConfig({
             output: { extend: true },
         },
     },
-    // Keep moment small: pull only the locales Saito ships.
-    define: {},
 });

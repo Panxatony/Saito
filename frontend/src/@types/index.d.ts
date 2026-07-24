@@ -91,6 +91,17 @@ declare module 'moment' {
     export default moment;
 }
 
+// favico.js ships as a CommonJS/UMD module, but @types/favico.js only declares
+// a global `Favico` (no module shape), so a bare `import ... from 'favico.js'`
+// cannot resolve it. Give it a default export so the ESM import resolves; the
+// value stays `any` exactly as the previous `require('favico.js')` did (the
+// @types' `badge(number)` signature is narrower than the real API, which also
+// accepts a string badge — the runtime call is unchanged).
+declare module 'favico.js' {
+    const Favico: any;
+    export default Favico;
+}
+
 interface IStringable {
     toString(): string;
 }
