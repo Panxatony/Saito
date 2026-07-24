@@ -16,6 +16,8 @@ use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Plugin\BbcodeParser\src\Lib\Helper\Message;
 use Plugin\BbcodeParser\src\Lib\Helper\UrlParserTrait;
+use Plugin\BbcodeParser\src\Lib\Http\SsrfGuard;
+use Plugin\BbcodeParser\src\Lib\Http\SsrfGuardedDispatcher;
 use Saito\DomainParser;
 
 /**
@@ -74,11 +76,16 @@ class Embed extends CodeDefinition
     protected function _parse($url, $attributes, \JBBCode\ElementNode $node)
     {
         if (!$this->_sOptions->get('content_embed_active')) {
-            if (!$this->_sOptions->get('autolink')) {
-                return $url;
-            }
+            return $this->_notEmbedded($url);
+        }
 
-            return $this->Html->link($url, $url, ['target' => '_blank']);
+        // A) Optional provider allowlist. When configured, only listed hosts
+        // (and their sub-domains) are embedded; anything else falls back to a
+        // link. Empty (default) imposes no host restriction — the guarded
+        // dispatcher below still blocks internal targets, so SSRF is closed
+        // either way.
+        if (!$this->_isHostAllowlisted($url)) {
+            return $this->_notEmbedded($url);
         }
 
         $loader = function () use ($url) {
@@ -92,12 +99,17 @@ class Embed extends CodeDefinition
             }
 
             try {
+                // B) Fetch through the SSRF-guarded dispatcher: it follows
+                // redirects manually, re-validates and IP-pins every hop, and
+                // so closes the DNS-rebinding / redirect-to-internal gaps that
+                // the up-front _isFetchableUrl() check alone cannot cover.
                 $info = \Embed\Embed::create(
                     $url,
                     [
                     'min_image_width' => 100,
                     'min_image_height' => 100,
-                    ]
+                    ],
+                    new SsrfGuardedDispatcher()
                 );
 
                 $embed = [
@@ -131,16 +143,65 @@ class Embed extends CodeDefinition
     }
 
     /**
-     * SSRF guard for the [embed] URL fetch.
+     * The non-embedded rendering of a URL: an autolink, or the bare URL when
+     * autolinking is off. Shared by the "embeds disabled" and "host not
+     * allowlisted" paths.
      *
-     * Only permits http(s) URLs whose host does not resolve to a loopback,
-     * private or otherwise reserved IP range. Without this an author could make
-     * the server request internal services or cloud-metadata endpoints
-     * (e.g. http://169.254.169.254/…, http://127.0.0.1:6379/…) via [embed].
+     * @param string $url the URL
+     * @return string
+     */
+    private function _notEmbedded(string $url): string
+    {
+        if (!$this->_sOptions->get('autolink')) {
+            return $url;
+        }
+
+        return $this->Html->link($url, $url, ['target' => '_blank']);
+    }
+
+    /**
+     * Whether the URL's host is permitted by the optional embed allowlist.
      *
-     * Note: this validates the *initial* host only. The embed library may still
-     * follow redirects; restricting providers to an allowlist and upgrading
-     * embed/embed remain recommended follow-ups for full coverage.
+     * The allowlist is read from the `Saito.embedAllowedHosts` config (an array
+     * of host names). Empty — the default — permits every host, leaving the
+     * guarded dispatcher as the sole SSRF control. When set, only a listed host
+     * or a sub-domain of one is embedded; everything else falls back to a link.
+     *
+     * @param string $url the [embed] URL
+     * @return bool
+     */
+    private function _isHostAllowlisted(string $url): bool
+    {
+        $allowed = array_filter(
+            array_map('trim', (array)Configure::read('Saito.embedAllowedHosts', []))
+        );
+        if (!$allowed) {
+            return true;
+        }
+
+        $host = strtolower((string)parse_url($url, PHP_URL_HOST));
+        if ($host === '') {
+            return false;
+        }
+        foreach ($allowed as $entry) {
+            $entry = strtolower(ltrim($entry, '.'));
+            if ($host === $entry || str_ends_with($host, '.' . $entry)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * SSRF pre-check for the [embed] URL fetch.
+     *
+     * Rejects anything but an http(s) URL whose host resolves *exclusively* to
+     * public IP addresses, so an author cannot make the server request internal
+     * services or cloud-metadata endpoints (e.g. http://169.254.169.254/…,
+     * http://127.0.0.1:6379/…) via [embed]. This is the fast up-front reject;
+     * the per-hop, IP-pinning enforcement (incl. redirects and DNS-rebinding)
+     * lives in {@see SsrfGuardedDispatcher}, through which the fetch runs.
      *
      * @param string $url user-supplied URL
      * @return bool true if the URL is safe to fetch server-side
@@ -157,46 +218,7 @@ class Embed extends CodeDefinition
             return false;
         }
 
-        $host = trim($parts['host'], '[]');
-
-        $ips = [];
-        if (filter_var($host, FILTER_VALIDATE_IP)) {
-            $ips[] = $host;
-        } else {
-            $records = @dns_get_record($host, DNS_A | DNS_AAAA); // dns_get_record warns on unresolvable hosts; return guarded via ?: [] skipcq: PHP-W1078
-            foreach ($records ?: [] as $record) {
-                if (!empty($record['ip'])) {
-                    $ips[] = $record['ip'];
-                }
-                if (!empty($record['ipv6'])) {
-                    $ips[] = $record['ipv6'];
-                }
-            }
-            if (!$ips) {
-                $resolved = gethostbyname($host);
-                if ($resolved && $resolved !== $host) {
-                    $ips[] = $resolved;
-                }
-            }
-        }
-
-        // Could not resolve to any address → refuse rather than risk it.
-        if (!$ips) {
-            return false;
-        }
-
-        foreach ($ips as $ip) {
-            $public = filter_var(
-                $ip,
-                FILTER_VALIDATE_IP,
-                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
-            );
-            if ($public === false) {
-                return false;
-            }
-        }
-
-        return true;
+        return SsrfGuard::isPublicHost($parts['host']);
     }
 }
 
