@@ -62,11 +62,27 @@ document.body.addEventListener('htmx:configRequest', (event: Event) => {
  *
  * @param leaf the `.threadLeaf` list item
  */
+/**
+ * Reflect the open/closed state in the round thread icon: a close (times) glyph
+ * while open, the thread glyph while closed.
+ *
+ * @param leaf the `.threadLeaf` list item
+ * @param open whether the inline posting is now shown
+ */
+function setIconState(leaf: HTMLElement, open: boolean): void {
+    const icon = leaf.querySelector('.btn_show_thread i');
+    icon?.classList.toggle('fa-thread', !open);
+    icon?.classList.toggle('fa-times', open);
+}
+
 function toggleInlinePosting(leaf: HTMLElement): void {
+    // Already loaded once → just show/hide it. Use an inline `display` style so
+    // it wins over the `.threadInline-slider` stylesheet rule.
     const existing = leaf.querySelector<HTMLElement>('.threadInline-slider');
     if (existing) {
-        existing.hidden = !existing.hidden;
-        leaf.classList.toggle('is-inline-open', !existing.hidden);
+        const open = leaf.classList.toggle('is-inline-open');
+        existing.style.display = open ? '' : 'none';
+        setIconState(leaf, open);
 
         return;
     }
@@ -82,19 +98,24 @@ function toggleInlinePosting(leaf: HTMLElement): void {
     slider.className = 'threadInline-slider';
     leaf.appendChild(slider);
     leaf.classList.add('is-inline-open');
+    setIconState(leaf, true);
 
-    // htmx.ajax() runs the request through the same pipeline as declarative
-    // attributes, so htmx:configRequest (CSRF + X-Requested-With) applies and
-    // the swapped-in content is processed by htmx/Alpine too.
-    window.htmx.ajax('POST', url, { target: slider, swap: 'innerHTML' });
+    // Swap into a throwaway inner element, not the slider itself: htmx replaces
+    // its target, and we need the `.threadInline-slider` wrapper to survive so
+    // the next click can find it and toggle instead of reloading. htmx.ajax()
+    // runs through the normal pipeline, so htmx:configRequest (CSRF +
+    // X-Requested-With) applies and the swapped-in content is processed too.
+    const inner = document.createElement('div');
+    slider.appendChild(inner);
+    window.htmx.ajax('POST', url, { target: inner, swap: 'innerHTML' });
 }
 
-// Enhance only the lines inside our island container; the SPA never wired them
-// (they arrive via htmx after the SPA has initialised), so there is no clash.
+// Only the round thread icon (`.btn_show_thread`) toggles the inline posting;
+// the text link (`.link_show_thread`) keeps its normal navigation so the full
+// post/thread can still be opened from the recent-posts view. Scoped to our
+// island container (`#js-recentPostsList`).
 document.addEventListener('click', (event: MouseEvent) => {
-    const trigger = (event.target as HTMLElement).closest(
-        '.link_show_thread, .btn_show_thread',
-    );
+    const trigger = (event.target as HTMLElement).closest('.btn_show_thread');
     if (!trigger || !trigger.closest('#js-recentPostsList')) {
         return;
     }

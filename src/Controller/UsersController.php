@@ -619,11 +619,15 @@ class UsersController extends AppController
         $this->set('user', $user);
         $this->set('titleForLayout', $user->get('username'));
 
-        // htmx swaps only the fragment; a direct visit gets the shell page.
+        // htmx swaps only the fragment; a direct visit gets the shell page,
+        // served standalone (no SPA) via the htmx_island layout so the SPA and
+        // the island don't fight over the same thread markup.
         if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
             $this->viewBuilder()
                 ->disableAutoLayout()
                 ->setTemplate('recent_posts_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island');
         }
     }
 
