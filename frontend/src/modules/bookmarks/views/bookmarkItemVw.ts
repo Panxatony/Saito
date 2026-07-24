@@ -1,10 +1,10 @@
 import * as Mn from 'backbone.marionette';
 import { Model } from 'backbone';
-import * as $ from 'jquery';
+import $ from 'jquery';
 import App from 'models/app';
 import * as _ from 'underscore';
 import AppView from 'views/app';
-import * as Tpl from '../templates/bookmarkItemTpl.html';
+import Tpl from '../templates/bookmarkItemTpl.html';
 import { CommentInputView } from './bookmarkCommentVw';
 
 /**

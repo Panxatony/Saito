@@ -3,7 +3,7 @@
  */
 
 import $ from 'jquery';
-import i18n from 'lib/jquery.i18n/jquery.i18n';
+import 'lib/jquery.i18n/jquery.i18n';
 import format from 'string-template';
 
 $.extend($.i18n, {

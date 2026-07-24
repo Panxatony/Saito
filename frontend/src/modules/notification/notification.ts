@@ -1,7 +1,7 @@
 import EventBus from 'app/vent';
 import { Collection, Model } from 'backbone';
 import * as Mn from 'backbone.marionette';
-import * as $ from 'jquery';
+import $ from 'jquery';
 import * as _ from 'underscore';
 
 enum NotificationType {

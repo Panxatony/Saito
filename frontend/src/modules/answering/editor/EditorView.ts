@@ -6,7 +6,7 @@
  * @license http://opensource.org/licenses/MIT
  */
 
-import * as autosize from 'autosize';
+import autosize from 'autosize';
 import { Collection, Model } from 'backbone';
 import { View } from 'backbone.marionette';
 import * as Radio from 'backbone.radio';

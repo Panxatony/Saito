@@ -107,8 +107,11 @@ module.exports = function (grunt) {
         `,
         options: { stdout: true, stderr: true, failOnError: true, }
       },
-      webpack: {
-        command: 'npx webpack --mode=production --devtool=none',
+      bundle: {
+        // JS bundle via Vite (replaces the legacy Webpack 4 build). Emits one
+        // self-contained IIFE per entry into webroot/js; no NODE_OPTIONS
+        // --openssl-legacy-provider flag required.
+        command: 'yarn build',
         options: { stdout: true, stderr: true, failOnError: true, },
       },
       yarn: {
@@ -208,8 +211,8 @@ module.exports = function (grunt) {
     'dart-sass:static',
     'dart-sass:theme',
     'postcss:release',
-    // webpack
-    'shell:webpack',
+    // JS bundle (Vite)
+    'shell:bundle',
     // JS
     'copy:nonmin',
     'uglify:release',

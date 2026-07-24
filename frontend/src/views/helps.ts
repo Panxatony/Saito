@@ -1,6 +1,6 @@
 import { Model } from 'backbone';
 import { View } from 'backbone.marionette';
-import * as $ from 'jquery';
+import $ from 'jquery';
 import App from 'models/app';
 import * as _ from 'underscore';
 

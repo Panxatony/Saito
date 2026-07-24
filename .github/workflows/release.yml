@@ -111,9 +111,10 @@ jobs:
           apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs
           npm install -g --silent yarn grunt-cli
           yarn install --frozen-lockfile --non-interactive
-          # Webpack 4 uses OpenSSL's MD4, disabled by OpenSSL 3 (Node 17+);
-          # the legacy provider re-enables it just for this build.
-          NODE_OPTIONS=--openssl-legacy-provider grunt release
+          # `grunt release` still orchestrates CSS, locale JSON and asset copy;
+          # its JS-bundle step now runs Vite (see Gruntfile shell:bundle), so the
+          # OpenSSL legacy-provider flag Webpack 4 needed is no longer required.
+          grunt release
 
       - name: Package tarball
         run: |
@@ -148,6 +149,7 @@ jobs:
             --exclude='./tsconfig.json' \
             --exclude='./.eslintrc.json' \
             --exclude='./webpack.config.js' \
+            --exclude='./vite.config.ts' \
             --exclude='./yarn.lock' \
             --exclude='./build.xml' \
             --exclude='*/tests' \
