@@ -11,8 +11,8 @@ import { Model } from 'backbone';
 class UploaderAddMdl extends Model {
     public defaults() {
         return  {
-            // Form data with file.
-            fileToUpload: null,
+            // The files selected for upload (one or many).
+            filesToUpload: null,
             // The amount of data currently transfered.
             loaded: undefined,
             // Progress in percent.
@@ -32,12 +32,15 @@ class UploaderAddMdl extends Model {
      * @param options Options
      */
     public validate(attrs: Record<string, unknown>): string|undefined {
-        if (attrs.fileToUpload === undefined) {
+        const files = attrs.filesToUpload as File[]|null|undefined;
+        if (files === undefined || files === null || files.length === 0) {
             return $.i18n.__('upl.vald.e.dad');
         }
-        const exists = this.collection.findWhere({ title: (attrs.fileToUpload as File).name });
-        if (exists !== undefined) {
-            return $.i18n.__('upl.vald.e.fileExists');
+        for (const file of files) {
+            const exists = this.collection.findWhere({ title: file.name });
+            if (exists !== undefined) {
+                return $.i18n.__('upl.vald.e.fileExists');
+            }
         }
 
         return undefined;

@@ -78,7 +78,7 @@ class DragAreaVw extends View<Model> {
             return;
         }
 
-        this.model.set('fileToUpload', orgEvent.dataTransfer.files[0], {validate: true});
+        this.model.set('filesToUpload', Array.from(orgEvent.dataTransfer.files), {validate: true});
         const error = this.model.validationError;
         if (error) {
             App.eventBus.trigger('notification', {message: error, type: 'warning'});
