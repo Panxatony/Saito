@@ -150,7 +150,13 @@ class SsrfGuardedClient implements ClientInterface
             },
         ]);
         if ($isHttps && class_exists(CaBundle::class)) {
-            curl_setopt($connection, CURLOPT_CAINFO, CaBundle::getSystemCaRootBundlePath());
+            // getSystemCaRootBundlePath() may return a bundle FILE or a
+            // directory of certs (e.g. /etc/ssl/certs on FreeBSD). curl needs
+            // CAINFO for a file and CAPATH for a directory — passing a directory
+            // as CAINFO fails with CURLE_SSL_CACERT_BADFILE (errno 77) and no
+            // request is made at all.
+            $caPath = CaBundle::getSystemCaRootBundlePath();
+            curl_setopt($connection, is_dir($caPath) ? CURLOPT_CAPATH : CURLOPT_CAINFO, $caPath);
         }
 
         curl_exec($connection);
