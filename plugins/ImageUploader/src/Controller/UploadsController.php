@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 /**
@@ -14,29 +13,27 @@ namespace ImageUploader\Controller;
 
 use Api\Controller\ApiAppController;
 use Api\Error\Exception\GenericApiException;
-use App\Model\Entity\User;
 use Cake\Cache\Cache;
 use Cake\Utility\Security;
 use ImageUploader\Lib\MimeType;
 use ImageUploader\Model\Entity\Upload;
-use ImageUploader\Model\Table\UploadsTable;
+use RuntimeException;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\RequestUpload;
-use Saito\User\CurrentUser\CurrentUserInterface;
 use Saito\User\Permission\ResourceAI;
 
 /**
  * Upload Controller
  *
- * @property CurrentUserInterface $CurrentUser
- * @property UploadsTable $Uploads
+ * @property \Saito\User\CurrentUser\CurrentUserInterface $CurrentUser
+ * @property \ImageUploader\Controller\UploadsTable $Uploads
  */
 class UploadsController extends ApiAppController
 {
     public $helpers = ['ImageUploader.ImageUploader'];
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function initialize(): void
     {
@@ -49,19 +46,19 @@ class UploadsController extends ApiAppController
      *
      * @return void
      */
-    public function index()
+    public function index(): void
     {
         $userId = (int)$this->getRequest()->getQuery('id');
-        /** @var User */
+        /** @var \App\Model\Entity\User */
         $user = $this->Users->get($userId);
         $permission = $this->CurrentUser->permission(
             'saito.plugin.uploader.view',
-            (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId())
+            (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId()),
         );
         if (!$permission) {
             throw new SaitoForbiddenException(
                 sprintf('Attempt to index uploads of "%s".', $userId),
-                ['CurrentUser' => $this->CurrentUser]
+                ['CurrentUser' => $this->CurrentUser],
             );
         }
 
@@ -73,62 +70,101 @@ class UploadsController extends ApiAppController
     }
 
     /**
-     * Adds a new upload
+     * Adds one or more uploads.
+     *
+     * The request may carry several files (`upload[0][file]`, `upload[1][file]`,
+     * …). Each is stored independently: valid files are saved and returned,
+     * while a file that fails (unsupported type, duplicate, too large, …) is
+     * collected as an error without aborting the rest of the batch. Only when
+     * *nothing* could be stored is the request treated as a failure — which
+     * preserves the single-file behaviour.
      *
      * @return void
      */
-    public function add()
+    public function add(): void
     {
-        $submitted = RequestUpload::toArray($this->request->getData('upload.0.file'));
-        if ($submitted === null || empty($submitted['tmp_name'])) {
-            throw new GenericApiException(__d('image_uploader', 'add.failure'));
-        }
-
         $userId = (int)$this->getRequest()->getData('userId');
-        /** @var User */
+        /** @var \App\Model\Entity\User */
         $user = $this->Users->get($userId);
         $permission = $this->CurrentUser->permission(
             'saito.plugin.uploader.add',
-            (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId())
+            (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId()),
         );
         if (!$permission) {
             throw new SaitoForbiddenException(
                 sprintf('Attempt to add uploads for "%s".', $userId),
-                ['CurrentUser' => $this->CurrentUser]
+                ['CurrentUser' => $this->CurrentUser],
             );
         }
 
-        // Determine extension from server-detected MIME type, never from user-supplied filename
+        $images = [];
+        $errors = [];
+        foreach ((array)$this->getRequest()->getData('upload') as $submission) {
+            $file = RequestUpload::toArray($submission['file'] ?? null);
+            if ($file === null || empty($file['tmp_name'])) {
+                $errors[] = (string)__d('image_uploader', 'add.failure');
+                continue;
+            }
+            try {
+                $images[] = $this->saveUpload($file, $userId);
+            } catch (RuntimeException $e) {
+                $errors[] = $e->getMessage() ?: (string)__d('image_uploader', 'add.failure');
+            }
+        }
+
+        if (!$images) {
+            // Nothing stored — surface the first reason, matching the previous
+            // single-file failure response.
+            throw new GenericApiException($errors[0] ?? (string)__d('image_uploader', 'add.failure'));
+        }
+
+        $this->set('images', $images);
+        $this->set('uploadErrors', $errors);
+    }
+
+    /**
+     * Validates and stores a single submitted file.
+     *
+     * @param array $file normalized upload (name/type/tmp_name/error/size)
+     * @param int $userId owner the upload is stored for
+     * @return \ImageUploader\Model\Entity\Upload the saved upload entity
+     * @throws \RuntimeException with a user-facing reason if the file is rejected
+     */
+    private function saveUpload(array $file, int $userId): Upload
+    {
+        // Determine extension from server-detected MIME type, never from the
+        // user-supplied filename.
         try {
-            $mime = MimeType::get($submitted['tmp_name'], $submitted['name']);
-        } catch (\RuntimeException $e) {
-            throw new GenericApiException(__d('image_uploader', 'add.failure'));
+            $mime = MimeType::get($file['tmp_name'], $file['name']);
+        } catch (RuntimeException $e) {
+            throw new RuntimeException((string)__d('image_uploader', 'add.failure'));
         }
         $ext = self::mimeToExtension($mime);
         if ($ext === null) {
-            throw new GenericApiException(__d('image_uploader', 'add.failure'));
+            throw new RuntimeException((string)__d('image_uploader', 'add.failure'));
         }
+
         $name = $this->CurrentUser->getId() .
                 '_' .
-                substr(Security::hash($submitted['name'], 'sha256'), 32) .
+                substr(Security::hash($file['name'], 'sha256'), 32) .
                 '.' .
                 $ext;
-        $data = [
-            'document' => $submitted,
+        $document = $this->Uploads->newEntity([
+            'document' => $file,
             'name' => $name,
-            'title' => $submitted['name'],
-            'size' => $submitted['size'],
+            'title' => $file['name'],
+            'size' => $file['size'],
             'user_id' => $userId,
-        ];
-        $document = $this->Uploads->newEntity($data);
+        ]);
 
         if (!$this->Uploads->save($document)) {
-            $errors = $document->getErrors();
-            $msg = $errors ? current(current($errors)) : null;
-            throw new GenericApiException($msg);
+            $saveErrors = $document->getErrors();
+            throw new RuntimeException(
+                $saveErrors ? (string)current(current($saveErrors)) : (string)__d('image_uploader', 'add.failure'),
+            );
         }
 
-        $this->set('image', $document);
+        return $document;
     }
 
     /**
@@ -168,18 +204,18 @@ class UploadsController extends ApiAppController
      * @param int $imageId the ID of the image to delete
      * @return void
      */
-    public function delete($imageId)
+    public function delete(int $imageId): void
     {
-        /** @var Upload */
+        /** @var \ImageUploader\Model\Entity\Upload */
         $upload = $this->Uploads->get($imageId, contain: ['Users']);
         $permission = $this->CurrentUser->permission(
             'saito.plugin.uploader.delete',
-            (new ResourceAI())->onRole($upload->user->getRole())->onOwner($upload->user->getId())
+            (new ResourceAI())->onRole($upload->user->getRole())->onOwner($upload->user->getId()),
         );
         if (!$permission) {
             throw new SaitoForbiddenException(
                 sprintf('Attempt to delete upload "%s".', $imageId),
-                ['CurrentUser' => $this->CurrentUser]
+                ['CurrentUser' => $this->CurrentUser],
             );
         }
 
