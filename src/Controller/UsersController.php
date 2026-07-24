@@ -94,62 +94,19 @@ class UsersController extends AppController
 
         if ($this->AuthUser->login()) {
             $this->_clearLoginThrottle();
-            // Redirect query-param in URL.
-            $target = $this->getRequest()->getQuery('redirect');
-            // AuthenticationService puts the full local path into the redirect
-            // parameter, so we have to strip the base-path off again.
-            $target = $target ? Router::normalize($target) : '';
-            // Prevent open-redirects: only accept local paths. Reject absolute
-            // (https://evil.com) and protocol-relative (//evil.com, /\evil.com)
-            // URLs that would otherwise send the user off-site after login.
-            if ($target !== '' && !preg_match('#^/(?![/\\\\])#', $target)) {
-                $target = '';
-            }
-            // Referer from Request
-            // Referer fallback only if it points somewhere other than the
-            // login form itself; otherwise send the user to the front-page.
-            if (empty($target)) {
-                $referer = $this->referer('/', true);
-                if ($referer && strpos($referer, '/login') === false) {
-                    $target = $referer;
-                }
-            }
 
-            if (empty($target)) {
-                $target = '/';
-            }
-
-            return $this->redirect($target);
+            return $this->redirect($this->_loginRedirectTarget());
         }
 
         /// error on login
         $this->_registerFailedLogin();
-        $username = $this->request->getData('username');
-        /** @var User */
+        $username = (string)$this->request->getData('username');
+        /** @var User|null $User */
         $User = $this->Users->find()
             ->where(['username' => $username])
             ->first();
 
-        $message = __('user.authe.e.generic');
-
-        if (!empty($User)) {
-            if (!$User->isActivated()) {
-                $message = __('user.actv.ny');
-            } elseif ($User->isLocked()) {
-                $ends = $this->Users->UserBlocks
-                    ->getBlockEndsForUser($User->getId());
-                if ($ends) {
-                    $time = new DateTime($ends);
-                    $data = [
-                        'name' => $username,
-                        'end' => $time->timeAgoInWords(['accuracy' => 'hour']),
-                    ];
-                    $message = __('user.block.pubExpEnds', $data);
-                } else {
-                    $message = __('user.block.pubExp', $username);
-                }
-            }
-        }
+        $message = $this->_failedLoginMessage($User, $username);
 
         // don't autofill password
         $this->setRequest($this->getRequest()->withData('password', ''));
@@ -162,6 +119,77 @@ class UsersController extends AppController
 
         $this->Flash->set($message, [
             'element' => 'error', 'params' => ['title' => __('user.authe.e.t')],
+        ]);
+    }
+
+    /**
+     * Resolve the post-login redirect target to a safe, local path.
+     *
+     * Prefers the `?redirect=` query-param, falls back to the referer, then to
+     * the front-page. Open-redirects are rejected: only paths that start with a
+     * single `/` (not `//` or `/\`, which browsers treat as protocol-relative
+     * off-site URLs) are accepted; anything else is dropped.
+     *
+     * @return string local path, never empty
+     */
+    private function _loginRedirectTarget(): string
+    {
+        // AuthenticationService puts the full local path into the redirect
+        // parameter, so strip the base-path off again.
+        $target = $this->getRequest()->getQuery('redirect');
+        $target = $target ? Router::normalize($target) : '';
+
+        // Only accept local paths; reject absolute (https://evil.com) and
+        // protocol-relative (//evil.com, /\evil.com) URLs.
+        if ($target !== '' && !preg_match('#^/(?![/\\\\])#', $target)) {
+            $target = '';
+        }
+
+        // Referer fallback only if it points somewhere other than the login
+        // form itself; otherwise send the user to the front-page.
+        if (empty($target)) {
+            $referer = $this->referer('/', true);
+            if ($referer && strpos($referer, '/login') === false) {
+                $target = $referer;
+            }
+        }
+
+        return empty($target) ? '/' : $target;
+    }
+
+    /**
+     * Build the user-facing message for a failed login attempt.
+     *
+     * Deliberately generic when the account is unknown or the credentials are
+     * simply wrong; only for a known account that is unactivated or blocked is
+     * a specific reason shown (a block additionally states when it ends).
+     *
+     * @param User|null $User the account matching the submitted username, if any
+     * @param string $username the submitted username
+     * @return string translated message
+     */
+    private function _failedLoginMessage(?User $User, string $username): string
+    {
+        if (empty($User)) {
+            return __('user.authe.e.generic');
+        }
+        if (!$User->isActivated()) {
+            return __('user.actv.ny');
+        }
+        if (!$User->isLocked()) {
+            return __('user.authe.e.generic');
+        }
+
+        $ends = $this->Users->UserBlocks->getBlockEndsForUser($User->getId());
+        if (!$ends) {
+            return __('user.block.pubExp', $username);
+        }
+
+        $time = new DateTime($ends);
+
+        return __('user.block.pubExpEnds', [
+            'name' => $username,
+            'end' => $time->timeAgoInWords(['accuracy' => 'hour']),
         ]);
     }
 
