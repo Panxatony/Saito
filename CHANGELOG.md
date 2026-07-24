@@ -7,6 +7,15 @@
 
 ## [next] -
 
+## [7.4.0] - 2026-07-24
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.3.1...7.4.0)
+
+### Changes
+
+- Δ Maintenance: upgraded `embed/embed` from the legacy 3.x to 4.x (4.4.19), whose HTTP layer is PSR-18/PSR-17 based. The SSRF guard introduced in 7.3.0 is ported from the removed v3 dispatcher interface to a PSR-18 client (`SsrfGuardedClient`) injected via the embed Crawler, so every fetch — the page and each preview image — passes through the same per-hop host validation and IP-pinning. Same protection, same link fallback on a refused target. Adds transitive dependencies `ml/iri`, `ml/json-ld`, `oscarotero/html-parser`. **Deploying this release requires updating the vendor tree (`composer install --no-dev`), not only copying changed files.**
+- ＋ Tests: an authorization-coverage tripwire (`AuthorizationCoverageTest`) enumerates every controller action and classifies how it is authorized (admin route / API / `allowUnauthenticated` / `authorizeAction` / inline permission check). Actions left open to any logged-in member must be listed explicitly; a new, unclassified member-open action fails the test, catching a forgotten authorization gate at review time.
+
 ## [7.3.1] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.3.0...7.3.1)
