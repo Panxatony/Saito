@@ -7,6 +7,14 @@
 
 ## [next] -
 
+## [7.3.1] - 2026-07-24
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.3.0...7.3.1)
+
+### Changes
+
+- Δ Maintenance: `SsrfGuard` no longer silences `dns_get_record()`'s unresolvable-host warning with the `@` operator (DeepSource PHP-W1078); a scoped `set_error_handler()`/`restore_error_handler()` pair swallows exactly that warning instead. No behaviour change.
+
 ## [7.3.0] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.8...7.3.0)
