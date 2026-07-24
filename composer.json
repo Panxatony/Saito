@@ -37,7 +37,7 @@
     "friendsofcake/bootstrap-ui": "^5.0",
     "friendsofcake/search": "^7",
     "claviska/simpleimage": "^3.3",
-    "embed/embed": "^3.3",
+    "embed/embed": "^4",
     "jeremykendall/php-domain-parser": "^6.3",
     "cakephp/authentication": "^3",
     "firebase/php-jwt": "^7.0",

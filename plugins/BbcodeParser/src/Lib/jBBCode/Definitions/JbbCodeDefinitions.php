@@ -17,7 +17,7 @@ use Cake\Core\Configure;
 use Plugin\BbcodeParser\src\Lib\Helper\Message;
 use Plugin\BbcodeParser\src\Lib\Helper\UrlParserTrait;
 use Plugin\BbcodeParser\src\Lib\Http\SsrfGuard;
-use Plugin\BbcodeParser\src\Lib\Http\SsrfGuardedDispatcher;
+use Plugin\BbcodeParser\src\Lib\Http\SsrfGuardedClient;
 use Saito\DomainParser;
 
 /**
@@ -99,34 +99,35 @@ class Embed extends CodeDefinition
             }
 
             try {
-                // B) Fetch through the SSRF-guarded dispatcher: it follows
+                // B) Fetch through the SSRF-guarded PSR-18 client: it follows
                 // redirects manually, re-validates and IP-pins every hop, and
                 // so closes the DNS-rebinding / redirect-to-internal gaps that
-                // the up-front _isFetchableUrl() check alone cannot cover.
-                $info = \Embed\Embed::create(
-                    $url,
-                    [
-                    'min_image_width' => 100,
-                    'min_image_height' => 100,
-                    ],
-                    new SsrfGuardedDispatcher()
+                // the up-front _isFetchableUrl() check alone cannot cover. In
+                // embed v4 the client is injected via the Crawler and handles
+                // both the page fetch and the preview-image fetches.
+                $embedder = new \Embed\Embed(
+                    new \Embed\Http\Crawler(new SsrfGuardedClient())
                 );
+                $info = $embedder->get($url);
 
+                // v4 exposes typed values (EmbedCode / UriInterface); cast to
+                // strings for the JSON payload the front-end consumes.
+                $code = $info->code;
                 $embed = [
-                    'html' => $info->code,
-                    'providerIcon' => $info->providerIcon,
-                    'providerName' => $info->providerName,
-                    'providerUrl' => $info->providerUrl,
-                    'title' => $info->title,
-                    'url' => $info->url ?? $url,
+                    'html' => $code !== null ? $code->html : '',
+                    'providerIcon' => (string)($info->favicon ?? ''),
+                    'providerName' => (string)($info->providerName ?? ''),
+                    'providerUrl' => (string)($info->providerUrl ?? ''),
+                    'title' => (string)($info->title ?? ''),
+                    'url' => (string)($info->url ?? $url),
                 ];
 
                 if ($this->_sOptions->get('content_embed_text')) {
-                    $embed['description'] = $info->description;
+                    $embed['description'] = (string)($info->description ?? '');
                 }
 
                 if ($this->_sOptions->get('content_embed_media')) {
-                    $embed['image'] = $info->image;
+                    $embed['image'] = (string)($info->image ?? '');
                 }
             } catch (\Throwable $e) {
             }
