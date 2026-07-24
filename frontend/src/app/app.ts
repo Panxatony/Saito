@@ -16,7 +16,7 @@ import moment from 'moment';
 /// Load numeral.js
 import numeral from 'numeral';
 // load locales for numeral.js
-require('numeral/locales'); // side-effect load of numeral locales; require kept for the legacy build toolchain skipcq: JS-0359
+import 'numeral/locales';
 
 interface ISaitoCallbacks {
     beforeAppInit: CallableFunction[];
