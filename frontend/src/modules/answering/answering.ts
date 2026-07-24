@@ -8,7 +8,7 @@
 
 import { Model } from 'backbone';
 import { View } from 'backbone.marionette';
-import * as $ from 'jquery';
+import $ from 'jquery';
 import 'jquery-textrange';
 import CakeFormErrorView from 'lib/saito/CakeFormErrorView';
 import 'lib/saito/jquery.scrollIntoView';

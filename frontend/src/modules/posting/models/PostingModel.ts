@@ -1,4 +1,4 @@
-import * as $ from 'jquery';
+import $ from 'jquery';
 import App from 'models/app';
 import PostingMdl from 'models/PostingMdl';
 import _ from 'underscore';

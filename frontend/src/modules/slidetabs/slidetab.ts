@@ -6,7 +6,7 @@ import App from 'models/app';
 import * as _ from 'underscore';
 
 import { View } from 'backbone.marionette';
-import * as $ from 'jquery';
+import $ from 'jquery';
 
 class SlidetabModel extends Model {
     public localStorage: LocalStorage = (() => {

@@ -1,6 +1,6 @@
 import { View } from 'backbone.marionette';
 import { Model } from 'backbone';
-import * as Tpl from '../templates/bookmarkCommentTpl.html';
+import Tpl from '../templates/bookmarkCommentTpl.html';
 
 /**
  * Comment as input

@@ -8,7 +8,7 @@
 
 import { Model } from 'backbone';
 import { View } from 'backbone.marionette';
-import * as $ from 'jquery';
+import $ from 'jquery';
 import 'jQuery-tinyTimer/jquery.tinytimer';
 import App from 'models/app';
 import moment from 'moment';
