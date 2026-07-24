@@ -21,7 +21,7 @@ import { AbstractMenuButtonView } from './AbstractMenuButtonView';
  *
  * @param model upload model (needs `mime` and `name`)
  */
-function uploadTag(model: Model): BbcodeTag {
+const uploadTag = (model: Model): BbcodeTag => {
     const mime: string = model.get('mime').match('^(.*)?/')[1];
     let tag: string;
 
@@ -42,7 +42,7 @@ function uploadTag(model: Model): BbcodeTag {
         content: model.get('name'),
         tag,
     });
-}
+};
 
 /**
  * Per-upload checkbox that marks an upload for insertion into the posting.
@@ -64,7 +64,7 @@ class InsertSelectVw extends View<Model> {
                 <input type="checkbox" class="js-select"<% if (selected) { %> checked<% } %>>
                 <%- $.i18n.__('upl.btn.insert') %>`),
             templateContext() {
-                return { selected: !!(this as View<Model>).model.get('selected') };
+                return { selected: Boolean((this as View<Model>).model.get('selected')) };
             },
             ui: { checkbox: '.js-select' },
         });

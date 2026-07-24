@@ -135,7 +135,7 @@ class UploaderAddVw extends View<Model> {
             let response: {data?: Array<{attributes: object}>, errors?: Array<{title: string}>};
             try {
                 response = JSON.parse(xhr.responseText);
-            } catch (e) {
+            } catch {
                 response = {};
             }
 
