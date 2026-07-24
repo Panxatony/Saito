@@ -7,6 +7,15 @@
 
 ## [next] -
 
+## [7.5.1] - 2026-07-24
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.5.0...7.5.1)
+
+### Changes
+
+- Δ Maintenance: restored PHPStan static analysis, which 7.5.0 had broken — an auto-formatted `@property` docblock in `UploadsController` pointed at a non-existent `\ImageUploader\Controller\UploadsTable`; it now names the real `\ImageUploader\Model\Table\UploadsTable`. Also dropped a stale PHPStan baseline entry left over from the 7.2.8 `login()` refactor.
+- Δ Maintenance: cleared three DeepSource JavaScript findings in the upload views (function-expression instead of declaration, `Boolean()` instead of `!!`, optional catch binding). No behaviour change.
+
 ## [7.5.0] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.4.0...7.5.0)

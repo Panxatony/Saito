@@ -26,7 +26,7 @@ use Saito\User\Permission\ResourceAI;
  * Upload Controller
  *
  * @property \Saito\User\CurrentUser\CurrentUserInterface $CurrentUser
- * @property \ImageUploader\Controller\UploadsTable $Uploads
+ * @property \ImageUploader\Model\Table\UploadsTable $Uploads
  */
 class UploadsController extends ApiAppController
 {
