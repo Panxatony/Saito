@@ -7,6 +7,16 @@
 
 ## [next] -
 
+## [7.2.7] - 2026-07-24
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.6...7.2.7)
+
+### Changes
+
+- ✓ Hardening: the `User` entity relied on the framework's fully-open mass-assignment default (`_accessible = ['*' => true]`), so any `patchEntity($user, $requestData)` that ever omitted a `fields` whitelist would let a user set any column on themselves — including their own role. All current call sites are safe, but the safety depended on every author remembering to whitelist. The privilege- and security-relevant columns (`user_type`, `activate_code`, `user_lock`, `id`) are now denied by default; the single permission-gated role change opts the field back in explicitly. An accidental bulk assignment can no longer escalate.
+- ✓ Hardening: the login throttle and online-list counter read the client IP via `clientIp()`, which returns `REMOTE_ADDR` unless the request is told which reverse proxies to trust. Behind a proxy chain that made every request look like the proxy. Deployments that cannot rewrite `REMOTE_ADDR` at the web server (nginx `real_ip`) can now list their proxy IPs in `Configure` `Saito.trustedProxies`, and the real client is resolved from `X-Forwarded-For`. Default is empty, so behaviour is unchanged and no proxy is trusted unless explicitly configured.
+- Δ Maintenance: bumped the `composer/composer` dev dependency 2.9.8 → 2.10.2 (clearing CVE-2026-59946/-59947/-59948) and the transitive Symfony components it pulls. Dev-only tooling; not shipped in the production tarball.
+
 ## [7.2.6] - 2026-07-23
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.5...7.2.6)
