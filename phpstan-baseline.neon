@@ -201,11 +201,6 @@ parameters:
 			path: src/Controller/UsersController.php
 
 		-
-			message: "#^Variable \\$User in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 1
-			path: src/Controller/UsersController.php
-
-		-
 			message: "#^Variable \\$id in empty\\(\\) always exists and is always falsy\\.$#"
 			count: 2
 			path: src/Controller/UsersController.php
