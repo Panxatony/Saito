@@ -40,7 +40,7 @@ class UploaderAddVw extends View<Model> {
             },
             model: new UploaderAddMdl(null, {collection: options.collection}),
             modelEvents: {
-                'change:fileToUpload': 'send',
+                'change:filesToUpload': 'send',
             },
             regions: {
                 dragAreaRg: '.js-dragAreaRg',
@@ -85,7 +85,8 @@ class UploaderAddVw extends View<Model> {
     protected onUploadBtn(event: Event) {
         event.preventDefault();
         const input = this.getUI('inputFile')[0] as HTMLInputElement;
-        this.model.set('fileToUpload', input.files?.[0], {validate: true});
+        const files = input.files ? Array.from(input.files) : [];
+        this.model.set('filesToUpload', files, {validate: true});
         const error = this.model.validationError;
         if (error) {
             App.eventBus.trigger('notification', {message: error, type: 'error'});
@@ -96,10 +97,10 @@ class UploaderAddVw extends View<Model> {
      * Called when the file in this view's model is updated to send the file
      *
      * @param model This view's model
-     * @param file The file to upload
+     * @param files The files to upload
      */
-    protected send(model: Model, file: File) {
-        if (file === null) {
+    protected send(model: Model, files: File[]) {
+        if (!files || files.length === 0) {
             return;
         }
 
@@ -118,7 +119,7 @@ class UploaderAddVw extends View<Model> {
             this.xhr = undefined;
             this.model.set('progress', 0);
             this.model.set('uploadInProgress', false);
-            this.model.set('fileToUpload', null);
+            this.model.set('filesToUpload', null);
             // clears out form field
             this.render();
 
@@ -128,26 +129,37 @@ class UploaderAddVw extends View<Model> {
                 return;
             }
 
+            // Server payload is untyped JSON (as in the original single-upload
+            // code); `data` is the list of stored files, `errors` any that
+            // could not be stored in the batch.
+            let response: {data?: Array<{attributes: object}>, errors?: Array<{title: string}>};
+            try {
+                response = JSON.parse(xhr.responseText);
+            } catch (e) {
+                response = {};
+            }
+
             if (`${xhr.status}`[0] === '2') {
-                /// Upload was successful.
-                this.collection.add(JSON.parse(xhr.responseText).data.attributes);
+                /// Upload was successful — add every stored file to the list.
+                (response.data || []).forEach((item) => {
+                    this.collection.add(item.attributes);
+                });
+                /// A partial batch may still carry per-file errors.
+                if (response.errors) {
+                    this.onUploadError(response.errors[0].title);
+                }
                 return;
             }
 
-            /// Upload failed
-            let msg;
-            try {
-                const errors = JSON.parse(xhr.responseText).errors;
-                if (errors) {
-                    msg = errors[0].title;
-                }
-            } finally {
-                this.onUploadError(msg);
-            }
+            /// Upload failed entirely.
+            const msg = response.errors ? response.errors[0].title : undefined;
+            this.onUploadError(msg);
         };
 
         const formData = new FormData();
-        formData.append('upload[0][file]', file);
+        files.forEach((file, index) => {
+            formData.append(`upload[${index}][file]`, file);
+        });
         formData.append('userId', this.model.get('userId'));
 
         xhr.send(formData);

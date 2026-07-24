@@ -21,7 +21,7 @@ class StatsVw extends View<Model> {
         _.defaults(options, {
             classTag: 'imageUploader-card-details',
             modelEvents: {
-                'change:fileToUpload': 'onChangeFile',
+                'change:filesToUpload': 'onChangeFile',
                 'change:progress': 'onChangeProgress',
             },
             template: _.template(`
@@ -75,7 +75,8 @@ class StatsVw extends View<Model> {
         }
         this.getUI('speed').html(`${numeral(bitrate).format('0 b')}/s`);
 
-        const total = model.get('fileToUpload').size;
+        const total = (model.get('filesToUpload') as File[])
+            .reduce((sum: number, file: File) => sum + file.size, 0);
         let remaining = Math.floor((total - model.get('loaded')) / bitrate) + 1;
         remaining = remaining >= 0 ? remaining : 0;
         this.getUI('time').html(moment().add(remaining, 'seconds').fromNow(true));
