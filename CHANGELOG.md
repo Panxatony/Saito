@@ -7,6 +7,14 @@
 
 ## [next] -
 
+## [7.5.2] - 2026-07-24
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.5.1...7.5.2)
+
+### Changes
+
+- ✓ Fix: `[embed]` content failed to render on hosts whose system CA store is a directory of certificates rather than a single bundle file (e.g. `/etc/ssl/certs` on FreeBSD). The SSRF-guarded embed client passed that path to curl's `CURLOPT_CAINFO`, which expects a file, so every fetch failed with `CURLE_SSL_CACERT_BADFILE` and fell back to a bare link. The client now uses `CURLOPT_CAPATH` for a directory and `CURLOPT_CAINFO` for a file.
+
 ## [7.5.1] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.5.0...7.5.1)
