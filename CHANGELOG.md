@@ -7,6 +7,14 @@
 
 ## [next] -
 
+## [7.2.8] - 2026-07-24
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.7...7.2.8)
+
+### Changes
+
+- Δ Maintenance: refactored `UsersController::login()` to cut its cyclomatic complexity (DeepSource PHP-R1006). The post-login redirect resolution (incl. the open-redirect guard) and the failed-login message logic are extracted into `_loginRedirectTarget()` and `_failedLoginMessage()`. No behaviour change.
+
 ## [7.2.7] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.6...7.2.7)
