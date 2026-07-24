@@ -972,7 +972,16 @@ class UsersController extends AppController
                     1573376871
                 );
             }
-            $patched = $this->Users->patchEntity($user, ['user_type' => $type]);
+            // `user_type` is guarded against mass-assignment on the User entity
+            // (see App\Model\Entity\User). This is the one authorized path to
+            // change a role — the permission check above gates it and $type is
+            // validated against the roles the current user may assign — so
+            // explicitly allow the field here.
+            $patched = $this->Users->patchEntity(
+                $user,
+                ['user_type' => $type],
+                ['accessibleFields' => ['user_type' => true]],
+            );
 
             $errors = $patched->getErrors();
             if (empty($errors)) {

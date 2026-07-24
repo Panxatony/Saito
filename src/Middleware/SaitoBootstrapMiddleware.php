@@ -35,6 +35,26 @@ class SaitoBootstrapMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        //// trusted reverse proxies (opt-in)
+        // Saito reads the client IP (login throttle, online-list hash) from
+        // `clientIp()`, which returns REMOTE_ADDR unless the request is told
+        // which upstream proxies to trust. Behind a reverse proxy (e.g. the
+        // Anubis/nginx chain) that leaves every request looking like it came
+        // from the proxy — one attacker could then exhaust the shared throttle
+        // for everyone, or evade a per-IP measure.
+        //
+        // The recommended fix stays at the web-server layer (nginx real_ip
+        // rewriting REMOTE_ADDR to the true client). For deployments that
+        // cannot do that, list the trusted proxy IPs in
+        // `Configure::write('Saito.trustedProxies', ['127.0.0.1', …])` and
+        // clientIp() will resolve the real client from X-Forwarded-For.
+        // Default is empty → unchanged behaviour, and no proxy is trusted
+        // unless explicitly configured (never trust X-Forwarded-For blindly).
+        $trustedProxies = (array)Configure::read('Saito.trustedProxies', []);
+        if ($trustedProxies !== [] && $request instanceof \Cake\Http\ServerRequest) {
+            $request->setTrustedProxies($trustedProxies);
+        }
+
         //// start installer
         $url = $request->getUri()->getPath();
         if (!Configure::read('Saito.installed')) {
