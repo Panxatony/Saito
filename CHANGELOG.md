@@ -7,6 +7,15 @@
 
 ## [next] -
 
+## [7.5.0] - 2026-07-24
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.4.0...7.5.0)
+
+### Changes
+
+- ＋ Uploads: several images can now be uploaded at once. The file picker accepts multiple files and drag & drop takes the whole dropped set; the labels are pluralised so it is clear more than one file is allowed. All selected files are sent in one request and stored independently — a file that fails (unsupported type, duplicate, too large) is reported without aborting the rest of the batch. `UploadsController::add()` returns the stored files as a `data` array (per-file failures in `errors`).
+- ＋ Uploads: several images can be embedded into one posting at once. Each upload card carries a selection checkbox; an "Insert selected" action bar drops every ticked upload into the posting together.
+
 ## [7.4.0] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.3.1...7.4.0)
