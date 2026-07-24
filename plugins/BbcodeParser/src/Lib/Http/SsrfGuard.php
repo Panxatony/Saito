@@ -57,8 +57,16 @@ class SsrfGuard
         }
 
         $ips = [];
-        // dns_get_record warns on unresolvable hosts; guard with @ and ?: [].
-        $records = @dns_get_record($host, DNS_A | DNS_AAAA);
+        // dns_get_record() emits a warning (and returns false) when the host
+        // does not resolve. Swallow just that warning with a scoped error
+        // handler — rather than the `@` operator — and treat false as "no
+        // records"; the handler is always restored via finally.
+        set_error_handler(static fn(): bool => true);
+        try {
+            $records = dns_get_record($host, DNS_A | DNS_AAAA);
+        } finally {
+            restore_error_handler();
+        }
         foreach ($records ?: [] as $record) {
             if (!empty($record['ip'])) {
                 $ips[] = $record['ip'];
