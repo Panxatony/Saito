@@ -97,27 +97,31 @@ class UploadsControllerTest extends IntegrationTestCase
 
         $this->assertResponseCode(200);
 
+        // The endpoint now always returns a `data` array (one entry per stored
+        // file) so it can carry a multi-file batch.
         $this->assertWithinRange(
             time(),
-            strtotime($response['data']['attributes']['created']),
+            strtotime($response['data'][0]['attributes']['created']),
             3
         );
-        unset($response['data']['attributes']['created']);
+        unset($response['data'][0]['attributes']['created']);
 
-        $this->assertGreaterThan(0, $response['data']['attributes']['size']);
-        unset($response['data']['attributes']['size']);
+        $this->assertGreaterThan(0, $response['data'][0]['attributes']['size']);
+        unset($response['data'][0]['attributes']['size']);
 
         $expected = [
             'data' => [
-                'id' => 3,
-                'type' => 'uploads',
-                'attributes' => [
+                [
                     'id' => 3,
-                    'mime' => 'image/jpeg',
-                    'name' => '1_ebd536d37aff03f2b570329b20ece832.jpg',
-                    'thumbnail_url' => 'http://localhost/api/v2/uploads/thumb/3?h=e1fddb2ea8f448fac14ec06b88d4ce94',
-                    'title' => 'my new-upload.png',
-                    'url' => 'http://localhost/useruploads/1_ebd536d37aff03f2b570329b20ece832.jpg',
+                    'type' => 'uploads',
+                    'attributes' => [
+                        'id' => 3,
+                        'mime' => 'image/jpeg',
+                        'name' => '1_ebd536d37aff03f2b570329b20ece832.jpg',
+                        'thumbnail_url' => 'http://localhost/api/v2/uploads/thumb/3?h=e1fddb2ea8f448fac14ec06b88d4ce94',
+                        'title' => 'my new-upload.png',
+                        'url' => 'http://localhost/useruploads/1_ebd536d37aff03f2b570329b20ece832.jpg',
+                    ],
                 ],
             ],
         ];
@@ -129,6 +133,57 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->assertSame('1_ebd536d37aff03f2b570329b20ece832.jpg', $upload->get('name'));
         $this->assertSame('image/jpeg', $upload->get('type'));
         $this->assertTrue(file_exists($upload->get('file')));
+    }
+
+    /**
+     * Several files in one request are each stored and all returned.
+     */
+    public function testAddMultipleFilesAreAllStored()
+    {
+        $this->loginJwt(1);
+
+        $second = TMP . 'my second-upload.png';
+        $this->mockMediaFile($second);
+        try {
+            $this->uploadMany([$this->file, $second], 1);
+        } finally {
+            @unlink($second);
+        }
+
+        $this->assertResponseCode(200);
+        $response = json_decode((string)$this->_response->getBody(), true);
+
+        $this->assertCount(2, $response['data']);
+        $this->assertArrayNotHasKey('errors', $response);
+
+        $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
+        // Two new rows on top of the two fixture uploads.
+        $this->assertSame(4, $Uploads->find()->count());
+    }
+
+    /**
+     * A file that fails in a batch is reported as an error while the valid
+     * files are still stored — the batch is not aborted.
+     */
+    public function testAddPartialFailureStoresValidAndReportsError()
+    {
+        $this->loginJwt(1);
+
+        // The stored name is derived from the client filename, so two files
+        // with the same name collide: the second is rejected as a duplicate
+        // while the first is stored.
+        $duplicate = TMP . 'my new-upload.png';
+
+        $this->uploadMany([$this->file, $duplicate], 1);
+
+        $this->assertResponseCode(200);
+        $response = json_decode((string)$this->_response->getBody(), true);
+
+        $this->assertCount(1, $response['data']);
+        $this->assertCount(1, $response['errors']);
+
+        $Uploads = TableRegistry::getTableLocator()->get('ImageUploader.Uploads');
+        $this->assertSame(3, $Uploads->find()->count());
     }
 
     /**
@@ -430,6 +485,34 @@ class UploadsControllerTest extends IntegrationTestCase
                 ],
             ],
         ];
+        if ($userId) {
+            $data['userId'] = (string)$userId;
+        }
+        $this->post('api/v2/uploads.json', $data);
+    }
+
+    /**
+     * Post several files in one request as `upload[0..n][file]`.
+     *
+     * @param string[] $filePaths file paths to upload
+     * @param int|null $userId owner id (omitted when null)
+     * @return void
+     */
+    private function uploadMany(array $filePaths, ?int $userId = 1): void
+    {
+        $upload = [];
+        foreach ($filePaths as $filePath) {
+            $upload[] = [
+                'file' => new UploadedFile(
+                    $filePath,
+                    filesize($filePath),
+                    UPLOAD_ERR_OK,
+                    pathinfo($filePath, PATHINFO_FILENAME) . '.' . pathinfo($filePath, PATHINFO_EXTENSION),
+                    mime_content_type($filePath),
+                ),
+            ];
+        }
+        $data = ['upload' => $upload];
         if ($userId) {
             $data['userId'] = (string)$userId;
         }

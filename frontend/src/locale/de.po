@@ -191,9 +191,13 @@ msgstr "Abbrechen"
 msgid "upl.btn.insert"
 msgstr "Einfügen"
 
+#: frontend/src/modules/answering/editor/MenuButton/MenuButtonUploadView.ts
+msgid "upl.btn.insertSelected"
+msgstr "Auswahl einfügen"
+
 #: frontend/src/modules/uploader/templates/uploaderAddTpl.html:20
 msgid "upl.btn.title"
-msgstr "Datei auswählen…"
+msgstr "Dateien auswählen…"
 
 #: frontend/src/modules/uploader/views/uploaderItemFooterVw.ts:32
 msgid "upl.del.btn"
@@ -245,7 +249,7 @@ msgstr "Keine Uploads gefunden."
 
 #: frontend/src/modules/uploader/views/uploaderAdd/uploaderAddDragAreaVw.ts:40
 msgid "upl.new.title"
-msgstr "Datei hier hineinziehen"
+msgstr "Dateien hier hineinziehen"
 
 #: frontend/src/modules/answering/editor/MenuButton/MenuButtonUploadView.ts:33
 #: frontend/src/modules/uploader/views/uploaderAdd/uploaderAddDragAreaVw.ts:38
