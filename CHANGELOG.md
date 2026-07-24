@@ -7,6 +7,15 @@
 
 ## [next] -
 
+## [7.3.0] - 2026-07-24
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.8...7.3.0)
+
+### Changes
+
+- ✓ Security (hardening): closed the server-side request forgery (SSRF) surface of the `[embed]` tag. The embed handler fetches the posted URL server-side; the previous guard validated only the initial host, so the fetch could still be steered at an internal target via DNS-rebinding or a public URL that 302-redirects to `http://169.254.169.254/` (cloud metadata) or an intranet host. Fetching now runs through an SSRF-guarded HTTP dispatcher that follows redirects manually, re-validates every hop, and pins the connection to the validated public IP (`CURLOPT_RESOLVE`), restricted to http/https. A refused target falls back to a plain link.
+- ＋ Embeds: optional provider allowlist. Set `Saito.embedAllowedHosts` (app config) to a list of host names and only those hosts and their sub-domains are embedded; everything else falls back to a link. Empty (the default) keeps the previous behaviour — every public host is embeddable, with the guarded dispatcher as the SSRF control.
+
 ## [7.2.8] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.2.7...7.2.8)
