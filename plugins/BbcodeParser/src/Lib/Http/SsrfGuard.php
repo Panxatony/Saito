@@ -61,7 +61,7 @@ class SsrfGuard
         // does not resolve. Swallow just that warning with a scoped error
         // handler — rather than the `@` operator — and treat false as "no
         // records"; the handler is always restored via finally.
-        set_error_handler(static fn (): bool => true);
+        set_error_handler(static fn(): bool => true);
         try {
             $records = dns_get_record($host, DNS_A | DNS_AAAA);
         } finally {
