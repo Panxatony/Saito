@@ -93,10 +93,14 @@ jobs:
             --install-dir=/usr/local/bin --filename=composer
 
       - name: Security gate — known CVEs in dependencies
-        # --locked audits composer.lock directly (incl. dev deps and the
+        # --locked audits composer.lock directly (honouring the
         # config.audit.ignore entries) without needing an installed vendor/
-        # tree, so it works on a clean CI checkout.
-        run: composer audit --locked
+        # tree, so it works on a clean CI checkout. --no-dev scopes the audit
+        # to the production dependency set — exactly what the tarball below
+        # ships via `composer install --no-dev`. Dev-only tooling (phpunit,
+        # composer/composer, psalm, …) never reaches the artifact, so a CVE in
+        # those must not block the release; keep dev tooling current separately.
+        run: composer audit --locked --no-dev
 
       - name: composer install (production only)
         run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
