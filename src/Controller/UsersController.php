@@ -575,6 +575,59 @@ class UsersController extends AppController
     }
 
     /**
+     * A user's recent postings, delivered server-rendered for htmx.
+     *
+     * PoC for the strangler-fig migration away from the Backbone/Marionette
+     * SPA: the same data source ({@see \Saito\Posting\Behavior\PostingBehavior::getRecentPostings})
+     * and thread rendering as {@see view()}, but served as an HTML fragment
+     * instead of a client-side template.
+     *
+     * - A normal request renders a small standalone shell page (htmx + Alpine).
+     * - An htmx request (`HX-Request` header) renders only the thread-list
+     *   fragment, which htmx swaps into the shell.
+     *
+     * @param string|null $id user-ID
+     * @return \Cake\Http\Response|void
+     */
+    public function recentPosts($id = null)
+    {
+        $id = (int)$id;
+
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->find()
+            ->where(['Users.id' => $id])
+            ->first();
+
+        if (empty($user)) {
+            $this->Flash->set(__('Invalid user'), ['element' => 'error']);
+
+            return $this->redirect('/');
+        }
+
+        $entriesShownOnPage = 20;
+        $this->set(
+            'lastEntries',
+            $this->Users->Entries->getRecentPostings(
+                $this->CurrentUser,
+                ['user_id' => $id, 'limit' => $entriesShownOnPage]
+            )
+        );
+        $this->set(
+            'hasMoreEntriesThanShownOnPage',
+            ($user->numberOfPostings() - $entriesShownOnPage) > 0
+        );
+        $this->set('user', $user);
+        $this->set('titleForLayout', $user->get('username'));
+
+        // htmx swaps only the fragment; a direct visit gets the shell page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()
+                ->disableAutoLayout()
+                ->setTemplate('recent_posts_fragment');
+        }
+    }
+
+    /**
      * Set user avatar.
      *
      * @param string $userId user-ID

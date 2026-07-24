@@ -102,6 +102,19 @@ declare module 'favico.js' {
     export default Favico;
 }
 
+// PoC island libraries. tsc uses classic module resolution here (see the
+// moment / backbone.localstorage shims above), so the packages' own bundled
+// typings are not picked up — declare the shapes the island uses.
+declare module 'htmx.org' {
+    const htmx: any;
+    export default htmx;
+}
+
+declare module 'alpinejs' {
+    const Alpine: { start(): void; [key: string]: any };
+    export default Alpine;
+}
+
 interface IStringable {
     toString(): string;
 }
