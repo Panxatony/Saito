@@ -11,8 +11,15 @@ Stopwatch::start('layout/disclaimer.ctp');
                 <h3><?= h(__('saito.dscl.links')) ?></h3>
                 <ul>
                     <li>
-                        <a href="<?= $this->request->getAttribute('webroot') ?>contacts/owner">
-                        <?= h(__('saito.dscl.contact')) ?></a>
+                        <?php // Island: contact-owner overlay; classic: the page. ?>
+                        <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
+                            <a href="#" class="js-contactModalOpen"
+                               data-modal-url="<?= $this->request->getAttribute('webroot') ?>contacts/htmx-contact-owner">
+                                <?= h(__('saito.dscl.contact')) ?></a>
+                        <?php else : ?>
+                            <a href="<?= $this->request->getAttribute('webroot') ?>contacts/owner">
+                            <?= h(__('saito.dscl.contact')) ?></a>
+                        <?php endif; ?>
                     </li>
                     <li>
                         <?php // Island: overlay with the public feeds; classic: the info page. ?>

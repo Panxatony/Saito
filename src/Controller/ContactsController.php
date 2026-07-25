@@ -181,7 +181,13 @@ class ContactsController extends AppController
             $sender = [$senderContact => $senderContact];
         }
 
-        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_owner');
+        // htmx (footer overlay) gets just the form fragment; a direct visit gets
+        // the standalone island page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_contact_owner_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_owner');
+        }
         $this->_contact(new ContactFormOwner(), $recipient, $sender);
     }
 
@@ -216,6 +222,15 @@ class ContactsController extends AppController
                     $this->SaitoEmail->email($email);
                     $message = __('Message was send.');
                     $this->Flash->set($message, ['element' => 'success']);
+
+                    // htmx (overlay) can't follow a 302 into a modal — send the
+                    // client-side redirect header so the page navigates to '/'.
+                    if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+                        return $this->response->withHeader(
+                            'HX-Redirect',
+                            \Cake\Routing\Router::url('/')
+                        );
+                    }
 
                     return $this->redirect('/');
                 } catch (\Exception $e) {

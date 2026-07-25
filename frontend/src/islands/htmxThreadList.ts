@@ -898,6 +898,22 @@ document.addEventListener('click', (event: MouseEvent) => {
 
         return;
     }
+    // Contact-owner overlay: open the modal and htmx-load the form fragment.
+    const contactOpener = (event.target as HTMLElement).closest<HTMLElement>('.js-contactModalOpen');
+    if (contactOpener) {
+        event.preventDefault();
+        const modal = document.getElementById('js-contactModal');
+        const body = document.getElementById('js-contactModalBody');
+        if (modal && body) {
+            modal.removeAttribute('hidden');
+            window.htmx.ajax('GET', contactOpener.getAttribute('data-modal-url') ?? '/contacts/htmx-contact-owner', {
+                target: body,
+                swap: 'innerHTML',
+            });
+        }
+
+        return;
+    }
     const closer = (event.target as HTMLElement).closest('.js-modal-close');
     if (closer) {
         event.preventDefault();

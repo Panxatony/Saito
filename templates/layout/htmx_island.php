@@ -194,6 +194,15 @@
         </div>
     </div>
 
+    <?php // Contact-owner overlay: form loaded on demand (htmx GET) from the footer. ?>
+    <div id="js-contactModal" class="island-modal" hidden>
+        <div class="island-modal-backdrop js-modal-close"></div>
+        <div class="island-modal-dialog" role="dialog" aria-modal="true" aria-label="<?= h(__('owner_contact_title')) ?>">
+            <button type="button" class="island-modal-close js-modal-close" aria-label="&times;">&times;</button>
+            <div id="js-contactModalBody"></div>
+        </div>
+    </div>
+
     <?php // Login overlay: filled on demand (htmx GET /login) by the header link. ?>
     <div id="js-loginModal" class="island-modal" hidden>
         <div class="island-modal-backdrop js-modal-close"></div>
