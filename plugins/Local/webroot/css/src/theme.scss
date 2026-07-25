@@ -6,13 +6,42 @@ $orange-lighter: #fff5cf;
 $orange: #ffa70e;
 $orange-darker: #fe5603;
 
-$body-color: #222;
+$body-color: #2a2620; // warm near-black (was #222)
 $primary: #fe5603;
-$form-bg: #ffed9e9c;
+$form-bg: #ffffff; // clean white inputs (was a translucent yellow)
 
 $font-color-new: $body-color;
 $font-color-old: $primary;
 $font-color-current: $orange;
+
+/******************************************************************************
+ * Saito 8 — refined-warm modernization
+ *
+ * Keep the macnemo identity (cream + orange) but bring the Bootstrap base up to
+ * date: rounded corners, roomier controls, a proper focus ring and softer
+ * greys. These override Bota's `!default` values (set before the import below).
+ ******************************************************************************/
+
+$enable-rounded: true;
+$border-radius: 0.5rem;
+$border-radius-sm: 0.35rem;
+$border-radius-lg: 0.7rem;
+
+$input-btn-padding-y: 0.45rem;
+$input-btn-padding-x: 0.85rem;
+$input-btn-padding-y-sm: 0.3rem;
+
+$font-size-base: 1rem; // was 0.95rem
+$line-height-base: 1.55;
+
+$input-bg: $form-bg;
+$input-border-color: #e2ddcf; // warm light border
+$input-focus-border-color: $primary;
+$input-focus-box-shadow: 0 0 0 0.2rem rgba(254, 86, 3, 0.22);
+
+$card-border-radius: 0.6rem;
+$card-border-color: rgba(120, 90, 40, 0.14);
+$card-cap-bg: rgba(255, 247, 224, 0.6);
 
 
 /******************************************************************************
@@ -28,7 +57,8 @@ $font-color-current: $orange;
 @import "_gemeinsam.scss";
 
 body {
-  background-color: #FFED9E;
+  // Softer, less saturated cream (was the harsh #FFED9E).
+  background-color: #fbf4dd;
 }
 
 body.headerClosed #header {
@@ -39,11 +69,40 @@ body.headerClosed #header {
 #site {
   background:
     url('../img/bb.svg'),
-    linear-gradient(0deg, rgba(255,245,207,0) 0%,  rgba(255,237,158,1) 70%, rgba(255,237,158,1) 100%),
+    linear-gradient(0deg, rgba(251,244,221,0) 0%, rgba(251,244,221,1) 70%, rgba(251,244,221,1) 100%),
     white;
   background-repeat: no-repeat;
   background-size: 50%, 100% 8em, 100%;
   background-position-x: center;
+}
+
+/******************************************************************************
+ * Saito 8 — refined-warm surface polish
+ ******************************************************************************/
+
+// Cards / panels: soft warm shadow + rounded, so they read as real surfaces.
+.card,
+.panel {
+  border-radius: 0.6rem;
+  box-shadow: 0 1px 2px rgba(80, 55, 20, 0.05), 0 2px 8px rgba(80, 55, 20, 0.05);
+}
+
+// Primary (orange) buttons: a touch of lift.
+.btn-primary {
+  box-shadow: 0 1px 2px rgba(254, 86, 3, 0.25);
+
+  &:hover {
+    background-color: #e84e02;
+    border-color: #e84e02;
+  }
+}
+
+// Roomier, rounded inputs already come from the variables; just warm the muted
+// borders/rules a little.
+hr,
+.table td,
+.table th {
+  border-color: rgba(120, 90, 40, 0.12);
 }
 
 .headerClosed #site {

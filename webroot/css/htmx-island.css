@@ -1,28 +1,19 @@
 /*
- * Saito 8 — neutral-clean styling for the standalone htmx island pages.
+ * Saito 8 — structural layer for the standalone htmx island pages.
  *
- * A light, theme-agnostic polish layer loaded ONLY on the island pages (body
- * .htmx-island), on top of the shared theme. Colours are alpha-greys + the page
- * `currentColor`, so it adapts to both the light and night theme presets without
- * knowing which is active. The full macnemo theme refresh is a separate task.
+ * Since the macnemo theme refresh (refined-warm: rounded, roomy controls, card
+ * shadows, orange accent) the shared theme now provides the visual styling, so
+ * this file only adds what the standalone island pages need on top: a fluid
+ * full-width layout, the slim standalone header/footer layout, and the editor
+ * toolbar. Colours, cards, forms and buttons come from the theme.
  */
 
 .htmx-island {
-    --isl-accent: #3b82f6;
-    --isl-accent-contrast: #fff;
-    --isl-border: rgba(128, 128, 128, 0.26);
-    --isl-border-soft: rgba(128, 128, 128, 0.16);
-    --isl-fill: rgba(128, 128, 128, 0.06);
-    --isl-fill-strong: rgba(128, 128, 128, 0.12);
-    --isl-radius: 10px;
-    --isl-radius-sm: 7px;
     /* Fluid content width: uses the browser width, capped on ultra-wide so
        lines don't get unreadably long. Side padding scales with the viewport. */
     --isl-maxw: min(1800px, 100%);
     --isl-gutter: clamp(1rem, 4vw, 3rem);
-
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.55;
+    --isl-border-soft: rgba(120, 90, 40, 0.16);
 }
 
 .htmx-island #content {
@@ -31,200 +22,7 @@
     padding: 0 var(--isl-gutter);
 }
 
-/* Cards / panels ------------------------------------------------------------ */
-.htmx-island .card,
-.htmx-island .panel {
-    border: 1px solid var(--isl-border-soft);
-    border-radius: var(--isl-radius);
-    background: var(--isl-fill);
-    margin-bottom: 1.25rem;
-    overflow: hidden;
-}
-
-.htmx-island .card-header {
-    padding: 0.8rem 1.1rem;
-    border-bottom: 1px solid var(--isl-border-soft);
-    background: var(--isl-fill);
-    font-weight: 600;
-}
-
-.htmx-island .card-body,
-.htmx-island .panel-content {
-    padding: 1.1rem;
-}
-
-/* Forms --------------------------------------------------------------------- */
-.htmx-island .form-control,
-.htmx-island input[type="text"],
-.htmx-island input[type="password"],
-.htmx-island input[type="email"],
-.htmx-island input[type="search"],
-.htmx-island textarea,
-.htmx-island select {
-    width: 100%;
-    padding: 0.55rem 0.7rem;
-    margin-bottom: 0.9rem;
-    border: 1px solid var(--isl-border);
-    border-radius: var(--isl-radius-sm);
-    background: var(--isl-fill);
-    color: inherit;
-    font: inherit;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-.htmx-island textarea {
-    min-height: 8rem;
-    resize: vertical;
-}
-
-.htmx-island .form-control:focus,
-.htmx-island input:focus,
-.htmx-island textarea:focus,
-.htmx-island select:focus {
-    outline: none;
-    border-color: var(--isl-accent);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
-}
-
-.htmx-island label {
-    display: inline-block;
-    margin-bottom: 0.3rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    opacity: 0.85;
-}
-
-/* Buttons ------------------------------------------------------------------- */
-.htmx-island .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    padding: 0.5rem 0.9rem;
-    border: 1px solid transparent;
-    border-radius: var(--isl-radius-sm);
-    background: var(--isl-fill-strong);
-    color: inherit;
-    font: inherit;
-    line-height: 1.2;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.15s, border-color 0.15s, transform 0.05s;
-}
-
-.htmx-island .btn:hover {
-    background: rgba(128, 128, 128, 0.2);
-}
-
-.htmx-island .btn:active {
-    transform: translateY(1px);
-}
-
-.htmx-island .btn-primary {
-    background: var(--isl-accent);
-    color: var(--isl-accent-contrast);
-}
-
-.htmx-island .btn-primary:hover {
-    background: #2f6fe0;
-}
-
-.htmx-island .btn-link {
-    background: transparent;
-    color: var(--isl-accent);
-    padding: 0.4rem 0.5rem;
-}
-
-.htmx-island .btn-link:hover {
-    background: var(--isl-fill-strong);
-    text-decoration: none;
-}
-
-.htmx-island .btn-sm {
-    padding: 0.3rem 0.55rem;
-    font-size: 0.85rem;
-}
-
-/* Editor toolbar ------------------------------------------------------------ */
-.htmx-island .js-editor-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.htmx-island .js-editor-toolbar .btn-group {
-    display: inline-flex;
-    gap: 2px;
-}
-
-.htmx-island .js-bb-btn {
-    min-width: 2.2rem;
-    justify-content: center;
-    background: var(--isl-fill-strong);
-}
-
-.htmx-island .js-editor-preview {
-    flex-basis: 100%;
-}
-
-/* Tables -------------------------------------------------------------------- */
-.htmx-island table.table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.htmx-island table.table td,
-.htmx-island table.table th {
-    padding: 0.55rem 0.6rem;
-    border-bottom: 1px solid var(--isl-border-soft);
-    text-align: left;
-    vertical-align: top;
-}
-
-.htmx-island .sort-menu {
-    margin-bottom: 0.9rem;
-    font-size: 0.9rem;
-    opacity: 0.85;
-}
-
-.htmx-island .sort-menu a {
-    color: var(--isl-accent);
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.htmx-island .sort-menu a.active {
-    font-weight: 700;
-}
-
-/* Alerts / notes ------------------------------------------------------------ */
-.htmx-island .alert {
-    padding: 0.65rem 0.85rem;
-    border-radius: var(--isl-radius-sm);
-    border: 1px solid var(--isl-border-soft);
-    margin-bottom: 0.9rem;
-    background: var(--isl-fill);
-}
-
-.htmx-island .alert-error,
-.htmx-island .alert-danger {
-    border-color: rgba(220, 53, 69, 0.4);
-    background: rgba(220, 53, 69, 0.08);
-}
-
-.htmx-island .alert-success {
-    border-color: rgba(40, 167, 69, 0.4);
-    background: rgba(40, 167, 69, 0.08);
-}
-
-.htmx-island .alert-info {
-    border-color: rgba(59, 130, 246, 0.4);
-    background: rgba(59, 130, 246, 0.08);
-}
-
-/* Header / footer ----------------------------------------------------------- */
+/* Slim standalone header ---------------------------------------------------- */
 .htmx-island #header.htmx-island-header {
     display: flex;
     align-items: center;
@@ -257,18 +55,16 @@
     flex-wrap: nowrap;
 }
 
+/* Footer (disclaimer) ------------------------------------------------------- */
 .htmx-island .disclaimer {
     max-width: var(--isl-maxw);
     margin: 2rem auto 1rem;
     padding: 1.25rem var(--isl-gutter);
     border-top: 1px solid var(--isl-border-soft);
     font-size: 0.9rem;
-    opacity: 0.9;
 }
 
-/* The disclaimer wraps its content in a Bootstrap `.container` whose theme
-   max-widths (540–1320px) would cap the footer narrower than the page — let it
-   fill the fluid disclaimer instead. */
+/* Fill the fluid disclaimer instead of the theme's capped Bootstrap container. */
 .htmx-island .disclaimer > .container {
     max-width: none;
     width: 100%;
@@ -283,33 +79,39 @@
 }
 
 /* Three equal columns that share the row (the theme's max-width:33.33% plus the
-   gap overflowed 100%, wrapping the third card). Wrap only when they no longer
-   fit. */
+   gap overflowed 100%, wrapping the third card). */
 .htmx-island .disclaimer-card {
     flex: 1 1 220px;
     max-width: none;
     min-width: 0;
 }
 
-.htmx-island .disclaimer-card h3 {
-    font-size: 0.95rem;
-    margin-bottom: 0.4rem;
+/* Editor toolbar ------------------------------------------------------------ */
+.htmx-island .js-editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
 }
 
-.htmx-island .disclaimer-card ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.htmx-island .js-editor-toolbar .btn-group {
+    display: inline-flex;
+    gap: 2px;
 }
 
-.htmx-island .disclaimer a {
-    color: var(--isl-accent);
-    text-decoration: none;
+.htmx-island .js-bb-btn {
+    min-width: 2.2rem;
+    justify-content: center;
 }
 
-/* Inline posting slider spacing */
+.htmx-island .js-editor-preview {
+    flex-basis: 100%;
+}
+
+/* Inline posting slider spacing (recent/search/thread lists). */
 .htmx-island .threadInline-slider {
     margin: 0.5rem 0 0.5rem 1.5rem;
     padding-left: 0.75rem;
-    border-left: 2px solid var(--isl-border);
+    border-left: 2px solid var(--isl-border-soft);
 }
