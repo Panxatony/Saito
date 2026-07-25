@@ -17,6 +17,9 @@
 <html>
 <head>
     <title><?= h($titleForLayout ?? '') ?></title>
+    <?php if (\Cake\Core\Configure::read('Saito.noindex')) : ?>
+        <meta name="robots" content="noindex, nofollow">
+    <?php endif; ?>
     <?= $this->fetch('meta') ?>
     <?= $this->Html->css('stylesheets/static.css') ?>
     <?= $this->fetch('css') ?>

@@ -41,6 +41,16 @@ $config = [
         'frontend' => env('SAITO_FRONTEND', 'spa'),
 
         /**
+         * Ask search engines not to index this install (robots noindex).
+         *
+         * Set SAITO_NOINDEX=true on non-public deployments such as the beta, so
+         * the test frontend (running on a clone of the live content) is kept out
+         * of search results. Belt-and-suspenders with an nginx `X-Robots-Tag`
+         * header on the beta vhost. Default: indexable.
+         */
+        'noindex' => filter_var(env('SAITO_NOINDEX', false), FILTER_VALIDATE_BOOLEAN),
+
+        /**
          * Imprint / legal notice (Impressum)
          *
          * Trusted HTML rendered on the /pages/impressum page (linked from the
