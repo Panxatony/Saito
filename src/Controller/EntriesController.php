@@ -119,7 +119,14 @@ class EntriesController extends AppController
         $sortKey = $this->CurrentUser->get('user_sort_last_answer') ? 'last_answer' : 'time';
         $order = ['fixed' => 'DESC', $sortKey => 'DESC'];
 
-        $this->set('entries', $this->Threads->paginate($order, $this->CurrentUser));
+        // Island category filter (?category=<id>): restrict the list to one
+        // readable category; 'all'/absent shows everything.
+        $onlyCategories = null;
+        $catParam = $this->getRequest()->getQuery('category');
+        if ($catParam !== null && $catParam !== 'all' && ctype_digit((string)$catParam)) {
+            $onlyCategories = [(int)$catParam];
+        }
+        $this->set('entries', $this->Threads->paginate($order, $this->CurrentUser, $onlyCategories));
 
         // Marker for the live "new postings" poller: the newest entry id at
         // render time. Entry ids are globally monotonic, so any posting created
@@ -134,12 +141,7 @@ class EntriesController extends AppController
             $catList = $this->CurrentUser->getCategories()->getAll('read', 'list');
             if (count($catList) > 1) {
                 $this->set('categoryChooser', $catList);
-                $this->set(
-                    'activeCategory',
-                    $this->CurrentUser->getCategories()->getType() === 'single'
-                        ? (int)$this->CurrentUser->get('user_category_active')
-                        : 'all'
-                );
+                $this->set('activeCategory', $onlyCategories !== null ? (int)$catParam : 'all');
             }
         }
 

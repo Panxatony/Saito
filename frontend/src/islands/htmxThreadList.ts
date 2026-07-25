@@ -275,6 +275,7 @@ document.addEventListener('click', (event: MouseEvent) => {
     }
     document.getElementById('js-uploadModal')?.removeAttribute('hidden');
     loadUploadGrid();
+    updateUploadInsertBtn();
 });
 
 // "Choose files" opens the picker.
@@ -321,14 +322,36 @@ document.addEventListener('drop', (event: DragEvent) => {
     }
 });
 
-// Clicking an archive tile inserts its BBCode into the editor that opened it.
+function updateUploadInsertBtn(): void {
+    const btn = document.querySelector<HTMLButtonElement>('.js-uploadInsert');
+    if (btn) {
+        btn.disabled = !document.querySelector('.js-uploadTile.is-selected');
+    }
+}
+
+// Clicking an archive tile toggles its selection (insertion is deferred to the
+// "insert selected" button).
 document.addEventListener('click', (event: MouseEvent) => {
     const tile = (event.target as HTMLElement).closest<HTMLElement>('.js-uploadTile');
-    if (!tile || !uploadTarget) {
+    if (!tile) {
         return;
     }
     event.preventDefault();
-    insertUploadTag(uploadTarget, tile.getAttribute('data-name') ?? '', tile.getAttribute('data-mime') ?? '');
+    tile.classList.toggle('is-selected');
+    updateUploadInsertBtn();
+});
+
+// "Insert selected" → insert every selected tile's BBCode, then close.
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest('.js-uploadInsert');
+    if (!btn || !uploadTarget) {
+        return;
+    }
+    event.preventDefault();
+    document.querySelectorAll<HTMLElement>('.js-uploadTile.is-selected').forEach((tile) => {
+        insertUploadTag(uploadTarget as HTMLTextAreaElement, tile.getAttribute('data-name') ?? '', tile.getAttribute('data-mime') ?? '');
+    });
+    document.getElementById('js-uploadModal')?.setAttribute('hidden', '');
 });
 
 // Editor preview: render the current textarea through htmxPreview and show the
@@ -619,17 +642,22 @@ document.addEventListener('click', (event: MouseEvent) => {
 
 markActiveFontScale();
 
-// Category chooser: set the user's active category (204 response) then reload
-// the thread list via the refresh-recent trigger #js-threadList listens for.
+// Category chooser: reload the thread list filtered to the chosen category
+// (htmx-index honours ?category and returns the filtered page-1 fragment).
 document.addEventListener('change', (event: Event) => {
     const sel = (event.target as HTMLElement).closest<HTMLSelectElement>('.js-categoryChooser');
     if (!sel) {
         return;
     }
-    const url = (sel.getAttribute('data-set-url') ?? '') + encodeURIComponent(sel.value);
-    void fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
-        .then(() => document.body.dispatchEvent(new CustomEvent('refresh-recent', { bubbles: true })))
-        .catch(() => undefined);
+    const list = document.getElementById('js-threadList');
+    if (!list) {
+        return;
+    }
+    const base = sel.getAttribute('data-list-url') ?? '/entries/htmx-index';
+    window.htmx.ajax('GET', `${base}?category=${encodeURIComponent(sel.value)}`, {
+        target: list,
+        swap: 'innerHTML',
+    });
 });
 
 // Login modal: the header "Anmelden" link opens an overlay and loads the login

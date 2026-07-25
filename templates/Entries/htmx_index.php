@@ -36,7 +36,7 @@ $webroot = $this->getRequest()->getAttribute('webroot');
         </a>
         <?php // Category filter: setting it (204 + HX-Trigger) reloads the list. ?>
         <?php if (!empty($categoryChooser)) : ?>
-            <select class="form-control js-categoryChooser" data-set-url="<?= $webroot ?>users/setcategory/"
+            <select class="form-control js-categoryChooser" data-list-url="<?= $webroot ?>entries/htmx-index"
                     style="width: auto; display: inline-block; margin-left: .5rem;"
                     aria-label="<?= h(__('all_categories')) ?>">
                 <option value="all"<?= ($activeCategory === 'all') ? ' selected' : '' ?>>
