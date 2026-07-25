@@ -162,7 +162,7 @@ $config['Saito']['Settings']['uploader'] = (new UploaderConfig())
     /**
      * Max number of uploads per user
      */
-    ->setMaxNumberOfUploadsPerUser(20)
+    ->setMaxNumberOfUploadsPerUser(5000)
     /**
      * Max file size
      */
