@@ -63,13 +63,21 @@
 
 /* Upload overlay: wider dialog, a drop zone, and a thumbnail grid of the user's
    archive. */
-.htmx-island #js-uploadModal .island-modal-dialog { max-width: 42rem; }
+/* Upload dialog: bounded height with the archive grid scrolling inside, so
+   loading more tiles scrolls instead of overflowing the viewport. */
+.htmx-island #js-uploadModal .island-modal-dialog {
+    max-width: 42rem;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
 .htmx-island .upload-drop {
     border: 2px dashed var(--isl-border-soft, rgba(120, 90, 40, 0.3));
     border-radius: 0.5rem;
     padding: 1.25rem;
     text-align: center;
     transition: border-color .15s, background .15s;
+    flex: 0 0 auto;
 }
 .htmx-island .upload-drop.is-dragover {
     border-color: var(--isl-accent, #fe5603);
@@ -78,26 +86,42 @@
 .htmx-island .upload-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    grid-auto-rows: min-content;
     gap: 0.4rem;
-    max-height: 46vh;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     margin-top: 0.5rem;
+    align-content: start;
 }
 .htmx-island .js-uploadTile {
     padding: 0;
     border: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.2));
     border-radius: 0.35rem;
     background: #fff;
+    position: relative;
     aspect-ratio: 1 / 1;
     overflow: hidden;
     cursor: pointer;
+}
+.htmx-island .js-uploadTile:hover { border-color: var(--isl-accent, #fe5603); }
+/* Absolutely-positioned image fills the square tile — avoids the circular
+   height dependency (button height ← img height ← button height) that squished
+   the images. */
+.htmx-island .js-uploadTile img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.htmx-island .js-uploadTile .upload-tile-file {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-.htmx-island .js-uploadTile:hover { border-color: var(--isl-accent, #fe5603); }
-.htmx-island .js-uploadTile img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.htmx-island .js-uploadTile .upload-tile-file {
     font-size: .8rem; font-weight: 700; color: #888;
 }
 .htmx-island .upload-grid .js-uploadsMore { grid-column: 1 / -1; }
