@@ -517,6 +517,58 @@ class UsersController extends AppController
     }
 
     /**
+     * The current user's settings as an htmx island page (strangler-fig).
+     *
+     * A standalone, island-styled version of {@see edit()} for one's own
+     * account, using the same allowed-field patch + save. Login required.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxEdit()
+    {
+        $id = $this->CurrentUser->getId();
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->get($id);
+
+        if (
+            !$this->CurrentUser->permission(
+                'saito.core.user.edit',
+                (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId())
+            )
+        ) {
+            throw new \Saito\Exception\SaitoForbiddenException(
+                sprintf('Attempt to edit user "%s".', $id),
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        if ($this->request->is(['post', 'put'])) {
+            $allowedFields = [
+                'user_email', 'user_real_name', 'user_hp', 'user_place',
+                'profile', 'signature', 'user_theme', 'inline_view_on_click',
+                'user_automaticaly_mark_as_read', 'personal_messages',
+                'user_signatures_hide',
+            ];
+            $patched = $this->Users->patchEntity($user, $this->request->getData(), ['fields' => $allowedFields]);
+            if (!$patched->getErrors() && $this->Users->save($patched)) {
+                $this->Flash->set(__('The user has been saved.'), ['element' => 'success']);
+
+                return $this->redirect(['action' => 'htmxProfile', $id]);
+            }
+            $this->Flash->set(
+                __('The user could not be saved. Please, try again.'),
+                ['element' => 'error']
+            );
+        }
+
+        $availableThemes = $this->Themes->getAvailable($this->CurrentUser);
+        $this->set('availableThemes', array_combine($availableThemes, $availableThemes));
+        $this->set('user', $user);
+        $this->set('titleForLayout', __('user.edit.t', [$user->get('username')]));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_edit');
+    }
+
+    /**
      * Ignore user.
      *
      * @return void
@@ -1294,7 +1346,7 @@ class UsersController extends AppController
         parent::beforeFilter($event);
         Stopwatch::start('Users->beforeFilter()');
 
-        $unlocked = ['slidetabToggle', 'slidetabOrder'];
+        $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit'];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
         $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs']);
