@@ -67,7 +67,10 @@
 </head>
 <body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>">
     <div id="site">
-        <?php // Beta banner: only on island-frontend (beta) installs. ?>
+        <?php // Beta corner ribbon + banner: only on island-frontend (beta) installs. ?>
+        <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
+            <div class="beta-ribbon" aria-hidden="true"><span>Beta</span></div>
+        <?php endif; ?>
         <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
             <div class="beta-notice" role="status">
                 <i class="fa fa-flask" aria-hidden="true"></i>

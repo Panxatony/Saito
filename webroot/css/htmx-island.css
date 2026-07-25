@@ -204,6 +204,44 @@
     margin-right: 0.4rem;
 }
 
+/* Posting tool-menu dropdown: the island toggles `.show` (no Bootstrap JS), so
+   anchor the menu under the wrench button and align it to the right edge. */
+.htmx-island .js-thread-island .dropdown { position: relative; }
+.htmx-island .js-thread-island .dropdown-menu {
+    left: auto;
+    right: 0;
+}
+.htmx-island .js-thread-island .dropdown-menu.show { display: block; }
+
+/* Fixed diagonal "Beta" ribbon in the top-right corner (island installs only). */
+.htmx-island .beta-ribbon {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 8rem;
+    height: 8rem;
+    overflow: hidden;
+    pointer-events: none;
+    /* below the modal layer (1000) so open overlays cover it */
+    z-index: 900;
+}
+.htmx-island .beta-ribbon span {
+    position: absolute;
+    top: 1.55rem;
+    right: -2.4rem;
+    width: 10rem;
+    transform: rotate(45deg);
+    background: #d9534f;
+    color: #fff;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.6rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
 /* Inline "open the help" nudge inside the beta banner. */
 .htmx-island .beta-notice-help {
     border: 0;

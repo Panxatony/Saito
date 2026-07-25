@@ -534,6 +534,35 @@ if (document.readyState === 'loading') {
     enhanceExistingPostings();
 }
 
+// Posting tool menu (pin / lock / merge / delete) is a Bootstrap-4 dropdown, but
+// the island loads no Bootstrap JS — so toggle `.show` ourselves. Open on the
+// wrench button, close on outside click / item select / Escape.
+function closeIslandDropdowns(): void {
+    document.querySelectorAll('.js-thread-island .dropdown-menu.show')
+        .forEach((m) => m.classList.remove('show'));
+}
+document.addEventListener('click', (event: MouseEvent) => {
+    const toggle = (event.target as HTMLElement).closest<HTMLElement>('[data-toggle="dropdown"]');
+    if (toggle && toggle.closest('.js-thread-island')) {
+        event.preventDefault();
+        const menu = toggle.parentElement?.querySelector<HTMLElement>('.dropdown-menu') ?? null;
+        const willOpen = !!menu && !menu.classList.contains('show');
+        closeIslandDropdowns();
+        if (willOpen && menu) {
+            menu.classList.add('show');
+        }
+
+        return;
+    }
+    // Any other click (including selecting a menu item) closes open menus.
+    closeIslandDropdowns();
+});
+document.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+        closeIslandDropdowns();
+    }
+});
+
 // Keep edit / merge inside the island: the shared posting template renders
 // classic links (/entries/edit|merge/<id>) that would drop into the SPA. Point
 // them at the island equivalents instead (replace in place to keep any webroot
