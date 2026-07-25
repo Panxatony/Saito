@@ -115,8 +115,17 @@ $config = [
         'debug' => [
             /**
              * Log emails in debug.log instead of sending them.
+             *
+             * Safety default for the island beta: it runs on a clone of the live
+             * database (real addresses), so email defaults to OFF there — beta
+             * actions (register, notifications, password reset) never reach real
+             * users. Override explicitly with SAITO_DEBUG_EMAIL if you really
+             * want the beta to send. SPA installs keep sending (default false).
              */
-            'email' => false,
+            'email' => filter_var(
+                env('SAITO_DEBUG_EMAIL', env('SAITO_FRONTEND', 'spa') === 'island'),
+                FILTER_VALIDATE_BOOLEAN
+            ),
             /**
              * Log additional non-error information in info.log
              */
