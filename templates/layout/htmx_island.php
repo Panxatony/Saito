@@ -20,7 +20,32 @@
     <?= $this->fetch('meta') ?>
     <?= $this->Html->css('stylesheets/static.css') ?>
     <?= $this->fetch('css') ?>
-    <?= $this->fetch('theme_head') ?>
+
+    <?php
+    // Theme look. The theme's own layout/default.php loads this via a
+    // SaitoApp-dependent `document.write`; replicate it here without the SPA
+    // global so migrated pages keep the operator's theme (incl. the night
+    // preset toggled via localStorage). $this->getTheme() is the active theme
+    // set by ThemesComponent in AppController::beforeRender().
+    $theme = $this->getTheme();
+    if ($theme) {
+        $themeCss = $this->Url->assetUrl($theme . '.css/theme.css');
+        $nightCss = $this->Url->assetUrl($theme . '.css/night.css');
+        ?>
+        <script>
+            (function () {
+                var css = <?= json_encode($themeCss) ?>;
+                try {
+                    if (localStorage.theme === 'night') { css = <?= json_encode($nightCss) ?>; }
+                } catch (e) { /* localStorage unavailable */ }
+                document.write('<link rel="stylesheet" type="text/css" href="' + css + '">');
+            })();
+        </script>
+        <noscript><?= $this->Html->css($theme . '.theme.css') ?></noscript>
+        <?php
+    }
+    ?>
+
     <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
     <meta name="viewport" content="width=device-width"/>
 </head>
