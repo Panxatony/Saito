@@ -39,17 +39,51 @@
                 ]);
             }
 
+            // --- Preferences (parity with the classic settings page) -----------
+
+            // Thread sort order (start time vs. last answer).
+            echo $this->Form->control('user_sort_last_answer', [
+                'type' => 'radio',
+                'label' => __('user_sort_last_answer'),
+                'options' => [
+                    '0' => __('user_sort_last_answer_time'),
+                    '1' => __('user_sort_last_answer_last_answer'),
+                ],
+            ]);
+
+            // Auto-refresh interval (minutes; optional).
+            echo $this->Form->control('user_forum_refresh_time', [
+                'class' => 'form-control', 'type' => 'number', 'min' => 0,
+                'label' => __('user_forum_refresh_time'),
+            ]);
+
+            // Custom thread-line colours (classic view).
+            echo '<div class="input"><label>' . h(__('user_colors')) . '</label>';
+            foreach ([
+                'user_color_new_postings' => 'user_color_new_postings_exp',
+                'user_color_old_postings' => 'user_color_old_postinings_exp',
+                'user_color_actual_posting' => 'user_color_actual_posting_exp',
+            ] as $colourField => $expKey) {
+                echo '<div style="display:flex;align-items:center;gap:.5rem;margin:.2rem 0;">';
+                echo $this->Form->control($colourField, [
+                    'type' => 'color', 'label' => false,
+                    'style' => 'width:3rem;height:2rem;padding:2px;',
+                ]);
+                echo '<span>' . h(__($expKey)) . '</span></div>';
+            }
+            echo '</div>';
+
+            // Checkbox preferences. Clean Bootstrap-4 rows (`.form-check > input +
+            // label`); escape=false so a label's literal `&nbsp;` is a space.
             $checkboxes = [
-                'inline_view_on_click' => 'inline_view_on_click',
                 'user_automaticaly_mark_as_read' => 'user_automaticaly_mark_as_read',
+                'user_signatures_hide' => 'user_signatures_hide_exp',
+                'user_signatures_images_hide' => 'user_signatures_images_hide_exp',
+                'inline_view_on_click' => 'inline_view_on_click',
+                'user_show_thread_collapsed' => 'user_show_thread_collapsed_exp',
                 'personal_messages' => 'user_pers_msg',
-                'user_signatures_hide' => 'user_signatures_hide',
+                'user_category_override' => 'user_category_override_exp',
             ];
-            // Clean Bootstrap-4 checkbox rows: `.form-check > input.form-check-input
-            // + label.form-check-label`. (FormHelper's default checkbox `control()`
-            // nests the input inside the label and wraps it in `.input.checkbox`,
-            // which breaks Bootstrap's layout.) escape=false so labels carrying a
-            // literal `&nbsp;` render as a space, not the visible entity.
             foreach ($checkboxes as $field => $labelKey) {
                 echo '<div class="form-check">';
                 echo $this->Form->checkbox($field, ['class' => 'form-check-input', 'id' => $field]);

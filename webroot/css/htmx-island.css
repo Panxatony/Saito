@@ -66,15 +66,16 @@
 /* Upload dialog: bounded height with the archive grid scrolling inside, so
    loading more tiles scrolls instead of overflowing the viewport. */
 .htmx-island #js-uploadModal .island-modal-dialog {
-    max-width: 42rem;
-    max-height: 85vh;
+    width: 56rem;
+    max-width: 96vw;
+    max-height: 88vh;
     display: flex;
     flex-direction: column;
 }
 .htmx-island .upload-drop {
     border: 2px dashed var(--isl-border-soft, rgba(120, 90, 40, 0.3));
     border-radius: 0.5rem;
-    padding: 1.25rem;
+    padding: 0.75rem;
     text-align: center;
     transition: border-color .15s, background .15s;
     flex: 0 0 auto;
