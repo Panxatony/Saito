@@ -38,7 +38,7 @@ $webroot = $this->request->getAttribute('webroot');
             echo $this->Form->end();
             ?>
             <p style="margin-top: 1rem; font-size: .9rem;">
-                <a href="<?= $webroot ?>users/register"><?= h(__('register_linkname')) ?></a>
+                <a href="<?= $webroot ?>users/htmx-register"><?= h(__('register_linkname')) ?></a>
                 &middot;
                 <a href="<?= $webroot ?>users/password_forgotten"><?= h(__('user.pwf.t')) ?></a>
             </p>

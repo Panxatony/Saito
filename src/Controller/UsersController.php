@@ -533,6 +533,74 @@ class UsersController extends AppController
     }
 
     /**
+     * Island-styled registration page (strangler-fig). Mirrors {@see register()}
+     * — same honeypot/TOS flow and the same security-critical
+     * {@see \App\Model\Table\UsersTable::register()} + activation email — but
+     * renders standalone in the htmx_island layout and posts to itself, so
+     * FormProtection stays consistent. Alpine enables the submit once TOS is
+     * accepted (the SPA does this in register()).
+     *
+     * @return void
+     */
+    public function htmxRegister()
+    {
+        $this->AuthUser->logout();
+        $tosRequired = Configure::read('Saito.Settings.tos_enabled');
+        $this->set(compact('tosRequired'));
+        $this->set('user', $this->Users->newEmptyEntity());
+        $this->set('status', 'view');
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_register');
+
+        $session = $this->request->getSession();
+        if (!$this->request->is('post')) {
+            $session->write('Register.formLoadTime', time());
+
+            return;
+        }
+
+        $data = $this->request->getData();
+
+        // Bot protection: honeypot empty + form open ≥ 5s (same as register()).
+        $formLoadTime = (int)$session->read('Register.formLoadTime');
+        if (!empty($data['url']) || $formLoadTime === 0 || (time() - $formLoadTime) < 5) {
+            return;
+        }
+        $session->delete('Register.formLoadTime');
+
+        if (!$tosRequired) {
+            $data['tos_confirm'] = true;
+        }
+        if (empty($data['tos_confirm'])) {
+            return;
+        }
+
+        $user = $this->Users->register($data);
+        if ($user->getErrors()) {
+            $user->set('tos_confirm', false);
+            $this->set('user', $user);
+
+            return;
+        }
+
+        try {
+            $this->SaitoEmail->email([
+                'recipient' => $user,
+                'subject' => __('register_email_subject', Configure::read('Saito.Settings.forum_name')),
+                'sender' => 'register',
+                'template' => 'user_register',
+                'viewVars' => ['user' => $user],
+            ]);
+        } catch (\Exception $e) {
+            (new ExceptionLogger())->write('Registering email confirmation failed', ['e' => $e]);
+            $this->set('status', 'fail: email');
+
+            return;
+        }
+
+        $this->set('status', 'success');
+    }
+
+    /**
      * The current user's settings as an htmx island page (strangler-fig).
      *
      * A standalone, island-styled version of {@see edit()} for one's own
@@ -1365,7 +1433,7 @@ class UsersController extends AppController
         $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit'];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
-        $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs', 'htmxLogin']);
+        $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs', 'htmxLogin', 'htmxRegister']);
         $this->AuthUser->authorizeAction('register', 'saito.core.user.register');
         $this->AuthUser->authorizeAction('rs', 'saito.core.user.register');
 
