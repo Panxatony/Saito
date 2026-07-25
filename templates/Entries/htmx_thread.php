@@ -20,4 +20,3 @@ $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 
 <?php
 // Reusable htmx + Alpine thread-list island (ENTRY=htmx-threads).
-echo $this->Html->script('htmx-threads.bundle.js');

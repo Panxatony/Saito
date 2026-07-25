@@ -14,4 +14,3 @@ $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 <?= $this->element('users/bookmarks_content', compact('bookmarkPostings', 'bookmarkComments')) ?>
 
 <?php
-echo $this->Html->script('htmx-threads.bundle.js');

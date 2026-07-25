@@ -36,4 +36,3 @@
 </div>
 
 <?php
-echo $this->Html->script('htmx-threads.bundle.js');

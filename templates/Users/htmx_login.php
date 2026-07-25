@@ -47,4 +47,3 @@ $webroot = $this->request->getAttribute('webroot');
 </div>
 
 <?php
-echo $this->Html->script('htmx-threads.bundle.js');

@@ -33,14 +33,21 @@ $webroot = $this->getRequest()->getAttribute('webroot');
     <div id="js-newEntrySlot"></div>
 <?php endif; ?>
 
-<div id="js-threadList" class="entry index js-thread-island">
+<?php
+// The list reloads its first page whenever a `refresh-recent` event reaches the
+// body — fired by the HX-Trigger header the inline new-entry post returns (and
+// usable by anything else that changes the list). The htmx-index HX response is
+// the htmx_index_threads fragment (page 1 lines + load-more + an out-of-band
+// poller reset).
+?>
+<div id="js-threadList" class="entry index js-thread-island"
+     hx-get="<?= $webroot ?>entries/htmx-index"
+     hx-trigger="refresh-recent from:body"
+     hx-target="#js-threadList"
+     hx-swap="innerHTML">
     <?= $this->element(
         'entry/thread_cached_init',
         ['entriesSub' => $entries, 'toolboxButtons' => ['panel-info' => true]]
     ) ?>
     <?= $this->element('entry/htmx_load_more') ?>
 </div>
-
-<?php
-// Reusable htmx + Alpine thread-list island (ENTRY=htmx-threads).
-echo $this->Html->script('htmx-threads.bundle.js');

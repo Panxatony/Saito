@@ -29,4 +29,3 @@ $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 
 <?php
 // htmx runtime via the shared island (thread handler is inert on this page).
-echo $this->Html->script('htmx-threads.bundle.js');

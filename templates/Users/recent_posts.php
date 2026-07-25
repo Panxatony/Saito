@@ -7,7 +7,7 @@
  * server-rendered list fragment from the same action (which returns just the
  * fragment when the `HX-Request` header is present). Alpine drives the local
  * auto-refresh toggle; htmx does the fetching and DOM swap. The reusable
- * thread-list island (htmx-threads.bundle.js) is loaded only here.
+ * thread-list island bundle is loaded once by the htmx_island layout.
  *
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\User $user
@@ -76,4 +76,3 @@ $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 <?php
 // The reusable htmx + Alpine thread-list island, built by Vite
 // (ENTRY=htmx-threads). Cache-busted by Asset.timestamp.
-echo $this->Html->script('htmx-threads.bundle.js');

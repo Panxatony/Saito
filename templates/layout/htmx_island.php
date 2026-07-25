@@ -77,5 +77,9 @@
     <?php // Footer: the standard disclaimer (Resources / Status / About). ?>
     <?= $this->element('layout/disclaimer') ?>
     <?= $this->fetch('script') ?>
+    <?php // The island bundle drives the whole shell (header toggles, theme
+          // switch, thread-line enhancement), so load it once here for every
+          // island page instead of per-template. ?>
+    <?= $this->Html->script('htmx-threads.bundle.js') ?>
 </body>
 </html>
