@@ -15,19 +15,11 @@
  */
 
 $csrfToken = $this->getRequest()->getAttribute('csrfToken');
-$newCountUrl = $this->Url->build([
-    'controller' => 'Entries',
-    'action' => 'htmxNewCount',
-    '?' => ['since' => $newestEntryId],
-]);
 ?>
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
 <?php // Live poll: every 30s ask whether new postings arrived since page load. ?>
-<div id="js-newPostsBanner"
-     hx-get="<?= h($newCountUrl) ?>"
-     hx-trigger="every 30s"
-     hx-swap="innerHTML"></div>
+<?= $this->element('entry/htmx_new_posts_poller', ['newestEntryId' => $newestEntryId]) ?>
 
 <div id="js-threadList" class="entry index js-thread-island">
     <?= $this->element(
