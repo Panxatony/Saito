@@ -68,6 +68,13 @@ class PagesController extends AppController
         }
         $this->set(compact('page', 'subpage'));
 
+        // On an island-frontend install, render the static content pages in the
+        // standalone island shell so they match the rest of the beta frontend
+        // (the SPA installs leave Saito.frontend unset and keep the default).
+        if ($this->isIslandFrontend()) {
+            $this->viewBuilder()->setLayout('htmx_island');
+        }
+
         try {
             $this->render(implode('/', $path));
         } catch (MissingTemplateException $e) {

@@ -30,6 +30,17 @@ $config = [
         'language' => env('SAITO_LANGUAGE', 'en'),
 
         /**
+         * Frontend flavour (strangler-fig migration).
+         *
+         * - 'spa'    the classic Backbone/Marionette single-page app (default).
+         * - 'island' the htmx/Alpine "island" frontend: '/' serves the island
+         *            front page and server-rendered pages (static pages, help)
+         *            use the island shell. Opt a deployment in — e.g. the beta —
+         *            by setting SAITO_FRONTEND=island; live installs stay 'spa'.
+         */
+        'frontend' => env('SAITO_FRONTEND', 'spa'),
+
+        /**
          * Imprint / legal notice (Impressum)
          *
          * Trusted HTML rendered on the /pages/impressum page (linked from the
