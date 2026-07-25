@@ -34,6 +34,21 @@ $webroot = $this->getRequest()->getAttribute('webroot');
            hx-get="<?= $webroot ?>entries/update" hx-swap="none">
             <?= $this->Layout->textWithIcon(h(__('mark_all_read')), 'check') ?>
         </a>
+        <?php // Category filter: setting it (204 + HX-Trigger) reloads the list. ?>
+        <?php if (!empty($categoryChooser)) : ?>
+            <select class="form-control js-categoryChooser" data-set-url="<?= $webroot ?>users/setcategory/"
+                    style="width: auto; display: inline-block; margin-left: .5rem;"
+                    aria-label="<?= h(__('all_categories')) ?>">
+                <option value="all"<?= ($activeCategory === 'all') ? ' selected' : '' ?>>
+                    <?= h(__('all_categories')) ?>
+                </option>
+                <?php foreach ($categoryChooser as $cat) : ?>
+                    <option value="<?= (int)$cat['id'] ?>"<?= ((int)$activeCategory === (int)$cat['id']) ? ' selected' : '' ?>>
+                        <?= h($cat['title']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        <?php endif; ?>
     </div>
     <div id="js-newEntrySlot"></div>
 <?php endif; ?>

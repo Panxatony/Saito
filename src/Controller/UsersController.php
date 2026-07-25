@@ -1501,6 +1501,12 @@ class UsersController extends AppController
             $this->Users->setCategory($userId, $id);
         }
 
+        // Island category chooser: no redirect — reload the thread list in place
+        // via the refresh-recent trigger.
+        if ($this->getRequest()->is('ajax')) {
+            return $this->getResponse()->withStatus(204)->withHeader('HX-Trigger', 'refresh-recent');
+        }
+
         return $this->redirect($this->referer());
     }
 

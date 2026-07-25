@@ -127,6 +127,22 @@ class EntriesController extends AppController
         $newest = $this->Entries->find()->select(['id'])->orderByDesc('Entries.id')->first();
         $this->set('newestEntryId', $newest?->get('id') ?? 0);
 
+        // Category chooser: the readable categories + the active one, so a
+        // logged-in user with a choice can filter the list (paginate() already
+        // honours the user's active categories).
+        if ($this->CurrentUser->isLoggedIn()) {
+            $catList = $this->CurrentUser->getCategories()->getAll('read', 'list');
+            if (count($catList) > 1) {
+                $this->set('categoryChooser', $catList);
+                $this->set(
+                    'activeCategory',
+                    $this->CurrentUser->getCategories()->getType() === 'single'
+                        ? (int)$this->CurrentUser->get('user_category_active')
+                        : 'all'
+                );
+            }
+        }
+
         // htmx swaps only the thread-list page fragment; a direct visit gets
         // the shell page in the standalone htmx_island layout.
         if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {

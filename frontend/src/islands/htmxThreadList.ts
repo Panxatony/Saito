@@ -619,6 +619,19 @@ document.addEventListener('click', (event: MouseEvent) => {
 
 markActiveFontScale();
 
+// Category chooser: set the user's active category (204 response) then reload
+// the thread list via the refresh-recent trigger #js-threadList listens for.
+document.addEventListener('change', (event: Event) => {
+    const sel = (event.target as HTMLElement).closest<HTMLSelectElement>('.js-categoryChooser');
+    if (!sel) {
+        return;
+    }
+    const url = (sel.getAttribute('data-set-url') ?? '') + encodeURIComponent(sel.value);
+    void fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+        .then(() => document.body.dispatchEvent(new CustomEvent('refresh-recent', { bubbles: true })))
+        .catch(() => undefined);
+});
+
 // Login modal: the header "Anmelden" link opens an overlay and loads the login
 // form fragment (htmx GET /login) instead of navigating. A failed login swaps
 // the form back in with the error; a successful one returns HX-Redirect (htmx

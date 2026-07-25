@@ -2577,3 +2577,6 @@ msgstr "Dateien hierher ziehen oder auswählen"
 
 msgid "upload_choose_files"
 msgstr "Dateien auswählen"
+
+msgid "all_categories"
+msgstr "Alle Kategorien"
