@@ -1746,3 +1746,12 @@ msgstr "All categories"
 
 msgid "upload_insert_selected"
 msgstr "Insert selected"
+
+msgid "{0} online"
+msgstr "{0} online"
+
+msgid "Guests"
+msgstr "Guests"
+
+msgid "Bots"
+msgstr "Bots"

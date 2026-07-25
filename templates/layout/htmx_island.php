@@ -145,6 +145,19 @@
         </div>
     </div>
 
+    <?php // Help overlay: static, humorous tour of the forum's features. ?>
+    <div id="js-helpModal" class="island-modal" hidden>
+        <div class="island-modal-backdrop js-modal-close"></div>
+        <div class="island-modal-dialog island-help-dialog" role="dialog" aria-modal="true"
+             aria-label="<?= h(__('Help')) ?>">
+            <button type="button" class="island-modal-close js-modal-close" aria-label="&times;">&times;</button>
+            <h3 style="margin: 0 0 .75rem; font-size: 1.2rem;">
+                <i class="fa fa-question-circle"></i>&nbsp;<?= h(__('Help')) ?>
+            </h3>
+            <?= $this->element('layout/htmx_help') ?>
+        </div>
+    </div>
+
     <?php // Login overlay: filled on demand (htmx GET /login) by the header link. ?>
     <div id="js-loginModal" class="island-modal" hidden>
         <div class="island-modal-backdrop js-modal-close"></div>

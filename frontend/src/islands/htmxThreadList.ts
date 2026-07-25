@@ -535,6 +535,53 @@ document.body.addEventListener('htmx:afterSwap', (event: Event) => {
     }, 5000);
 });
 
+// Right-rail widgets: collapse/expand per widget, remembered in localStorage.
+// The sidebar htmx-reloads (poll / refresh-recent), so the collapsed state is
+// re-applied after every swap of freshly-rendered widgets.
+const WIDGETS_KEY = 'islandWidgetsCollapsed';
+function collapsedWidgets(): string[] {
+    try {
+        return JSON.parse(localStorage.getItem(WIDGETS_KEY) ?? '[]') as string[];
+    } catch {
+        return [];
+    }
+}
+function applyWidgetCollapse(root?: HTMLElement): void {
+    const collapsed = collapsedWidgets();
+    (root ?? document).querySelectorAll<HTMLElement>('.island-widget').forEach((w) => {
+        const id = w.getAttribute('data-widget') ?? '';
+        w.classList.toggle('is-collapsed', collapsed.includes(id));
+    });
+}
+document.addEventListener('click', (event: MouseEvent) => {
+    const head = (event.target as HTMLElement).closest<HTMLElement>('.js-widgetToggle');
+    if (!head) {
+        return;
+    }
+    event.preventDefault();
+    const widget = head.closest<HTMLElement>('.island-widget');
+    if (!widget) {
+        return;
+    }
+    const id = widget.getAttribute('data-widget') ?? '';
+    const nowCollapsed = widget.classList.toggle('is-collapsed');
+    const list = collapsedWidgets().filter((x) => x !== id);
+    if (nowCollapsed) {
+        list.push(id);
+    }
+    try {
+        localStorage.setItem(WIDGETS_KEY, JSON.stringify(list));
+    } catch {
+        /* localStorage unavailable */
+    }
+});
+document.body.addEventListener('htmx:afterSwap', (event: Event) => {
+    const target = (event as CustomEvent).detail?.target as HTMLElement | undefined;
+    if (target && (target.classList?.contains('island-sidebar') || target.querySelector?.('.island-widget'))) {
+        applyWidgetCollapse(target);
+    }
+});
+
 // Tool menu — pin / lock (moderators). ajaxToggle is an ajax GET (no CSRF needed
 // on GET); on success reopen the posting so its state reflects the change.
 document.addEventListener('click', (event: MouseEvent) => {
@@ -680,6 +727,14 @@ document.addEventListener('click', (event: MouseEvent) => {
             target: body,
             swap: 'innerHTML',
         });
+
+        return;
+    }
+    // Help overlay: static content already in the DOM — just reveal it.
+    const helpOpener = (event.target as HTMLElement).closest<HTMLElement>('.js-helpOpen');
+    if (helpOpener) {
+        event.preventDefault();
+        document.getElementById('js-helpModal')?.removeAttribute('hidden');
 
         return;
     }

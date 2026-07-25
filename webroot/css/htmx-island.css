@@ -69,6 +69,9 @@
     width: 56rem;
     max-width: 96vw;
     max-height: 88vh;
+    /* dvh tracks the *visible* viewport on mobile (excludes the iOS URL bar), so
+       the dialog — and its bottom "insert" action — stay on-screen. */
+    max-height: calc(100dvh - 3rem);
     display: flex;
     flex-direction: column;
 }
@@ -154,7 +157,24 @@
 .htmx-island .upload-actions {
     flex: 0 0 auto;
     margin-top: 0.6rem;
+    padding-top: 0.6rem;
     text-align: right;
+    border-top: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.15));
+    background: #fff;
+}
+
+/* Phones: the overlays fill the screen (less wasted chrome), and the upload
+   dialog gives its scrolling grid the room so the bottom action stays reachable. */
+@media (max-width: 640px) {
+    .htmx-island .island-modal { padding: 0.75rem 0.5rem; align-items: stretch; }
+    .htmx-island #js-uploadModal .island-modal-dialog,
+    .htmx-island #js-insertModal .island-modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100dvh - 1.5rem);
+        padding: 1rem 1rem 1rem;
+    }
+    .htmx-island #js-uploadModal .island-modal-dialog { display: flex; flex-direction: column; }
 }
 
 /* Insert overlay is wider (for the media live-preview) and its preview keeps
@@ -394,3 +414,120 @@
     padding-left: 0.75rem;
     border-left: 2px solid var(--isl-border-soft);
 }
+
+/* Front-page 2-column layout: thread list + right widget rail --------------- */
+.htmx-island .island-cols {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+.htmx-island .island-main { min-width: 0; }
+.htmx-island .island-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+/* Right rail only once there's room; below that the widgets reflow under the
+   list (and drop last so the thread list leads on mobile). */
+@media (min-width: 1100px) {
+    .htmx-island .island-cols { grid-template-columns: minmax(0, 1fr) 19rem; }
+    .htmx-island .island-sidebar { position: sticky; top: 1rem; }
+}
+@media (max-width: 1099px) {
+    .htmx-island .island-sidebar { order: 2; }
+}
+
+/* Widget cards */
+.htmx-island .island-widget {
+    border: 1px solid var(--isl-border-soft);
+    border-radius: 0.6rem;
+    background: #fff;
+    overflow: hidden;
+}
+.htmx-island .island-widget-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--isl-border-soft);
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-align: left;
+}
+.htmx-island .island-widget-caret {
+    margin-left: auto;
+    transition: transform .15s ease;
+    color: #999;
+}
+.htmx-island .island-widget.is-collapsed .island-widget-caret { transform: rotate(180deg); }
+.htmx-island .island-widget.is-collapsed .island-widget-body { display: none; }
+.htmx-island .island-widget.is-collapsed .island-widget-head { border-bottom: 0; }
+.htmx-island .island-widget-body {
+    padding: 0.35rem 0.75rem;
+    max-height: 22rem;
+    overflow-y: auto;
+}
+.htmx-island .island-widget-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.htmx-island .island-widget-list > li { padding: 0.3rem 0; font-size: 0.88rem; line-height: 1.3; }
+.htmx-island .island-widget-list > li + li { border-top: 1px solid rgba(120, 90, 40, 0.08); }
+.htmx-island .island-widget-meta { display: block; color: #888; font-size: 0.78rem; }
+.htmx-island .island-widget-users { display: flex; flex-wrap: wrap; gap: 0.25rem 0.6rem; }
+.htmx-island .island-widget-users > li {
+    border: 0 !important;
+    padding: 0.1rem 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.htmx-island .island-widget-empty { color: #999; margin: 0.2rem 0; }
+
+/* Online-user role badges. */
+.htmx-island .island-role-icon { font-size: 0.75rem; width: 1em; text-align: center; color: #b0b0b0; }
+.htmx-island .island-role-mod { color: #2e8b57; }
+.htmx-island .island-role-admin { color: #d9534f; }
+.htmx-island .island-role-owner { color: #e0a800; }
+
+/* Guests + bots headcount under the named users. */
+.htmx-island .island-widget-anon {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(120, 90, 40, 0.08);
+    color: #888;
+    font-size: 0.82rem;
+}
+.htmx-island .island-widget-anon .fa { color: #aaa; }
+
+/* Help overlay: roomy dialog, readable feature list. */
+.htmx-island .island-help-dialog { max-width: 40rem; max-height: calc(100dvh - 3rem); overflow-y: auto; }
+.htmx-island .island-help-lead { margin: 0 0 1rem; color: #555; }
+.htmx-island .island-help-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.12));
+}
+.htmx-island .island-help-icon {
+    flex: 0 0 auto;
+    width: 1.4rem;
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--isl-accent, #fe5603);
+    margin-top: 0.15rem;
+}
+.htmx-island .island-help-item strong { display: block; margin-bottom: 0.15rem; }
+.htmx-island .island-help-mark {
+    color: var(--isl-accent, #fe5603);
+    font-weight: 700;
+}
+.htmx-island .island-help-outro { margin: 1rem 0 0; color: #555; }

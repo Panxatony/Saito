@@ -2583,3 +2583,12 @@ msgstr "Alle Kategorien"
 
 msgid "upload_insert_selected"
 msgstr "Auswahl einfügen"
+
+msgid "{0} online"
+msgstr "{0} online"
+
+msgid "Guests"
+msgstr "Gäste"
+
+msgid "Bots"
+msgstr "Bots"

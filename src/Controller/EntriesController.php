@@ -185,6 +185,33 @@ class EntriesController extends AppController
     }
 
     /**
+     * The right-rail widgets for the island front page: who's online, recent
+     * posts, and — for members — the user's own recent posts. Rendered as a
+     * fragment the sidebar htmx-refreshes on a poll and after new posts. Public
+     * (guests see online + recent).
+     *
+     * @return void
+     */
+    public function htmxWidgets()
+    {
+        $stats = \Saito\App\Registry::get('AppStats');
+        if ($stats !== null) {
+            $this->set('online', $stats->getRegistredUsersOnline());
+            $this->set('onlineCount', $stats->getNumberOfRegisteredUsersOnline());
+            $this->set('guestCount', $stats->getNumberOfAnonUsersOnline());
+            $this->set('botCount', $stats->getNumberOfBotsOnline());
+        }
+        $this->set('recentEntries', $this->Entries->getRecentPostings($this->CurrentUser));
+        if ($this->CurrentUser->isLoggedIn()) {
+            $this->set('myPosts', $this->Entries->getRecentPostings(
+                $this->CurrentUser,
+                ['user_id' => $this->CurrentUser->getId(), 'limit' => 5]
+            ));
+        }
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_widgets');
+    }
+
+    /**
      * Full thread reading view for the htmx island (strangler-fig migration).
      *
      * Same flattened-thread data + "mix" rendering as {@see mix()}, standalone
@@ -850,7 +877,7 @@ class EntriesController extends AppController
             // posting endpoints.
             ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark']
         );
-        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread']);
+        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxWidgets']);
 
         $this->AuthUser->authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock');
         $this->AuthUser->authorizeAction('merge', 'saito.core.posting.merge');

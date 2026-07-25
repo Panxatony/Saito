@@ -19,6 +19,9 @@ $webroot = $this->getRequest()->getAttribute('webroot');
 ?>
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
+<div class="island-cols">
+<div class="island-main">
+
 <?php // Live poll: every 30s ask whether new postings arrived since page load. ?>
 <?= $this->element('entry/htmx_new_posts_poller', ['newestEntryId' => $newestEntryId]) ?>
 
@@ -71,3 +74,12 @@ $webroot = $this->getRequest()->getAttribute('webroot');
     ) ?>
     <?= $this->element('entry/htmx_load_more') ?>
 </div>
+</div><?php // /.island-main ?>
+
+<?php // Right rail: who's online / recent posts / my posts. Loads on page load,
+      // refreshes every 60s and after new posts (refresh-recent). ?>
+<aside class="island-sidebar"
+       hx-get="<?= $webroot ?>entries/htmx-widgets"
+       hx-trigger="load, every 60s, refresh-recent from:body"
+       hx-swap="innerHTML"></aside>
+</div><?php // /.island-cols ?>

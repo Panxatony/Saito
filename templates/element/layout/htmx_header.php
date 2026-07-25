@@ -44,12 +44,15 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                 </a>
             <?php endif; ?>
         </div>
-        <?php // Middle: search (opens the header search widget). ?>
+        <?php // Middle: search (opens the header search widget) + help overlay. ?>
         <div class="middle">
             <a href="<?= $webroot ?>searches/htmx-simple" class="btn btn-link js-headerToggle"
                data-hx-url="<?= $webroot ?>searches/htmx-simple?widget=1" title="<?= h(__('Search')) ?>">
                 <?= $this->Layout->textWithIcon('', 'search') ?>
             </a>
+            <button type="button" class="btn btn-link js-helpOpen" title="<?= h(__('Help')) ?>">
+                <i class="fa fa-question-circle"></i>
+            </button>
         </div>
         <?php // Right: theme toggle + (members) bookmarks and profile. ?>
         <div class="last">
