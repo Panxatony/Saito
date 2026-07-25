@@ -131,20 +131,13 @@
     width: 100%;
 }
 
-/* Checkbox rows: keep the box and its label on one baseline with a small gap. */
+/* Checkbox rows use standard Bootstrap-4 `.form-check` markup; just add a little
+   breathing room between rows and keep the label weight normal. */
 .htmx-island .form-check {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
     margin-bottom: 0.5rem;
 }
 
-.htmx-island .form-check .form-check-input {
-    margin: 0;
-}
-
 .htmx-island .form-check .form-check-label {
-    margin: 0;
     font-weight: 400;
 }
 

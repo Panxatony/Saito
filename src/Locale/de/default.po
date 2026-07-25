@@ -2544,3 +2544,6 @@ msgstr "Antworten ist hier nicht erlaubt."
 
 msgid "subject"
 msgstr "Betreff"
+
+msgid "{0} new posting(s) — show"
+msgstr "{0} neue Beiträge — anzeigen"

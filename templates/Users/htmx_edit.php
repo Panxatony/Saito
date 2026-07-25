@@ -45,12 +45,18 @@
                 'personal_messages' => 'user_pers_msg',
                 'user_signatures_hide' => 'user_signatures_hide',
             ];
+            // Clean Bootstrap-4 checkbox rows: `.form-check > input.form-check-input
+            // + label.form-check-label`. (FormHelper's default checkbox `control()`
+            // nests the input inside the label and wraps it in `.input.checkbox`,
+            // which breaks Bootstrap's layout.) escape=false so labels carrying a
+            // literal `&nbsp;` render as a space, not the visible entity.
             foreach ($checkboxes as $field => $labelKey) {
-                echo $this->Html->div('form-group form-check', $this->Form->control($field, [
-                    'type' => 'checkbox',
-                    'class' => 'form-check-input',
-                    'label' => ['text' => __($labelKey), 'class' => 'form-check-label'],
-                ]));
+                echo '<div class="form-check">';
+                echo $this->Form->checkbox($field, ['class' => 'form-check-input', 'id' => $field]);
+                echo $this->Form->label($field, __($labelKey), [
+                    'class' => 'form-check-label', 'for' => $field, 'escape' => false,
+                ]);
+                echo '</div>';
             }
 
             echo $this->Form->button(__('Submit'), ['type' => 'submit', 'class' => 'btn btn-primary']);

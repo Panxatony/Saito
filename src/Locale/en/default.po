@@ -1707,3 +1707,6 @@ msgstr "Confirm password"
 
 msgid "subject"
 msgstr "Subject"
+
+msgid "{0} new posting(s) — show"
+msgstr "{0} new posting(s) — show"
