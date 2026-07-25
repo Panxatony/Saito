@@ -669,6 +669,42 @@ class EntriesController extends AppController
     }
 
     /**
+     * Toggle the current user's bookmark for a posting (session/CSRF variant of
+     * the token-authed REST bookmarks API, for the htmx island posting view).
+     *
+     * @param string $id posting-ID
+     * @return \Cake\Http\Response
+     */
+    public function htmxBookmark($id)
+    {
+        $this->autoRender = false;
+        $entryId = (int)$id;
+        $userId = $this->CurrentUser->getId();
+        if (!$entryId || !$userId || !$this->request->is(['post', 'ajax'])) {
+            throw new BadRequestException();
+        }
+
+        $Bookmarks = $this->fetchTable('Bookmarks.Bookmarks');
+        $existing = $Bookmarks->find()
+            ->where(['user_id' => $userId, 'entry_id' => $entryId])
+            ->first();
+
+        if ($existing) {
+            $Bookmarks->delete($existing);
+            $bookmarked = false;
+        } else {
+            $bookmark = $Bookmarks->createBookmark(['user_id' => $userId, 'entry_id' => $entryId]);
+            $bookmarked = $bookmark && empty($bookmark->getErrors());
+        }
+
+        $this->response = $this->response
+            ->withType('json')
+            ->withStringBody((string)json_encode(['bookmarked' => $bookmarked]));
+
+        return $this->response;
+    }
+
+    /**
      * Merge threads.
      *
      * @param string $sourceId posting-ID of thread to be merged
@@ -754,7 +790,7 @@ class EntriesController extends AppController
             // htmxReply/htmxAdd/htmxPreview/htmxUpload rely on CSRF (island header
             // / FormHelper token) instead of a FormProtection token, like the REST
             // posting endpoints.
-            ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload']
+            ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark']
         );
         $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread']);
 

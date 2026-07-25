@@ -164,6 +164,23 @@
     flex-basis: 100%;
 }
 
+/* Injected per-posting action toggles (bookmark / mark-as-solution). */
+.htmx-island .island-posting-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    margin-right: 0.35rem;
+}
+
+.htmx-island .island-posting-tools .btn {
+    padding: 0.15rem 0.4rem;
+}
+
+.htmx-island .js-island-bookmark[aria-pressed="true"] i,
+.htmx-island .js-island-solve[aria-pressed="true"] i {
+    color: var(--isl-accent, #fe5603);
+}
+
 /* Inline posting slider spacing (recent/search/thread lists). */
 .htmx-island .threadInline-slider {
     margin: 0.5rem 0 0.5rem 1.5rem;

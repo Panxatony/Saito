@@ -278,6 +278,158 @@ document.addEventListener('click', (event: MouseEvent) => {
     }
 });
 
+/**
+ * The CSRF token for session-authed write requests (bookmark/solve/delete).
+ */
+function csrfToken(): string {
+    return (
+        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
+    );
+}
+
+/**
+ * Enhance a freshly-loaded inline posting with the action buttons the SPA
+ * normally renders client-side from its `.js-data` JSON (bookmark, "mark as
+ * solution"). The tool-menu actions (pin/lock/delete) are wired via delegation
+ * below; here we only inject the two per-posting toggles.
+ *
+ * @param core the `.js-entry-view-core` posting element
+ */
+function enhancePosting(core: HTMLElement): void {
+    if (core.dataset.islandEnhanced) {
+        return;
+    }
+    core.dataset.islandEnhanced = '1';
+
+    const id = core.getAttribute('data-id');
+    const dataEl = core.querySelector<HTMLElement>('.js-data');
+    if (!id || !dataEl) {
+        return;
+    }
+    let data: { isBookmarked?: boolean; showSolvedBtn?: boolean; solves?: number } = {};
+    try {
+        data = JSON.parse(dataEl.getAttribute('data-entry') ?? '{}');
+    } catch {
+        return;
+    }
+
+    let actions = core.querySelector<HTMLElement>('.postingLayout-actions');
+    if (!actions) {
+        actions = document.createElement('div');
+        actions.className = 'postingLayout-actions';
+        core.appendChild(actions);
+    }
+
+    const group = document.createElement('span');
+    group.className = 'island-posting-tools';
+
+    // Bookmark toggle — any logged-in user. Session endpoint toggles by entry id.
+    const bkm = document.createElement('button');
+    bkm.type = 'button';
+    bkm.className = 'btn btn-link js-island-bookmark';
+    const paintBkm = (on: boolean): void => {
+        bkm.innerHTML = `<i class="fa ${on ? 'fa-bookmark' : 'fa-bookmark-o'}"></i>`;
+        bkm.setAttribute('aria-pressed', on ? 'true' : 'false');
+    };
+    paintBkm(!!data.isBookmarked);
+    bkm.addEventListener('click', () => {
+        void fetch(`/entries/htmx-bookmark/${id}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        })
+            .then((r) => r.json())
+            .then((j: { bookmarked?: boolean }) => paintBkm(!!j.bookmarked))
+            .catch(() => undefined);
+    });
+    group.appendChild(bkm);
+
+    // "Mark as solution" — only when the server says the user may set it.
+    if (data.showSolvedBtn) {
+        const solve = document.createElement('button');
+        solve.type = 'button';
+        solve.className = 'btn btn-link js-island-solve';
+        const paintSolve = (on: boolean): void => {
+            solve.innerHTML = `<i class="fa fa-check-circle${on ? '' : '-o'}"></i>`;
+            solve.setAttribute('aria-pressed', on ? 'true' : 'false');
+        };
+        let solved = !!data.solves;
+        paintSolve(solved);
+        solve.addEventListener('click', () => {
+            void fetch(`/entries/solve/${id}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            })
+                .then((r) => {
+                    if (r.ok) {
+                        solved = !solved;
+                        paintSolve(solved);
+                    }
+                })
+                .catch(() => undefined);
+        });
+        group.appendChild(solve);
+    }
+
+    actions.insertBefore(group, actions.firstChild);
+}
+
+// Enhance any posting htmx swaps into the page (inline open, reply, etc.).
+document.body.addEventListener('htmx:afterSwap', (event: Event) => {
+    const target = (event as CustomEvent).detail?.target as HTMLElement | undefined;
+    (target ?? document).querySelectorAll<HTMLElement>('.js-entry-view-core')
+        .forEach((el) => {
+            if (el.closest('.js-thread-island')) {
+                enhancePosting(el);
+            }
+        });
+});
+
+// Tool menu — pin / lock (moderators). ajaxToggle is an ajax GET (no CSRF needed
+// on GET); on success reopen the posting so its state reflects the change.
+document.addEventListener('click', (event: MouseEvent) => {
+    const link = (event.target as HTMLElement).closest<HTMLElement>(
+        '.js-btn-toggle-fixed, .js-btn-toggle-locked'
+    );
+    if (!link || !link.closest('.js-thread-island')) {
+        return;
+    }
+    event.preventDefault();
+    const toggle = link.classList.contains('js-btn-toggle-fixed') ? 'fixed' : 'locked';
+    const leaf = link.closest<HTMLElement>('.threadLeaf');
+    const id = link.closest<HTMLElement>('.js-entry-view-core')?.getAttribute('data-id');
+    if (!id) {
+        return;
+    }
+    void fetch(`/entries/ajaxToggle/${id}/${toggle}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+    })
+        .then((r) => {
+            if (r.ok && leaf) {
+                const icon = leaf.querySelector<HTMLElement>('.btn_show_thread');
+                icon?.click(); // close
+                icon?.click(); // reopen with fresh state
+            }
+        })
+        .catch(() => undefined);
+});
+
+// Tool menu — delete: go to the server's CSRF-protected delete confirmation flow
+// (a destructive action stays a deliberate, guarded navigation).
+document.addEventListener('click', (event: MouseEvent) => {
+    const link = (event.target as HTMLElement).closest<HTMLElement>('.js-delete');
+    if (!link || !link.closest('.js-thread-island')) {
+        return;
+    }
+    event.preventDefault();
+    const id = link.closest<HTMLElement>('.js-entry-view-core')?.getAttribute('data-id');
+    if (id) {
+        window.location.href = `/entries/delete/${id}`;
+    }
+});
+
 // Toggle actions ("search" in the header, "new entry" above the thread list):
 // load a fragment into a slot on click — clicking the same link again closes it,
 // a different link switches. The slot defaults to #js-headerActions but a link
