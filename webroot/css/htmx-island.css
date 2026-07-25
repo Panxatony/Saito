@@ -280,13 +280,15 @@
     border-left: 3px solid transparent;
     padding-left: 0.5rem;
 }
-.htmx-island .threadLeaf.et-new .threadLine {
+/* Unread marking only makes sense for logged-in members (a guest has no
+   persistent read state), so the accent rail + bold are gated on .is-member. */
+.htmx-island.is-member .threadLeaf.et-new .threadLine {
     border-left-color: var(--isl-accent, #fe5603);
 }
-.htmx-island .threadLeaf.et-new .link_show_thread {
+.htmx-island.is-member .threadLeaf.et-new .link_show_thread {
     font-weight: 700;
 }
-.htmx-island .threadLeaf.et-old .link_show_thread {
+.htmx-island.is-member .threadLeaf.et-old .link_show_thread {
     font-weight: 400;
 }
 
