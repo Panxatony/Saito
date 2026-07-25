@@ -34,12 +34,12 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                     <?= $this->Layout->textWithIcon('', 'sign-out') ?>
                 </a>
             <?php else : ?>
-                <a href="<?= $webroot ?>users/htmx-login" class="btn btn-link js-loginModalOpen"
-                   data-login-url="<?= $webroot ?>login" title="<?= h(__('login_btn')) ?>">
+                <a href="<?= $webroot ?>users/htmx-login" class="btn btn-link js-authModalOpen"
+                   data-modal-url="<?= $webroot ?>login" title="<?= h(__('login_btn')) ?>">
                     <?= $this->Layout->textWithIcon('', 'sign-in') ?>
                 </a>
-                <a href="<?= $webroot ?>users/htmx-register" class="btn btn-link"
-                   title="<?= h(__('register_linkname')) ?>">
+                <a href="<?= $webroot ?>users/htmx-register" class="btn btn-link js-authModalOpen"
+                   data-modal-url="<?= $webroot ?>users/htmx-register" title="<?= h(__('register_linkname')) ?>">
                     <?= $this->Layout->textWithIcon('', 'user-plus') ?>
                 </a>
             <?php endif; ?>

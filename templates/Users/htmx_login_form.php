@@ -41,5 +41,6 @@ echo $this->Form->button(__('login_btn'), ['type' => 'submit', 'class' => 'btn b
 echo $this->Form->end();
 ?>
 <p style="margin-top: 1rem; font-size: .9rem;">
-    <a href="<?= $webroot ?>users/htmx-register"><?= h(__('register_linkname')) ?></a>
+    <a href="<?= $webroot ?>users/htmx-register" class="js-authModalOpen"
+       data-modal-url="<?= $webroot ?>users/htmx-register"><?= h(__('register_linkname')) ?></a>
 </p>

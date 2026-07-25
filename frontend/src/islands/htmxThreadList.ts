@@ -567,7 +567,9 @@ markActiveFontScale();
 // the form back in with the error; a successful one returns HX-Redirect (htmx
 // navigates natively). Close on backdrop, ×, or Escape.
 document.addEventListener('click', (event: MouseEvent) => {
-    const opener = (event.target as HTMLElement).closest<HTMLElement>('.js-loginModalOpen');
+    // Auth modal: login and register share one overlay; the trigger's
+    // data-modal-url decides which form fragment is loaded.
+    const opener = (event.target as HTMLElement).closest<HTMLElement>('.js-authModalOpen');
     if (opener) {
         event.preventDefault();
         const modal = document.getElementById('js-loginModal');
@@ -576,7 +578,7 @@ document.addEventListener('click', (event: MouseEvent) => {
             return;
         }
         modal.removeAttribute('hidden');
-        window.htmx.ajax('GET', opener.getAttribute('data-login-url') ?? '/login', {
+        window.htmx.ajax('GET', opener.getAttribute('data-modal-url') ?? '/login', {
             target: body,
             swap: 'innerHTML',
         });

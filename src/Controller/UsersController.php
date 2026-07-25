@@ -582,7 +582,15 @@ class UsersController extends AppController
         $this->set(compact('tosRequired'));
         $this->set('user', $this->Users->newEmptyEntity());
         $this->set('status', 'view');
-        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_register');
+
+        // Island register modal: an HX-Request renders just the form/status
+        // fragment (loaded into the shared auth overlay); a direct visit gets the
+        // standalone island page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_register_form');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_register');
+        }
 
         $session = $this->request->getSession();
         if (!$this->request->is('post')) {
