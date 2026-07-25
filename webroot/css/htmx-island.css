@@ -319,6 +319,10 @@
 }
 /* Plain in-header button label (the theme hides .saito-icon-text globally). */
 .htmx-island .island-btn-label { margin-left: 0.35rem; }
+/* Narrow screens: drop the labels, keep the icons, so the bar never overflows. */
+@media (max-width: 720px) {
+    .htmx-island #header-menu .island-btn-label { display: none; }
+}
 .htmx-island #header-menu .middle {
     flex: 0 0 auto;
 }
