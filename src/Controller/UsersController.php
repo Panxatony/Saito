@@ -907,7 +907,14 @@ class UsersController extends AppController
         $this->set('bookmarkPostings', $postings);
         $this->set('bookmarkComments', $comments);
         $this->set('titleForLayout', __('bkm.title.pl'));
-        $this->viewBuilder()->setLayout('htmx_island');
+
+        // htmx (the header "bookmarks" toggle) gets just the card fragment; a
+        // direct visit gets the full standalone page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('bookmarks_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island');
+        }
     }
 
     /**

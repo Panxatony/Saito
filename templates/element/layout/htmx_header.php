@@ -44,7 +44,8 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                 </button>
             <?php endif; ?>
             <?php if ($CurrentUser->isLoggedIn()) : ?>
-                <a href="<?= $webroot ?>users/bookmarks" class="btn btn-link" title="<?= h(__('bkm.title.pl')) ?>">
+                <a href="<?= $webroot ?>users/bookmarks" class="btn btn-link js-headerToggle"
+                   data-hx-url="<?= $webroot ?>users/bookmarks" title="<?= h(__('bkm.title.pl')) ?>">
                     <?= $this->Layout->textWithIcon('', 'bookmark') ?>
                 </a>
                 <a href="<?= $webroot ?>users/view/<?= $CurrentUser->getId() ?>" class="btn btn-link">
