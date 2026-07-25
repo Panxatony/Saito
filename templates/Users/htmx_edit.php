@@ -69,6 +69,24 @@
             </p>
         </div>
     </div>
+
+    <?php // Display preference (stored per browser like the night/day theme). ?>
+    <div class="card mb-3">
+        <div class="card-header">
+            <?= $this->Layout->panelHeading(__('Font size')) ?>
+        </div>
+        <div class="card-body">
+            <div class="btn-group js-font-scale-group" role="group" aria-label="<?= h(__('Font size')) ?>">
+                <?php foreach (['90' => 'A', '100' => 'A', '112' => 'A', '125' => 'A'] as $scale => $glyph) : ?>
+                    <button type="button" class="btn btn-outline-secondary js-font-scale" data-scale="<?= $scale ?>"
+                            style="font-size: <?= (int)$scale ?>%;"><?= $glyph ?></button>
+                <?php endforeach; ?>
+            </div>
+            <p class="text-muted" style="margin-top: .5rem; font-size: .9rem;">
+                <?= h(__('Applies to this browser.')) ?>
+            </p>
+        </div>
+    </div>
 </div>
 
 <?php

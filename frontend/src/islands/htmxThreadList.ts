@@ -457,4 +457,40 @@ document.addEventListener('click', (event: MouseEvent) => {
     window.htmx.ajax('GET', url, { target: slot, swap: 'innerHTML' });
 });
 
+// Font-size preference: the settings buttons set a per-browser scale applied to
+// the root element (the island sizes in rem/em, so this scales everything).
+// Stored in localStorage and re-applied by the island layout on every page.
+function currentFontScale(): string {
+    try {
+        return localStorage.getItem('islandFontScale') ?? '100';
+    } catch {
+        return '100';
+    }
+}
+
+function markActiveFontScale(): void {
+    const cur = currentFontScale();
+    document.querySelectorAll<HTMLElement>('.js-font-scale').forEach((b) => {
+        b.classList.toggle('active', b.getAttribute('data-scale') === cur);
+    });
+}
+
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-font-scale');
+    if (!btn) {
+        return;
+    }
+    event.preventDefault();
+    const scale = btn.getAttribute('data-scale') ?? '100';
+    try {
+        localStorage.setItem('islandFontScale', scale);
+    } catch {
+        /* localStorage unavailable */
+    }
+    document.documentElement.style.fontSize = `${scale}%`;
+    markActiveFontScale();
+});
+
+markActiveFontScale();
+
 Alpine.start();

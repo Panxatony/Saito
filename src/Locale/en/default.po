@@ -1710,3 +1710,9 @@ msgstr "Subject"
 
 msgid "{0} new posting(s) — show"
 msgstr "{0} new posting(s) — show"
+
+msgid "Font size"
+msgstr "Font size"
+
+msgid "Applies to this browser."
+msgstr "Applies to this browser."

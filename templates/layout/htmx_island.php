@@ -46,6 +46,17 @@
     }
     ?>
 
+    <?php // User font-size preference (set in settings, stored per device like the
+          // night/day theme). Applied here before paint to avoid a size flash. ?>
+    <script>
+        (function () {
+            try {
+                var s = localStorage.islandFontScale;
+                if (s) { document.documentElement.style.fontSize = s + '%'; }
+            } catch (e) { /* localStorage unavailable */ }
+        })();
+    </script>
+
     <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
     <?php // Neutral-clean island polish — loaded last so it layers over the theme. ?>
     <?= $this->Html->css('htmx-island') ?>

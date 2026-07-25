@@ -2547,3 +2547,9 @@ msgstr "Betreff"
 
 msgid "{0} new posting(s) — show"
 msgstr "{0} neue Beiträge — anzeigen"
+
+msgid "Font size"
+msgstr "Schriftgröße"
+
+msgid "Applies to this browser."
+msgstr "Gilt nur für diesen Browser."
