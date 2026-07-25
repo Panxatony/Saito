@@ -109,17 +109,43 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+/* Island form controls ------------------------------------------------------ */
 /* Vertical rhythm for CakePHP's default `.input` control wrappers (label above
-   field). The Bootstrap theme styles `.form-group`, not `.input`, so the add
-   form built with FormHelper defaults needs the label/field spacing here. */
-.htmx-island .js-addForm-wrap .input {
+   field). The Bootstrap theme styles `.form-group`, not `.input`, so every
+   island form built with FormHelper defaults (settings, login, register, change
+   password, new entry) needs the label/field spacing here. */
+.htmx-island .input {
     margin-bottom: 0.85rem;
 }
 
-.htmx-island .js-addForm-wrap .input > label {
+.htmx-island .input > label {
     display: inline-block;
     margin-bottom: 0.3rem;
     font-weight: 600;
+}
+
+/* Full-width fields inside island cards (the theme leaves bare inputs shrink-
+   to-fit in some contexts). */
+.htmx-island .input > .form-control,
+.htmx-island .input > select.form-control {
+    width: 100%;
+}
+
+/* Checkbox rows: keep the box and its label on one baseline with a small gap. */
+.htmx-island .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
+}
+
+.htmx-island .form-check .form-check-input {
+    margin: 0;
+}
+
+.htmx-island .form-check .form-check-label {
+    margin: 0;
+    font-weight: 400;
 }
 
 /* Editor toolbar ------------------------------------------------------------ */
