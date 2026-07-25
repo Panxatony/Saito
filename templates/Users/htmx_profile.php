@@ -113,23 +113,23 @@ if ($user->get('signature')) {
           // htmx from their existing island endpoints (HX-Request → fragment). ?>
     <?php if ($CurrentUser->isLoggedIn() && $CurrentUser->isUser($user)) : ?>
         <?php $webroot = $this->request->getAttribute('webroot'); ?>
-        <div class="card mb-3">
-            <div class="card-header">
-                <?= $this->Layout->panelHeading(__('bkm.title.pl')) ?>
-            </div>
-            <div class="card-body js-thread-island"
-                 hx-get="<?= $webroot ?>users/bookmarks" hx-trigger="load" hx-swap="innerHTML">
-                <p class="text-muted"><?= h(__('Loading …')) ?></p>
-            </div>
+        <?php // The bookmarks endpoint returns a self-contained card, so load it
+              // bare (wrapping it would double the heading). ?>
+        <div hx-get="<?= $webroot ?>users/bookmarks" hx-trigger="load" hx-swap="innerHTML">
+            <p class="text-muted"><?= h(__('Loading …')) ?></p>
         </div>
 
+        <?php // The uploads fragment is bare tiles (the grid normally comes from the
+              // editor overlay), so give it a .upload-grid to lay out in. ?>
         <div class="card mb-3">
             <div class="card-header">
                 <?= $this->Layout->panelHeading(__('upload_media_title')) ?>
             </div>
-            <div class="card-body"
-                 hx-get="<?= $webroot ?>entries/htmx-uploads" hx-trigger="load" hx-swap="innerHTML">
-                <p class="text-muted"><?= h(__('Loading …')) ?></p>
+            <div class="card-body">
+                <div class="upload-grid" hx-get="<?= $webroot ?>entries/htmx-uploads"
+                     hx-trigger="load" hx-swap="innerHTML">
+                    <p class="text-muted"><?= h(__('Loading …')) ?></p>
+                </div>
             </div>
         </div>
     <?php endif; ?>
