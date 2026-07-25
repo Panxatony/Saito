@@ -121,6 +121,12 @@ class EntriesController extends AppController
 
         $this->set('entries', $this->Threads->paginate($order, $this->CurrentUser));
 
+        // Marker for the live "new postings" poller: the newest entry id at
+        // render time. Entry ids are globally monotonic, so any posting created
+        // afterwards has a higher id — no timezone/clock handling needed.
+        $newest = $this->Entries->find()->select(['id'])->orderByDesc('Entries.id')->first();
+        $this->set('newestEntryId', $newest?->get('id') ?? 0);
+
         // htmx swaps only the thread-list page fragment; a direct visit gets
         // the shell page in the standalone htmx_island layout.
         if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
@@ -130,6 +136,34 @@ class EntriesController extends AppController
         } else {
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_index');
         }
+    }
+
+    /**
+     * Live "new postings" count for the htmx front-page island.
+     *
+     * Polled by the island: counts postings in the user's readable categories
+     * created since the `since` entry id the page was rendered with, and renders
+     * a small banner fragment (empty when there is nothing new). Read-only.
+     *
+     * @return void
+     */
+    public function htmxNewCount()
+    {
+        $since = (int)$this->request->getQuery('since');
+        $count = 0;
+        if ($since > 0) {
+            $categories = $this->CurrentUser->getCategories()->getAll('read');
+            if (!empty($categories)) {
+                $count = $this->Entries->find()
+                    ->where([
+                        'Entries.id >' => $since,
+                        'Entries.category_id IN' => $categories,
+                    ])
+                    ->count();
+            }
+        }
+        $this->set('newCount', $count);
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_new_count');
     }
 
     /**
@@ -499,7 +533,7 @@ class EntriesController extends AppController
             'unlockedActions',
             ['solve', 'view']
         );
-        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex']);
+        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount']);
 
         $this->AuthUser->authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock');
         $this->AuthUser->authorizeAction('merge', 'saito.core.posting.merge');
