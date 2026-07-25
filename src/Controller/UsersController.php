@@ -15,6 +15,7 @@ namespace App\Controller;
 use App\Form\BlockForm;
 use App\Model\Entity\User;
 use Cake\Cache\Cache;
+use Saito\Posting\Posting;
 use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
@@ -629,6 +630,64 @@ class UsersController extends AppController
         } else {
             $this->viewBuilder()->setLayout('htmx_island');
         }
+    }
+
+    /**
+     * The current user's bookmarked postings, as an htmx/Alpine island.
+     *
+     * Strangler-fig migration of the profile "bookmarks" tab (the live one is a
+     * JSON API rendered client-side by the SPA). Loads the user's bookmarks and
+     * their postings render-ready via the `entry` finder (same path as
+     * getRecentPostings), then renders them as thread lines the shared island
+     * enhances. Served standalone in the htmx_island layout. Login required.
+     *
+     * @return void
+     */
+    public function bookmarks()
+    {
+        $Bookmarks = $this->fetchTable('Bookmarks.Bookmarks');
+        $bookmarks = $Bookmarks->find(
+            conditions: ['Bookmarks.user_id' => $this->CurrentUser->getId()],
+            order: ['Bookmarks.id' => 'DESC'],
+        )->all();
+
+        $comments = [];
+        $entryIds = [];
+        foreach ($bookmarks as $bookmark) {
+            $entryIds[] = $bookmark->get('entry_id');
+            $comments[$bookmark->get('entry_id')] = $bookmark->get('comment');
+        }
+
+        $postings = [];
+        if (!empty($entryIds)) {
+            $categories = $this->CurrentUser->getCategories()->getAll('read');
+            // Use the Entries table directly, not $this->Users->Entries (that is
+            // the Users→Entries association, whose join condition leaks
+            // `Users.id` into a standalone query).
+            $entries = $this->fetchTable('Entries')->find(
+                'entry',
+                conditions: [
+                    'Entries.id IN' => $entryIds,
+                    'Entries.category_id IN' => $categories,
+                ],
+            )->enableHydration(false)->all();
+
+            // Wrap as postings, then restore the bookmark order (id DESC).
+            $byId = [];
+            foreach ($entries as $entry) {
+                $byId[$entry['id']] = (new Posting($entry))->withCurrentUser($this->CurrentUser);
+            }
+            foreach ($entryIds as $entryId) {
+                if (isset($byId[$entryId])) {
+                    $postings[] = $byId[$entryId];
+                }
+            }
+        }
+
+        $this->set('bookmarkPostings', $postings);
+        $this->set('bookmarkComments', $comments);
+        $this->set('titleForLayout', __('bkm.title.pl'));
+        $this->viewBuilder()->setLayout('htmx_island');
     }
 
     /**
