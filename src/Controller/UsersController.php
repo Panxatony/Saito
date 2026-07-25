@@ -531,7 +531,8 @@ class UsersController extends AppController
     public function htmxLogin()
     {
         if ($this->CurrentUser->isLoggedIn()) {
-            return $this->redirect(['action' => 'htmxProfile', $this->CurrentUser->getId()]);
+            // Land on the island front page after login, not the profile.
+            return $this->redirect(['controller' => 'Entries', 'action' => 'htmxIndex']);
         }
         $this->set('titleForLayout', __('login_btn'));
         $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_login');
