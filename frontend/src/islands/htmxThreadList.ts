@@ -150,8 +150,12 @@ document.addEventListener('click', (event: MouseEvent) => {
 });
 
 // Text link on a thread line → open the standalone htmx thread view, so a click
-// stays in the island world instead of bouncing to the SPA posting page. The
-// round icon still inline-opens; this is the "open the whole thread" affordance.
+// stays in the island world instead of bouncing to the SPA posting page.
+//
+// When the user enabled "expand posting on click" (inline_view_on_click), the
+// first click opens the posting inline (like the round icon) and only a second
+// click — with the posting already open — navigates to the full thread page.
+// With the setting off, a click goes straight to the full page.
 document.addEventListener('click', (event: MouseEvent) => {
     const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a.link_show_thread');
     if (!link || !link.closest('.js-thread-island')) {
@@ -162,6 +166,18 @@ document.addEventListener('click', (event: MouseEvent) => {
     if (!match) {
         return;
     }
+
+    const inlineOnClick = document.body.dataset.inlineOnClick === '1';
+    const leaf = link.closest<HTMLElement>('.threadLeaf');
+    if (inlineOnClick && leaf && !leaf.classList.contains('is-inline-open')) {
+        // First click: open inline instead of navigating.
+        event.preventDefault();
+        toggleInlinePosting(leaf);
+
+        return;
+    }
+
+    // Setting off, or already open (second click): go to the full thread page.
     event.preventDefault();
     window.location.href = href.replace(/\/entries\/view\/\d+/, `/entries/htmx-thread/${match[1]}`);
 });

@@ -62,7 +62,7 @@
     <?= $this->Html->css('htmx-island') ?>
     <meta name="viewport" content="width=device-width"/>
 </head>
-<body class="htmx-island">
+<body class="htmx-island" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>">
     <div id="site">
         <?= $this->element('layout/htmx_header') ?>
         <?php // Filled on demand by the header "new entry" / "search" links. ?>
