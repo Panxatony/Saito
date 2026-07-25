@@ -38,7 +38,7 @@
                 try {
                     if (localStorage.theme === 'night') { css = <?= json_encode($nightCss) ?>; }
                 } catch (e) { /* localStorage unavailable */ }
-                document.write('<link rel="stylesheet" type="text/css" href="' + css + '">');
+                document.write('<link id="js-themeCss" rel="stylesheet" type="text/css" href="' + css + '">');
             })();
         </script>
         <noscript><?= $this->Html->css($theme . '.theme.css') ?></noscript>

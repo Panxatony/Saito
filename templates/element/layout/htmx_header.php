@@ -12,6 +12,9 @@
 
 $forumName = $forumName ?? \Cake\Core\Configure::read('Saito.Settings.forum_name');
 $webroot = $this->request->getAttribute('webroot');
+$theme = $this->getTheme();
+$themeCss = $theme ? $this->Url->assetUrl($theme . '.css/theme.css') : '';
+$nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
 ?>
 <header id="header" class="htmx-island-header">
     <div id="header-hero">
@@ -26,6 +29,13 @@ $webroot = $this->request->getAttribute('webroot');
             </a>
         </div>
         <div class="last">
+            <?php if ($themeCss) : ?>
+                <button type="button" class="btn btn-link" id="js-themeToggle"
+                        data-theme-css="<?= h($themeCss) ?>" data-night-css="<?= h($nightCss) ?>"
+                        title="<?= h(__('Toggle dark / light')) ?>">
+                    <i class="fa fa-adjust"></i>
+                </button>
+            <?php endif; ?>
             <?php if ($CurrentUser->isLoggedIn()) : ?>
                 <a href="<?= $webroot ?>users/bookmarks" class="btn btn-link" title="<?= h(__('bkm.title.pl')) ?>">
                     <?= $this->Layout->textWithIcon('', 'bookmark') ?>
