@@ -47,9 +47,11 @@
     ?>
 
     <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
+    <?php // Neutral-clean island polish — loaded last so it layers over the theme. ?>
+    <?= $this->Html->css('htmx-island') ?>
     <meta name="viewport" content="width=device-width"/>
 </head>
-<body>
+<body class="htmx-island">
     <div id="site">
         <?= $this->element('layout/htmx_header') ?>
         <div id="content">
