@@ -517,6 +517,22 @@ class UsersController extends AppController
     }
 
     /**
+     * Island-styled login page (strangler-fig). Renders the form standalone in
+     * the htmx_island layout; it posts to the real {@see login()} action, so the
+     * authentication flow itself is untouched.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxLogin()
+    {
+        if ($this->CurrentUser->isLoggedIn()) {
+            return $this->redirect(['action' => 'htmxProfile', $this->CurrentUser->getId()]);
+        }
+        $this->set('titleForLayout', __('login_btn'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_login');
+    }
+
+    /**
      * The current user's settings as an htmx island page (strangler-fig).
      *
      * A standalone, island-styled version of {@see edit()} for one's own
@@ -1349,7 +1365,7 @@ class UsersController extends AppController
         $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit'];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
-        $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs']);
+        $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs', 'htmxLogin']);
         $this->AuthUser->authorizeAction('register', 'saito.core.user.register');
         $this->AuthUser->authorizeAction('rs', 'saito.core.user.register');
 
