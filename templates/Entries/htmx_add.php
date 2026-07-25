@@ -1,10 +1,7 @@
 <?php
 /**
- * New-thread form as an htmx island page (strangler-fig PoC).
- *
- * Reachable at /entries/htmx-add. A native FormHelper form (so it carries a CSRF
- * token and works without JS); on success the controller redirects to the new
- * thread. Minimal editor — plain text, no BBCode toolbar / upload / preview.
+ * New-thread standalone page (/entries/htmx-add). Uses the shared form element;
+ * on success the controller navigates to the new thread.
  *
  * @var \App\View\AppView $this
  * @var array $categories
@@ -15,34 +12,7 @@
     <div class="panel panel-form panel-center">
         <?= $this->Layout->panelHeading(__('Write a New Posting')) ?>
         <div class="panel-content">
-            <?php
-            echo $this->Form->create(null, ['url' => ['action' => 'htmxAdd'], 'type' => 'post']);
-
-            if (!empty($errors)) {
-                echo '<div class="alert alert-error">' . h(__('Please check your entry.')) . '</div>';
-            }
-
-            echo $this->Form->control('category_id', [
-                'class' => 'form-control',
-                'type' => 'select',
-                'options' => $categories,
-                'empty' => false,
-                'label' => __('category'),
-            ]);
-            echo $this->Form->control('subject', ['class' => 'form-control', 'label' => __('subject')]);
-            echo $this->element('entry/htmx_editor_toolbar');
-            echo $this->Form->control('text', [
-                'class' => 'form-control',
-                'type' => 'textarea',
-                'rows' => 8,
-                'label' => __('text'),
-            ]);
-            echo $this->Form->button(__('Submit'), [
-                'type' => 'submit',
-                'class' => 'btn btn-primary',
-            ]);
-            echo $this->Form->end();
-            ?>
+            <?= $this->element('entry/htmx_add_form', ['categories' => $categories, 'errors' => $errors ?? [], 'inline' => false]) ?>
         </div>
     </div>
 </div>

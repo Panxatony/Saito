@@ -222,6 +222,12 @@ class EntriesController extends AppController
         $this->set('categories', $this->CurrentUser->getCategories()->getAll('thread', 'select'));
         $this->set('titleForLayout', __('Write a New Posting'));
 
+        $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+        // Inline editor (on the front page) keeps the result on the page; the
+        // standalone page navigates to the new thread.
+        $inline = (bool)$this->getRequest()->getData('inline') || (bool)$this->getRequest()->getQuery('inline');
+        $this->set('inline', $inline);
+
         if ($this->getRequest()->is('post')) {
             $data = [
                 'pid' => 0,
@@ -238,13 +244,30 @@ class EntriesController extends AppController
             }
 
             if ($posting !== null && !$posting->getErrors()) {
-                return $this->redirect(['action' => 'htmxThread', $posting->get('id')]);
+                if ($isHx && $inline) {
+                    // Stay on the page: confirm + trigger the thread list to reload.
+                    $this->set('posting', $posting);
+                    $this->response = $this->response->withHeader('HX-Trigger', 'refresh-recent');
+                    $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_add_done');
+
+                    return;
+                }
+                $threadUrl = \Cake\Routing\Router::url(['action' => 'htmxThread', $posting->get('id')]);
+                if ($isHx) {
+                    return $this->response->withHeader('HX-Redirect', $threadUrl);
+                }
+
+                return $this->redirect($threadUrl);
             }
 
             $this->set('errors', $posting !== null ? $posting->getErrors() : []);
         }
 
-        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_add');
+        if ($isHx) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_add_form_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_add');
+        }
     }
 
     /**
