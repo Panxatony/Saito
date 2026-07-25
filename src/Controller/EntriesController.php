@@ -206,6 +206,48 @@ class EntriesController extends AppController
     }
 
     /**
+     * Create a new thread (root posting) via the htmx island — the write path
+     * for new topics (the SPA answering module's other half).
+     *
+     * GET renders a standalone form (category / subject / text); POST creates
+     * the root posting via the same PostingComponent the REST API uses and
+     * redirects to the new thread, or re-renders the form with errors. A native
+     * form (FormHelper supplies the CSRF token) so it also works without JS. The
+     * rich BBCode editor / upload / preview stays a later island. Login required.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxAdd()
+    {
+        $this->set('categories', $this->CurrentUser->getCategories()->getAll('thread', 'select'));
+        $this->set('titleForLayout', __('Write a New Posting'));
+
+        if ($this->getRequest()->is('post')) {
+            $data = [
+                'pid' => 0,
+                'category_id' => $this->getRequest()->getData('category_id'),
+                'subject' => (string)$this->getRequest()->getData('subject'),
+                'text' => (string)$this->getRequest()->getData('text'),
+                'name' => $this->CurrentUser->get('username'),
+                'user_id' => $this->CurrentUser->getId(),
+            ];
+            try {
+                $posting = $this->Posting->create($data, $this->CurrentUser);
+            } catch (SaitoForbiddenException $e) {
+                $posting = null;
+            }
+
+            if ($posting !== null && !$posting->getErrors()) {
+                return $this->redirect(['action' => 'htmxThread', $posting->get('id')]);
+            }
+
+            $this->set('errors', $posting !== null ? $posting->getErrors() : []);
+        }
+
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_add');
+    }
+
+    /**
      * Inline reply to a posting, for the htmx island (strangler-fig migration).
      *
      * GET renders a minimal reply form; POST creates the answer via the same
@@ -626,10 +668,9 @@ class EntriesController extends AppController
 
         $this->FormProtection->setConfig(
             'unlockedActions',
-            // htmxReply is a custom (non-FormHelper) form; it relies on CSRF
-            // (sent by the island) instead of a FormProtection token, like the
-            // REST posting endpoints.
-            ['solve', 'view', 'htmxReply']
+            // htmxReply/htmxAdd rely on CSRF (island header / FormHelper token)
+            // instead of a FormProtection token, like the REST posting endpoints.
+            ['solve', 'view', 'htmxReply', 'htmxAdd']
         );
         $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread']);
 

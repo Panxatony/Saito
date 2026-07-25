@@ -24,6 +24,11 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
     </div>
     <div id="header-menu">
         <div class="middle">
+            <?php if ($CurrentUser->isLoggedIn()) : ?>
+                <a href="<?= $webroot ?>entries/htmx-add" class="btn btn-link">
+                    <?= $this->Layout->textWithIcon(h(__('new_entry_linkname')), 'plus') ?>
+                </a>
+            <?php endif; ?>
             <a href="<?= $webroot ?>searches/simple" class="btn btn-link">
                 <?= $this->Layout->textWithIcon(h(__('Search')), 'search') ?>
             </a>
