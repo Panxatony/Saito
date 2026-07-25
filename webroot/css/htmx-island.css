@@ -261,7 +261,10 @@
 /* Slim standalone header ---------------------------------------------------- */
 .htmx-island #header.htmx-island-header {
     display: flex;
-    align-items: center;
+    /* The theme forces `#header { flex-direction: column }`, so stretch (not
+       center) the children — otherwise #header-menu shrinks to content width and
+       its three zones cluster in the middle instead of spreading left/right. */
+    align-items: stretch;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -310,7 +313,8 @@
 /* Distribute the three groups: auth left, search truly centred, the rest right.
    Equal-flex first/last make the middle sit in the header's real centre. */
 .htmx-island #header-menu {
-    flex: 1;
+    width: 100%;
+    justify-content: space-between;
     gap: 0.5rem;
 }
 .htmx-island #header-menu .first {
