@@ -441,7 +441,7 @@ function enhancePosting(core: HTMLElement): void {
     if (!id || !dataEl) {
         return;
     }
-    let data: { isBookmarked?: boolean; showSolvedBtn?: boolean; solves?: number } = {};
+    let data: { isBookmarked?: boolean; showSolvedBtn?: boolean; solves?: number; pid?: number } = {};
     try {
         data = JSON.parse(dataEl.getAttribute('data-entry') ?? '{}');
     } catch {
@@ -479,8 +479,9 @@ function enhancePosting(core: HTMLElement): void {
     });
     group.appendChild(bkm);
 
-    // "Mark as solution" — only when the server says the user may set it.
-    if (data.showSolvedBtn) {
+    // "Mark as helpful" — only when the server says the user may set it (the
+    // thread starter), and only on answers, not the opening post (pid > 0).
+    if (data.showSolvedBtn && data.pid) {
         const solve = document.createElement('button');
         solve.type = 'button';
         solve.className = 'btn btn-link js-island-solve';
@@ -520,6 +521,18 @@ document.body.addEventListener('htmx:afterSwap', (event: Event) => {
             }
         });
 });
+
+// Full page loads (the thread read view) fire no htmx swap, so enhance the
+// postings already present in the DOM once the page is ready.
+function enhanceExistingPostings(): void {
+    document.querySelectorAll<HTMLElement>('.js-thread-island .js-entry-view-core')
+        .forEach((el) => enhancePosting(el));
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', enhanceExistingPostings);
+} else {
+    enhanceExistingPostings();
+}
 
 // Auto-dismiss the "post saved" confirmation a few seconds after it appears.
 document.body.addEventListener('htmx:afterSwap', (event: Event) => {
