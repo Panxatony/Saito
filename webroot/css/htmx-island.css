@@ -18,7 +18,7 @@
     --isl-radius-sm: 7px;
     /* Fluid content width: uses the browser width, capped on ultra-wide so
        lines don't get unreadably long. Side padding scales with the viewport. */
-    --isl-maxw: min(1600px, 100%);
+    --isl-maxw: min(1800px, 100%);
     --isl-gutter: clamp(1rem, 4vw, 3rem);
 
     -webkit-font-smoothing: antialiased;
@@ -256,6 +256,16 @@
     border-top: 1px solid var(--isl-border-soft);
     font-size: 0.9rem;
     opacity: 0.9;
+}
+
+/* The disclaimer wraps its content in a Bootstrap `.container` whose theme
+   max-widths (540–1320px) would cap the footer narrower than the page — let it
+   fill the fluid disclaimer instead. */
+.htmx-island .disclaimer > .container {
+    max-width: none;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .htmx-island .disclaimer .row {
