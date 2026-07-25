@@ -7,7 +7,7 @@
  * @var \App\Model\Entity\Entry $posting
  */
 ?>
-<div class="alert alert-success" style="margin: .5rem 0;">
+<div class="alert alert-success js-add-done" style="margin: .5rem 0;">
     <i class="fa fa-check"></i>
     <?= h(__('Your reply has been saved.')) ?>
     <a href="<?= h($this->Url->build('/entries/htmx-thread/' . $posting->get('id'))) ?>">

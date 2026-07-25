@@ -402,6 +402,20 @@ document.body.addEventListener('htmx:afterSwap', (event: Event) => {
         });
 });
 
+// Auto-dismiss the "post saved" confirmation a few seconds after it appears.
+document.body.addEventListener('htmx:afterSwap', (event: Event) => {
+    const target = (event as CustomEvent).detail?.target as HTMLElement | undefined;
+    const done = (target ?? document).querySelector<HTMLElement>('.js-add-done');
+    if (!done) {
+        return;
+    }
+    window.setTimeout(() => {
+        done.style.transition = 'opacity .5s ease';
+        done.style.opacity = '0';
+        window.setTimeout(() => done.remove(), 500);
+    }, 5000);
+});
+
 // Tool menu — pin / lock (moderators). ajaxToggle is an ajax GET (no CSRF needed
 // on GET); on success reopen the posting so its state reflects the change.
 document.addEventListener('click', (event: MouseEvent) => {
