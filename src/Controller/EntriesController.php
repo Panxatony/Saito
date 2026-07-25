@@ -337,6 +337,33 @@ class EntriesController extends AppController
     }
 
     /**
+     * The current user's upload archive for the editor upload overlay — a page
+     * of thumbnail tiles (20 per page, newest first) plus a "load more" control.
+     * Session-based (the REST uploads API is token-auth). Login required.
+     *
+     * @return void
+     */
+    public function htmxUploads()
+    {
+        $userId = $this->CurrentUser->getId();
+        if (!$userId) {
+            throw new BadRequestException();
+        }
+        $perPage = 20;
+        $page = max(1, (int)$this->getRequest()->getQuery('page'));
+
+        $Uploads = $this->fetchTable('ImageUploader.Uploads');
+        $query = $Uploads->find()->where(['user_id' => $userId])->orderBy(['id' => 'DESC']);
+        $total = $query->count();
+        $uploads = $query->limit($perPage)->offset(($page - 1) * $perPage)->all();
+
+        $this->set('uploads', $uploads);
+        $this->set('page', $page);
+        $this->set('hasMore', ($page * $perPage) < $total);
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_uploads');
+    }
+
+    /**
      * Inline reply to a posting, for the htmx island (strangler-fig migration).
      *
      * GET renders a minimal reply form; POST creates the answer via the same

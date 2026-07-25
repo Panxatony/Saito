@@ -1731,3 +1731,12 @@ msgstr "Text (optional)"
 
 msgid "insert_btn"
 msgstr "Insert"
+
+msgid "upload_media_title"
+msgstr "Upload images"
+
+msgid "upload_drop_hint"
+msgstr "Drag files here, or choose"
+
+msgid "upload_choose_files"
+msgstr "Choose files"

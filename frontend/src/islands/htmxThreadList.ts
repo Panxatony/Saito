@@ -209,21 +209,11 @@ document.addEventListener('click', (event: MouseEvent) => {
     textarea.selectionEnd = start + open.length + selected.length;
 });
 
-// Editor upload: the upload button opens the hidden file picker …
-document.addEventListener('click', (event: MouseEvent) => {
-    const btn = (event.target as HTMLElement).closest('.js-bb-upload');
-    if (!btn) {
-        return;
-    }
-    event.preventDefault();
-    btn.closest('.js-editor-toolbar')
-        ?.querySelector<HTMLInputElement>('.js-bb-file')
-        ?.click();
-});
+// Editor upload overlay: the toolbar button opens an overlay to upload files and
+// browse the user's archive (20 per page + load more); clicking a tile inserts
+// its [tag src=upload]name[/tag] into the editor that opened it.
+let uploadTarget: HTMLTextAreaElement | null = null;
 
-// … and picking one or more files uploads each and inserts its
-// [tag src=upload]name[/tag]. Uploads run sequentially so the tags stay in the
-// picked order.
 function insertUploadTag(textarea: HTMLTextAreaElement, name: string, mime: string): void {
     const type = mime.split('/')[0];
     const tag = type === 'video' || type === 'audio' ? type : type === 'image' ? 'img' : 'file';
@@ -233,45 +223,112 @@ function insertUploadTag(textarea: HTMLTextAreaElement, name: string, mime: stri
     textarea.selectionStart = textarea.selectionEnd = pos + bb.length;
 }
 
+function loadUploadGrid(): void {
+    const grid = document.querySelector<HTMLElement>('.js-uploadGrid');
+    if (grid) {
+        window.htmx.ajax('GET', '/entries/htmx-uploads', { target: grid, swap: 'innerHTML' });
+    }
+}
+
+async function uploadFiles(files: File[]): Promise<void> {
+    const token = csrfToken();
+    const status = document.querySelector<HTMLElement>('.js-uploadStatus');
+    let ok = 0;
+    const errs: string[] = [];
+    for (const file of files) {
+        const body = new FormData();
+        body.append('file', file);
+        try {
+            const response = await fetch('/entries/htmx-upload', {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': token, 'X-Requested-With': 'XMLHttpRequest' },
+                body,
+                credentials: 'same-origin',
+            });
+            const data: { name?: string; error?: string } = await response.json();
+            if (data.error || !data.name) {
+                errs.push(`${file.name}: ${data.error ?? 'failed'}`);
+            } else {
+                ok += 1;
+            }
+        } catch {
+            errs.push(`${file.name}: failed`);
+        }
+    }
+    if (status) {
+        status.textContent = `${ok} ✓${errs.length ? ` · ${errs.join(', ')}` : ''}`;
+    }
+    loadUploadGrid();
+}
+
+// Toolbar upload button → open the overlay for this editor.
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest('.js-bb-upload');
+    if (!btn) {
+        return;
+    }
+    event.preventDefault();
+    uploadTarget = btn.closest('form')?.querySelector<HTMLTextAreaElement>('textarea[name="text"]') ?? null;
+    const status = document.querySelector<HTMLElement>('.js-uploadStatus');
+    if (status) {
+        status.textContent = '';
+    }
+    document.getElementById('js-uploadModal')?.removeAttribute('hidden');
+    loadUploadGrid();
+});
+
+// "Choose files" opens the picker.
+document.addEventListener('click', (event: MouseEvent) => {
+    if ((event.target as HTMLElement).closest('.js-uploadPick')) {
+        event.preventDefault();
+        document.querySelector<HTMLInputElement>('.js-uploadInput')?.click();
+    }
+});
+
+// Picking files uploads them, then refreshes the archive grid.
 document.addEventListener('change', (event: Event) => {
-    const input = (event.target as HTMLElement).closest<HTMLInputElement>('.js-bb-file');
+    const input = (event.target as HTMLElement).closest<HTMLInputElement>('.js-uploadInput');
     if (!input || !input.files || input.files.length === 0) {
         return;
     }
-    const textarea = input.closest('form')?.querySelector<HTMLTextAreaElement>('textarea');
-    if (!textarea) {
+    void uploadFiles(Array.from(input.files)).then(() => {
         input.value = '';
+    });
+});
 
+// Drag & drop onto the drop zone.
+document.addEventListener('dragover', (event: DragEvent) => {
+    const drop = (event.target as HTMLElement).closest('.js-uploadDrop');
+    if (!drop) {
         return;
     }
-    const token = document
-        .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
-    const files = Array.from(input.files);
+    event.preventDefault();
+    drop.classList.add('is-dragover');
+});
+document.addEventListener('dragleave', (event: DragEvent) => {
+    (event.target as HTMLElement).closest('.js-uploadDrop')?.classList.remove('is-dragover');
+});
+document.addEventListener('drop', (event: DragEvent) => {
+    const drop = (event.target as HTMLElement).closest('.js-uploadDrop');
+    if (!drop) {
+        return;
+    }
+    event.preventDefault();
+    drop.classList.remove('is-dragover');
+    const files = event.dataTransfer?.files;
+    if (files && files.length) {
+        void uploadFiles(Array.from(files));
+    }
+});
 
-    void (async () => {
-        for (const file of files) {
-            const body = new FormData();
-            body.append('file', file);
-            try {
-                const response = await fetch('/entries/htmx-upload', {
-                    method: 'POST',
-                    headers: { 'X-CSRF-Token': token, 'X-Requested-With': 'XMLHttpRequest' },
-                    body,
-                    credentials: 'same-origin',
-                });
-                const data: { name?: string; mime?: string; error?: string } = await response.json();
-                if (data.error || !data.name) {
-                    window.alert(`${file.name}: ${data.error ?? 'upload failed'}`);
-                    continue;
-                }
-                insertUploadTag(textarea, data.name, data.mime ?? '');
-            } catch {
-                window.alert(`${file.name}: upload failed`);
-            }
-        }
-        input.value = '';
-        textarea.focus();
-    })();
+// Clicking an archive tile inserts its BBCode into the editor that opened it.
+document.addEventListener('click', (event: MouseEvent) => {
+    const tile = (event.target as HTMLElement).closest<HTMLElement>('.js-uploadTile');
+    if (!tile || !uploadTarget) {
+        return;
+    }
+    event.preventDefault();
+    insertUploadTag(uploadTarget, tile.getAttribute('data-name') ?? '', tile.getAttribute('data-mime') ?? '');
 });
 
 // Editor preview: render the current textarea through htmxPreview and show the

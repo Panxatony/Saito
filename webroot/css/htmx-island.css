@@ -61,6 +61,47 @@
 }
 .htmx-island .island-modal-close:hover { color: #000; }
 
+/* Upload overlay: wider dialog, a drop zone, and a thumbnail grid of the user's
+   archive. */
+.htmx-island #js-uploadModal .island-modal-dialog { max-width: 42rem; }
+.htmx-island .upload-drop {
+    border: 2px dashed var(--isl-border-soft, rgba(120, 90, 40, 0.3));
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    text-align: center;
+    transition: border-color .15s, background .15s;
+}
+.htmx-island .upload-drop.is-dragover {
+    border-color: var(--isl-accent, #fe5603);
+    background: rgba(254, 86, 3, 0.06);
+}
+.htmx-island .upload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 0.4rem;
+    max-height: 46vh;
+    overflow-y: auto;
+    margin-top: 0.5rem;
+}
+.htmx-island .js-uploadTile {
+    padding: 0;
+    border: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.2));
+    border-radius: 0.35rem;
+    background: #fff;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.htmx-island .js-uploadTile:hover { border-color: var(--isl-accent, #fe5603); }
+.htmx-island .js-uploadTile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.htmx-island .js-uploadTile .upload-tile-file {
+    font-size: .8rem; font-weight: 700; color: #888;
+}
+.htmx-island .upload-grid .js-uploadsMore { grid-column: 1 / -1; }
+
 /* Insert overlay is wider (for the media live-preview) and its preview keeps
    embeds/images responsive inside the dialog. */
 .htmx-island #js-insertModal .island-modal-dialog { max-width: 40rem; }

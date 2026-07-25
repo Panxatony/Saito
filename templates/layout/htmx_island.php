@@ -98,6 +98,26 @@
     <?php // Footer: the standard disclaimer (Resources / Status / About). ?>
     <?= $this->element('layout/disclaimer') ?>
 
+    <?php // Upload overlay: upload one or more files, browse the user's archive
+          // (20 per page, load more), click a tile to insert it. Editor toolbar. ?>
+    <div id="js-uploadModal" class="island-modal" hidden>
+        <div class="island-modal-backdrop js-modal-close"></div>
+        <div class="island-modal-dialog" role="dialog" aria-modal="true"
+             aria-label="<?= h(__('upload_media_title')) ?>">
+            <button type="button" class="island-modal-close js-modal-close" aria-label="&times;">&times;</button>
+            <h3 style="margin: 0 0 .75rem; font-size: 1.1rem;"><?= h(__('upload_media_title')) ?></h3>
+            <div class="upload-drop js-uploadDrop">
+                <input type="file" class="js-uploadInput" multiple accept="image/*,video/*,audio/*" hidden>
+                <p style="margin: 0 0 .5rem; color: #777;"><?= h(__('upload_drop_hint')) ?></p>
+                <button type="button" class="btn btn-secondary btn-sm js-uploadPick">
+                    <?= h(__('upload_choose_files')) ?>
+                </button>
+            </div>
+            <div class="js-uploadStatus" style="font-size: .85rem; margin: .4rem 0;"></div>
+            <div class="upload-grid js-uploadGrid"></div>
+        </div>
+    </div>
+
     <?php // Smart insert overlay: paste a URL, auto-detect link/image/video/
           // YouTube, live-preview, insert. Opened from the editor toolbar. ?>
     <div id="js-insertModal" class="island-modal" hidden>

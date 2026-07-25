@@ -2568,3 +2568,12 @@ msgstr "Text (optional)"
 
 msgid "insert_btn"
 msgstr "Einfügen"
+
+msgid "upload_media_title"
+msgstr "Bilder hochladen"
+
+msgid "upload_drop_hint"
+msgstr "Dateien hierher ziehen oder auswählen"
+
+msgid "upload_choose_files"
+msgstr "Dateien auswählen"

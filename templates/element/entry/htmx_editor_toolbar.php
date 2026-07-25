@@ -75,7 +75,6 @@ $buttons = [
     <button type="button" class="btn btn-sm btn-link js-bb-upload" title="<?= h(__('upl.title.pl')) ?>">
         <?= $icon($icons['upload']) ?> <?= h(__('upl.title.pl')) ?>
     </button>
-    <input type="file" class="js-bb-file" accept="image/*,video/*,audio/*" multiple style="display: none;">
     <button type="button" class="btn btn-sm btn-link js-bb-preview"
             data-preview-url="<?= h($previewUrl) ?>">
         <?= $icon($icons['eye']) ?> <?= h(__('Preview')) ?>
