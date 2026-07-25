@@ -1,22 +1,19 @@
 /******************************************************************************
- * Volksapfel Variablen
+ * Saito 8 — structural modernization (same as theme.scss: rounded, roomy),
+ * so the dark preset matches the refreshed light theme.
  ******************************************************************************/
 
- /*
-$primary: rgb(154, 201, 0) !default;
-$body-bg: rgb(52, 63, 63);
-$form-bg: rgba(255, 255, 255, 0.05);
+$enable-rounded: true;
+$border-radius: 0.5rem;
+$border-radius-sm: 0.35rem;
+$border-radius-lg: 0.7rem;
 
-$input-border-color: darken($primary, 20);
-$border-color: $input-border-color;
+$input-btn-padding-y: 0.45rem;
+$input-btn-padding-x: 0.85rem;
+$input-btn-padding-y-sm: 0.3rem;
 
-$list-group-hover-bg: $form-bg !default;
-
-$body-color: #decab2;
-$font-color-new: $body-color;
-$font-color-old: $primary;
-$font-color-current: #ee7f00;
-*/
+$font-size-base: 1rem;
+$line-height-base: 1.55;
 
 
 /******************************************************************************
@@ -25,16 +22,4 @@ $font-color-current: #ee7f00;
 
 @import "../../../../../plugins/Bota/webroot/css/src/night.scss";
 
-/******************************************************************************
- * Volksapfel Anpassungen
- ******************************************************************************/
-
 @import "_gemeinsam.scss";
-
-body {
-  // background-color: $body-bg;
-}
-
-.disclaimer {
-  // background-color: #2e3838;
-}

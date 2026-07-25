@@ -1677,3 +1677,108 @@ msgstr "Delete"
 
 msgid "delete_confirm.cancel"
 msgstr "Cancel"
+
+#
+# htmx/Alpine island frontend (Saito 8) — server-rendered strings.
+#
+msgid "Category"
+msgstr "Category"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "text"
+msgstr "Text"
+
+msgid "bkm.title.pl"
+msgstr "Bookmarks"
+
+msgid "upl.title.pl"
+msgstr "Uploads"
+
+msgid "user.rememberMe.t"
+msgstr "Remember me"
+
+msgid "forum_show_thread"
+msgstr "Show thread"
+
+msgid "register_password_confirm"
+msgstr "Confirm password"
+
+msgid "subject"
+msgstr "Subject"
+
+msgid "{0} new posting(s) — show"
+msgstr "{0} new posting(s) — show"
+
+msgid "Font size"
+msgstr "Font size"
+
+msgid "Applies to this browser."
+msgstr "Applies to this browser."
+
+msgid "beta_notice"
+msgstr "Beta test: this forum runs on a separate copy of the database and uploads, refreshed nightly. Changes do not affect the live forum."
+
+msgid "mark_all_read"
+msgstr "Mark all read"
+
+msgid "insert_link_media"
+msgstr "Insert link / media"
+
+msgid "insert_text_optional"
+msgstr "Text (optional)"
+
+msgid "insert_btn"
+msgstr "Insert"
+
+msgid "upload_media_title"
+msgstr "Upload images"
+
+msgid "upload_drop_hint"
+msgstr "Drag files here, or choose"
+
+msgid "upload_choose_files"
+msgstr "Choose files"
+
+msgid "all_categories"
+msgstr "All categories"
+
+msgid "upload_insert_selected"
+msgstr "Insert selected"
+
+msgid "{0} online"
+msgstr "{0} online"
+
+msgid "Guests"
+msgstr "Guests"
+
+msgid "Bots"
+msgstr "Bots"
+
+msgid "beta_notice_help"
+msgstr "New here? Go ahead and tap the help icon above – the tour is painless."
+
+msgid "The whole thread will be moved so it becomes an answer to the target posting."
+msgstr "The whole thread will be moved so it becomes an answer to the target posting."
+
+msgid "Loading …"
+msgstr "Loading …"
+
+msgid "Delete this upload?"
+msgstr "Delete this upload?"
+
+msgid "user_avatar"
+msgstr "Avatar"
+
+msgid "gn.saved"
+msgstr "Saved."
+
+msgid "user_contact_link"
+msgstr "Contact"
+
+msgid "The user has been saved."
+msgstr "The changes have been saved."
+
+msgid "Admin"
+msgstr "Admin"

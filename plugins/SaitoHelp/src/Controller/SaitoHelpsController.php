@@ -107,6 +107,18 @@ class SaitoHelpsController extends AppController
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function beforeRender(\Cake\Event\EventInterface $event)
+    {
+        parent::beforeRender($event);
+        // Match the island frontend on beta installs (help is static content).
+        if ($this->isIslandFrontend()) {
+            $this->viewBuilder()->setLayout('htmx_island');
+        }
+    }
+
+    /**
      * Loads help file
      *
      * @param string $lang Language. Folder docs/help/<langugage>

@@ -11,18 +11,35 @@ Stopwatch::start('layout/disclaimer.ctp');
                 <h3><?= h(__('saito.dscl.links')) ?></h3>
                 <ul>
                     <li>
-                        <a href="<?= $this->request->getAttribute('webroot') ?>contacts/owner">
-                        <?= h(__('saito.dscl.contact')) ?></a>
+                        <?php // Island: contact-owner overlay; classic: the page. ?>
+                        <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
+                            <a href="#" class="js-contactModalOpen"
+                               data-modal-url="<?= $this->request->getAttribute('webroot') ?>contacts/htmx-contact-owner">
+                                <?= h(__('saito.dscl.contact')) ?></a>
+                        <?php else : ?>
+                            <a href="<?= $this->request->getAttribute('webroot') ?>contacts/owner">
+                            <?= h(__('saito.dscl.contact')) ?></a>
+                        <?php endif; ?>
                     </li>
                     <li>
-                        <a href="<?= $this->request->getAttribute('webroot') ?>pages/rss_feeds">
-                            <?= h(__('s.rss.t')) ?>
-                        </a>
+                        <?php // Island: overlay with the public feeds; classic: the info page. ?>
+                        <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
+                            <a href="#" class="js-rssOpen"><?= h(__('s.rss.t')) ?></a>
+                        <?php else : ?>
+                            <a href="<?= $this->request->getAttribute('webroot') ?>pages/rss_feeds">
+                                <?= h(__('s.rss.t')) ?>
+                            </a>
+                        <?php endif; ?>
                     </li>
                     <li>
-                        <a href="<?= $this->request->getAttribute('webroot') ?>help">
-                            <?= h(__('Help')) ?>
-                        </a>
+                        <?php // Island: open the help overlay; classic: the static help page. ?>
+                        <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
+                            <a href="#" class="js-helpOpen"><?= h(__('Help')) ?></a>
+                        <?php else : ?>
+                            <a href="<?= $this->request->getAttribute('webroot') ?>help">
+                                <?= h(__('Help')) ?>
+                            </a>
+                        <?php endif; ?>
                     </li>
                     <li>
                         <a href="<?= $this->request->getAttribute('webroot') ?>pages/impressum">Impressum</a>

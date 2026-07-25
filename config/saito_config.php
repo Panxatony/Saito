@@ -30,6 +30,35 @@ $config = [
         'language' => env('SAITO_LANGUAGE', 'en'),
 
         /**
+         * Frontend flavour (strangler-fig migration).
+         *
+         * - 'spa'    the classic Backbone/Marionette single-page app (default).
+         * - 'island' the htmx/Alpine "island" frontend: '/' serves the island
+         *            front page and server-rendered pages (static pages, help)
+         *            use the island shell. Opt a deployment in — e.g. the beta —
+         *            by setting SAITO_FRONTEND=island; live installs stay 'spa'.
+         */
+        'frontend' => env('SAITO_FRONTEND', 'spa'),
+
+        /**
+         * Ask search engines not to index this install (robots noindex).
+         *
+         * Set SAITO_NOINDEX=true on non-public deployments such as the beta, so
+         * the test frontend (running on a clone of the live content) is kept out
+         * of search results. Belt-and-suspenders with an nginx `X-Robots-Tag`
+         * header on the beta vhost. Default: indexable.
+         */
+        'noindex' => filter_var(env('SAITO_NOINDEX', false), FILTER_VALIDATE_BOOLEAN),
+
+        /**
+         * Trust a reverse proxy's X-Forwarded-* headers (real client IP + https
+         * scheme). Enable (SAITO_TRUST_PROXY=true) ONLY when the app sits behind
+         * a trusted proxy such as the beta edge — a directly-reachable install
+         * must leave this off, or clients could spoof their IP (throttle bypass).
+         */
+        'trustProxy' => filter_var(env('SAITO_TRUST_PROXY', false), FILTER_VALIDATE_BOOLEAN),
+
+        /**
          * Imprint / legal notice (Impressum)
          *
          * Trusted HTML rendered on the /pages/impressum page (linked from the
@@ -104,8 +133,17 @@ $config = [
         'debug' => [
             /**
              * Log emails in debug.log instead of sending them.
+             *
+             * Safety default for the island beta: it runs on a clone of the live
+             * database (real addresses), so email defaults to OFF there — beta
+             * actions (register, notifications, password reset) never reach real
+             * users. Override explicitly with SAITO_DEBUG_EMAIL if you really
+             * want the beta to send. SPA installs keep sending (default false).
              */
-            'email' => false,
+            'email' => filter_var(
+                env('SAITO_DEBUG_EMAIL', env('SAITO_FRONTEND', 'spa') === 'island'),
+                FILTER_VALIDATE_BOOLEAN
+            ),
             /**
              * Log additional non-error information in info.log
              */
@@ -124,7 +162,7 @@ $config['Saito']['Settings']['uploader'] = (new UploaderConfig())
     /**
      * Max number of uploads per user
      */
-    ->setMaxNumberOfUploadsPerUser(20)
+    ->setMaxNumberOfUploadsPerUser(5000)
     /**
      * Max file size
      */

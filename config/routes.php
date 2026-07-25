@@ -18,6 +18,7 @@
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
+use Cake\Core\Configure;
 use Cake\Routing\RouteBuilder;
 use Cake\Routing\Route\DashedRoute;
 
@@ -48,11 +49,16 @@ $routes->setRouteClass(DashedRoute::class);
 
 $routes->scope('/', function (RouteBuilder $routes) {
     /**
-     * Here, we are connecting '/' (base path) to a controller called 'Pages',
-     * its action called 'display', and we pass a param to select the view file
-     * to use (in this case, src/Template/Pages/home.ctp)...
+     * Root URL. On an island-frontend install (Saito.frontend = 'island', e.g.
+     * the beta) '/' serves the standalone island front page; the SPA installs
+     * keep the classic Entries::index. Note: routes are cached (_cake_routes_),
+     * so flip the flag then clear that cache for the change to take effect.
      */
-    $routes->connect('/', ['controller' => 'Entries', 'action' => 'index']);
+    if (Configure::read('Saito.frontend') === 'island') {
+        $routes->connect('/', ['controller' => 'Entries', 'action' => 'htmxIndex']);
+    } else {
+        $routes->connect('/', ['controller' => 'Entries', 'action' => 'index']);
+    }
 
     /**
      * ...and connect the rest of 'Pages' controller's URLs.

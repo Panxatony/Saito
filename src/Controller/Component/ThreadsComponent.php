@@ -53,9 +53,9 @@ class ThreadsComponent extends Component
      * @param CurrentUserInterface $CurrentUser CurrentUser
      * @return array
      */
-    public function paginate($order, CurrentUserInterface $CurrentUser): array
+    public function paginate($order, CurrentUserInterface $CurrentUser, ?array $onlyCategories = null): array
     {
-        $initials = $this->paginateThreads($order, $CurrentUser);
+        $initials = $this->paginateThreads($order, $CurrentUser, $onlyCategories);
         if (empty($initials)) {
             return [];
         }
@@ -70,13 +70,23 @@ class ThreadsComponent extends Component
      * @param CurrentUserInterface $User current-user
      * @return array thread ids
      */
-    protected function paginateThreads($order, CurrentUserInterface $User): array
+    protected function paginateThreads($order, CurrentUserInterface $User, ?array $onlyCategories = null): array
     {
         Stopwatch::start('Entries->_getInitialThreads() Paginate');
         $categories = $User->getCategories()->getCurrent('read');
         if (empty($categories)) {
             // no readable categories for user (e.g. no public categories
             return [];
+        }
+
+        // Optional explicit category filter (island category chooser): restrict
+        // to the requested categories, but never beyond what the user may read.
+        // An unreadable / unknown request falls back to all readable categories.
+        if ($onlyCategories !== null) {
+            $requested = array_intersect_key($categories, array_flip($onlyCategories));
+            if (!empty($requested)) {
+                $categories = $requested;
+            }
         }
 
         ////! Check DB performance after changing conditions/sorting!

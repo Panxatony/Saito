@@ -15,6 +15,7 @@ namespace App\Controller;
 use App\Form\BlockForm;
 use App\Model\Entity\User;
 use Cake\Cache\Cache;
+use Saito\Posting\Posting;
 use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
@@ -57,6 +58,15 @@ class UsersController extends AppController
      */
     public function login()
     {
+        // Island login modal: an HX-Request renders just the form fragment
+        // (+ flash) instead of the full page, and a successful login returns an
+        // HX-Redirect header so htmx does a full navigation. All the auth logic
+        // below (throttle, logging, AuthUser->login) is shared and untouched.
+        $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+        if ($isHx) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_login_form');
+        }
+
         $data = $this->request->getData();
         if (empty($data['username'])) {
             $logout = $this->_logoutAndComeHereAgain();
@@ -94,8 +104,12 @@ class UsersController extends AppController
 
         if ($this->AuthUser->login()) {
             $this->_clearLoginThrottle();
+            $target = $this->_loginRedirectTarget();
+            if ($isHx) {
+                return $this->response->withHeader('HX-Redirect', $target);
+            }
 
-            return $this->redirect($this->_loginRedirectTarget());
+            return $this->redirect($target);
         }
 
         /// error on login
@@ -270,7 +284,21 @@ class UsersController extends AppController
         }
 
         $this->AuthUser->logout();
-        $this->redirect('/');
+
+        // Honour a local ?redirect= target (e.g. the island header sends the
+        // user back to the island front page instead of the SPA root). Only
+        // same-site absolute paths are allowed — never a scheme or `//host`,
+        // so this can't be turned into an open redirect.
+        $redirect = $this->getRequest()->getQuery('redirect');
+        if (
+            is_string($redirect)
+            && str_starts_with($redirect, '/')
+            && !str_starts_with($redirect, '//')
+        ) {
+            $this->redirect($redirect);
+        } else {
+            $this->redirect('/');
+        }
     }
 
     /**
@@ -375,7 +403,9 @@ class UsersController extends AppController
         if (!$id) {
             throw new BadRequestException();
         }
-        $code = $this->request->getQuery('c');
+        // Cast so a missing `?c=` is an empty string (a failed activation), not
+        // a TypeError that the Exception catch below would not catch.
+        $code = (string)$this->request->getQuery('c');
         try {
             $activated = $this->Users->activate((int)$id, $code);
         } catch (\Exception $e) {
@@ -385,6 +415,8 @@ class UsersController extends AppController
             $activated = ['status' => 'fail'];
         }
         $this->set('status', $activated['status']);
+        // Activation landing (reached from the email link) — island-styled.
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_rs');
     }
 
     /**
@@ -434,6 +466,269 @@ class UsersController extends AppController
         $showBottomNavigation = true;
 
         $this->set(compact('menuItems', 'showBottomNavigation', 'users'));
+    }
+
+    /**
+     * Member list as an htmx island (strangler-fig migration).
+     *
+     * Same paginated, sortable user list as {@see index()}, rendered standalone
+     * (no SPA). Demonstrates the island approach on non-thread, tabular content:
+     * clicking a column header htmx-swaps just the table body (`HX-Request` →
+     * rows fragment), so sorting happens in place; a direct visit / no-JS click
+     * gets the full shell page. index() is untouched.
+     *
+     * @return void
+     */
+    public function htmxUsers()
+    {
+        $menuItems = [
+            'username' => [__('username_marking'), []],
+            'user_type' => [__('user_type'), []],
+            'UserOnline.logged_in' => [__('userlist_online'), ['direction' => 'desc']],
+            'registered' => [__('registered'), ['direction' => 'desc']],
+        ];
+
+        $this->paginate = [
+            'sortableFields' => array_keys($menuItems),
+            'finder' => 'paginated',
+            'limit' => 400,
+            'order' => ['Users.username' => 'asc'],
+        ];
+        $users = $this->paginate($this->Users);
+        $this->set(compact('menuItems', 'users'));
+
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()
+                ->disableAutoLayout()
+                ->setTemplate('htmx_users_rows');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_users');
+        }
+    }
+
+    /**
+     * A user's profile as an htmx island (strangler-fig migration).
+     *
+     * A slim, standalone version of {@see view()}: the profile summary plus the
+     * user's recent postings (reusing the recent_posts_list element inside a
+     * .js-thread-island, so the island enhances them). Login required.
+     *
+     * @param string|null $id user-ID
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxProfile($id = null)
+    {
+        $id = (int)$id;
+        $user = $this->Users->find()
+            ->where(['Users.id' => $id])
+            ->contain(['UserOnline'])
+            ->first();
+
+        if (empty($user)) {
+            $this->Flash->set(__('Invalid user'), ['element' => 'error']);
+
+            return $this->redirect('/');
+        }
+
+        $entriesShownOnPage = 20;
+        $this->set(
+            'lastEntries',
+            $this->Users->Entries->getRecentPostings(
+                $this->CurrentUser,
+                ['user_id' => $id, 'limit' => $entriesShownOnPage]
+            )
+        );
+        $this->set(
+            'hasMoreEntriesThanShownOnPage',
+            ($user->numberOfPostings() - $entriesShownOnPage) > 0
+        );
+        $this->set('user', $user);
+        $this->set('solved', $this->Users->countSolved($id));
+        $this->set('titleForLayout', $user->get('username'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_profile');
+    }
+
+    /**
+     * Island-styled login page (strangler-fig). Renders the form standalone in
+     * the htmx_island layout; it posts to the real {@see login()} action, so the
+     * authentication flow itself is untouched.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxLogin()
+    {
+        if ($this->CurrentUser->isLoggedIn()) {
+            // Land on the island front page after login, not the profile.
+            return $this->redirect(['controller' => 'Entries', 'action' => 'htmxIndex']);
+        }
+        $this->set('titleForLayout', __('login_btn'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_login');
+    }
+
+    /**
+     * Island-styled registration page (strangler-fig). Mirrors {@see register()}
+     * — same honeypot/TOS flow and the same security-critical
+     * {@see \App\Model\Table\UsersTable::register()} + activation email — but
+     * renders standalone in the htmx_island layout and posts to itself, so
+     * FormProtection stays consistent. Alpine enables the submit once TOS is
+     * accepted (the SPA does this in register()).
+     *
+     * @return void
+     */
+    public function htmxRegister()
+    {
+        $this->AuthUser->logout();
+        $tosRequired = Configure::read('Saito.Settings.tos_enabled');
+        $this->set(compact('tosRequired'));
+        $this->set('user', $this->Users->newEmptyEntity());
+        $this->set('status', 'view');
+
+        // Island register modal: an HX-Request renders just the form/status
+        // fragment (loaded into the shared auth overlay); a direct visit gets the
+        // standalone island page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_register_form');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_register');
+        }
+
+        $session = $this->request->getSession();
+        if (!$this->request->is('post')) {
+            $session->write('Register.formLoadTime', time());
+
+            return;
+        }
+
+        $data = $this->request->getData();
+
+        // Bot protection: honeypot empty + form open ≥ 5s (same as register()).
+        $formLoadTime = (int)$session->read('Register.formLoadTime');
+        if (!empty($data['url']) || $formLoadTime === 0 || (time() - $formLoadTime) < 5) {
+            return;
+        }
+        $session->delete('Register.formLoadTime');
+
+        if (!$tosRequired) {
+            $data['tos_confirm'] = true;
+        }
+        if (empty($data['tos_confirm'])) {
+            return;
+        }
+
+        $user = $this->Users->register($data);
+        if ($user->getErrors()) {
+            $user->set('tos_confirm', false);
+            $this->set('user', $user);
+
+            return;
+        }
+
+        try {
+            $this->SaitoEmail->email([
+                'recipient' => $user,
+                'subject' => __('register_email_subject', Configure::read('Saito.Settings.forum_name')),
+                'sender' => 'register',
+                'template' => 'user_register',
+                'viewVars' => ['user' => $user],
+            ]);
+        } catch (\Exception $e) {
+            (new ExceptionLogger())->write('Registering email confirmation failed', ['e' => $e]);
+            $this->set('status', 'fail: email');
+
+            return;
+        }
+
+        $this->set('status', 'success');
+    }
+
+    /**
+     * Change one's own password as an htmx island page (strangler-fig). Mirrors
+     * changepassword() but for the current user, in the htmx_island layout.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxChangePassword()
+    {
+        $id = $this->CurrentUser->getId();
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->get($id);
+        $this->set('username', $user->get('username'));
+
+        if ($this->request->is('post')) {
+            $data = [];
+            foreach (['password', 'password_old', 'password_confirm'] as $field) {
+                $data[$field] = $this->request->getData($field);
+            }
+            $this->Users->patchEntity($user, $data);
+            if ($this->Users->save($user)) {
+                $this->Flash->set(__('change_password_success'), ['element' => 'success']);
+
+                return $this->redirect(['action' => 'htmxEdit']);
+            }
+            $errors = $user->getErrors();
+            if (!empty($errors)) {
+                $this->Flash->set(__d('nondynamic', current(array_pop($errors))), ['element' => 'error']);
+            }
+        }
+
+        $this->set('titleForLayout', __('change_password_link'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_changepassword');
+    }
+
+    /**
+     * The current user's settings as an htmx island page (strangler-fig).
+     *
+     * A standalone, island-styled version of {@see edit()} for one's own
+     * account, using the same allowed-field patch + save. Login required.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxEdit()
+    {
+        $id = $this->CurrentUser->getId();
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->get($id);
+
+        if (
+            !$this->CurrentUser->permission(
+                'saito.core.user.edit',
+                (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId())
+            )
+        ) {
+            throw new \Saito\Exception\SaitoForbiddenException(
+                sprintf('Attempt to edit user "%s".', $id),
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        if ($this->request->is(['post', 'put'])) {
+            $allowedFields = [
+                'user_email', 'user_real_name', 'user_hp', 'user_place',
+                'profile', 'signature', 'user_theme', 'inline_view_on_click',
+                'user_automaticaly_mark_as_read', 'personal_messages',
+                'user_signatures_hide', 'user_signatures_images_hide',
+                'user_sort_last_answer', 'user_show_thread_collapsed',
+                'user_category_override', 'user_forum_refresh_time',
+                'user_color_new_postings', 'user_color_old_postings',
+                'user_color_actual_posting',
+            ];
+            $patched = $this->Users->patchEntity($user, $this->request->getData(), ['fields' => $allowedFields]);
+            if (!$patched->getErrors() && $this->Users->save($patched)) {
+                $this->Flash->set(__('The user has been saved.'), ['element' => 'success']);
+
+                return $this->redirect(['action' => 'htmxProfile', $id]);
+            }
+            $this->Flash->set(
+                __('The user could not be saved. Please, try again.'),
+                ['element' => 'error']
+            );
+        }
+
+        $availableThemes = $this->Themes->getAvailable($this->CurrentUser);
+        $this->set('availableThemes', array_combine($availableThemes, $availableThemes));
+        $this->set('user', $user);
+        $this->set('titleForLayout', __('user.edit.t', [$user->get('username')]));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_edit');
     }
 
     /**
@@ -575,6 +870,128 @@ class UsersController extends AppController
     }
 
     /**
+     * A user's recent postings, delivered server-rendered for htmx.
+     *
+     * PoC for the strangler-fig migration away from the Backbone/Marionette
+     * SPA: the same data source ({@see \Saito\Posting\Behavior\PostingBehavior::getRecentPostings})
+     * and thread rendering as {@see view()}, but served as an HTML fragment
+     * instead of a client-side template.
+     *
+     * - A normal request renders a small standalone shell page (htmx + Alpine).
+     * - An htmx request (`HX-Request` header) renders only the thread-list
+     *   fragment, which htmx swaps into the shell.
+     *
+     * @param string|null $id user-ID
+     * @return \Cake\Http\Response|void
+     */
+    public function recentPosts($id = null)
+    {
+        $id = (int)$id;
+
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->find()
+            ->where(['Users.id' => $id])
+            ->first();
+
+        if (empty($user)) {
+            $this->Flash->set(__('Invalid user'), ['element' => 'error']);
+
+            return $this->redirect('/');
+        }
+
+        $entriesShownOnPage = 20;
+        $this->set(
+            'lastEntries',
+            $this->Users->Entries->getRecentPostings(
+                $this->CurrentUser,
+                ['user_id' => $id, 'limit' => $entriesShownOnPage]
+            )
+        );
+        $this->set(
+            'hasMoreEntriesThanShownOnPage',
+            ($user->numberOfPostings() - $entriesShownOnPage) > 0
+        );
+        $this->set('user', $user);
+        $this->set('titleForLayout', $user->get('username'));
+
+        // htmx swaps only the fragment; a direct visit gets the shell page,
+        // served standalone (no SPA) via the htmx_island layout so the SPA and
+        // the island don't fight over the same thread markup.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()
+                ->disableAutoLayout()
+                ->setTemplate('recent_posts_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island');
+        }
+    }
+
+    /**
+     * The current user's bookmarked postings, as an htmx/Alpine island.
+     *
+     * Strangler-fig migration of the profile "bookmarks" tab (the live one is a
+     * JSON API rendered client-side by the SPA). Loads the user's bookmarks and
+     * their postings render-ready via the `entry` finder (same path as
+     * getRecentPostings), then renders them as thread lines the shared island
+     * enhances. Served standalone in the htmx_island layout. Login required.
+     *
+     * @return void
+     */
+    public function bookmarks()
+    {
+        $Bookmarks = $this->fetchTable('Bookmarks.Bookmarks');
+        $bookmarks = $Bookmarks->find(
+            conditions: ['Bookmarks.user_id' => $this->CurrentUser->getId()],
+            order: ['Bookmarks.id' => 'DESC'],
+        )->all();
+
+        $comments = [];
+        $entryIds = [];
+        foreach ($bookmarks as $bookmark) {
+            $entryIds[] = $bookmark->get('entry_id');
+            $comments[$bookmark->get('entry_id')] = $bookmark->get('comment');
+        }
+
+        $postings = [];
+        if (!empty($entryIds)) {
+            $categories = $this->CurrentUser->getCategories()->getAll('read');
+            // Use the Entries table directly, not $this->Users->Entries (that is
+            // the Users→Entries association, whose join condition leaks
+            // `Users.id` into a standalone query).
+            $entries = $this->fetchTable('Entries')->find(
+                'entry',
+                conditions: [
+                    'Entries.id IN' => $entryIds,
+                    'Entries.category_id IN' => $categories,
+                ],
+            )->enableHydration(false)->all();
+
+            // Wrap as postings, then restore the bookmark order (id DESC).
+            $byId = [];
+            foreach ($entries as $entry) {
+                $byId[$entry['id']] = (new Posting($entry))->withCurrentUser($this->CurrentUser);
+            }
+            foreach ($entryIds as $entryId) {
+                if (isset($byId[$entryId])) {
+                    $postings[] = $byId[$entryId];
+                }
+            }
+        }
+
+        $this->set('bookmarkPostings', $postings);
+        $this->set('bookmarkComments', $comments);
+        $this->set('titleForLayout', __('bkm.title.pl'));
+
+        // htmx (the header "bookmarks" toggle) gets just the card fragment; a
+        // direct visit gets the full standalone page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('bookmarks_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island');
+        }
+    }
+
+    /**
      * Set user avatar.
      *
      * @param string $userId user-ID
@@ -629,6 +1046,56 @@ class UsersController extends AppController
             'titleForPage',
             __('user.avatar.edit.t', [$user->get('username')])
         );
+    }
+
+    /**
+     * Avatar upload/delete for the htmx island settings — same logic as
+     * {@see avatar()} but redirects back to the island settings (htmxEdit).
+     * CSRF-only (FormProtection-unlocked); permission is owner/edit-scoped.
+     *
+     * @param string|null $id user id
+     * @return \Cake\Http\Response
+     */
+    public function htmxAvatar($id = null)
+    {
+        $id = (int)$id;
+        if (!$this->Users->exists(['id' => $id])) {
+            throw new BadRequestException();
+        }
+        /** @var User $user */
+        $user = $this->Users->get($id);
+
+        $permission = $this->CurrentUser->permission(
+            'saito.core.user.edit',
+            (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId())
+        );
+        if (!$permission) {
+            throw new \Saito\Exception\SaitoForbiddenException(
+                "Attempt to edit avatar for user $id.",
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        if ($this->request->is(['post', 'put'])) {
+            $data = [
+                'avatar' => $this->request->getData('avatar'),
+                'avatarDelete' => $this->request->getData('avatarDelete'),
+            ];
+            if (!empty($data['avatarDelete'])) {
+                $data = ['avatar' => null, 'avatar_dir' => null];
+            }
+            $patched = $this->Users->patchEntity($user, $data);
+            if (empty($patched->getErrors()) && $this->Users->save($patched)) {
+                $this->Flash->set(__('gn.saved'), ['element' => 'success']);
+            } else {
+                $this->Flash->set(
+                    __('The user could not be saved. Please, try again.'),
+                    ['element' => 'error']
+                );
+            }
+        }
+
+        return $this->redirect(['action' => 'htmxEdit']);
     }
 
     /**
@@ -1088,6 +1555,12 @@ class UsersController extends AppController
             $this->Users->setCategory($userId, $id);
         }
 
+        // Island category chooser: no redirect — reload the thread list in place
+        // via the refresh-recent trigger.
+        if ($this->getRequest()->is('ajax')) {
+            return $this->getResponse()->withStatus(204)->withHeader('HX-Trigger', 'refresh-recent');
+        }
+
         return $this->redirect($this->referer());
     }
 
@@ -1099,10 +1572,10 @@ class UsersController extends AppController
         parent::beforeFilter($event);
         Stopwatch::start('Users->beforeFilter()');
 
-        $unlocked = ['slidetabToggle', 'slidetabOrder'];
+        $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit', 'htmxChangePassword', 'htmxAvatar'];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
-        $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs']);
+        $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs', 'htmxLogin', 'htmxRegister']);
         $this->AuthUser->authorizeAction('register', 'saito.core.user.register');
         $this->AuthUser->authorizeAction('rs', 'saito.core.user.register');
 

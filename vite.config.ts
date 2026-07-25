@@ -44,10 +44,16 @@ function underscoreHtml() {
     };
 }
 
-// One entry per build (ENTRY=app|exports); the npm script runs it twice.
-// The bundle name (app/exports) maps to its source entry file.
-const entryFiles: Record<string, string> = { app: 'index.js', exports: 'exports.js' };
-const entry = process.env.ENTRY === 'exports' ? 'exports' : 'app';
+// One entry per build (ENTRY=app|exports|htmx-threads); the npm script runs it
+// once per entry. The bundle name maps to its source entry file. `htmx-threads`
+// is the reusable htmx+Alpine thread-list island, built alongside the SPA bundles.
+const entryFiles: Record<string, string> = {
+    app: 'index.js',
+    exports: 'exports.js',
+    'htmx-threads': 'islands/htmxThreadList.ts',
+};
+const requested = process.env.ENTRY ?? 'app';
+const entry = entryFiles[requested] ? requested : 'app';
 
 export default defineConfig({
     plugins: [
