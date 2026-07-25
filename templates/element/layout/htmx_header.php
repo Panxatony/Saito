@@ -26,13 +26,32 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
         </a>
     </div>
     <div id="header-menu">
+        <?php // Left: auth — sign in / register for guests, sign out for members. ?>
+        <div class="first">
+            <?php if ($CurrentUser->isLoggedIn()) : ?>
+                <a href="<?= $webroot ?>logout?redirect=<?= urlencode($webroot . 'entries/htmx-index') ?>"
+                   class="btn btn-link" title="<?= h(__('logout_linkname')) ?>">
+                    <?= $this->Layout->textWithIcon('', 'sign-out') ?>
+                </a>
+            <?php else : ?>
+                <a href="<?= $webroot ?>users/htmx-login" class="btn btn-link js-loginModalOpen"
+                   data-login-url="<?= $webroot ?>login" title="<?= h(__('login_btn')) ?>">
+                    <?= $this->Layout->textWithIcon('', 'sign-in') ?>
+                </a>
+                <a href="<?= $webroot ?>users/htmx-register" class="btn btn-link"
+                   title="<?= h(__('register_linkname')) ?>">
+                    <?= $this->Layout->textWithIcon('', 'user-plus') ?>
+                </a>
+            <?php endif; ?>
+        </div>
+        <?php // Middle: search (opens the header search widget). ?>
         <div class="middle">
-            <?php // "New entry" lives above the thread list (see htmx_index), not here. ?>
             <a href="<?= $webroot ?>searches/htmx-simple" class="btn btn-link js-headerToggle"
-               data-hx-url="<?= $webroot ?>searches/htmx-simple?widget=1">
-                <?= $this->Layout->textWithIcon(h(__('Search')), 'search') ?>
+               data-hx-url="<?= $webroot ?>searches/htmx-simple?widget=1" title="<?= h(__('Search')) ?>">
+                <?= $this->Layout->textWithIcon('', 'search') ?>
             </a>
         </div>
+        <?php // Right: theme toggle + (members) bookmarks and profile. ?>
         <div class="last">
             <?php if ($themeCss) : ?>
                 <button type="button" class="btn btn-link" id="js-themeToggle"
@@ -49,15 +68,6 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                 <a href="<?= $webroot ?>users/htmx-profile/<?= $CurrentUser->getId() ?>" class="btn btn-link"
                    title="<?= h($CurrentUser->get('username')) ?>">
                     <?= $this->Layout->textWithIcon('', 'user') ?>
-                </a>
-                <a href="<?= $webroot ?>logout?redirect=<?= urlencode($webroot . 'entries/htmx-index') ?>"
-                   class="btn btn-link" title="<?= h(__('logout_linkname')) ?>">
-                    <?= $this->Layout->textWithIcon('', 'sign-out') ?>
-                </a>
-            <?php else : ?>
-                <a href="<?= $webroot ?>users/htmx-login" class="btn btn-link js-loginModalOpen"
-                   data-login-url="<?= $webroot ?>login">
-                    <?= $this->Layout->textWithIcon(h(__('login_btn')), 'sign-in') ?>
                 </a>
             <?php endif; ?>
         </div>

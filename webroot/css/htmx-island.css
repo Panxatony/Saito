@@ -129,6 +129,24 @@
     flex-wrap: nowrap;
 }
 
+/* Distribute the three groups: auth left, search truly centred, the rest right.
+   Equal-flex first/last make the middle sit in the header's real centre. */
+.htmx-island #header-menu {
+    flex: 1;
+    gap: 0.5rem;
+}
+.htmx-island #header-menu .first {
+    flex: 1 1 0;
+    justify-content: flex-start;
+}
+.htmx-island #header-menu .middle {
+    flex: 0 0 auto;
+}
+.htmx-island #header-menu .last {
+    flex: 1 1 0;
+    justify-content: flex-end;
+}
+
 /* Footer (disclaimer) ------------------------------------------------------- */
 .htmx-island .disclaimer {
     max-width: var(--isl-maxw);
