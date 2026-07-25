@@ -249,6 +249,14 @@
     flex-wrap: wrap;
 }
 
+/* Keep each menu group (first / middle / last) on one line, so e.g. logout
+   never breaks onto its own row; only whole groups may wrap. */
+.htmx-island #header-menu > div {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
 .htmx-island .disclaimer {
     max-width: var(--isl-maxw);
     margin: 2rem auto 1rem;
