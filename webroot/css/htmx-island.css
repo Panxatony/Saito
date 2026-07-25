@@ -86,6 +86,42 @@
     min-width: 0;
 }
 
+/* Header-triggered action slot (search) ------------------------------------- */
+/* #js-headerActions sits outside #content (direct child of #site), so constrain
+   it to the same fluid width/gutter as the content, else its card spans edge to
+   edge and misaligns with the thread list below. */
+.htmx-island #js-headerActions {
+    max-width: var(--isl-maxw);
+    margin: 0 auto;
+    padding: 0 var(--isl-gutter);
+}
+
+/* In-list new-entry editor -------------------------------------------------- */
+/* The inline editor loads bare (no card), so it looked unstyled sitting flush on
+   the page. Give it a card surface — scoped to the in-list slot so the
+   standalone /entries/htmx-add page (its own .panel) is untouched. */
+.htmx-island #js-newEntrySlot .js-addForm-wrap {
+    background: #fff;
+    border: 1px solid var(--isl-border-soft);
+    border-radius: 0.6rem;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Vertical rhythm for CakePHP's default `.input` control wrappers (label above
+   field). The Bootstrap theme styles `.form-group`, not `.input`, so the add
+   form built with FormHelper defaults needs the label/field spacing here. */
+.htmx-island .js-addForm-wrap .input {
+    margin-bottom: 0.85rem;
+}
+
+.htmx-island .js-addForm-wrap .input > label {
+    display: inline-block;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+}
+
 /* Editor toolbar ------------------------------------------------------------ */
 .htmx-island .js-editor-toolbar {
     display: flex;
