@@ -154,6 +154,13 @@ class SearchesController extends AppController
             $this->runSimpleSearch($query);
         }
 
+        // The header "search" link loads a compact widget (form + results slot).
+        if ($this->getRequest()->getQuery('widget')) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_search_widget');
+
+            return;
+        }
+
         // htmx swaps only the results fragment; a direct visit gets the shell.
         if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
             $this->viewBuilder()

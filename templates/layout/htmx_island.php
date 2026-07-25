@@ -54,6 +54,8 @@
 <body class="htmx-island">
     <div id="site">
         <?= $this->element('layout/htmx_header') ?>
+        <?php // Filled on demand by the header "new entry" / "search" links. ?>
+        <div id="js-headerActions"></div>
         <div id="content">
             <?= $this->fetch('content') ?>
         </div>
