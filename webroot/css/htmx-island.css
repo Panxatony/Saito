@@ -22,6 +22,21 @@
     padding: 0 var(--isl-gutter);
 }
 
+/* Beta notice banner (island-frontend installs only) ------------------------ */
+.htmx-island .beta-notice {
+    background: #ffce56;
+    color: #3a2f00;
+    padding: 0.5rem var(--isl-gutter);
+    text-align: center;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.htmx-island .beta-notice .fa {
+    margin-right: 0.4rem;
+}
+
 /* Slim standalone header ---------------------------------------------------- */
 .htmx-island #header.htmx-island-header {
     display: flex;
