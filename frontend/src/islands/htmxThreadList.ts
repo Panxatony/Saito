@@ -123,4 +123,30 @@ document.addEventListener('click', (event: MouseEvent) => {
     toggleInlinePosting(leaf);
 });
 
+// Answer button inside an inline-opened posting → load a reply form inline
+// (toggle). The button is the SPA's `.js-btn-setAnsweringForm`; we enhance it
+// here rather than in the shared markup so the SPA page is untouched.
+document.addEventListener('click', (event: MouseEvent) => {
+    const trigger = (event.target as HTMLElement).closest('.js-btn-setAnsweringForm');
+    if (!trigger || !trigger.closest('.js-thread-island')) {
+        return;
+    }
+    event.preventDefault();
+    const posting = trigger.closest<HTMLElement>('.js-entry-view-core');
+    const id = posting?.getAttribute('data-id');
+    if (!posting || !id) {
+        return;
+    }
+    const openForm = posting.querySelector('.js-replySlot');
+    if (openForm) {
+        openForm.remove(); // second click closes it
+
+        return;
+    }
+    const slot = document.createElement('div');
+    slot.className = 'js-replySlot';
+    posting.appendChild(slot);
+    window.htmx.ajax('GET', `/entries/htmx-reply/${id}`, { target: slot, swap: 'innerHTML' });
+});
+
 Alpine.start();

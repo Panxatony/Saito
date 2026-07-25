@@ -167,6 +167,62 @@ class EntriesController extends AppController
     }
 
     /**
+     * Inline reply to a posting, for the htmx island (strangler-fig migration).
+     *
+     * GET renders a minimal reply form; POST creates the answer via the same
+     * PostingComponent the REST API uses and returns a confirmation (or the form
+     * with validation errors). This is the write path the SPA answering module
+     * covers; the rich editor (BBCode toolbar, upload, preview) stays a later
+     * island — this is a plain subject/text form. Login required.
+     *
+     * @param string|null $id parent posting-ID
+     * @return void
+     */
+    public function htmxReply($id = null)
+    {
+        $parent = $this->Entries->get((int)$id);
+        $parentPosting = $parent->toPosting()->withCurrentUser($this->CurrentUser);
+
+        $this->viewBuilder()->disableAutoLayout();
+        $this->set('parentId', $parent->get('id'));
+
+        if ($parentPosting->isAnsweringForbidden()) {
+            $this->set('forbidden', true);
+            $this->viewBuilder()->setTemplate('htmx_reply_form');
+
+            return;
+        }
+
+        if ($this->getRequest()->is('post')) {
+            $data = [
+                'pid' => $parent->get('id'),
+                'subject' => (string)$this->getRequest()->getData('subject'),
+                'text' => (string)$this->getRequest()->getData('text'),
+                // Required by validation and set the same way as the REST add().
+                'name' => $this->CurrentUser->get('username'),
+                'user_id' => $this->CurrentUser->getId(),
+            ];
+            try {
+                $posting = $this->Posting->create($data, $this->CurrentUser);
+            } catch (SaitoForbiddenException $e) {
+                $posting = null;
+            }
+
+            if ($posting !== null && !$posting->getErrors()) {
+                $this->set('posting', $posting);
+                $this->viewBuilder()->setTemplate('htmx_reply_done');
+
+                return;
+            }
+
+            $this->set('errors', $posting !== null ? $posting->getErrors() : []);
+            $this->set('submitted', $data);
+        }
+
+        $this->viewBuilder()->setTemplate('htmx_reply_form');
+    }
+
+    /**
      * Mix view
      *
      * @param string $tid thread-ID
@@ -531,7 +587,10 @@ class EntriesController extends AppController
 
         $this->FormProtection->setConfig(
             'unlockedActions',
-            ['solve', 'view']
+            // htmxReply is a custom (non-FormHelper) form; it relies on CSRF
+            // (sent by the island) instead of a FormProtection token, like the
+            // REST posting endpoints.
+            ['solve', 'view', 'htmxReply']
         );
         $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount']);
 
