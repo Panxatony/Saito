@@ -2601,3 +2601,6 @@ msgstr "Der gesamte Thread wird verschoben und wird zu einer Antwort auf den Zie
 
 msgid "Loading …"
 msgstr "Wird geladen …"
+
+msgid "Delete this upload?"
+msgstr "Diesen Upload löschen?"

@@ -528,7 +528,51 @@ class EntriesController extends AppController
         $this->set('uploads', $uploads);
         $this->set('page', $page);
         $this->set('hasMore', ($page * $perPage) < $total);
+        // `?manage=1` (the profile view) renders a delete control per tile.
+        $this->set('manage', (bool)$this->getRequest()->getQuery('manage'));
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_uploads');
+    }
+
+    /**
+     * Delete one of the current user's uploads via the htmx island (session
+     * based; the ImageUploader REST controller is token-auth). Same permission
+     * (`saito.plugin.uploader.delete`, owner-scoped) as the REST delete. POST;
+     * returns an empty 200 so htmx removes the tile from the profile grid.
+     *
+     * @param string|null $id upload id
+     * @return \Cake\Http\Response
+     */
+    public function htmxUploadDelete($id = null)
+    {
+        $this->request->allowMethod(['post', 'delete']);
+        $id = (int)$id;
+        if ($id <= 0) {
+            throw new BadRequestException();
+        }
+        $Uploads = $this->fetchTable('ImageUploader.Uploads');
+        /** @var \ImageUploader\Model\Entity\Upload $upload */
+        $upload = $Uploads->get($id, contain: ['Users']);
+
+        $allowed = $this->CurrentUser->permission(
+            'saito.plugin.uploader.delete',
+            (new ResourceAI())->onRole($upload->user->getRole())->onOwner($upload->user->getId()),
+        );
+        if (!$allowed) {
+            throw new SaitoForbiddenException(
+                sprintf('Attempt to delete upload "%s".', $id),
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        if (!$Uploads->delete($upload)) {
+            throw new BadRequestException();
+        }
+        \Cake\Cache\Cache::delete((string)$id, 'uploadsThumbnails');
+
+        // Empty 200 (not 204) so htmx swaps the tile away via outerHTML.
+        $this->autoRender = false;
+
+        return $this->response->withStringBody('');
     }
 
     /**
@@ -999,7 +1043,7 @@ class EntriesController extends AppController
             // / FormHelper token) instead of a FormProtection token, like the REST
             // posting endpoints.
             ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
-                'htmxEdit', 'htmxMerge']
+                'htmxEdit', 'htmxMerge', 'htmxUploadDelete']
         );
         $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxWidgets']);
 

@@ -126,7 +126,7 @@ if ($user->get('signature')) {
                 <?= $this->Layout->panelHeading(__('upload_media_title')) ?>
             </div>
             <div class="card-body">
-                <div class="upload-grid" hx-get="<?= $webroot ?>entries/htmx-uploads"
+                <div class="upload-grid" hx-get="<?= $webroot ?>entries/htmx-uploads?manage=1"
                      hx-trigger="load" hx-swap="innerHTML">
                     <p class="text-muted"><?= h(__('Loading …')) ?></p>
                 </div>
