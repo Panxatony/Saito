@@ -167,6 +167,45 @@ class EntriesController extends AppController
     }
 
     /**
+     * Full thread reading view for the htmx island (strangler-fig migration).
+     *
+     * Same flattened-thread data + "mix" rendering as {@see mix()}, standalone
+     * (no SPA). The island's reply handler enhances the per-posting answer
+     * buttons. Read-only otherwise (no live view-count bump, no answering panel
+     * chrome). Public like mix().
+     *
+     * @param string|null $tid thread-ID
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxThread($tid = null)
+    {
+        $tid = (int)$tid;
+        if ($tid <= 0) {
+            throw new BadRequestException();
+        }
+
+        try {
+            $postings = $this->Entries->postingsForThread($tid, true, $this->CurrentUser);
+        } catch (RecordNotFoundException $e) {
+            $actualTid = $this->Entries->getThreadId($tid);
+
+            return $this->redirect(['action' => 'htmxThread', $actualTid], 301);
+        }
+
+        if (!$this->CurrentUser->getCategories()->permission('read', $postings->get('category'))) {
+            return $this->_requireAuth();
+        }
+
+        $this->set('entries', $postings);
+        // view_posting needs the thread root + the answering flag (set by
+        // _showAnsweringPanel only for view/mix); provide them directly.
+        $this->_setRootEntry($postings);
+        $this->set('showAnsweringPanel', $this->CurrentUser->isLoggedIn());
+        $this->set('titleForLayout', $postings->get('subject'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_thread');
+    }
+
+    /**
      * Inline reply to a posting, for the htmx island (strangler-fig migration).
      *
      * GET renders a minimal reply form; POST creates the answer via the same
@@ -592,7 +631,7 @@ class EntriesController extends AppController
             // REST posting endpoints.
             ['solve', 'view', 'htmxReply']
         );
-        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount']);
+        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread']);
 
         $this->AuthUser->authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock');
         $this->AuthUser->authorizeAction('merge', 'saito.core.posting.merge');

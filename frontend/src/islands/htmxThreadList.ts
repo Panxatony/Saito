@@ -149,6 +149,23 @@ document.addEventListener('click', (event: MouseEvent) => {
     window.htmx.ajax('GET', `/entries/htmx-reply/${id}`, { target: slot, swap: 'innerHTML' });
 });
 
+// Text link on a thread line → open the standalone htmx thread view, so a click
+// stays in the island world instead of bouncing to the SPA posting page. The
+// round icon still inline-opens; this is the "open the whole thread" affordance.
+document.addEventListener('click', (event: MouseEvent) => {
+    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a.link_show_thread');
+    if (!link || !link.closest('.js-thread-island')) {
+        return;
+    }
+    const href = link.getAttribute('href') ?? '';
+    const match = href.match(/\/entries\/view\/(\d+)/);
+    if (!match) {
+        return;
+    }
+    event.preventDefault();
+    window.location.href = href.replace(/\/entries\/view\/\d+/, `/entries/htmx-thread/${match[1]}`);
+});
+
 // Theme toggle (light / night) for the standalone header: swap the stylesheet
 // live and remember the choice under the theme's own `localStorage.theme` key,
 // so a reload keeps it (the htmx_island layout reads the same key).
