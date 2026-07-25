@@ -361,6 +361,12 @@ class EntriesController extends AppController
             if ($isRoot) {
                 $data['category_id'] = $this->getRequest()->getData('category_id');
             }
+            // `edited` / `edited_by` are server-set (never client-supplied) so the
+            // thread shows the "edited by …" marker — same as the REST edit path.
+            $data += [
+                'edited' => bDate(),
+                'edited_by' => $this->CurrentUser->get('username'),
+            ];
             try {
                 $updated = $this->Posting->update($entry, $data, $this->CurrentUser);
             } catch (SaitoForbiddenException $e) {
