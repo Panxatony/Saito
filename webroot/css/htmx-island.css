@@ -40,6 +40,14 @@
     font-size: 1.15rem;
 }
 
+/* Theme logo in the slim island header: cap its height, keep aspect ratio. */
+.htmx-island #hero-homeLink img {
+    height: 2.4rem;
+    width: auto;
+    max-width: 100%;
+    display: block;
+}
+
 .htmx-island #header-menu {
     display: flex;
     align-items: center;
