@@ -51,6 +51,7 @@
 </head>
 <body>
     <div id="site">
+        <?= $this->element('layout/htmx_header') ?>
         <div id="content">
             <?= $this->fetch('content') ?>
         </div>
