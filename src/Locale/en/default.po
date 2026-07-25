@@ -1767,3 +1767,9 @@ msgstr "Loading …"
 
 msgid "Delete this upload?"
 msgstr "Delete this upload?"
+
+msgid "user_avatar"
+msgstr "Avatar"
+
+msgid "gn.saved"
+msgstr "Saved."

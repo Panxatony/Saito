@@ -1049,6 +1049,56 @@ class UsersController extends AppController
     }
 
     /**
+     * Avatar upload/delete for the htmx island settings — same logic as
+     * {@see avatar()} but redirects back to the island settings (htmxEdit).
+     * CSRF-only (FormProtection-unlocked); permission is owner/edit-scoped.
+     *
+     * @param string|null $id user id
+     * @return \Cake\Http\Response
+     */
+    public function htmxAvatar($id = null)
+    {
+        $id = (int)$id;
+        if (!$this->Users->exists(['id' => $id])) {
+            throw new BadRequestException();
+        }
+        /** @var User $user */
+        $user = $this->Users->get($id);
+
+        $permission = $this->CurrentUser->permission(
+            'saito.core.user.edit',
+            (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId())
+        );
+        if (!$permission) {
+            throw new \Saito\Exception\SaitoForbiddenException(
+                "Attempt to edit avatar for user $id.",
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        if ($this->request->is(['post', 'put'])) {
+            $data = [
+                'avatar' => $this->request->getData('avatar'),
+                'avatarDelete' => $this->request->getData('avatarDelete'),
+            ];
+            if (!empty($data['avatarDelete'])) {
+                $data = ['avatar' => null, 'avatar_dir' => null];
+            }
+            $patched = $this->Users->patchEntity($user, $data);
+            if (empty($patched->getErrors()) && $this->Users->save($patched)) {
+                $this->Flash->set(__('gn.saved'), ['element' => 'success']);
+            } else {
+                $this->Flash->set(
+                    __('The user could not be saved. Please, try again.'),
+                    ['element' => 'error']
+                );
+            }
+        }
+
+        return $this->redirect(['action' => 'htmxEdit']);
+    }
+
+    /**
      * Edit user.
      *
      * @param null $id user-ID
@@ -1522,7 +1572,7 @@ class UsersController extends AppController
         parent::beforeFilter($event);
         Stopwatch::start('Users->beforeFilter()');
 
-        $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit', 'htmxChangePassword'];
+        $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit', 'htmxChangePassword', 'htmxAvatar'];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
         $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs', 'htmxLogin', 'htmxRegister']);

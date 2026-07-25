@@ -14,6 +14,37 @@
  */
 ?>
 <div class="users edit">
+    <?php // Avatar upload / delete (own account). Native multipart form posting to
+          // htmxAvatar, which saves and redirects back here. ?>
+    <div class="card mb-3">
+        <div class="card-header">
+            <?= $this->Layout->panelHeading(__('user_avatar')) ?>
+        </div>
+        <div class="card-body">
+            <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                <div><?= $this->User->getAvatar($user, ['link' => false]) ?></div>
+                <div style="flex:1; min-width:14rem;">
+                    <?= $this->Form->create($user, [
+                        'url' => ['action' => 'htmxAvatar', $user->get('id')], 'type' => 'file',
+                    ]) ?>
+                    <?= $this->Form->control('avatar', [
+                        'class' => 'form-control', 'type' => 'file', 'required' => false, 'label' => false,
+                    ]) ?>
+                    <div style="margin-top:.5rem;">
+                        <?= $this->Form->button(__('gn.btn.save.t'), ['type' => 'submit', 'class' => 'btn btn-primary']) ?>
+                        <?php if (!empty($user->get('avatar'))) : ?>
+                            <?= $this->Form->button(__('gn.btn.delete.t'), [
+                                'type' => 'submit', 'class' => 'btn btn-link',
+                                'name' => 'avatarDelete', 'value' => '1',
+                            ]) ?>
+                        <?php endif; ?>
+                    </div>
+                    <?= $this->Form->end() ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card mb-3">
         <div class="card-header">
             <?= $this->Layout->panelHeading(__('Settings')) ?>

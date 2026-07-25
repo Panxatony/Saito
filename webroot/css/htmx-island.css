@@ -212,6 +212,32 @@
     .htmx-island #js-uploadModal .island-modal-dialog { display: flex; flex-direction: column; }
 }
 
+/* Editor toolbar: modern ghost icon-buttons instead of solid grey Bootstrap
+   buttons. Transparent with a soft border; accent tint on hover/focus. */
+.htmx-island .js-editor-toolbar { align-items: center; }
+.htmx-island .js-editor-toolbar .btn-group { gap: 0.3rem; }
+.htmx-island .js-editor-toolbar .js-bb-btn,
+.htmx-island .js-editor-toolbar .js-insertOpen,
+.htmx-island .js-editor-toolbar .js-smiley-toggle {
+    background: transparent;
+    border: 1px solid var(--isl-border-soft);
+    color: #6b6357;
+    border-radius: 0.5rem !important;
+    padding: 0.34rem 0.55rem;
+    transition: background .12s, color .12s, border-color .12s;
+}
+.htmx-island .js-editor-toolbar .js-bb-btn:hover,
+.htmx-island .js-editor-toolbar .js-insertOpen:hover,
+.htmx-island .js-editor-toolbar .js-smiley-toggle:hover,
+.htmx-island .js-editor-toolbar .js-bb-btn:focus,
+.htmx-island .js-editor-toolbar .js-insertOpen:focus,
+.htmx-island .js-editor-toolbar .js-smiley-toggle:focus {
+    background: rgba(254, 86, 3, 0.08);
+    border-color: var(--isl-accent, #fe5603);
+    color: var(--isl-accent, #fe5603);
+    box-shadow: none;
+}
+
 /* Smiley picker panel (editor toolbar). Full-width row of smiley buttons. */
 .htmx-island .smiley-panel {
     display: flex;
