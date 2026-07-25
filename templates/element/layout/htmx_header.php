@@ -34,9 +34,11 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                     <?= $this->Layout->textWithIcon('', 'sign-out') ?>
                 </a>
             <?php else : ?>
+                <?php // The theme hides .saito-icon-text globally, so render the label
+                      // as a plain span (island-btn-label) instead of textWithIcon. ?>
                 <a href="<?= $webroot ?>users/htmx-login" class="btn btn-link js-authModalOpen"
                    data-modal-url="<?= $webroot ?>login" title="<?= h(__('login_btn')) ?>">
-                    <?= $this->Layout->textWithIcon(h(__('login_btn')), 'sign-in') ?>
+                    <i class="fa fa-sign-in" aria-hidden="true"></i><span class="island-btn-label"><?= h(__('login_btn')) ?></span>
                 </a>
                 <a href="<?= $webroot ?>users/htmx-register" class="btn btn-link js-authModalOpen"
                    data-modal-url="<?= $webroot ?>users/htmx-register" title="<?= h(__('register_linkname')) ?>">

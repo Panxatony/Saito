@@ -15,15 +15,16 @@
 
 $webroot = $this->request->getAttribute('webroot');
 
-// Role → status icon shown before an online user's name.
+// Role → status icon shown before an online user's name. All glyphs exist in
+// the theme's Font-Awesome 4 set (no fa-crown there — owner uses fa-trophy).
 $roleIcon = function (string $type): string {
     switch ($type) {
         case 'owner':
-            return 'star';
+            return 'trophy';
         case 'admin':
             return 'certificate';
         case 'mod':
-            return 'magic';
+            return 'star'; // sheriff star
         default:
             return 'user';
     }
