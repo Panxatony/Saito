@@ -376,7 +376,9 @@ class UsersController extends AppController
         if (!$id) {
             throw new BadRequestException();
         }
-        $code = $this->request->getQuery('c');
+        // Cast so a missing `?c=` is an empty string (a failed activation), not
+        // a TypeError that the Exception catch below would not catch.
+        $code = (string)$this->request->getQuery('c');
         try {
             $activated = $this->Users->activate((int)$id, $code);
         } catch (\Exception $e) {
@@ -386,6 +388,8 @@ class UsersController extends AppController
             $activated = ['status' => 'fail'];
         }
         $this->set('status', $activated['status']);
+        // Activation landing (reached from the email link) — island-styled.
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_rs');
     }
 
     /**
