@@ -274,6 +274,40 @@ document.addEventListener('change', (event: Event) => {
     })();
 });
 
+// Editor preview: render the current textarea through htmxPreview and show the
+// result in the toolbar's preview box. Wired explicitly (not via htmx's fragile
+// `next` target inside the hx-post form) so it works in the inline editor too.
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-bb-preview');
+    if (!btn) {
+        return;
+    }
+    event.preventDefault();
+    const toolbar = btn.closest('.js-editor-toolbar');
+    const textarea = btn.closest('form')?.querySelector<HTMLTextAreaElement>('textarea[name="text"]');
+    const box = toolbar?.querySelector<HTMLElement>('.js-editor-preview');
+    if (!textarea || !box) {
+        return;
+    }
+    const url = btn.getAttribute('data-preview-url') ?? '/entries/htmx-preview';
+    const body = new URLSearchParams({ text: textarea.value });
+    void fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-Token': csrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+        credentials: 'same-origin',
+    })
+        .then((r) => r.text())
+        .then((html) => {
+            box.innerHTML = html;
+        })
+        .catch(() => undefined);
+});
+
 // Theme toggle (light / night) for the standalone header: swap the stylesheet
 // live and remember the choice under the theme's own `localStorage.theme` key,
 // so a reload keeps it (the htmx_island layout reads the same key).

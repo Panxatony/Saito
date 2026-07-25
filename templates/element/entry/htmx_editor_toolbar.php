@@ -68,10 +68,7 @@ $buttons = [
     </button>
     <input type="file" class="js-bb-file" accept="image/*,video/*,audio/*" multiple style="display: none;">
     <button type="button" class="btn btn-sm btn-link js-bb-preview"
-            hx-post="<?= h($previewUrl) ?>"
-            hx-include="closest form"
-            hx-target="next .js-editor-preview"
-            hx-swap="innerHTML">
+            data-preview-url="<?= h($previewUrl) ?>">
         <?= $icon($icons['eye']) ?> <?= h(__('Preview')) ?>
     </button>
     <div class="js-editor-preview"></div>
