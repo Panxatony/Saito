@@ -276,6 +276,14 @@
     font-size: 1.15rem;
 }
 
+/* The theme underlines #header-hero and #header-menu (border-bottom !important),
+   which shows as stray rules under the logo and under the icon row. The slim
+   island header carries its own single bottom border, so drop those. */
+.htmx-island #header-hero,
+.htmx-island #header-menu {
+    border-bottom: 0 !important;
+}
+
 /* Theme logo in the slim island header: cap its height, keep aspect ratio. */
 .htmx-island #hero-homeLink img {
     height: 2.4rem;
