@@ -11,7 +11,7 @@
 foreach ($users as $user) : ?>
     <tr>
         <td>
-            <?= $this->Html->link($user->get('username'), '/users/view/' . $user->get('id')) ?>
+            <?= $this->Html->link($user->get('username'), '/users/htmx-profile/' . $user->get('id')) ?>
         </td>
         <td>
             <?php

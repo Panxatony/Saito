@@ -476,6 +476,47 @@ class UsersController extends AppController
     }
 
     /**
+     * A user's profile as an htmx island (strangler-fig migration).
+     *
+     * A slim, standalone version of {@see view()}: the profile summary plus the
+     * user's recent postings (reusing the recent_posts_list element inside a
+     * .js-thread-island, so the island enhances them). Login required.
+     *
+     * @param string|null $id user-ID
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxProfile($id = null)
+    {
+        $id = (int)$id;
+        $user = $this->Users->find()
+            ->where(['Users.id' => $id])
+            ->contain(['UserOnline'])
+            ->first();
+
+        if (empty($user)) {
+            $this->Flash->set(__('Invalid user'), ['element' => 'error']);
+
+            return $this->redirect('/');
+        }
+
+        $entriesShownOnPage = 20;
+        $this->set(
+            'lastEntries',
+            $this->Users->Entries->getRecentPostings(
+                $this->CurrentUser,
+                ['user_id' => $id, 'limit' => $entriesShownOnPage]
+            )
+        );
+        $this->set(
+            'hasMoreEntriesThanShownOnPage',
+            ($user->numberOfPostings() - $entriesShownOnPage) > 0
+        );
+        $this->set('user', $user);
+        $this->set('titleForLayout', $user->get('username'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_profile');
+    }
+
+    /**
      * Ignore user.
      *
      * @return void
