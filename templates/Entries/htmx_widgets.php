@@ -23,7 +23,7 @@ $roleIcon = function (string $type): string {
         case 'admin':
             return 'certificate';
         case 'mod':
-            return 'shield';
+            return 'magic';
         default:
             return 'user';
     }
