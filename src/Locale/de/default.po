@@ -2541,3 +2541,6 @@ msgstr "Dein Beitrag wurde gespeichert."
 
 msgid "Answering is not allowed here."
 msgstr "Antworten ist hier nicht erlaubt."
+
+msgid "subject"
+msgstr "Betreff"

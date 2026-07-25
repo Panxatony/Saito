@@ -1704,3 +1704,6 @@ msgstr "Show thread"
 
 msgid "register_password_confirm"
 msgstr "Confirm password"
+
+msgid "subject"
+msgstr "Subject"
