@@ -188,6 +188,58 @@ document.addEventListener('click', (event: MouseEvent) => {
     textarea.selectionEnd = start + open.length + selected.length;
 });
 
+// Editor upload: the upload button opens the hidden file picker …
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest('.js-bb-upload');
+    if (!btn) {
+        return;
+    }
+    event.preventDefault();
+    btn.closest('.js-editor-toolbar')
+        ?.querySelector<HTMLInputElement>('.js-bb-file')
+        ?.click();
+});
+
+// … and picking a file POSTs it and inserts the [tag src=upload]name[/tag].
+document.addEventListener('change', (event: Event) => {
+    const input = (event.target as HTMLElement).closest<HTMLInputElement>('.js-bb-file');
+    if (!input || !input.files || input.files.length === 0) {
+        return;
+    }
+    const textarea = input.closest('form')?.querySelector<HTMLTextAreaElement>('textarea');
+    const token = document
+        .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+    const body = new FormData();
+    body.append('file', input.files[0]);
+
+    void fetch('/entries/htmx-upload', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': token, 'X-Requested-With': 'XMLHttpRequest' },
+        body,
+        credentials: 'same-origin',
+    })
+        .then((response) => response.json())
+        .then((data: { name?: string; mime?: string; error?: string }) => {
+            input.value = '';
+            if (data.error || !data.name || !textarea) {
+                if (data.error) {
+                    window.alert(data.error);
+                }
+
+                return;
+            }
+            const type = (data.mime ?? '').split('/')[0];
+            const tag = type === 'video' || type === 'audio' ? type : type === 'image' ? 'img' : 'file';
+            const bb = `[${tag} src=upload]${data.name}[/${tag}]`;
+            const pos = textarea.selectionStart ?? textarea.value.length;
+            textarea.value = textarea.value.slice(0, pos) + bb + textarea.value.slice(pos);
+            textarea.focus();
+        })
+        .catch(() => {
+            input.value = '';
+        });
+});
+
 // Theme toggle (light / night) for the standalone header: swap the stylesheet
 // live and remember the choice under the theme's own `localStorage.theme` key,
 // so a reload keeps it (the htmx_island layout reads the same key).

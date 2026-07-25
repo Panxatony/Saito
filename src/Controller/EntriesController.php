@@ -260,6 +260,54 @@ class EntriesController extends AppController
     }
 
     /**
+     * Store an image/file upload for the htmx editor and return its name so the
+     * editor can insert the `[img src=upload]<name>[/img]` tag. Session-based
+     * (the REST UploadsController is token-auth); reuses the exact same secure
+     * storage via UploadsTable::createFromUpload(). Login required.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function htmxUpload()
+    {
+        $userId = $this->CurrentUser->getId();
+        $user = $this->fetchTable('Users')->get($userId);
+        $resourceAi = (new \Saito\User\Permission\ResourceAI())
+            ->onRole($user->getRole())
+            ->onOwner($user->getId());
+        if (!$this->CurrentUser->permission('saito.plugin.uploader.add', $resourceAi)) {
+            throw new SaitoForbiddenException(
+                'Upload not allowed.',
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        $file = \Saito\RequestUpload::toArray($this->getRequest()->getUploadedFile('file'));
+        if ($file === null || empty($file['tmp_name'])) {
+            return $this->response
+                ->withType('json')
+                ->withStatus(422)
+                ->withStringBody((string)json_encode(['error' => __d('image_uploader', 'add.failure')]));
+        }
+
+        $Uploads = $this->fetchTable('ImageUploader.Uploads');
+        try {
+            $upload = $Uploads->createFromUpload($file, $userId);
+        } catch (\RuntimeException $e) {
+            return $this->response
+                ->withType('json')
+                ->withStatus(422)
+                ->withStringBody((string)json_encode(['error' => $e->getMessage()]));
+        }
+
+        return $this->response
+            ->withType('json')
+            ->withStringBody((string)json_encode([
+                'name' => $upload->get('name'),
+                'mime' => $upload->get('type'),
+            ]));
+    }
+
+    /**
      * Inline reply to a posting, for the htmx island (strangler-fig migration).
      *
      * GET renders a minimal reply form; POST creates the answer via the same
@@ -680,10 +728,10 @@ class EntriesController extends AppController
 
         $this->FormProtection->setConfig(
             'unlockedActions',
-            // htmxReply/htmxAdd/htmxPreview rely on CSRF (island header /
-            // FormHelper token) instead of a FormProtection token, like the REST
+            // htmxReply/htmxAdd/htmxPreview/htmxUpload rely on CSRF (island header
+            // / FormHelper token) instead of a FormProtection token, like the REST
             // posting endpoints.
-            ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview']
+            ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload']
         );
         $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread']);
 
