@@ -104,6 +104,35 @@ class EntriesController extends AppController
     }
 
     /**
+     * Front-page thread list as an htmx island (strangler-fig migration).
+     *
+     * Same paginated thread data as {@see index()} (Threads->paginate), rendered
+     * standalone (no SPA). An `HX-Request` returns just the thread-list page
+     * fragment (for htmx "load more" pagination); a direct visit gets the shell.
+     * Read-only: the mark-as-read side effects, category chooser and slidetabs
+     * of index() are intentionally out of scope for this slice.
+     *
+     * @return void
+     */
+    public function htmxIndex()
+    {
+        $sortKey = $this->CurrentUser->get('user_sort_last_answer') ? 'last_answer' : 'time';
+        $order = ['fixed' => 'DESC', $sortKey => 'DESC'];
+
+        $this->set('entries', $this->Threads->paginate($order, $this->CurrentUser));
+
+        // htmx swaps only the thread-list page fragment; a direct visit gets
+        // the shell page in the standalone htmx_island layout.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()
+                ->disableAutoLayout()
+                ->setTemplate('htmx_index_threads');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_index');
+        }
+    }
+
+    /**
      * Mix view
      *
      * @param string $tid thread-ID
@@ -470,7 +499,7 @@ class EntriesController extends AppController
             'unlockedActions',
             ['solve', 'view']
         );
-        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update']);
+        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex']);
 
         $this->AuthUser->authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock');
         $this->AuthUser->authorizeAction('merge', 'saito.core.posting.merge');
