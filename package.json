@@ -96,7 +96,7 @@
     "pretest": "eslint --fix \"frontend/src/**/*.ts\"",
     "test": "karma start --single-run --browsers ChromiumHeadlessCustom",
     "karma": "karma start --browsers ChromiumHeadlessCustom",
-    "build": "ENTRY=app vite build && ENTRY=exports vite build && ENTRY=htmx-recent vite build",
+    "build": "ENTRY=app vite build && ENTRY=exports vite build && ENTRY=htmx-threads vite build",
     "dev": "ENTRY=app vite build --watch",
     "webpack:legacy": "webpack --watch"
   }

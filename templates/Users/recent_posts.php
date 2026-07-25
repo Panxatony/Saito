@@ -6,8 +6,8 @@
  * Reachable at /users/recent-posts/<id>. The htmx container pulls the
  * server-rendered list fragment from the same action (which returns just the
  * fragment when the `HX-Request` header is present). Alpine drives the local
- * auto-refresh toggle; htmx does the fetching and DOM swap. The island bundle
- * (htmx-recent.bundle.js) is loaded only here and coexists with the SPA.
+ * auto-refresh toggle; htmx does the fetching and DOM swap. The reusable
+ * thread-list island (htmx-threads.bundle.js) is loaded only here.
  *
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\User $user
@@ -63,7 +63,7 @@ $csrfToken = $this->getRequest()->getAttribute('csrfToken');
             <span id="js-recentPostsSpinner" class="htmx-indicator">
                 <i class="fa fa-spinner fa-spin"></i> <?= __('Loading') ?>&hellip;
             </span>
-            <div id="js-recentPostsList"
+            <div id="js-recentPostsList" class="js-thread-island"
                  hx-get="<?= h($fragmentUrl) ?>"
                  hx-trigger="load, refresh-recent from:body"
                  hx-swap="innerHTML"
@@ -74,6 +74,6 @@ $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 </div>
 
 <?php
-// The htmx + Alpine island, built by Vite (ENTRY=htmx-recent). Loaded only on
-// this page; cache-busted by Asset.timestamp.
-echo $this->Html->script('htmx-recent.bundle.js');
+// The reusable htmx + Alpine thread-list island, built by Vite
+// (ENTRY=htmx-threads). Cache-busted by Asset.timestamp.
+echo $this->Html->script('htmx-threads.bundle.js');

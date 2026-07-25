@@ -7,20 +7,17 @@
  */
 
 /**
- * PoC island: htmx + Alpine.js for the server-rendered recent-postings view.
+ * Reusable htmx + Alpine.js island for server-rendered thread-line lists
+ * (recent postings, search results, …). This is the "island" delivery model the
+ * Vite migration enables: a small, self-contained bundle loaded only on the
+ * pages that need it, replacing the legacy Backbone/Marionette SPA for that view.
  *
- * This is the "island" delivery model the Vite migration enables: a small,
- * self-contained bundle loaded only on the page that needs it, coexisting with
- * the legacy Backbone/Marionette SPA (app.bundle.js) on the same document.
- * htmx fetches/refreshes the server-rendered fragment; Alpine drives the local
- * interactivity (the auto-refresh toggle).
- *
- * Second strangler-fig slice: progressive enhancement of the recent-post
- * lines. Each `<a class="link_show_thread" href="entries/view/ID">` is a real
- * link that works without JS (it navigates to the posting). With the island
- * loaded, a click instead loads the posting *inline* via an htmx POST to the
- * existing `entries/view/ID` endpoint (which returns the `view_posting`
- * fragment for AJAX requests) — proving the htmx POST + CSRF path end-to-end.
+ * Any container marked `.js-thread-island` gets progressive enhancement of its
+ * recent/search thread lines: the round thread icon (`.btn_show_thread`) toggles
+ * the posting inline via an htmx POST to the existing `entries/view/ID` endpoint
+ * (which returns the `view_posting` fragment for AJAX requests); the text link
+ * (`.link_show_thread`) keeps its normal navigation to the full post. Alpine
+ * drives any page-local interactivity declared in the template.
  */
 import htmx from 'htmx.org';
 import Alpine from 'alpinejs';
@@ -32,8 +29,8 @@ declare global {
     }
 }
 
-// Expose the globals so the inline Alpine `x-data` and the htmx event triggers
-// in the template can reach them.
+// Expose the globals so inline Alpine `x-data` and the template's htmx triggers
+// can reach them.
 window.htmx = htmx;
 window.Alpine = Alpine;
 
@@ -56,13 +53,6 @@ document.body.addEventListener('htmx:configRequest', (event: Event) => {
 });
 
 /**
- * Toggle a recent-post line's inline posting. First open POSTs to
- * entries/view/ID (via htmx, so CSRF + X-Requested-With are attached) and
- * reveals the returned fragment; later clicks just show/hide it.
- *
- * @param leaf the `.threadLeaf` list item
- */
-/**
  * Reflect the open/closed state in the round thread icon: a close (times) glyph
  * while open, the thread glyph while closed.
  *
@@ -75,6 +65,13 @@ function setIconState(leaf: HTMLElement, open: boolean): void {
     icon?.classList.toggle('fa-times', open);
 }
 
+/**
+ * Toggle a thread line's inline posting. The first open POSTs to entries/view/ID
+ * (via htmx, so CSRF + X-Requested-With are attached) and reveals the returned
+ * fragment; later clicks just show/hide it.
+ *
+ * @param leaf the `.threadLeaf` list item
+ */
 function toggleInlinePosting(leaf: HTMLElement): void {
     // Already loaded once → just show/hide it. Use an inline `display` style so
     // it wins over the `.threadInline-slider` stylesheet rule.
@@ -110,13 +107,12 @@ function toggleInlinePosting(leaf: HTMLElement): void {
     window.htmx.ajax('POST', url, { target: inner, swap: 'innerHTML' });
 }
 
-// Only the round thread icon (`.btn_show_thread`) toggles the inline posting;
-// the text link (`.link_show_thread`) keeps its normal navigation so the full
-// post/thread can still be opened from the recent-posts view. Scoped to our
-// island container (`#js-recentPostsList`).
+// Delegate clicks: only the round thread icon toggles the inline posting, and
+// only inside a `.js-thread-island` container (so htmx-swapped results are
+// covered too, without re-binding).
 document.addEventListener('click', (event: MouseEvent) => {
     const trigger = (event.target as HTMLElement).closest('.btn_show_thread');
-    if (!trigger || !trigger.closest('#js-recentPostsList')) {
+    if (!trigger || !trigger.closest('.js-thread-island')) {
         return;
     }
     const leaf = trigger.closest<HTMLElement>('.threadLeaf');

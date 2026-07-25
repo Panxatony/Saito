@@ -44,13 +44,13 @@ function underscoreHtml() {
     };
 }
 
-// One entry per build (ENTRY=app|exports|htmx-recent); the npm script runs it
-// once per entry. The bundle name maps to its source entry file. `htmx-recent`
-// is the htmx+Alpine PoC island, built alongside the main SPA bundles.
+// One entry per build (ENTRY=app|exports|htmx-threads); the npm script runs it
+// once per entry. The bundle name maps to its source entry file. `htmx-threads`
+// is the reusable htmx+Alpine thread-list island, built alongside the SPA bundles.
 const entryFiles: Record<string, string> = {
     app: 'index.js',
     exports: 'exports.js',
-    'htmx-recent': 'islands/htmxRecentPosts.ts',
+    'htmx-threads': 'islands/htmxThreadList.ts',
 };
 const requested = process.env.ENTRY ?? 'app';
 const entry = entryFiles[requested] ? requested : 'app';
