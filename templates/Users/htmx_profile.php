@@ -70,12 +70,28 @@ if ($user->get('signature')) {
             <table class="table th-left elegant">
                 <?= $this->Html->tableCells($rows) ?>
             </table>
-            <?php // Own profile → offer the settings page (the header cog was removed). ?>
+            <?php // Own profile → settings; another member's → ignore toggle. ?>
             <?php if ($CurrentUser->isLoggedIn() && $CurrentUser->isUser($user)) : ?>
                 <div class="mt-3">
                     <a href="<?= $this->request->getAttribute('webroot') ?>users/htmx-edit" class="btn btn-primary">
                         <?= $this->Layout->textWithIcon(h(__('Settings')), 'cog') ?>
                     </a>
+                </div>
+            <?php elseif ($CurrentUser->isLoggedIn()) : ?>
+                <?php // Ignore / unignore this member — reuses the classic POST actions
+                      // (they redirect back to the referer, i.e. this profile). ?>
+                <?php $isIgnored = (bool)$CurrentUser->ignores((int)$user->get('id')); ?>
+                <div class="mt-3">
+                    <?= $this->Form->create(null, [
+                        'url' => ['controller' => 'Users', 'action' => $isIgnored ? 'unignore' : 'ignore'],
+                    ]) ?>
+                    <?= $this->Form->hidden('id', ['value' => (int)$user->get('id')]) ?>
+                    <?= $this->Form->button(
+                        '<i class="fa fa-' . ($isIgnored ? 'check' : 'ban') . '"></i> '
+                            . h($isIgnored ? __('unignore_this_user') : __('ignore_this_user')),
+                        ['type' => 'submit', 'class' => 'btn btn-outline-secondary', 'escapeTitle' => false]
+                    ) ?>
+                    <?= $this->Form->end() ?>
                 </div>
             <?php endif; ?>
         </div>
@@ -92,6 +108,31 @@ if ($user->get('signature')) {
             ) ?>
         </div>
     </div>
+
+    <?php // Own profile → private sections: bookmarks + uploads, lazy-loaded via
+          // htmx from their existing island endpoints (HX-Request → fragment). ?>
+    <?php if ($CurrentUser->isLoggedIn() && $CurrentUser->isUser($user)) : ?>
+        <?php $webroot = $this->request->getAttribute('webroot'); ?>
+        <div class="card mb-3">
+            <div class="card-header">
+                <?= $this->Layout->panelHeading(__('bkm.title.pl')) ?>
+            </div>
+            <div class="card-body js-thread-island"
+                 hx-get="<?= $webroot ?>users/bookmarks" hx-trigger="load" hx-swap="innerHTML">
+                <p class="text-muted"><?= h(__('Loading …')) ?></p>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <?= $this->Layout->panelHeading(__('upload_media_title')) ?>
+            </div>
+            <div class="card-body"
+                 hx-get="<?= $webroot ?>entries/htmx-uploads" hx-trigger="load" hx-swap="innerHTML">
+                <p class="text-muted"><?= h(__('Loading …')) ?></p>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php
