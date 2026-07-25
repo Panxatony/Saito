@@ -18,6 +18,23 @@ $font-color-old: $primary;
 $font-color-current: #ee7f00;
 */
 
+/******************************************************************************
+ * Saito 8 — same structural modernization as theme.scss (rounded, roomy),
+ * so the dark preset matches the refreshed light theme.
+ ******************************************************************************/
+
+$enable-rounded: true;
+$border-radius: 0.5rem;
+$border-radius-sm: 0.35rem;
+$border-radius-lg: 0.7rem;
+
+$input-btn-padding-y: 0.45rem;
+$input-btn-padding-x: 0.85rem;
+$input-btn-padding-y-sm: 0.3rem;
+
+$font-size-base: 1rem;
+$line-height-base: 1.55;
+
 
 /******************************************************************************
  * Core Theme Include
