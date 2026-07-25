@@ -11,8 +11,15 @@
  */
 
 $csrfToken = $this->getRequest()->getAttribute('csrfToken');
+$webroot = $this->getRequest()->getAttribute('webroot');
 ?>
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
+
+<p class="mix-back" style="margin: 0 0 .75rem;">
+    <a href="<?= $webroot ?>entries/htmx-index" class="btn btn-link" rel="nofollow">
+        <?= $this->Layout->textWithIcon(h(__('Back')), 'arrow-left') ?>
+    </a>
+</p>
 
 <div class="entry mix js-thread-island">
     <?= $this->Posting->renderThread($entries, ['renderer' => 'mix']) ?>

@@ -202,6 +202,12 @@ class EntriesController extends AppController
         $this->_setRootEntry($postings);
         $this->set('showAnsweringPanel', $this->CurrentUser->isLoggedIn());
         $this->set('titleForLayout', $postings->get('subject'));
+
+        // Same side effects as the SPA mix() view: bump the view counter and
+        // mark the whole thread read for the current user.
+        $this->Threads->incrementViewsForThread($postings, $this->CurrentUser);
+        $this->MarkAsRead->thread($postings);
+
         $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_thread');
     }
 
