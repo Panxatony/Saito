@@ -70,6 +70,14 @@ if ($user->get('signature')) {
             <table class="table th-left elegant">
                 <?= $this->Html->tableCells($rows) ?>
             </table>
+            <?php // Own profile → offer the settings page (the header cog was removed). ?>
+            <?php if ($CurrentUser->isLoggedIn() && $CurrentUser->isUser($user)) : ?>
+                <div class="mt-3">
+                    <a href="<?= $this->request->getAttribute('webroot') ?>users/htmx-edit" class="btn btn-primary">
+                        <?= $this->Layout->textWithIcon(h(__('Settings')), 'cog') ?>
+                    </a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
