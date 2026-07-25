@@ -1758,3 +1758,6 @@ msgstr "Bots"
 
 msgid "beta_notice_help"
 msgstr "New here? Go ahead and tap the help icon above – the tour is painless."
+
+msgid "The whole thread will be moved so it becomes an answer to the target posting."
+msgstr "The whole thread will be moved so it becomes an answer to the target posting."

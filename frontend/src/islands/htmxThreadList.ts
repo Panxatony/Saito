@@ -534,6 +534,25 @@ if (document.readyState === 'loading') {
     enhanceExistingPostings();
 }
 
+// Keep edit / merge inside the island: the shared posting template renders
+// classic links (/entries/edit|merge/<id>) that would drop into the SPA. Point
+// them at the island equivalents instead (replace in place to keep any webroot
+// prefix).
+document.addEventListener('click', (event: MouseEvent) => {
+    const a = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href]');
+    if (!a || !a.closest('.js-thread-island')) {
+        return;
+    }
+    const href = a.getAttribute('href') ?? '';
+    if (/\/entries\/edit\/\d+/.test(href)) {
+        event.preventDefault();
+        window.location.href = href.replace(/\/entries\/edit\/(\d+)/, '/entries/htmx-edit/$1');
+    } else if (/\/entries\/merge\/\d+/.test(href)) {
+        event.preventDefault();
+        window.location.href = href.replace(/\/entries\/merge\/(\d+)/, '/entries/htmx-merge/$1');
+    }
+});
+
 // Auto-dismiss the "post saved" confirmation a few seconds after it appears.
 document.body.addEventListener('htmx:afterSwap', (event: Event) => {
     const target = (event as CustomEvent).detail?.target as HTMLElement | undefined;

@@ -2595,3 +2595,6 @@ msgstr "Bots"
 
 msgid "beta_notice_help"
 msgstr "Neu hier? Klick ruhig mal aufs Hilfe-Icon oben – der Rundgang tut nicht weh."
+
+msgid "The whole thread will be moved so it becomes an answer to the target posting."
+msgstr "Der gesamte Thread wird verschoben und wird zu einer Antwort auf den Ziel-Beitrag."

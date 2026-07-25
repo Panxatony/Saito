@@ -322,6 +322,123 @@ class EntriesController extends AppController
     }
 
     /**
+     * Edit an existing posting via the htmx island — the counterpart to the
+     * classic edit()/REST update path (which are token-auth). Standalone island
+     * page: GET renders the edit form pre-filled, POST updates via the same
+     * PostingComponent the REST API uses and redirects back to the thread.
+     * Permission is enforced by the posting itself (isEditingAllowed); a
+     * mod-editing notice is shown when editing another user's posting. Login
+     * required.
+     *
+     * @param string|null $id posting id
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxEdit($id = null)
+    {
+        $id = (int)$id;
+        if ($id <= 0) {
+            throw new BadRequestException();
+        }
+        $entry = $this->Entries->get($id);
+        $posting = $entry->toPosting()->withCurrentUser($this->CurrentUser);
+
+        if (!$posting->isEditingAllowed()) {
+            throw new SaitoForbiddenException(
+                'Access to posting in EntriesController:htmxEdit() forbidden.',
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        $isRoot = $entry->isRoot();
+        $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+
+        if ($this->getRequest()->is(['post', 'put'])) {
+            $data = [
+                'subject' => (string)$this->getRequest()->getData('subject'),
+                'text' => (string)$this->getRequest()->getData('text'),
+            ];
+            // Only a thread's root carries the category.
+            if ($isRoot) {
+                $data['category_id'] = $this->getRequest()->getData('category_id');
+            }
+            try {
+                $updated = $this->Posting->update($entry, $data, $this->CurrentUser);
+            } catch (SaitoForbiddenException $e) {
+                $updated = null;
+            }
+
+            if ($updated !== null && !$updated->getErrors()) {
+                $threadUrl = \Cake\Routing\Router::url(
+                    ['action' => 'htmxThread', $entry->get('tid')]
+                ) . '#p' . $id;
+                if ($isHx) {
+                    return $this->response->withHeader('HX-Redirect', $threadUrl);
+                }
+
+                return $this->redirect($threadUrl);
+            }
+
+            $this->set('errors', $updated !== null ? $updated->getErrors() : []);
+        }
+
+        // Editing another user's posting (moderator) — warn like the classic form.
+        if (!$posting->isEditingAsUserAllowed()) {
+            $this->set('editingAsMod', true);
+        }
+
+        if ($isRoot) {
+            $this->set('categories', $this->CurrentUser->getCategories()->getAll('thread', 'select'));
+        }
+        $this->set('posting', $posting);
+        $this->set('isRoot', $isRoot);
+        $this->set('titleForLayout', __('edit_linkname'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_edit_posting');
+    }
+
+    /**
+     * Merge a root thread onto another via the htmx island — the counterpart to
+     * the classic merge() (Admin-layout) action. Authorized in beforeFilter with
+     * `saito.core.posting.merge` (moderators). GET renders a standalone island
+     * form asking for the target posting id; POST performs the merge and
+     * redirects to the (now merged) thread.
+     *
+     * @param string|null $sourceId root posting id to merge away
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxMerge($sourceId = null)
+    {
+        $sourceId = (int)$sourceId;
+        if ($sourceId <= 0) {
+            throw new NotFoundException();
+        }
+
+        /** @var \App\Model\Entity\Entry $entry */
+        $entry = $this->Entries->findById($sourceId)->first();
+        if (!$entry || !$entry->isRoot()) {
+            throw new NotFoundException();
+        }
+
+        $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+
+        if ($this->getRequest()->is('post')) {
+            $targetId = (int)$this->getRequest()->getData('targetId');
+            if ($targetId > 0 && $this->Entries->threadMerge($sourceId, $targetId)) {
+                $threadUrl = \Cake\Routing\Router::url(['action' => 'htmxThread', $sourceId]);
+                if ($isHx) {
+                    return $this->response->withHeader('HX-Redirect', $threadUrl);
+                }
+
+                return $this->redirect($threadUrl);
+            }
+            $this->set('mergeError', true);
+        }
+
+        $this->set('posting', $entry);
+        $this->set('titleForLayout', __('merge_tree_link'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_merge');
+    }
+
+    /**
      * Render a BBCode preview for the htmx editor toolbar (session-based; the
      * REST PreviewController is token-auth only). Login required.
      *
@@ -875,12 +992,14 @@ class EntriesController extends AppController
             // htmxReply/htmxAdd/htmxPreview/htmxUpload rely on CSRF (island header
             // / FormHelper token) instead of a FormProtection token, like the REST
             // posting endpoints.
-            ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark']
+            ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
+                'htmxEdit', 'htmxMerge']
         );
         $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxWidgets']);
 
         $this->AuthUser->authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock');
         $this->AuthUser->authorizeAction('merge', 'saito.core.posting.merge');
+        $this->AuthUser->authorizeAction('htmxMerge', 'saito.core.posting.merge');
         $this->AuthUser->authorizeAction('delete', 'saito.core.posting.delete');
 
         Stopwatch::stop('Entries->beforeFilter()');
