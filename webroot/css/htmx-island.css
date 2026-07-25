@@ -16,15 +16,19 @@
     --isl-fill-strong: rgba(128, 128, 128, 0.12);
     --isl-radius: 10px;
     --isl-radius-sm: 7px;
+    /* Fluid content width: uses the browser width, capped on ultra-wide so
+       lines don't get unreadably long. Side padding scales with the viewport. */
+    --isl-maxw: min(1600px, 100%);
+    --isl-gutter: clamp(1rem, 4vw, 3rem);
 
     -webkit-font-smoothing: antialiased;
     line-height: 1.55;
 }
 
 .htmx-island #content {
-    max-width: 860px;
+    max-width: var(--isl-maxw);
     margin: 1.5rem auto;
-    padding: 0 1rem;
+    padding: 0 var(--isl-gutter);
 }
 
 /* Cards / panels ------------------------------------------------------------ */
@@ -227,9 +231,9 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 0.5rem;
-    max-width: 860px;
+    max-width: var(--isl-maxw);
     margin: 0 auto;
-    padding: 0.6rem 1rem;
+    padding: 0.6rem var(--isl-gutter);
     border-bottom: 1px solid var(--isl-border-soft);
 }
 
@@ -246,9 +250,9 @@
 }
 
 .htmx-island .disclaimer {
-    max-width: 860px;
+    max-width: var(--isl-maxw);
     margin: 2rem auto 1rem;
-    padding: 1.25rem 1rem;
+    padding: 1.25rem var(--isl-gutter);
     border-top: 1px solid var(--isl-border-soft);
     font-size: 0.9rem;
     opacity: 0.9;
