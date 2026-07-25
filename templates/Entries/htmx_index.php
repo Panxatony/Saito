@@ -15,11 +15,23 @@
  */
 
 $csrfToken = $this->getRequest()->getAttribute('csrfToken');
+$webroot = $this->getRequest()->getAttribute('webroot');
 ?>
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
 <?php // Live poll: every 30s ask whether new postings arrived since page load. ?>
 <?= $this->element('entry/htmx_new_posts_poller', ['newestEntryId' => $newestEntryId]) ?>
+
+<?php // "New entry" trigger above the thread list; toggles an inline editor here. ?>
+<?php if ($CurrentUser->isLoggedIn()) : ?>
+    <div class="threadlist-actions">
+        <a href="<?= $webroot ?>entries/htmx-add" class="btn btn-primary js-headerToggle"
+           data-hx-url="<?= $webroot ?>entries/htmx-add?inline=1" data-hx-target="js-newEntrySlot">
+            <?= $this->Layout->textWithIcon(h(__('new_entry_linkname')), 'plus') ?>
+        </a>
+    </div>
+    <div id="js-newEntrySlot"></div>
+<?php endif; ?>
 
 <div id="js-threadList" class="entry index js-thread-island">
     <?= $this->element(

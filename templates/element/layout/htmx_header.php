@@ -24,12 +24,7 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
     </div>
     <div id="header-menu">
         <div class="middle">
-            <?php if ($CurrentUser->isLoggedIn()) : ?>
-                <a href="<?= $webroot ?>entries/htmx-add" class="btn btn-link js-headerToggle"
-                   data-hx-url="<?= $webroot ?>entries/htmx-add?inline=1">
-                    <?= $this->Layout->textWithIcon(h(__('new_entry_linkname')), 'plus') ?>
-                </a>
-            <?php endif; ?>
+            <?php // "New entry" lives above the thread list (see htmx_index), not here. ?>
             <a href="<?= $webroot ?>searches/htmx-simple" class="btn btn-link js-headerToggle"
                data-hx-url="<?= $webroot ?>searches/htmx-simple?widget=1">
                 <?= $this->Layout->textWithIcon(h(__('Search')), 'search') ?>

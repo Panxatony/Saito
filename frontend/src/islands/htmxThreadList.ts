@@ -278,15 +278,19 @@ document.addEventListener('click', (event: MouseEvent) => {
     }
 });
 
-// Header actions ("new entry" / "search"): toggle the #js-headerActions slot on
-// each click — clicking the same link again closes it, a different link switches.
+// Toggle actions ("search" in the header, "new entry" above the thread list):
+// load a fragment into a slot on click — clicking the same link again closes it,
+// a different link switches. The slot defaults to #js-headerActions but a link
+// may name its own via data-hx-target (element id), so the same handler drives
+// both the header search and the in-list new-entry editor.
 document.addEventListener('click', (event: MouseEvent) => {
     const link = (event.target as HTMLElement).closest<HTMLElement>('.js-headerToggle');
     if (!link) {
         return;
     }
     event.preventDefault();
-    const slot = document.getElementById('js-headerActions');
+    const targetId = link.getAttribute('data-hx-target') ?? 'js-headerActions';
+    const slot = document.getElementById(targetId);
     if (!slot) {
         return;
     }
