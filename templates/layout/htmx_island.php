@@ -98,6 +98,28 @@
     <?php // Footer: the standard disclaimer (Resources / Status / About). ?>
     <?= $this->element('layout/disclaimer') ?>
 
+    <?php // Smart insert overlay: paste a URL, auto-detect link/image/video/
+          // YouTube, live-preview, insert. Opened from the editor toolbar. ?>
+    <div id="js-insertModal" class="island-modal" hidden>
+        <div class="island-modal-backdrop js-modal-close"></div>
+        <div class="island-modal-dialog" role="dialog" aria-modal="true"
+             aria-label="<?= h(__('insert_link_media')) ?>">
+            <button type="button" class="island-modal-close js-modal-close" aria-label="&times;">&times;</button>
+            <h3 style="margin: 0 0 .75rem; font-size: 1.1rem;"><?= h(__('insert_link_media')) ?></h3>
+            <div class="input">
+                <label for="js-insertUrl">URL</label>
+                <input type="url" id="js-insertUrl" class="form-control" placeholder="https://…" autocomplete="off">
+            </div>
+            <div class="input js-insertTextRow" hidden>
+                <label for="js-insertText"><?= h(__('insert_text_optional')) ?></label>
+                <input type="text" id="js-insertText" class="form-control" autocomplete="off">
+            </div>
+            <div class="js-insertType" style="font-size: .85rem; color: #777; margin: .25rem 0 .5rem;"></div>
+            <div class="js-insertPreview" style="min-height: 1px;"></div>
+            <button type="button" class="btn btn-primary js-insertConfirm" disabled><?= h(__('insert_btn')) ?></button>
+        </div>
+    </div>
+
     <?php // Login overlay: filled on demand (htmx GET /login) by the header link. ?>
     <div id="js-loginModal" class="island-modal" hidden>
         <div class="island-modal-backdrop js-modal-close"></div>

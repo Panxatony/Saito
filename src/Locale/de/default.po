@@ -2559,3 +2559,12 @@ msgstr "Beta-Test: Dieses Forum läuft auf einer separaten, nächtlich erneuerte
 
 msgid "mark_all_read"
 msgstr "Alles gelesen"
+
+msgid "insert_link_media"
+msgstr "Link / Medien einfügen"
+
+msgid "insert_text_optional"
+msgstr "Text (optional)"
+
+msgid "insert_btn"
+msgstr "Einfügen"

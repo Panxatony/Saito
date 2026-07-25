@@ -61,6 +61,18 @@
 }
 .htmx-island .island-modal-close:hover { color: #000; }
 
+/* Insert overlay is wider (for the media live-preview) and its preview keeps
+   embeds/images responsive inside the dialog. */
+.htmx-island #js-insertModal .island-modal-dialog { max-width: 40rem; }
+.htmx-island .js-insertPreview { margin: 0.25rem 0 0.75rem; }
+.htmx-island .js-insertPreview iframe,
+.htmx-island .js-insertPreview img,
+.htmx-island .js-insertPreview video {
+    max-width: 100%;
+    height: auto;
+}
+.htmx-island .js-insertPreview:empty { display: none; }
+
 /* Beta notice banner (island-frontend installs only) ------------------------ */
 .htmx-island .beta-notice {
     background: #ffce56;

@@ -1722,3 +1722,12 @@ msgstr "Beta test: this forum runs on a separate copy of the database and upload
 
 msgid "mark_all_read"
 msgstr "Mark all read"
+
+msgid "insert_link_media"
+msgstr "Insert link / media"
+
+msgid "insert_text_optional"
+msgstr "Text (optional)"
+
+msgid "insert_btn"
+msgstr "Insert"

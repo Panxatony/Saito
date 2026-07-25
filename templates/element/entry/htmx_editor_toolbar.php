@@ -43,6 +43,10 @@ $icons = [
     'upload' => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>'
         . '<polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
     'eye' => '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+    'media' => '<rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/>'
+        . '<line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>'
+        . '<line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/>'
+        . '<line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>',
 ];
 
 $buttons = [
@@ -51,8 +55,6 @@ $buttons = [
     ['[s]', '[/s]', $icon($icons['strike']), __('Strikethrough')],
     ['[quote]', '[/quote]', $icon($icons['quote']), __('Quote')],
     ['[code]', '[/code]', $icon($icons['code']), __('Code')],
-    ['[url]', '[/url]', $icon($icons['link']), __('Link')],
-    ['[img]', '[/img]', $icon($icons['image']), __('Image')],
 ];
 ?>
 <div class="js-editor-toolbar btn-toolbar" style="margin-bottom: .4em; gap: .3em;">
@@ -63,6 +65,13 @@ $buttons = [
                     title="<?= h($title) ?>" aria-label="<?= h($title) ?>"><?= $label ?></button>
         <?php endforeach; ?>
     </div>
+    <?php // Link + Media both open the smart insert overlay (auto-detects type). ?>
+    <button type="button" class="btn btn-secondary btn-sm js-insertOpen"
+            data-preview-url="<?= h($previewUrl) ?>"
+            title="<?= h(__('Link')) ?>" aria-label="<?= h(__('Link')) ?>"><?= $icon($icons['link']) ?></button>
+    <button type="button" class="btn btn-secondary btn-sm js-insertOpen"
+            data-preview-url="<?= h($previewUrl) ?>"
+            title="<?= h(__('Media')) ?>" aria-label="<?= h(__('Media')) ?>"><?= $icon($icons['media']) ?></button>
     <button type="button" class="btn btn-sm btn-link js-bb-upload" title="<?= h(__('upl.title.pl')) ?>">
         <?= $icon($icons['upload']) ?> <?= h(__('upl.title.pl')) ?>
     </button>
