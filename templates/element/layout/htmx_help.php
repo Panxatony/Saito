@@ -59,10 +59,11 @@
     <div class="island-help-item">
         <i class="fa fa-bookmark island-help-icon" aria-hidden="true"></i>
         <div>
-            <strong>Lesezeichen &amp; „gelöst“</strong>
+            <strong>Lesezeichen &amp; „hilfreich“</strong>
             Ein Beitrag zu schade zum Vergessen? Setz ein <em>Lesezeichen</em> und finde
-            ihn später über das Lesezeichen-Symbol im Kopf wieder. Wurde deine Frage
-            beantwortet, darf ein Haken den Thread stolz als <em>gelöst</em> markieren.
+            ihn später über das Lesezeichen-Symbol im Kopf wieder. Und hat dir eine
+            Antwort weitergeholfen, darfst du sie per Haken als <em>hilfreich</em>
+            auszeichnen – ein kleines Dankeschön an den Verfasser.
         </div>
     </div>
 
