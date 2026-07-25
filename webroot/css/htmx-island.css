@@ -525,7 +525,7 @@
     color: var(--isl-accent, #fe5603);
     margin-top: 0.15rem;
 }
-.htmx-island .island-help-item strong { display: block; margin-bottom: 0.15rem; }
+.htmx-island .island-help-item strong:first-child { display: block; margin-bottom: 0.15rem; }
 .htmx-island .island-help-mark {
     color: var(--isl-accent, #fe5603);
     font-weight: 700;
