@@ -61,6 +61,12 @@
     </script>
 
     <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
+    <?php // RSS feed autodiscovery (public feeds) so browsers/readers find them. ?>
+    <?php $webrootFeed = $this->request->getAttribute('webroot'); ?>
+    <link rel="alternate" type="application/rss+xml"
+          title="<?= h(__d('feeds', 'postings.new.t')) ?>" href="<?= $webrootFeed ?>feeds/postings/new.rss">
+    <link rel="alternate" type="application/rss+xml"
+          title="<?= h(__d('feeds', 'threads.new.t')) ?>" href="<?= $webrootFeed ?>feeds/postings/threads.rss">
     <?php // Neutral-clean island polish — loaded last so it layers over the theme. ?>
     <?= $this->Html->css('htmx-island') ?>
     <meta name="viewport" content="width=device-width"/>
