@@ -47,7 +47,7 @@ class SearchesController extends AppController
             $this->Entries->addBehavior('Search.Search');
             // friendsofcake/search v6: Search component replaces PrgComponent
             $this->loadComponent('Search.Search');
-            $this->Search->setConfig('actions', ['advanced']);
+            $this->Search->setConfig('actions', ['advanced', 'htmxAdvanced']);
             $this->Search->setConfig('queryStringWhitelist', []);
         }
     }
@@ -171,7 +171,43 @@ class SearchesController extends AppController
      */
     public function advanced()
     {
+        $this->prepareAdvancedSearch();
+    }
+
+    /**
+     * Advanced search as an htmx island (strangler-fig migration).
+     *
+     * Reuses the same query as {@see advanced()} (extracted to
+     * prepareAdvancedSearch()); an `HX-Request` returns just the results
+     * fragment, a direct visit the shell (form + results) in the htmx_island
+     * layout.
+     *
+     * @return void
+     */
+    public function htmxAdvanced()
+    {
+        $this->prepareAdvancedSearch();
+
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()
+                ->disableAutoLayout()
+                ->setTemplate('htmx_results');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_advanced');
+        }
+    }
+
+    /**
+     * Run the advanced search and set the form + result view vars.
+     *
+     * Shared by {@see advanced()} (SPA page) and {@see htmxAdvanced()}.
+     *
+     * @return void
+     */
+    protected function prepareAdvancedSearch(): void
+    {
         $this->set('titleForPage', __d('saito_search', 'advanced.t'));
+        $this->set('results', null);
 
         $queryData = $this->request->getQueryParams();
 
