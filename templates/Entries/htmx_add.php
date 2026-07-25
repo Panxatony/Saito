@@ -29,6 +29,7 @@
                 'label' => __('category'),
             ]);
             echo $this->Form->control('subject', ['label' => __('subject')]);
+            echo $this->element('entry/htmx_editor_toolbar');
             echo $this->Form->control('text', [
                 'type' => 'textarea',
                 'rows' => 8,

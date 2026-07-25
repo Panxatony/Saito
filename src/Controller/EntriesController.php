@@ -248,6 +248,18 @@ class EntriesController extends AppController
     }
 
     /**
+     * Render a BBCode preview for the htmx editor toolbar (session-based; the
+     * REST PreviewController is token-auth only). Login required.
+     *
+     * @return void
+     */
+    public function htmxPreview()
+    {
+        $this->set('previewText', (string)$this->getRequest()->getData('text'));
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_preview');
+    }
+
+    /**
      * Inline reply to a posting, for the htmx island (strangler-fig migration).
      *
      * GET renders a minimal reply form; POST creates the answer via the same
@@ -668,9 +680,10 @@ class EntriesController extends AppController
 
         $this->FormProtection->setConfig(
             'unlockedActions',
-            // htmxReply/htmxAdd rely on CSRF (island header / FormHelper token)
-            // instead of a FormProtection token, like the REST posting endpoints.
-            ['solve', 'view', 'htmxReply', 'htmxAdd']
+            // htmxReply/htmxAdd/htmxPreview rely on CSRF (island header /
+            // FormHelper token) instead of a FormProtection token, like the REST
+            // posting endpoints.
+            ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview']
         );
         $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread']);
 

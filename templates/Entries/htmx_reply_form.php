@@ -37,6 +37,7 @@ $text = $submitted['text'] ?? '';
         <input type="text" name="subject" class="form-control"
                placeholder="<?= h(__('subject')) ?>" value="<?= h($subject) ?>">
     </div>
+    <?= $this->element('entry/htmx_editor_toolbar') ?>
     <div class="form-group">
         <textarea name="text" class="form-control" rows="4" required
                   placeholder="<?= h(__('text')) ?>"><?= h($text) ?></textarea>

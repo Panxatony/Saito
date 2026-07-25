@@ -166,6 +166,28 @@ document.addEventListener('click', (event: MouseEvent) => {
     window.location.href = href.replace(/\/entries\/view\/\d+/, `/entries/htmx-thread/${match[1]}`);
 });
 
+// BBCode editor toolbar: wrap the textarea selection in the button's tags.
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-bb-btn');
+    if (!btn) {
+        return;
+    }
+    event.preventDefault();
+    const textarea = btn.closest('form')?.querySelector<HTMLTextAreaElement>('textarea');
+    if (!textarea) {
+        return;
+    }
+    const open = btn.getAttribute('data-bb-open') ?? '';
+    const close = btn.getAttribute('data-bb-close') ?? '';
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = textarea.value.slice(start, end);
+    textarea.value = textarea.value.slice(0, start) + open + selected + close + textarea.value.slice(end);
+    textarea.focus();
+    textarea.selectionStart = start + open.length;
+    textarea.selectionEnd = start + open.length + selected.length;
+});
+
 // Theme toggle (light / night) for the standalone header: swap the stylesheet
 // live and remember the choice under the theme's own `localStorage.theme` key,
 // so a reload keeps it (the htmx_island layout reads the same key).
