@@ -30,7 +30,7 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
 
     echo $this->Form->control('category_id', [
         'class' => 'form-control', 'type' => 'select', 'options' => $categories,
-        'empty' => false, 'label' => __('category'),
+        'empty' => false, 'label' => __('Category'),
     ]);
     echo $this->Form->control('subject', ['class' => 'form-control', 'label' => __('subject')]);
     echo $this->element('entry/htmx_editor_toolbar');

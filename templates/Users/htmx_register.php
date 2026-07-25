@@ -39,7 +39,7 @@ $webroot = $this->request->getAttribute('webroot');
                         'class' => 'form-control', 'autocomplete' => 'email', 'label' => __('register_user_email'),
                     ]);
                     echo $this->Form->control('password', [
-                        'class' => 'form-control', 'type' => 'password', 'autocomplete' => 'new-password', 'label' => __('password'),
+                        'class' => 'form-control', 'type' => 'password', 'autocomplete' => 'new-password', 'label' => __('Password'),
                     ]);
                     echo $this->Form->control('password_confirm', [
                         'class' => 'form-control', 'type' => 'password', 'autocomplete' => 'new-password', 'label' => __('register_password_confirm'),

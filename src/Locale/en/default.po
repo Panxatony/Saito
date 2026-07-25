@@ -1677,3 +1677,30 @@ msgstr "Delete"
 
 msgid "delete_confirm.cancel"
 msgstr "Cancel"
+
+#
+# htmx/Alpine island frontend (Saito 8) — server-rendered strings.
+#
+msgid "Category"
+msgstr "Category"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "text"
+msgstr "Text"
+
+msgid "bkm.title.pl"
+msgstr "Bookmarks"
+
+msgid "upl.title.pl"
+msgstr "Uploads"
+
+msgid "user.rememberMe.t"
+msgstr "Remember me"
+
+msgid "forum_show_thread"
+msgstr "Show thread"
+
+msgid "register_password_confirm"
+msgstr "Confirm password"

@@ -27,7 +27,7 @@ $webroot = $this->request->getAttribute('webroot');
             echo $this->Form->control('password', [
                 'class' => 'form-control',
                 'type' => 'password',
-                'label' => __('password'),
+                'label' => __('Password'),
             ]);
             echo $this->Form->control('remember_me', [
                 'type' => 'checkbox',

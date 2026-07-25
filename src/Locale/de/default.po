@@ -2483,3 +2483,61 @@ msgstr "Löschen"
 
 msgid "delete_confirm.cancel"
 msgstr "Abbrechen"
+
+#
+# htmx/Alpine island frontend (Saito 8) — server-rendered strings that
+# previously lived only in the SPA's frontend locale or were untranslated.
+#
+msgid "Category"
+msgstr "Kategorie"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "text"
+msgstr "Text"
+
+msgid "bkm.title.pl"
+msgstr "Lesezeichen"
+
+msgid "upl.title.pl"
+msgstr "Uploads"
+
+msgid "user.rememberMe.t"
+msgstr "Angemeldet bleiben"
+
+msgid "forum_show_thread"
+msgstr "Thread anzeigen"
+
+msgid "register_password_confirm"
+msgstr "Passwort bestätigen"
+
+msgid "Load more"
+msgstr "Mehr laden"
+
+msgid "Members"
+msgstr "Mitglieder"
+
+msgid "No bookmarks yet."
+msgstr "Noch keine Lesezeichen."
+
+msgid "Please check your entry."
+msgstr "Bitte überprüfe deine Eingabe."
+
+msgid "Preview"
+msgstr "Vorschau"
+
+msgid "Quote"
+msgstr "Zitat"
+
+msgid "Strikethrough"
+msgstr "Durchgestrichen"
+
+msgid "Toggle dark / light"
+msgstr "Hell / Dunkel umschalten"
+
+msgid "Your reply has been saved."
+msgstr "Dein Beitrag wurde gespeichert."
+
+msgid "Answering is not allowed here."
+msgstr "Antworten ist hier nicht erlaubt."
