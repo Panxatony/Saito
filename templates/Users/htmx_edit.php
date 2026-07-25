@@ -56,6 +56,11 @@
             echo $this->Form->button(__('Submit'), ['type' => 'submit', 'class' => 'btn btn-primary']);
             echo $this->Form->end();
             ?>
+            <p style="margin-top: 1rem;">
+                <a href="<?= $this->request->getAttribute('webroot') ?>users/htmx-change-password">
+                    <?= h(__('change_password_link')) ?>
+                </a>
+            </p>
         </div>
     </div>
 </div>

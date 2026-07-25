@@ -57,6 +57,20 @@
         <?php // Filled on demand by the header "new entry" / "search" links. ?>
         <div id="js-headerActions"></div>
         <div id="content">
+            <?php
+            // Flash → island HTML. Saito's flash elements only push into JsData
+            // (the SPA renders those as toasts client-side); with no SPA here,
+            // emit the messages ourselves from the same JsData store as themed
+            // Bootstrap alerts.
+            $this->Flash->render();
+            $flashClass = ['error' => 'danger', 'success' => 'success', 'warning' => 'warning', 'notice' => 'info'];
+            foreach ($this->JsData->notifications()->getAll() as $flashMsg) :
+                $cls = $flashClass[$flashMsg['type']] ?? 'info';
+                ?>
+                <div class="alert alert-<?= h($cls) ?>" role="alert"><?= h($flashMsg['message']) ?></div>
+                <?php
+            endforeach;
+            ?>
             <?= $this->fetch('content') ?>
         </div>
     </div>

@@ -606,6 +606,40 @@ class UsersController extends AppController
     }
 
     /**
+     * Change one's own password as an htmx island page (strangler-fig). Mirrors
+     * changepassword() but for the current user, in the htmx_island layout.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxChangePassword()
+    {
+        $id = $this->CurrentUser->getId();
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->get($id);
+        $this->set('username', $user->get('username'));
+
+        if ($this->request->is('post')) {
+            $data = [];
+            foreach (['password', 'password_old', 'password_confirm'] as $field) {
+                $data[$field] = $this->request->getData($field);
+            }
+            $this->Users->patchEntity($user, $data);
+            if ($this->Users->save($user)) {
+                $this->Flash->set(__('change_password_success'), ['element' => 'success']);
+
+                return $this->redirect(['action' => 'htmxEdit']);
+            }
+            $errors = $user->getErrors();
+            if (!empty($errors)) {
+                $this->Flash->set(__d('nondynamic', current(array_pop($errors))), ['element' => 'error']);
+            }
+        }
+
+        $this->set('titleForLayout', __('change_password_link'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_changepassword');
+    }
+
+    /**
      * The current user's settings as an htmx island page (strangler-fig).
      *
      * A standalone, island-styled version of {@see edit()} for one's own
@@ -1442,7 +1476,7 @@ class UsersController extends AppController
         parent::beforeFilter($event);
         Stopwatch::start('Users->beforeFilter()');
 
-        $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit'];
+        $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit', 'htmxChangePassword'];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
         $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs', 'htmxLogin', 'htmxRegister']);
