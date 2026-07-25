@@ -212,6 +212,33 @@
     .htmx-island #js-uploadModal .island-modal-dialog { display: flex; flex-direction: column; }
 }
 
+/* Smiley picker panel (editor toolbar). Full-width row of smiley buttons. */
+.htmx-island .smiley-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem;
+    width: 100%;
+    margin: 0.25rem 0;
+    padding: 0.4rem;
+    border: 1px solid var(--isl-border-soft);
+    border-radius: 0.4rem;
+    background: rgba(0, 0, 0, 0.02);
+    max-height: 12rem;
+    overflow-y: auto;
+}
+.htmx-island .smiley-panel[hidden] { display: none; }
+.htmx-island .js-smiley {
+    border: 0;
+    background: transparent;
+    padding: 0.2rem;
+    cursor: pointer;
+    line-height: 1;
+    border-radius: 0.25rem;
+}
+.htmx-island .js-smiley:hover { background: rgba(0, 0, 0, 0.08); }
+.htmx-island .js-smiley .saito-smiley-image { width: 1.4rem; height: 1.4rem; display: block; }
+.htmx-island .js-smiley .saito-smiley-font { font-size: 1.3rem; }
+
 /* Insert overlay is wider (for the media live-preview) and its preview keeps
    embeds/images responsive inside the dialog. */
 .htmx-island #js-insertModal .island-modal-dialog { max-width: 40rem; }

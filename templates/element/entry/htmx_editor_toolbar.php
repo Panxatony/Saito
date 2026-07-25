@@ -47,7 +47,22 @@ $icons = [
         . '<line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>'
         . '<line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/>'
         . '<line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>',
+    'smile' => '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/>'
+        . '<line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>',
 ];
+
+// Smilies for the picker: one button per smiley (first code), rendered exactly
+// like SmileyRenderer (font glyph or image), inserting its code on click.
+$smilies = [];
+$seenSmiley = [];
+foreach ((new \Saito\Smiley\SmileyLoader())->get() as $s) {
+    $key = (string)$s['image'];
+    if (isset($seenSmiley[$key])) {
+        continue;
+    }
+    $seenSmiley[$key] = true;
+    $smilies[] = $s;
+}
 
 $buttons = [
     ['[b]', '[/b]', $icon($icons['bold']), __('Bold')],
@@ -75,9 +90,28 @@ $buttons = [
     <button type="button" class="btn btn-sm btn-link js-bb-upload" title="<?= h(__('upl.title.pl')) ?>">
         <?= $icon($icons['upload']) ?> <?= h(__('upl.title.pl')) ?>
     </button>
+    <?php if (!empty($smilies)) : ?>
+        <button type="button" class="btn btn-secondary btn-sm js-smiley-toggle"
+                title="<?= h(__('Smilies')) ?>" aria-label="<?= h(__('Smilies')) ?>"><?= $icon($icons['smile']) ?></button>
+    <?php endif; ?>
     <button type="button" class="btn btn-sm btn-link js-bb-preview"
             data-preview-url="<?= h($previewUrl) ?>">
         <?= $icon($icons['eye']) ?> <?= h(__('Preview')) ?>
     </button>
+    <?php if (!empty($smilies)) : ?>
+        <?php // Smiley picker — hidden until toggled; each button inserts its code. ?>
+        <div class="js-smiley-panel smiley-panel" hidden>
+            <?php foreach ($smilies as $s) : ?>
+                <button type="button" class="js-smiley" data-code="<?= h($s['code']) ?>"
+                        title="<?= h($s['code']) ?>">
+                    <?php if ($s['type'] === 'font') : ?>
+                        <i class="saito-smiley-font saito-smiley-<?= h($s['image']) ?>"></i>
+                    <?php else : ?>
+                        <?= $this->Html->image('smilies/' . $s['image'], ['class' => 'saito-smiley-image', 'alt' => $s['code']]) ?>
+                    <?php endif; ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
     <div class="js-editor-preview"></div>
 </div>

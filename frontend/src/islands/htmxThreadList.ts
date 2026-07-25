@@ -209,6 +209,30 @@ document.addEventListener('click', (event: MouseEvent) => {
     textarea.selectionEnd = start + open.length + selected.length;
 });
 
+// Smiley picker: the toolbar button toggles a panel; clicking a smiley inserts
+// its code at the cursor (panel stays open for picking several).
+document.addEventListener('click', (event: MouseEvent) => {
+    const toggle = (event.target as HTMLElement).closest<HTMLElement>('.js-smiley-toggle');
+    if (toggle) {
+        event.preventDefault();
+        const panel = toggle.closest('.js-editor-toolbar')?.querySelector<HTMLElement>('.js-smiley-panel');
+        if (panel) {
+            panel.hidden = !panel.hidden;
+        }
+
+        return;
+    }
+    const smiley = (event.target as HTMLElement).closest<HTMLElement>('.js-smiley');
+    if (!smiley) {
+        return;
+    }
+    event.preventDefault();
+    const textarea = smiley.closest('form')?.querySelector<HTMLTextAreaElement>('textarea[name="text"]');
+    if (textarea) {
+        insertAtCursor(textarea, (smiley.getAttribute('data-code') ?? '') + ' ');
+    }
+});
+
 // Editor upload overlay: the toolbar button opens an overlay to upload files and
 // browse the user's archive (20 per page + load more); clicking a tile inserts
 // its [tag src=upload]name[/tag] into the editor that opened it.
