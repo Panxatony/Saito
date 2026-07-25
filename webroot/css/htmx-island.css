@@ -238,6 +238,11 @@
     box-shadow: none;
 }
 
+/* Whole-thread collapse (list): hide the answer subtree, keep the root line. */
+.htmx-island .threadBox.is-thread-collapsed .threadLeaf:not(.et-root) { display: none; }
+.htmx-island .btn-threadCollapse .fa { transition: transform .12s ease; }
+.htmx-island .threadBox.is-thread-collapsed .btn-threadCollapse .fa { transform: rotate(-90deg); }
+
 /* Island flash messages: room for the close button (top-right). */
 .htmx-island .js-island-flash { position: relative; padding-right: 2.2rem; }
 .htmx-island .js-flash-close {

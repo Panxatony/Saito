@@ -209,6 +209,45 @@ document.addEventListener('click', (event: MouseEvent) => {
     textarea.selectionEnd = start + open.length + selected.length;
 });
 
+// Whole-thread collapse in the list: the threadBox tools button hides/reveals a
+// thread's answer subtree (the root line stays). SPA-only feature, wired here.
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest<HTMLElement>('.btn-threadCollapse');
+    if (!btn || !btn.closest('.js-thread-island')) {
+        return;
+    }
+    event.preventDefault();
+    const box = btn.closest<HTMLElement>('.threadBox');
+    if (box) {
+        const collapsed = box.classList.toggle('is-thread-collapsed');
+        btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    }
+});
+// Honour the "show all threads collapsed by default" user setting: collapse every
+// answered thread on load and after the list htmx-refreshes.
+function applyDefaultThreadCollapse(root?: HTMLElement): void {
+    if (document.body.getAttribute('data-threads-collapsed') !== '1') {
+        return;
+    }
+    (root ?? document).querySelectorAll<HTMLElement>('.js-thread-island .threadBox')
+        .forEach((box) => {
+            if (box.querySelector('.btn-threadCollapse')) {
+                box.classList.add('is-thread-collapsed');
+            }
+        });
+}
+document.body.addEventListener('htmx:afterSwap', (event: Event) => {
+    const target = (event as CustomEvent).detail?.target as HTMLElement | undefined;
+    if (target && (target.classList?.contains('js-thread-island') || target.querySelector?.('.threadBox'))) {
+        applyDefaultThreadCollapse(target);
+    }
+});
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => applyDefaultThreadCollapse());
+} else {
+    applyDefaultThreadCollapse();
+}
+
 // Island flash messages: a close button dismisses any; success/info auto-fade.
 function dismissFlash(el: HTMLElement): void {
     el.style.transition = 'opacity .4s ease';

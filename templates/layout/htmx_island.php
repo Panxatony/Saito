@@ -65,7 +65,7 @@
     <?= $this->Html->css('htmx-island') ?>
     <meta name="viewport" content="width=device-width"/>
 </head>
-<body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>">
+<body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>" data-threads-collapsed="<?= !empty($CurrentUser) && $CurrentUser->get('user_show_thread_collapsed') ? '1' : '0' ?>">
     <div id="site">
         <?php // Beta corner ribbon + banner: only on island-frontend (beta) installs. ?>
         <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
