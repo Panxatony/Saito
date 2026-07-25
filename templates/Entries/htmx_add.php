@@ -23,14 +23,16 @@
             }
 
             echo $this->Form->control('category_id', [
+                'class' => 'form-control',
                 'type' => 'select',
                 'options' => $categories,
                 'empty' => false,
                 'label' => __('category'),
             ]);
-            echo $this->Form->control('subject', ['label' => __('subject')]);
+            echo $this->Form->control('subject', ['class' => 'form-control', 'label' => __('subject')]);
             echo $this->element('entry/htmx_editor_toolbar');
             echo $this->Form->control('text', [
+                'class' => 'form-control',
                 'type' => 'textarea',
                 'rows' => 8,
                 'label' => __('text'),

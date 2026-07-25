@@ -10,15 +10,44 @@
  * @var \App\Model\Entity\User $user
  * @var array $lastEntries
  * @var bool $hasMoreEntriesThanShownOnPage
+ * @var mixed $solved
  */
 
 $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 
-$rows = [
-    [__('username_marking'), h($user->get('username')) . " <span class='infoText'>(" . h($this->Permissions->roleAsString($user->getRole())) . ")</span>"],
-    [__('user_since'), $this->TimeH->formatTime($user->get('registered'), 'd.m.Y')],
-    [__('user_postings'), $user->numberOfPostings()],
+$historyUrl = [
+    'controller' => 'searches', 'action' => 'advanced', '?' => ['name' => $user->get('username')],
 ];
+
+$rows = [
+    [
+        __('username_marking'),
+        h($user->get('username'))
+            . " <span class='infoText'>(" . h($this->Permissions->roleAsString($user->getRole())) . ")</span>",
+    ],
+];
+if ($user->get('user_real_name')) {
+    $rows[] = [__('user_real_name'), h($user->get('user_real_name'))];
+}
+if ($user->get('user_hp')) {
+    $rows[] = [__('user_hp'), $this->User->linkExternalHomepage($user->get('user_hp'))];
+}
+if ($user->get('user_place')) {
+    $rows[] = [__('user_place'), h($user->get('user_place'))];
+}
+$rows[] = [__('user_since'), $this->TimeH->formatTime($user->get('registered'), 'd.m.Y')];
+if ($CurrentUser->permission('saito.core.user.lastLogin.view')) {
+    $rows[] = [
+        __('user.lastLogin.t'),
+        empty($user->get('last_login'))
+            ? __('user.lastLogin.never')
+            : $this->TimeH->formatTime($user->get('last_login')),
+    ];
+}
+$rows[] = [__('user_postings'), $this->Html->link($user->numberOfPostings(), $historyUrl)];
+if ($solved) {
+    $rows[] = [$this->Posting->solvedBadge(), $solved];
+}
 if ($user->get('user_online') && $user->get('user_online')['logged_in']) {
     $rows[] = [__('userlist_online'), __('Online')];
 }

@@ -40,9 +40,9 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
                 'hx-indicator' => '#js-searchSpinner',
             ]);
 
-            echo $this->Form->control('subject', ['label' => __d('saito_search', 'subject')]);
-            echo $this->Form->control('text', ['label' => __d('saito_search', 'text')]);
-            echo $this->Form->control('name', ['label' => __d('saito_search', 'name')]);
+            echo $this->Form->control('subject', ['class' => 'form-control', 'label' => __d('saito_search', 'subject')]);
+            echo $this->Form->control('text', ['class' => 'form-control', 'label' => __d('saito_search', 'text')]);
+            echo $this->Form->control('name', ['class' => 'form-control', 'label' => __d('saito_search', 'name')]);
 
             echo $this->Form->label(__d('saito_search', 'lbl.categories'));
             echo $this->Form->select('category_id', $categories, [

@@ -20,10 +20,12 @@ $webroot = $this->request->getAttribute('webroot');
             <?php
             echo $this->Form->create(null, ['url' => $webroot . 'login', 'type' => 'post']);
             echo $this->Form->control('username', [
+                'class' => 'form-control',
                 'label' => __('username_marking'),
                 'autofocus' => true,
             ]);
             echo $this->Form->control('password', [
+                'class' => 'form-control',
                 'type' => 'password',
                 'label' => __('password'),
             ]);

@@ -48,7 +48,7 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                 <a href="<?= $webroot ?>users/view/<?= $CurrentUser->getId() ?>" class="btn btn-link">
                     <?= $this->Layout->textWithIcon(h($CurrentUser->get('username')), 'user') ?>
                 </a>
-                <a href="<?= $webroot ?>users/htmx-edit" class="btn btn-link" title="<?= h(__('user.edit.settings.t')) ?>">
+                <a href="<?= $webroot ?>users/htmx-edit" class="btn btn-link" title="<?= h(__('Settings')) ?>">
                     <?= $this->Layout->textWithIcon('', 'cog') ?>
                 </a>
                 <a href="<?= $webroot ?>logout" class="btn btn-link" title="<?= h(__('logout_linkname')) ?>">

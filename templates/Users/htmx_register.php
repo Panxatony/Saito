@@ -33,16 +33,16 @@ $webroot = $this->request->getAttribute('webroot');
                     <?php
                     echo $this->Form->create($user, ['url' => ['action' => 'htmxRegister'], 'id' => 'registerForm']);
                     echo $this->Form->control('username', [
-                        'autocomplete' => 'username', 'label' => __('register_user_name'),
+                        'class' => 'form-control', 'autocomplete' => 'username', 'label' => __('register_user_name'),
                     ]);
                     echo $this->Form->control('user_email', [
-                        'autocomplete' => 'email', 'label' => __('register_user_email'),
+                        'class' => 'form-control', 'autocomplete' => 'email', 'label' => __('register_user_email'),
                     ]);
                     echo $this->Form->control('password', [
-                        'type' => 'password', 'autocomplete' => 'new-password', 'label' => __('password'),
+                        'class' => 'form-control', 'type' => 'password', 'autocomplete' => 'new-password', 'label' => __('password'),
                     ]);
                     echo $this->Form->control('password_confirm', [
-                        'type' => 'password', 'autocomplete' => 'new-password', 'label' => __('register_password_confirm'),
+                        'class' => 'form-control', 'type' => 'password', 'autocomplete' => 'new-password', 'label' => __('register_password_confirm'),
                     ]);
 
                     // Honeypot — invisible to users, bots fill it in.

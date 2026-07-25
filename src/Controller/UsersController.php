@@ -512,6 +512,7 @@ class UsersController extends AppController
             ($user->numberOfPostings() - $entriesShownOnPage) > 0
         );
         $this->set('user', $user);
+        $this->set('solved', $this->Users->countSolved($id));
         $this->set('titleForLayout', $user->get('username'));
         $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_profile');
     }
