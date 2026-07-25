@@ -29,11 +29,14 @@ foreach ($menuItems as $field => $item) {
         $dir = $opts['direction'] ?? 'asc';
         $arrow = '';
     }
+    // escape:false → raw `&` in the query; h() below escapes it exactly once
+    // (Url->build defaults to `&amp;`, which h() would double-encode, losing the
+    // direction param).
     $url = $this->Url->build([
         'controller' => 'Users',
         'action' => 'htmxUsers',
         '?' => ['sort' => $field, 'direction' => $dir],
-    ]);
+    ], ['escape' => false]);
     $sortLinks[] = sprintf(
         '<a href="%s" hx-get="%s" hx-target="#js-userRows" hx-swap="innerHTML" hx-push-url="true"%s>%s%s</a>',
         h($url),
