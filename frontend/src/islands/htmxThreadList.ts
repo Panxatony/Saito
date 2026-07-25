@@ -200,44 +200,57 @@ document.addEventListener('click', (event: MouseEvent) => {
         ?.click();
 });
 
-// … and picking a file POSTs it and inserts the [tag src=upload]name[/tag].
+// … and picking one or more files uploads each and inserts its
+// [tag src=upload]name[/tag]. Uploads run sequentially so the tags stay in the
+// picked order.
+function insertUploadTag(textarea: HTMLTextAreaElement, name: string, mime: string): void {
+    const type = mime.split('/')[0];
+    const tag = type === 'video' || type === 'audio' ? type : type === 'image' ? 'img' : 'file';
+    const bb = `[${tag} src=upload]${name}[/${tag}]\n`;
+    const pos = textarea.selectionStart ?? textarea.value.length;
+    textarea.value = textarea.value.slice(0, pos) + bb + textarea.value.slice(pos);
+    textarea.selectionStart = textarea.selectionEnd = pos + bb.length;
+}
+
 document.addEventListener('change', (event: Event) => {
     const input = (event.target as HTMLElement).closest<HTMLInputElement>('.js-bb-file');
     if (!input || !input.files || input.files.length === 0) {
         return;
     }
     const textarea = input.closest('form')?.querySelector<HTMLTextAreaElement>('textarea');
+    if (!textarea) {
+        input.value = '';
+
+        return;
+    }
     const token = document
         .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
-    const body = new FormData();
-    body.append('file', input.files[0]);
+    const files = Array.from(input.files);
 
-    void fetch('/entries/htmx-upload', {
-        method: 'POST',
-        headers: { 'X-CSRF-Token': token, 'X-Requested-With': 'XMLHttpRequest' },
-        body,
-        credentials: 'same-origin',
-    })
-        .then((response) => response.json())
-        .then((data: { name?: string; mime?: string; error?: string }) => {
-            input.value = '';
-            if (data.error || !data.name || !textarea) {
-                if (data.error) {
-                    window.alert(data.error);
+    void (async () => {
+        for (const file of files) {
+            const body = new FormData();
+            body.append('file', file);
+            try {
+                const response = await fetch('/entries/htmx-upload', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': token, 'X-Requested-With': 'XMLHttpRequest' },
+                    body,
+                    credentials: 'same-origin',
+                });
+                const data: { name?: string; mime?: string; error?: string } = await response.json();
+                if (data.error || !data.name) {
+                    window.alert(`${file.name}: ${data.error ?? 'upload failed'}`);
+                    continue;
                 }
-
-                return;
+                insertUploadTag(textarea, data.name, data.mime ?? '');
+            } catch {
+                window.alert(`${file.name}: upload failed`);
             }
-            const type = (data.mime ?? '').split('/')[0];
-            const tag = type === 'video' || type === 'audio' ? type : type === 'image' ? 'img' : 'file';
-            const bb = `[${tag} src=upload]${data.name}[/${tag}]`;
-            const pos = textarea.selectionStart ?? textarea.value.length;
-            textarea.value = textarea.value.slice(0, pos) + bb + textarea.value.slice(pos);
-            textarea.focus();
-        })
-        .catch(() => {
-            input.value = '';
-        });
+        }
+        input.value = '';
+        textarea.focus();
+    })();
 });
 
 // Theme toggle (light / night) for the standalone header: swap the stylesheet

@@ -36,7 +36,7 @@ $buttons = [
     <button type="button" class="btn btn-sm btn-link js-bb-upload" title="<?= h(__('upl.title.pl')) ?>">
         <i class="fa fa-upload"></i> <?= h(__('upl.title.pl')) ?>
     </button>
-    <input type="file" class="js-bb-file" accept="image/*,video/*,audio/*" style="display: none;">
+    <input type="file" class="js-bb-file" accept="image/*,video/*,audio/*" multiple style="display: none;">
     <button type="button" class="btn btn-sm btn-link js-bb-preview"
             hx-post="<?= h($previewUrl) ?>"
             hx-include="closest form"
