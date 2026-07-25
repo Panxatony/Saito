@@ -51,6 +51,14 @@ $config = [
         'noindex' => filter_var(env('SAITO_NOINDEX', false), FILTER_VALIDATE_BOOLEAN),
 
         /**
+         * Trust a reverse proxy's X-Forwarded-* headers (real client IP + https
+         * scheme). Enable (SAITO_TRUST_PROXY=true) ONLY when the app sits behind
+         * a trusted proxy such as the beta edge — a directly-reachable install
+         * must leave this off, or clients could spoof their IP (throttle bypass).
+         */
+        'trustProxy' => filter_var(env('SAITO_TRUST_PROXY', false), FILTER_VALIDATE_BOOLEAN),
+
+        /**
          * Imprint / legal notice (Impressum)
          *
          * Trusted HTML rendered on the /pages/impressum page (linked from the

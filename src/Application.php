@@ -143,6 +143,19 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
 
             ->insertAfter(RoutingMiddleware::class, new SaitoBootstrapMiddleware())
 
+            // Behind a trusted reverse proxy (e.g. the beta edge) honour the
+            // X-Forwarded-* headers so the app sees the real client IP and the
+            // https scheme. Runs before routing so scheme/host detection and CSRF
+            // are correct. Gated by Saito.trustProxy: a direct-access install
+            // must NOT trust these headers (they'd be spoofable).
+            ->insertBefore(RoutingMiddleware::class, function ($request, $handler) {
+                if (Configure::read('Saito.trustProxy')) {
+                    $request->trustProxy = true;
+                }
+
+                return $handler->handle($request);
+            })
+
             ->add(new EncryptedCookieMiddleware(
                 // Names of cookies to protect
                 [Configure::read('Security.cookieAuthName')],
