@@ -5,8 +5,10 @@
     <?php
     echo $this->Html->charset();
 
+    // exports.bundle.js is the self-contained Vite bundle: it sets up the
+    // jQuery/Bootstrap/underscore globals the admin backend needs. (The old
+    // webpack vendor.bundle.js split no longer exists under Vite.)
     echo $this->Html->script([
-        'vendor.bundle.js',
         'exports.bundle.js',
     ]);
 

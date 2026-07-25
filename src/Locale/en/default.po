@@ -1779,3 +1779,6 @@ msgstr "Contact"
 
 msgid "The user has been saved."
 msgstr "The changes have been saved."
+
+msgid "Admin"
+msgstr "Admin"

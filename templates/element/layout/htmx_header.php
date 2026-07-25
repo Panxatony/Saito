@@ -63,8 +63,13 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                 <?= $iconLabel('search', __('Search')) ?>
             </a>
         </div>
-        <?php // Right: help, theme toggle, bookmarks — icon-only, like the classic bar. ?>
+        <?php // Right: admin (admins only), help, theme toggle, bookmarks — icon-only. ?>
         <div class="last">
+            <?php if ($CurrentUser->permission('saito.core.admin.backend')) : ?>
+                <a href="<?= $webroot ?>admin" class="btn btn-link" title="<?= h(__('Admin')) ?>">
+                    <i class="fa fa-cogs"></i>
+                </a>
+            <?php endif; ?>
             <button type="button" class="btn btn-link js-helpOpen" title="<?= h(__('Help')) ?>">
                 <i class="fa fa-question-circle"></i>
             </button>

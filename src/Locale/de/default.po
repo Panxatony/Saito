@@ -2616,3 +2616,6 @@ msgstr "Kontakt"
 
 msgid "The user has been saved."
 msgstr "Die Änderungen wurden gespeichert."
+
+msgid "Admin"
+msgstr "Admin"
