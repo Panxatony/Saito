@@ -204,6 +204,22 @@
     margin-right: 0.4rem;
 }
 
+/* Inline "open the help" nudge inside the beta banner. */
+.htmx-island .beta-notice-help {
+    border: 0;
+    background: rgba(58, 47, 0, 0.12);
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    margin-left: 0.4rem;
+    white-space: nowrap;
+}
+.htmx-island .beta-notice-help:hover { background: rgba(58, 47, 0, 0.22); }
+.htmx-island .beta-notice-help .fa { margin-right: 0; }
+
 /* Slim standalone header ---------------------------------------------------- */
 .htmx-island #header.htmx-island-header {
     display: flex;

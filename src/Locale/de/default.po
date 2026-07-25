@@ -2592,3 +2592,6 @@ msgstr "Gäste"
 
 msgid "Bots"
 msgstr "Bots"
+
+msgid "beta_notice_help"
+msgstr "Neu hier? Klick ruhig mal aufs Hilfe-Icon oben – der Rundgang tut nicht weh."

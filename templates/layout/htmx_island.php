@@ -72,6 +72,9 @@
             <div class="beta-notice" role="status">
                 <i class="fa fa-flask" aria-hidden="true"></i>
                 <?= h(__('beta_notice')) ?>
+                <button type="button" class="beta-notice-help js-helpOpen">
+                    <i class="fa fa-question-circle" aria-hidden="true"></i>&nbsp;<?= h(__('beta_notice_help')) ?>
+                </button>
             </div>
         <?php endif; ?>
         <?= $this->element('layout/htmx_header') ?>
