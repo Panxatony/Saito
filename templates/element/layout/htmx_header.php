@@ -50,7 +50,8 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                    title="<?= h($CurrentUser->get('username')) ?>">
                     <?= $this->Layout->textWithIcon('', 'user') ?>
                 </a>
-                <a href="<?= $webroot ?>logout" class="btn btn-link" title="<?= h(__('logout_linkname')) ?>">
+                <a href="<?= $webroot ?>logout?redirect=<?= urlencode($webroot . 'entries/htmx-index') ?>"
+                   class="btn btn-link" title="<?= h(__('logout_linkname')) ?>">
                     <?= $this->Layout->textWithIcon('', 'sign-out') ?>
                 </a>
             <?php else : ?>

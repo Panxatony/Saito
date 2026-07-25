@@ -271,7 +271,21 @@ class UsersController extends AppController
         }
 
         $this->AuthUser->logout();
-        $this->redirect('/');
+
+        // Honour a local ?redirect= target (e.g. the island header sends the
+        // user back to the island front page instead of the SPA root). Only
+        // same-site absolute paths are allowed — never a scheme or `//host`,
+        // so this can't be turned into an open redirect.
+        $redirect = $this->getRequest()->getQuery('redirect');
+        if (
+            is_string($redirect)
+            && str_starts_with($redirect, '/')
+            && !str_starts_with($redirect, '//')
+        ) {
+            $this->redirect($redirect);
+        } else {
+            $this->redirect('/');
+        }
     }
 
     /**
