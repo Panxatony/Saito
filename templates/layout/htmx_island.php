@@ -56,6 +56,8 @@
             <?= $this->fetch('content') ?>
         </div>
     </div>
+    <?php // Footer: the standard disclaimer (Resources / Status / About). ?>
+    <?= $this->element('layout/disclaimer') ?>
     <?= $this->fetch('script') ?>
 </body>
 </html>
