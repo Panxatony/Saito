@@ -25,15 +25,13 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
     <div id="header-menu">
         <div class="middle">
             <?php if ($CurrentUser->isLoggedIn()) : ?>
-                <a href="<?= $webroot ?>entries/htmx-add" class="btn btn-link"
-                   hx-get="<?= $webroot ?>entries/htmx-add?inline=1"
-                   hx-target="#js-headerActions" hx-swap="innerHTML">
+                <a href="<?= $webroot ?>entries/htmx-add" class="btn btn-link js-headerToggle"
+                   data-hx-url="<?= $webroot ?>entries/htmx-add?inline=1">
                     <?= $this->Layout->textWithIcon(h(__('new_entry_linkname')), 'plus') ?>
                 </a>
             <?php endif; ?>
-            <a href="<?= $webroot ?>searches/htmx-simple" class="btn btn-link"
-               hx-get="<?= $webroot ?>searches/htmx-simple?widget=1"
-               hx-target="#js-headerActions" hx-swap="innerHTML">
+            <a href="<?= $webroot ?>searches/htmx-simple" class="btn btn-link js-headerToggle"
+               data-hx-url="<?= $webroot ?>searches/htmx-simple?widget=1">
                 <?= $this->Layout->textWithIcon(h(__('Search')), 'search') ?>
             </a>
         </div>

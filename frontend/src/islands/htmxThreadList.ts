@@ -278,4 +278,27 @@ document.addEventListener('click', (event: MouseEvent) => {
     }
 });
 
+// Header actions ("new entry" / "search"): toggle the #js-headerActions slot on
+// each click — clicking the same link again closes it, a different link switches.
+document.addEventListener('click', (event: MouseEvent) => {
+    const link = (event.target as HTMLElement).closest<HTMLElement>('.js-headerToggle');
+    if (!link) {
+        return;
+    }
+    event.preventDefault();
+    const slot = document.getElementById('js-headerActions');
+    if (!slot) {
+        return;
+    }
+    const url = link.getAttribute('data-hx-url') ?? '';
+    if (slot.getAttribute('data-loaded') === url) {
+        slot.innerHTML = '';
+        slot.removeAttribute('data-loaded');
+
+        return;
+    }
+    slot.setAttribute('data-loaded', url);
+    window.htmx.ajax('GET', url, { target: slot, swap: 'innerHTML' });
+});
+
 Alpine.start();
