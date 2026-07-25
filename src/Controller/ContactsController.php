@@ -31,12 +31,12 @@ class ContactsController extends AppController
     {
         parent::beforeFilter($event);
         $this->set('showDisclaimer', true);
-        $this->Authentication->allowUnauthenticated(['owner']);
+        $this->Authentication->allowUnauthenticated(['owner', 'htmxContactOwner']);
 
         // FormProtection form tokens cause false-positives for anonymous users
         // (session timeouts, bots). We already have CSRF + honeypot + timing protection.
         if (
-            $this->getRequest()->getParam('action') === 'owner'
+            in_array($this->getRequest()->getParam('action'), ['owner', 'htmxContactOwner'], true)
             && $this->components()->has('FormProtection')
         ) {
             $this->components()->unload('FormProtection');
@@ -114,6 +114,75 @@ class ContactsController extends AppController
 
         $sender = $this->CurrentUser->getId();
         $this->_contact(new ContactForm(), $recipient, $sender);
+    }
+
+    /**
+     * Contact a member via the htmx island — same logic as {@see user()} but
+     * rendered standalone in the island layout. Login required.
+     *
+     * @param string|null $id user id
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxContactUser($id = null)
+    {
+        if (empty($id) || !$this->CurrentUser->isLoggedIn()) {
+            throw new BadRequestException();
+        }
+        $Users = TableRegistry::getTableLocator()->get('Users');
+        try {
+            $recipient = $Users->get($id);
+        } catch (RecordNotFoundException $e) {
+            throw new BadRequestException();
+        }
+        $this->set('user', $recipient);
+
+        if (
+            !$recipient->get('personal_messages')
+            && !$this->CurrentUser->permission('saito.core.user.contact')
+        ) {
+            throw new BadRequestException(null, 1562415010);
+        }
+
+        $this->set('titleForPage', __('user_contact_title', $recipient->get('username')));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_user');
+        $this->_contact(new ContactForm(), $recipient, $this->CurrentUser->getId());
+    }
+
+    /**
+     * Contact the forum owner via the htmx island — same logic as {@see owner()}
+     * (public; honeypot + timing guard for anonymous senders) rendered in the
+     * island layout.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxContactOwner()
+    {
+        $recipient = 'contact';
+        $session = $this->request->getSession();
+
+        if ($this->request->is('get')) {
+            $session->write('Contact.formLoadTime', time());
+        }
+        if ($this->request->is('post') && !$this->CurrentUser->isLoggedIn()) {
+            $formLoadTime = (int)$session->read('Contact.formLoadTime');
+            if ($formLoadTime === 0 || (time() - $formLoadTime) < 5) {
+                $this->Flash->set(__('error_subject_empty'), ['element' => 'error']);
+
+                return $this->redirect(['action' => 'htmxContactOwner']);
+            }
+            $session->delete('Contact.formLoadTime');
+        }
+
+        if ($this->CurrentUser->isLoggedIn()) {
+            $sender = $this->CurrentUser->getId();
+            $this->request = $this->request->withData('sender_contact', $this->CurrentUser->get('user_email'));
+        } else {
+            $senderContact = $this->request->getData('sender_contact');
+            $sender = [$senderContact => $senderContact];
+        }
+
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_owner');
+        $this->_contact(new ContactFormOwner(), $recipient, $sender);
     }
 
     /**

@@ -238,6 +238,22 @@
     box-shadow: none;
 }
 
+/* Island flash messages: room for the close button (top-right). */
+.htmx-island .js-island-flash { position: relative; padding-right: 2.2rem; }
+.htmx-island .js-flash-close {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.5rem;
+    border: 0;
+    background: transparent;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.55;
+}
+.htmx-island .js-flash-close:hover { opacity: 1; }
+
 /* Smiley picker panel (editor toolbar). Full-width row of smiley buttons. */
 .htmx-island .smiley-panel {
     display: flex;

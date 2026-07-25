@@ -81,7 +81,15 @@ if ($user->get('signature')) {
                 <?php // Ignore / unignore this member — reuses the classic POST actions
                       // (they redirect back to the referer, i.e. this profile). ?>
                 <?php $isIgnored = (bool)$CurrentUser->ignores((int)$user->get('id')); ?>
-                <div class="mt-3">
+                <?php $canContact = $user->get('personal_messages')
+                    || $CurrentUser->permission('saito.core.user.contact'); ?>
+                <div class="mt-3" style="display:flex; gap:.5rem; flex-wrap:wrap;">
+                    <?php if ($canContact) : ?>
+                        <a href="<?= $this->request->getAttribute('webroot') ?>contacts/htmx-contact-user/<?= (int)$user->get('id') ?>"
+                           class="btn btn-outline-secondary">
+                            <i class="fa fa-envelope"></i> <?= h(__('user_contact_link')) ?>
+                        </a>
+                    <?php endif; ?>
                     <?= $this->Form->create(null, [
                         'url' => ['controller' => 'Users', 'action' => $isIgnored ? 'unignore' : 'ignore'],
                     ]) ?>

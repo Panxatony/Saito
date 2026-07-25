@@ -2610,3 +2610,9 @@ msgstr "Avatar"
 
 msgid "gn.saved"
 msgstr "Gespeichert."
+
+msgid "user_contact_link"
+msgstr "Kontakt"
+
+msgid "The user has been saved."
+msgstr "Die Änderungen wurden gespeichert."

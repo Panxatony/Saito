@@ -93,8 +93,13 @@
             $flashClass = ['error' => 'danger', 'success' => 'success', 'warning' => 'warning', 'notice' => 'info'];
             foreach ($this->JsData->notifications()->getAll() as $flashMsg) :
                 $cls = $flashClass[$flashMsg['type']] ?? 'info';
+                // Success / info auto-dismiss; errors + warnings stay until closed.
+                $auto = in_array($flashMsg['type'], ['success', 'notice'], true) ? ' js-flash-auto' : '';
                 ?>
-                <div class="alert alert-<?= h($cls) ?>" role="alert"><?= h($flashMsg['message']) ?></div>
+                <div class="alert alert-<?= h($cls) ?> js-island-flash<?= $auto ?>" role="alert">
+                    <?= h($flashMsg['message']) ?>
+                    <button type="button" class="js-flash-close" aria-label="&times;">&times;</button>
+                </div>
                 <?php
             endforeach;
             ?>
