@@ -24,7 +24,7 @@ $roleIcon = function (string $type): string {
         case 'admin':
             return 'certificate';
         case 'mod':
-            return 'star'; // sheriff star
+            return 'magic'; // wand
         default:
             return 'user';
     }
