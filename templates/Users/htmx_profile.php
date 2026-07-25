@@ -140,6 +140,17 @@ if ($user->get('signature')) {
                 </div>
             </div>
         </div>
+
+        <?php // Personalized RSS feeds (carry the user's token → include their
+              // readable non-public categories). The Feeds cell builds the links. ?>
+        <div class="card mb-3">
+            <div class="card-header">
+                <?= $this->Layout->panelHeading(__('s.rss.t')) ?>
+            </div>
+            <div class="card-body">
+                <?= $this->cell('Feeds.FeedLinks', [$CurrentUser]) ?>
+            </div>
+        </div>
     <?php endif; ?>
 </div>
 

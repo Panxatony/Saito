@@ -243,6 +243,12 @@
 .htmx-island .btn-threadCollapse .fa { transition: transform .12s ease; }
 .htmx-island .threadBox.is-thread-collapsed .btn-threadCollapse .fa { transform: rotate(-90deg); }
 
+/* RSS overlay list. */
+.htmx-island .island-rss-list { list-style: none; margin: 0; padding: 0; }
+.htmx-island .island-rss-list > li { padding: 0.35rem 0; }
+.htmx-island .island-rss-list > li + li { border-top: 1px solid var(--isl-border-soft); }
+.htmx-island .island-rss-list .fa-rss { color: #f26522; margin-right: 0.35rem; }
+
 /* Island flash messages: room for the close button (top-right). */
 .htmx-island .js-island-flash { position: relative; padding-right: 2.2rem; }
 .htmx-island .js-flash-close {

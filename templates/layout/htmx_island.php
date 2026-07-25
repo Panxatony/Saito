@@ -169,6 +169,31 @@
         </div>
     </div>
 
+    <?php // RSS overlay: the public feeds only (personalized feeds live in the
+          // profile). Opened from the footer. ?>
+    <?php $webrootRss = $this->request->getAttribute('webroot'); ?>
+    <div id="js-rssModal" class="island-modal" hidden>
+        <div class="island-modal-backdrop js-modal-close"></div>
+        <div class="island-modal-dialog" role="dialog" aria-modal="true" aria-label="<?= h(__('s.rss.t')) ?>">
+            <button type="button" class="island-modal-close js-modal-close" aria-label="&times;">&times;</button>
+            <h3 style="margin: 0 0 .75rem; font-size: 1.1rem;">
+                <i class="fa fa-rss"></i>&nbsp;<?= h(__('s.rss.t')) ?>
+            </h3>
+            <ul class="island-rss-list">
+                <li>
+                    <a href="<?= $webrootRss ?>feeds/postings/new.rss">
+                        <i class="fa fa-rss" aria-hidden="true"></i> <?= h(__d('feeds', 'postings.new.t')) ?>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= $webrootRss ?>feeds/postings/threads.rss">
+                        <i class="fa fa-rss" aria-hidden="true"></i> <?= h(__d('feeds', 'threads.new.t')) ?>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     <?php // Login overlay: filled on demand (htmx GET /login) by the header link. ?>
     <div id="js-loginModal" class="island-modal" hidden>
         <div class="island-modal-backdrop js-modal-close"></div>

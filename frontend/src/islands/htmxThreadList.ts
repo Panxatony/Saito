@@ -890,6 +890,14 @@ document.addEventListener('click', (event: MouseEvent) => {
 
         return;
     }
+    // RSS overlay (public feeds) — also static, just reveal it.
+    const rssOpener = (event.target as HTMLElement).closest<HTMLElement>('.js-rssOpen');
+    if (rssOpener) {
+        event.preventDefault();
+        document.getElementById('js-rssModal')?.removeAttribute('hidden');
+
+        return;
+    }
     const closer = (event.target as HTMLElement).closest('.js-modal-close');
     if (closer) {
         event.preventDefault();
