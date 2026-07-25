@@ -438,6 +438,44 @@ class UsersController extends AppController
     }
 
     /**
+     * Member list as an htmx island (strangler-fig migration).
+     *
+     * Same paginated, sortable user list as {@see index()}, rendered standalone
+     * (no SPA). Demonstrates the island approach on non-thread, tabular content:
+     * clicking a column header htmx-swaps just the table body (`HX-Request` →
+     * rows fragment), so sorting happens in place; a direct visit / no-JS click
+     * gets the full shell page. index() is untouched.
+     *
+     * @return void
+     */
+    public function htmxUsers()
+    {
+        $menuItems = [
+            'username' => [__('username_marking'), []],
+            'user_type' => [__('user_type'), []],
+            'UserOnline.logged_in' => [__('userlist_online'), ['direction' => 'desc']],
+            'registered' => [__('registered'), ['direction' => 'desc']],
+        ];
+
+        $this->paginate = [
+            'sortableFields' => array_keys($menuItems),
+            'finder' => 'paginated',
+            'limit' => 400,
+            'order' => ['Users.username' => 'asc'],
+        ];
+        $users = $this->paginate($this->Users);
+        $this->set(compact('menuItems', 'users'));
+
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()
+                ->disableAutoLayout()
+                ->setTemplate('htmx_users_rows');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_users');
+        }
+    }
+
+    /**
      * Ignore user.
      *
      * @return void
