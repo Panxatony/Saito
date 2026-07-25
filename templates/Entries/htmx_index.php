@@ -29,6 +29,11 @@ $webroot = $this->getRequest()->getAttribute('webroot');
            data-hx-url="<?= $webroot ?>entries/htmx-add?inline=1" data-hx-target="js-newEntrySlot">
             <?= $this->Layout->textWithIcon(h(__('new_entry_linkname')), 'plus') ?>
         </a>
+        <?php // Mark everything read; the 204 + HX-Trigger reloads the list. ?>
+        <a href="<?= $webroot ?>entries/update" class="btn btn-link js-markAllRead"
+           hx-get="<?= $webroot ?>entries/update" hx-swap="none">
+            <?= $this->Layout->textWithIcon(h(__('mark_all_read')), 'check') ?>
+        </a>
     </div>
     <div id="js-newEntrySlot"></div>
 <?php endif; ?>

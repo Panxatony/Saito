@@ -2556,3 +2556,6 @@ msgstr "Gilt nur für diesen Browser."
 
 msgid "beta_notice"
 msgstr "Beta-Test: Dieses Forum läuft auf einer separaten, nächtlich erneuerten Kopie von Datenbank und Uploads. Änderungen betreffen nicht das echte Forum."
+
+msgid "mark_all_read"
+msgstr "Alles gelesen"

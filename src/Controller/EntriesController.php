@@ -436,6 +436,13 @@ class EntriesController extends AppController
     {
         $this->autoRender = false;
         $this->CurrentUser->getLastRefresh()->set();
+
+        // Island "mark all read": no SPA redirect — return empty and let the
+        // thread list reload itself via the refresh-recent trigger.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            return $this->response->withStatus(204)->withHeader('HX-Trigger', 'refresh-recent');
+        }
+
         $this->redirect('/entries/index');
     }
 

@@ -97,6 +97,11 @@ function toggleInlinePosting(leaf: HTMLElement): void {
     leaf.classList.add('is-inline-open');
     setIconState(leaf, true);
 
+    // Opening the posting marks it read server-side (entries/view →
+    // MarkAsRead->thread); reflect that on the line immediately.
+    leaf.classList.remove('et-new');
+    leaf.classList.add('et-old');
+
     // Swap into a throwaway inner element, not the slider itself: htmx replaces
     // its target, and we need the `.threadInline-slider` wrapper to survive so
     // the next click can find it and toggle instead of reloading. htmx.ajax()

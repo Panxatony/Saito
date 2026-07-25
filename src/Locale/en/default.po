@@ -1719,3 +1719,6 @@ msgstr "Applies to this browser."
 
 msgid "beta_notice"
 msgstr "Beta test: this forum runs on a separate copy of the database and uploads, refreshed nightly. Changes do not affect the live forum."
+
+msgid "mark_all_read"
+msgstr "Mark all read"

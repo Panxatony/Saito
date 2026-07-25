@@ -243,6 +243,23 @@
     color: var(--isl-accent, #fe5603);
 }
 
+/* Read / unread marking on thread lines. The server already tags each line
+   et-new (unread) / et-old (read); give unread a clear accent rail + weight so
+   it stands out, and align read lines to the same indent. */
+.htmx-island .threadLeaf .threadLine {
+    border-left: 3px solid transparent;
+    padding-left: 0.5rem;
+}
+.htmx-island .threadLeaf.et-new .threadLine {
+    border-left-color: var(--isl-accent, #fe5603);
+}
+.htmx-island .threadLeaf.et-new .link_show_thread {
+    font-weight: 700;
+}
+.htmx-island .threadLeaf.et-old .link_show_thread {
+    font-weight: 400;
+}
+
 /* Inline posting slider spacing (recent/search/thread lists). */
 .htmx-island .threadInline-slider {
     margin: 0.5rem 0 0.5rem 1.5rem;
