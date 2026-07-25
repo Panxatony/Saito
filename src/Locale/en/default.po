@@ -1743,3 +1743,6 @@ msgstr "Choose files"
 
 msgid "all_categories"
 msgstr "All categories"
+
+msgid "upload_insert_selected"
+msgstr "Insert selected"

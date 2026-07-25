@@ -2580,3 +2580,6 @@ msgstr "Dateien auswählen"
 
 msgid "all_categories"
 msgstr "Alle Kategorien"
+
+msgid "upload_insert_selected"
+msgstr "Auswahl einfügen"

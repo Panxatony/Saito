@@ -115,6 +115,11 @@
             </div>
             <div class="js-uploadStatus" style="font-size: .85rem; margin: .4rem 0;"></div>
             <div class="upload-grid js-uploadGrid"></div>
+            <div class="upload-actions">
+                <button type="button" class="btn btn-primary js-uploadInsert" disabled>
+                    <?= h(__('upload_insert_selected')) ?>
+                </button>
+            </div>
         </div>
     </div>
 

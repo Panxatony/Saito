@@ -126,6 +126,36 @@
 }
 .htmx-island .upload-grid .js-uploadsMore { grid-column: 1 / -1; }
 
+/* Selected tiles: accent outline + a check badge. Insertion happens on the
+   "insert selected" button, not on click. */
+.htmx-island .js-uploadTile.is-selected {
+    border-color: var(--isl-accent, #fe5603);
+    outline: 2px solid var(--isl-accent, #fe5603);
+    outline-offset: -2px;
+}
+.htmx-island .js-uploadTile.is-selected::after {
+    content: "\2713";
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    z-index: 1;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--isl-accent, #fe5603);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+}
+.htmx-island .upload-actions {
+    flex: 0 0 auto;
+    margin-top: 0.6rem;
+    text-align: right;
+}
+
 /* Insert overlay is wider (for the media live-preview) and its preview keeps
    embeds/images responsive inside the dialog. */
 .htmx-island #js-insertModal .island-modal-dialog { max-width: 40rem; }
