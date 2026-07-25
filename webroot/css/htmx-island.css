@@ -22,6 +22,45 @@
     padding: 0 var(--isl-gutter);
 }
 
+/* Login modal overlay ------------------------------------------------------- */
+.htmx-island .island-modal[hidden] { display: none; }
+.htmx-island .island-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 6vh 1rem 1rem;
+}
+.htmx-island .island-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 15, 5, 0.5);
+}
+.htmx-island .island-modal-dialog {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 24rem;
+    background: #fff;
+    border-radius: 0.6rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+.htmx-island .island-modal-close {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.6rem;
+    border: 0;
+    background: transparent;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #666;
+}
+.htmx-island .island-modal-close:hover { color: #000; }
+
 /* Beta notice banner (island-frontend installs only) ------------------------ */
 .htmx-island .beta-notice {
     background: #ffce56;

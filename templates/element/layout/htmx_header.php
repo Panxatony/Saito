@@ -55,7 +55,8 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                     <?= $this->Layout->textWithIcon('', 'sign-out') ?>
                 </a>
             <?php else : ?>
-                <a href="<?= $webroot ?>users/htmx-login" class="btn btn-link">
+                <a href="<?= $webroot ?>users/htmx-login" class="btn btn-link js-loginModalOpen"
+                   data-login-url="<?= $webroot ?>login">
                     <?= $this->Layout->textWithIcon(h(__('login_btn')), 'sign-in') ?>
                 </a>
             <?php endif; ?>

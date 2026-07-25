@@ -97,6 +97,15 @@
     </div>
     <?php // Footer: the standard disclaimer (Resources / Status / About). ?>
     <?= $this->element('layout/disclaimer') ?>
+
+    <?php // Login overlay: filled on demand (htmx GET /login) by the header link. ?>
+    <div id="js-loginModal" class="island-modal" hidden>
+        <div class="island-modal-backdrop js-modal-close"></div>
+        <div class="island-modal-dialog" role="dialog" aria-modal="true" aria-label="<?= h(__('login_btn')) ?>">
+            <button type="button" class="island-modal-close js-modal-close" aria-label="&times;">&times;</button>
+            <div id="js-loginModalBody"></div>
+        </div>
+    </div>
     <?= $this->fetch('script') ?>
     <?php // The island bundle drives the whole shell (header toggles, theme
           // switch, thread-line enhancement), so load it once here for every

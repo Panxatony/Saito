@@ -58,6 +58,15 @@ class UsersController extends AppController
      */
     public function login()
     {
+        // Island login modal: an HX-Request renders just the form fragment
+        // (+ flash) instead of the full page, and a successful login returns an
+        // HX-Redirect header so htmx does a full navigation. All the auth logic
+        // below (throttle, logging, AuthUser->login) is shared and untouched.
+        $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+        if ($isHx) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_login_form');
+        }
+
         $data = $this->request->getData();
         if (empty($data['username'])) {
             $logout = $this->_logoutAndComeHereAgain();
@@ -95,8 +104,12 @@ class UsersController extends AppController
 
         if ($this->AuthUser->login()) {
             $this->_clearLoginThrottle();
+            $target = $this->_loginRedirectTarget();
+            if ($isHx) {
+                return $this->response->withHeader('HX-Redirect', $target);
+            }
 
-            return $this->redirect($this->_loginRedirectTarget());
+            return $this->redirect($target);
         }
 
         /// error on login

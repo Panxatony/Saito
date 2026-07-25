@@ -523,4 +523,41 @@ document.addEventListener('click', (event: MouseEvent) => {
 
 markActiveFontScale();
 
+// Login modal: the header "Anmelden" link opens an overlay and loads the login
+// form fragment (htmx GET /login) instead of navigating. A failed login swaps
+// the form back in with the error; a successful one returns HX-Redirect (htmx
+// navigates natively). Close on backdrop, ×, or Escape.
+function closeLoginModal(): void {
+    document.getElementById('js-loginModal')?.setAttribute('hidden', '');
+}
+
+document.addEventListener('click', (event: MouseEvent) => {
+    const opener = (event.target as HTMLElement).closest<HTMLElement>('.js-loginModalOpen');
+    if (opener) {
+        event.preventDefault();
+        const modal = document.getElementById('js-loginModal');
+        const body = document.getElementById('js-loginModalBody');
+        if (!modal || !body) {
+            return;
+        }
+        modal.removeAttribute('hidden');
+        window.htmx.ajax('GET', opener.getAttribute('data-login-url') ?? '/login', {
+            target: body,
+            swap: 'innerHTML',
+        });
+
+        return;
+    }
+    if ((event.target as HTMLElement).closest('.js-modal-close')) {
+        event.preventDefault();
+        closeLoginModal();
+    }
+});
+
+document.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+        closeLoginModal();
+    }
+});
+
 Alpine.start();
