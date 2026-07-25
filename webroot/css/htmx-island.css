@@ -282,6 +282,15 @@
     gap: 1.5rem;
 }
 
+/* Three equal columns that share the row (the theme's max-width:33.33% plus the
+   gap overflowed 100%, wrapping the third card). Wrap only when they no longer
+   fit. */
+.htmx-island .disclaimer-card {
+    flex: 1 1 220px;
+    max-width: none;
+    min-width: 0;
+}
+
 .htmx-island .disclaimer-card h3 {
     font-size: 0.95rem;
     margin-bottom: 0.4rem;
