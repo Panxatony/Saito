@@ -103,8 +103,14 @@ $config = [
         'themes' => [
             /**
              * Sets the default theme
+             *
+             * Nova is the current default: a modern take on Bota (same
+             * Bootstrap base and partials) with a reworked visual layer. Bota
+             * ships alongside it and stays selectable — existing installs keep
+             * whatever their own config says, this only sets what a fresh
+             * installation starts with.
              */
-            'default' => 'Bota',
+            'default' => 'Nova',
 
             /**
              * Array with additional themes available for all users
