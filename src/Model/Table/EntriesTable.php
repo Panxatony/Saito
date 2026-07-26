@@ -240,7 +240,7 @@ class EntriesTable extends AppTable
      */
     public function postingsForThreads(array $tids, ?array $order = null, ?CurrentUserInterface $CU = null): array
     {
-        return $this->getBehavior('Posting')->postingsForThreads($tids, $order, $CU);
+        return $this->postingBehavior()->postingsForThreads($tids, $order, $CU);
     }
 
     /**
@@ -253,7 +253,7 @@ class EntriesTable extends AppTable
      */
     public function postingsForThread(int $tid, bool $complete = false, ?CurrentUserInterface $CU = null): PostingInterface
     {
-        return $this->getBehavior('Posting')->postingsForThread($tid, $complete, $CU);
+        return $this->postingBehavior()->postingsForThread($tid, $complete, $CU);
     }
 
     /**
@@ -264,7 +264,7 @@ class EntriesTable extends AppTable
      */
     public function deletePosting(int $id): bool
     {
-        return $this->getBehavior('Posting')->deletePosting($id);
+        return $this->postingBehavior()->deletePosting($id);
     }
 
     /**
@@ -276,7 +276,7 @@ class EntriesTable extends AppTable
      */
     public function getRecentPostings(CurrentUserInterface $User, array $options = []): array
     {
-        return $this->getBehavior('Posting')->getRecentPostings($User, $options);
+        return $this->postingBehavior()->getRecentPostings($User, $options);
     }
 
     /**
@@ -288,7 +288,7 @@ class EntriesTable extends AppTable
      */
     public function threadMerge(int $sourceId, int $targetId): bool
     {
-        return $this->getBehavior('Posting')->threadMerge($sourceId, $targetId);
+        return $this->postingBehavior()->threadMerge($sourceId, $targetId);
     }
 
     /**
@@ -559,4 +559,22 @@ class EntriesTable extends AppTable
 
         return $query;
     }
+
+    /**
+     * The Posting behavior, typed.
+     *
+     * getBehavior() is declared as returning the base Behavior, so calling the
+     * behavior's own methods on it reads as calling undefined methods. Funnel
+     * the access through here instead of annotating five call sites.
+     *
+     * @return \App\Model\Behavior\PostingBehavior
+     */
+    private function postingBehavior(): \App\Model\Behavior\PostingBehavior
+    {
+        /** @var \App\Model\Behavior\PostingBehavior $behavior */
+        $behavior = $this->getBehavior('Posting');
+
+        return $behavior;
+    }
+
 }

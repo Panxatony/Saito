@@ -108,7 +108,7 @@ class SaitoEmailComponent extends Component
         // to a '"', which violates RFC 2047 so mail clients show it raw instead
         // of the decoded text. Build the copy from the readable subject and let
         // setSubject() encode the whole header once.
-        $subject = $email->getOriginalSubject();
+        $subject = $email->getMessage()->getOriginalSubject();
         $data = ['subject' => $subject, 'recipient-name' => $to->getName()];
         $subject = __('Copy of your message: ":subject" to ":recipient-name"');
         $subject = Text::insert($subject, $data);

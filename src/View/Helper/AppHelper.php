@@ -18,9 +18,9 @@ use Cake\View\Helper\IdGeneratorTrait;
 /**
  * App Helper
  *
- * @property FormHelper $Form
- * @property HtmlHelper $Html
- * @property UrlHelper $Url
+ * @property \Cake\View\Helper\FormHelper $Form
+ * @property \Cake\View\Helper\HtmlHelper $Html
+ * @property \Cake\View\Helper\UrlHelper $Url
  */
 #[\AllowDynamicProperties]
 class AppHelper extends Helper

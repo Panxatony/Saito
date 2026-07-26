@@ -46,7 +46,7 @@ class ContactsController extends AppController
     /**
      * Contacts forum's owner via contact address
      *
-     * @return void
+     * @return \Cake\Http\Response|void
      */
     public function owner()
     {

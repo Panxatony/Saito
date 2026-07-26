@@ -97,12 +97,6 @@ parameters:
 			path: plugins/BbcodeParser/src/Lib/jBBCode/Visitors/JbbCodeAutolinkVisitor.php
 
 		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: plugins/Feeds/src/Controller/PostingsController.php
-
-		-
 			message: '#^Call to function is_int\(\) with int will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 3
@@ -121,34 +115,10 @@ parameters:
 			path: plugins/Installer/src/Lib/InstallerState.php
 
 		-
-			message: '#^Method Installer\\Lib\\InstallerState\:\:getFilePath\(\) has RuntimeException in PHPDoc @throws tag but it''s not thrown\.$#'
-			identifier: throws.unusedType
-			count: 1
-			path: plugins/Installer/src/Lib/InstallerState.php
-
-		-
 			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
 			identifier: cake.controller.redirectMustBeUsed
 			count: 1
 			path: plugins/SaitoHelp/src/Controller/SaitoHelpsController.php
-
-		-
-			message: '#^PHPDoc tag @property for property SaitoHelp\\Controller\\SaitoHelpsController\:\:\$SaitoHelp contains unknown class SaitoHelp\\Model\\Table\\SaitoHelpTable\.$#'
-			identifier: class.notFound
-			count: 1
-			path: plugins/SaitoHelp/src/Controller/SaitoHelpsController.php
-
-		-
-			message: '#^Access to an undefined property SaitoSearch\\Controller\\SearchesController\:\:\$Search\.$#'
-			identifier: property.notFound
-			count: 2
-			path: plugins/SaitoSearch/src/Controller/SearchesController.php
-
-		-
-			message: '#^PHPDoc tag @property for property SaitoSearch\\Controller\\SearchesController\:\:\$Prg contains unknown class Search\\Controller\\Component\\PrgComponent\.$#'
-			identifier: class.notFound
-			count: 1
-			path: plugins/SaitoSearch/src/Controller/SearchesController.php
 
 		-
 			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
@@ -163,12 +133,6 @@ parameters:
 			path: plugins/Sitemap/src/Lib/SitemapEntries.php
 
 		-
-			message: '#^Call to an undefined method App\\Model\\Entity\\Entry\:\:errors\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Command/SaitoDummyDataCommand.php
-
-		-
 			message: '#^Method App\\Controller\\AppController\:\:beforeFilter\(\) with return type void returns null but should not return anything\.$#'
 			identifier: return.void
 			count: 1
@@ -181,21 +145,9 @@ parameters:
 			path: src/Controller/AppController.php
 
 		-
-			message: '#^PHPDoc tag @property for property App\\Controller\\AppController\:\:\$JsData contains unknown class App\\Controller\\Component\\JsDataComponent\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Controller/AppController.php
-
-		-
 			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
 			identifier: cake.entity.arrayAccess
 			count: 4
-			path: src/Controller/Component/AuthUserComponent.php
-
-		-
-			message: '#^Call to an undefined method Cake\\Controller\\Component\:\:isBot\(\)\.$#'
-			identifier: method.notFound
-			count: 1
 			path: src/Controller/Component/AuthUserComponent.php
 
 		-
@@ -223,12 +175,6 @@ parameters:
 			path: src/Controller/Component/AuthUserComponent.php
 
 		-
-			message: '#^Call to an undefined method Cake\\Mailer\\Mailer\:\:getOriginalSubject\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Controller/Component/SaitoEmailComponent.php
-
-		-
 			message: '#^PHPDoc type array of property App\\Controller\\Component\\ThemesComponent\:\:\$_defaultConfig is not covariant with PHPDoc type array\<string, mixed\> of overridden property Cake\\Controller\\Component\:\:\$_defaultConfig\.$#'
 			identifier: property.phpDocType
 			count: 1
@@ -239,12 +185,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Controller/Component/ThreadsComponent.php
-
-		-
-			message: '#^Method App\\Controller\\ContactsController\:\:owner\(\) with return type void returns Cake\\Http\\Response\|null but should not return anything\.$#'
-			identifier: return.void
-			count: 1
-			path: src/Controller/ContactsController.php
 
 		-
 			message: '#^Method App\\Controller\\EntriesController\:\:delete\(\) with return type void returns null but should not return anything\.$#'
@@ -433,36 +373,6 @@ parameters:
 			path: src/Model/Table/EntriesTable.php
 
 		-
-			message: '#^Call to an undefined method Cake\\ORM\\Behavior\:\:deletePosting\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: '#^Call to an undefined method Cake\\ORM\\Behavior\:\:getRecentPostings\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: '#^Call to an undefined method Cake\\ORM\\Behavior\:\:postingsForThread\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: '#^Call to an undefined method Cake\\ORM\\Behavior\:\:postingsForThreads\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: '#^Call to an undefined method Cake\\ORM\\Behavior\:\:threadMerge\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
 			message: '#^Parameter \#1 \$entry of method App\\Model\\Table\\DraftsTable\:\:deleteDraftForPosting\(\) expects App\\Model\\Entity\\Entry, Cake\\ORM\\Entity given\.$#'
 			identifier: argument.type
 			count: 1
@@ -515,24 +425,6 @@ parameters:
 			identifier: property.phpDocType
 			count: 1
 			path: src/View/Cell/AppStatusCell.php
-
-		-
-			message: '#^PHPDoc tag @property for property App\\View\\Helper\\AppHelper\:\:\$Form contains unknown class App\\View\\Helper\\FormHelper\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/View/Helper/AppHelper.php
-
-		-
-			message: '#^PHPDoc tag @property for property App\\View\\Helper\\AppHelper\:\:\$Html contains unknown class App\\View\\Helper\\HtmlHelper\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/View/Helper/AppHelper.php
-
-		-
-			message: '#^PHPDoc tag @property for property App\\View\\Helper\\AppHelper\:\:\$Url contains unknown class App\\View\\Helper\\UrlHelper\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/View/Helper/AppHelper.php
 
 		-
 			message: '#^Property App\\View\\Helper\\JsDataHelper\:\:\$Notifications \(Saito\\JsData\\Notifications\) in empty\(\) is not falsy\.$#'

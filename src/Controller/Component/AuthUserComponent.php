@@ -147,8 +147,10 @@ class AuthUserComponent extends Component
         // to `is('bot')` where the Detectors component isn't loaded (e.g. tests).
         $controller = $this->getController();
         $registry = $controller->components();
-        $isBot = $registry->has('Detectors')
-            ? $registry->get('Detectors')->isBot()
+        /** @var \Detectors\Controller\Component\DetectorsComponent|null $detectors */
+        $detectors = $registry->has('Detectors') ? $registry->get('Detectors') : null;
+        $isBot = $detectors !== null
+            ? $detectors->isBot()
             : $controller->getRequest()->is('bot');
 
         return $this->remember('isBot', $isBot);

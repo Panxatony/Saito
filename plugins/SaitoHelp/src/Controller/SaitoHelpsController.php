@@ -18,10 +18,8 @@ use Cake\Core\Plugin;
 use Cake\Event\Event;
 use Cake\Http\Response;
 use Cake\ORM\Entity;
-use SaitoHelp\Model\Table\SaitoHelpTable;
 
 /**
- * @property SaitoHelpTable $SaitoHelp
  */
 class SaitoHelpsController extends AppController
 {
