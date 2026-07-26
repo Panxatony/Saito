@@ -112,6 +112,65 @@ island (a beta safety net that must not survive into a single-frontend world).
 
 ---
 
+## Scanner-Sonden fluten das Fehlerprotokoll — und jede kostet einen PHP-Prozess
+
+Gefunden am 2026-07-26. **Kein Cutover-Schaden**, das läuft seit Jahren so.
+
+**Der Befund.** Jede Anfrage auf einen nicht existierenden Pfad landet bei
+CakePHP und erzeugt dort eine `MissingControllerException` samt vollständigem
+Stack Trace im Protokoll. Ausgezählt über alle Protokolle:
+
+| Aufrufe | „Controller" | was es ist |
+|---|---|---|
+| 2.975 | `Config` | Schwachstellenscanner |
+| 1.835 | `Api` | Scanner |
+| 848 | `Core` | Scanner |
+| 392 | `Src` | Scanner |
+| 357 | `Server` | Scanner |
+| 252 | `WpIncludes` | WordPress-Scanner |
+
+Das ist der Grund, warum `error.log` binnen zehn Tagen auf 10 MB läuft.
+Nebenbei belegt jede Sonde kurz einen PHP-Arbeitsprozess.
+
+**Warum es passiert.** In `forum_locations.inc` fallen auch statische
+Endungen auf die Anwendung durch:
+
+```nginx
+location ~* \.(?:css|js|woff2?|…|png|jpg|…)$ {
+    … try_files $uri /index.php?$args;
+}
+```
+
+Das ist **kein Versehen**: prod hat **keine Plugin-Symlinks im webroot**, also
+liefert CakePHPs `AssetMiddleware` sämtliche Theme-Dateien aus — über PHP.
+Gemessen im Zugriffsprotokoll: 240 Anfragen auf `/macnemo/…`, 75 auf `/bota/…`,
+dazu `spectrum_colorpicker`, `saito_search`, `saito_help`, `admin`.
+Stellt man `try_files` auf `=404`, ist das Theme sofort tot.
+
+**Die richtige Lösung, in genau dieser Reihenfolge:**
+
+1. **Plugin-Assets als echte Dateien bereitstellen** — `bin/cake plugin assets
+   symlink` auf jeder Installation. Danach liegen `/macnemo/…`, `/bota/…`,
+   `/admin/…` als Symlinks im webroot und nginx liefert sie direkt aus.
+   *Nebengewinn:* CSS, Schriften und Bilder kosten dann keinen PHP-Prozess mehr.
+2. **Erst dann** nginx schärfen: im Block für statische Endungen
+   `try_files $uri =404;` statt des Durchfalls. Ab da sterben alle Sonden mit
+   Dateiendung an nginx, ohne PHP je zu erreichen.
+3. **Zum Schluss** `Error.skipLog` in `config/app.php` um
+   `MissingControllerException` und `MissingRouteException` ergänzen — für die
+   verbleibenden Sonden *ohne* Endung (`/config/`, `/api/`), die weiterhin über
+   `location /` bei der Anwendung landen.
+
+**Die Reihenfolge ist der ganze Punkt.** Schritt 2 vor Schritt 1 schaltet das
+Theme ab. Schritt 3 allein wäre Symptombehandlung: Das Protokoll wäre ruhig,
+die Sonden kosteten weiterhin PHP-Prozesse, und echte Routing-Fehler blieben
+ebenfalls unsichtbar.
+
+**Randbefund:** 165 Anfragen auf `/local/…` stehen im Protokoll — Browser mit
+zwischengespeichertem HTML von vor der Theme-Umbenennung. Sie laufen ins Leere,
+bis der Cache dieser Besucher abläuft. Nach Schritt 1 könnte ein zusätzlicher
+`local`-Symlink auf `Macnemo` das übergangsweise abfangen.
+
 ## Zeitzonen: die Datenbank hält Lokalzeit, das Framework glaubt an UTC
 
 Gefunden am 2026-07-26 beim Nachgehen eines ganz anderen Verdachts. **Kein
