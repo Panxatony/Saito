@@ -41,6 +41,20 @@ $config = [
         'frontend' => env('SAITO_FRONTEND', 'spa'),
 
         /**
+         * Marks a test/beta deployment.
+         *
+         * Deliberately separate from `frontend`: the beta ribbon and the
+         * "do not send email" default used to hang off `frontend === 'island'`,
+         * which meant a live install would inherit both the moment it switched
+         * to the island frontend — a corner ribbon reading "Beta" and, far
+         * worse, silently stopped sending registration and password-reset mail.
+         *
+         * Off by default, so production is clean without anybody having to
+         * remember an environment variable. Set SAITO_BETA=true on a beta.
+         */
+        'beta' => filter_var(env('SAITO_BETA', false), FILTER_VALIDATE_BOOLEAN),
+
+        /**
          * Ask search engines not to index this install (robots noindex).
          *
          * Set SAITO_NOINDEX=true on non-public deployments such as the beta, so
@@ -152,14 +166,14 @@ $config = [
             /**
              * Log emails in debug.log instead of sending them.
              *
-             * Safety default for the island beta: it runs on a clone of the live
-             * database (real addresses), so email defaults to OFF there — beta
-             * actions (register, notifications, password reset) never reach real
-             * users. Override explicitly with SAITO_DEBUG_EMAIL if you really
-             * want the beta to send. SPA installs keep sending (default false).
+             * Safety default for a beta (see 'beta' above): it runs on a clone
+             * of the live database with real addresses, so email defaults to OFF
+             * there — register, notifications and password reset never reach
+             * real users. Override with SAITO_DEBUG_EMAIL if a beta really
+             * should send. Live installs send (default false).
              */
             'email' => filter_var(
-                env('SAITO_DEBUG_EMAIL', env('SAITO_FRONTEND', 'spa') === 'island'),
+                env('SAITO_DEBUG_EMAIL', env('SAITO_BETA', false)),
                 FILTER_VALIDATE_BOOLEAN
             ),
             /**

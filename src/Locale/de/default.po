@@ -2645,3 +2645,9 @@ msgstr "Datenschutzerklärung"
 
 msgid "privacy.none"
 msgstr "Für diese Installation ist keine Datenschutzerklärung hinterlegt."
+
+msgid "notice.modernised"
+msgstr "Das Forum hat eine neue Oberfläche bekommen – gleiche Inhalte, neuer Anstrich. Sieht bei dir etwas verrutscht aus? Dann hält dein Browser noch alte Dateien fest: einmal mit Strg+Umschalt+R (am Mac Cmd+Umschalt+R) neu laden, notfalls den Cache leeren, dann sitzt alles."
+
+msgid "notice.help.btn"
+msgstr "Zur Hilfe"

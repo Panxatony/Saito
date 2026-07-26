@@ -73,19 +73,29 @@
 </head>
 <body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>" data-threads-collapsed="<?= !empty($CurrentUser) && $CurrentUser->get('user_show_thread_collapsed') ? '1' : '0' ?>">
     <div id="site">
-        <?php // Beta corner ribbon + banner: only on island-frontend (beta) installs. ?>
-        <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
-            <div class="beta-ribbon" aria-hidden="true"><span>Beta</span></div>
+        <?php
+        // The corner ribbon marks a test deployment and must not survive the
+        // switch of a live forum to this frontend — hence Saito.beta rather than
+        // the frontend switch it used to hang off.
+        $isBeta = (bool)\Cake\Core\Configure::read('Saito.beta');
+        ?>
+        <?php if ($isBeta) : ?>
+            <div class="island-ribbon" aria-hidden="true"><span>Beta</span></div>
         <?php endif; ?>
-        <?php if (\Cake\Core\Configure::read('Saito.frontend') === 'island') : ?>
-            <div class="beta-notice" role="status">
-                <i class="fa fa-flask" aria-hidden="true"></i>
-                <?= h(__('beta_notice')) ?>
-                <button type="button" class="beta-notice-help js-helpOpen">
-                    <i class="fa fa-question-circle" aria-hidden="true"></i>&nbsp;<?= h(__('beta_notice_help')) ?>
+        <?php // The notice stays on a live install too: after the switch people
+              // arrive with a stale cache and a frontend they have never seen. ?>
+        <div class="island-notice" role="status">
+            <p class="island-notice-lead">
+                <i class="fa fa-<?= $isBeta ? 'flask' : 'refresh' ?>" aria-hidden="true"></i>
+                <?= h($isBeta ? __('beta_notice') : __('notice.modernised')) ?>
+            </p>
+            <p class="island-notice-help-line">
+                <?= h(__('beta_notice_help')) ?>
+                <button type="button" class="island-notice-help js-helpOpen">
+                    <i class="fa fa-question-circle" aria-hidden="true"></i>&nbsp;<?= h(__('notice.help.btn')) ?>
                 </button>
-            </div>
-        <?php endif; ?>
+            </p>
+        </div>
         <?= $this->element('layout/htmx_header') ?>
         <?php // Filled on demand by the header "new entry" / "search" links. ?>
         <div id="js-headerActions"></div>

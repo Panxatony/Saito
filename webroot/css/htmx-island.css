@@ -305,7 +305,7 @@
 .htmx-island .js-insertPreview:empty { display: none; }
 
 /* Beta notice banner (island-frontend installs only) ------------------------ */
-.htmx-island .beta-notice {
+.htmx-island .island-notice {
     background: #ffce56;
     color: #3a2f00;
     padding: 0.5rem var(--isl-gutter);
@@ -315,7 +315,7 @@
     line-height: 1.35;
 }
 
-.htmx-island .beta-notice .fa {
+.htmx-island .island-notice .fa {
     margin-right: 0.4rem;
 }
 
@@ -329,7 +329,7 @@
 .htmx-island .js-thread-island .dropdown-menu.show { display: block; }
 
 /* Fixed diagonal "Beta" ribbon in the top-right corner (island installs only). */
-.htmx-island .beta-ribbon {
+.htmx-island .island-ribbon {
     position: fixed;
     top: 0;
     right: 0;
@@ -340,7 +340,7 @@
     /* below the modal layer (1000) so open overlays cover it */
     z-index: 900;
 }
-.htmx-island .beta-ribbon span {
+.htmx-island .island-ribbon span {
     position: absolute;
     top: 1.55rem;
     right: -2.4rem;
@@ -360,11 +360,11 @@
    just the ribbon. The beta banner itself stays (it carries the notice + the
    help hint) and now uses the full width. */
 @media (max-width: 640px) {
-    .htmx-island .beta-ribbon { display: none; }
+    .htmx-island .island-ribbon { display: none; }
 }
 
 /* Inline "open the help" nudge inside the beta banner. */
-.htmx-island .beta-notice-help {
+.htmx-island .island-notice-help {
     border: 0;
     background: rgba(58, 47, 0, 0.12);
     color: inherit;
@@ -376,12 +376,12 @@
     margin-left: 0.4rem;
     white-space: nowrap;
 }
-.htmx-island .beta-notice-help:hover { background: rgba(58, 47, 0, 0.22); }
-.htmx-island .beta-notice-help .fa { margin-right: 0; }
+.htmx-island .island-notice-help:hover { background: rgba(58, 47, 0, 0.22); }
+.htmx-island .island-notice-help .fa { margin-right: 0; }
 /* Phones: the pill must wrap (nowrap made the sentence overflow the screen) and
    sit on its own line under the notice. */
 @media (max-width: 640px) {
-    .htmx-island .beta-notice-help {
+    .htmx-island .island-notice-help {
         white-space: normal;
         display: inline-block;
         margin: 0.35rem 0 0;
@@ -827,4 +827,13 @@
 
 .htmx-island .island-back .btn {
     padding-left: 0;
+}
+
+/* The notice carries two lines now: what happened, and where to get help. */
+.htmx-island .island-notice-lead {
+    margin: 0 0 0.35rem;
+}
+
+.htmx-island .island-notice-help-line {
+    margin: 0;
 }

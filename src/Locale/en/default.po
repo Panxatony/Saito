@@ -1809,3 +1809,9 @@ msgstr "Privacy policy"
 
 msgid "privacy.none"
 msgstr "No privacy policy has been configured for this installation."
+
+msgid "notice.modernised"
+msgstr "The forum has a new interface — same content, fresh paint. Looks a bit askew? Your browser is still holding on to the old files: reload with Ctrl+Shift+R (Cmd+Shift+R on a Mac), or clear the cache, and it will settle."
+
+msgid "notice.help.btn"
+msgstr "Open the help"
