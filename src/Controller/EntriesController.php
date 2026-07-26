@@ -844,7 +844,7 @@ class EntriesController extends AppController
         if (!$this->request->is(['post', 'delete'])) {
             $this->set('posting', $posting);
 
-            return null;
+            return;
         }
 
         $success = $this->Entries->deletePosting($id);

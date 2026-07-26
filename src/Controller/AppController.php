@@ -157,7 +157,7 @@ class AppController extends Controller
             $this->render('/Pages/forum_disabled');
             $this->response = $this->response->withStatus(503);
 
-            return null;
+            return;
         }
 
         // allow sql explain for DebugKit toolbar

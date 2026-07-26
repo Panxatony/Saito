@@ -103,12 +103,6 @@ parameters:
 			path: plugins/ImageUploader/src/Lib/UploaderConfig.php
 
 		-
-			message: '#^Method Installer\\Controller\\InstallController\:\:beforeFilter\(\) with return type void returns Cake\\Http\\Response\|null but should not return anything\.$#'
-			identifier: return.void
-			count: 1
-			path: plugins/Installer/src/Controller/InstallController.php
-
-		-
 			message: '#^Expression in empty\(\) is not falsy\.$#'
 			identifier: empty.expr
 			count: 1
@@ -131,12 +125,6 @@ parameters:
 			identifier: empty.variable
 			count: 1
 			path: plugins/Sitemap/src/Lib/SitemapEntries.php
-
-		-
-			message: '#^Method App\\Controller\\AppController\:\:beforeFilter\(\) with return type void returns null but should not return anything\.$#'
-			identifier: return.void
-			count: 1
-			path: src/Controller/AppController.php
 
 		-
 			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
@@ -179,12 +167,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Controller/Component/ThreadsComponent.php
-
-		-
-			message: '#^Method App\\Controller\\EntriesController\:\:delete\(\) with return type void returns null but should not return anything\.$#'
-			identifier: return.void
-			count: 1
-			path: src/Controller/EntriesController.php
 
 		-
 			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
