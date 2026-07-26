@@ -34,7 +34,8 @@ $text = $submitted['text'] ?? '';
         <div class="alert alert-error"><?= h(__('Please check your entry.')) ?></div>
     <?php endif; ?>
     <div class="form-group">
-        <input type="text" name="subject" class="form-control"
+        <?php $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100); ?>
+        <input type="text" name="subject" class="form-control" maxlength="<?= $subjectMax ?>"
                placeholder="<?= h(__('subject')) ?>" value="<?= h($subject) ?>">
     </div>
     <?= $this->element('entry/htmx_editor_toolbar') ?>
