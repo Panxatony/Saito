@@ -383,9 +383,16 @@ document.addEventListener('change', (event: Event) => {
     if (!input || !input.files || input.files.length === 0) {
         return;
     }
-    void uploadFiles(Array.from(input.files)).then(() => {
-        input.value = '';
-    });
+    // uploadFiles reports per-file failures itself and never rejects, but the
+    // callback below can throw — without a catch that would be an unhandled
+    // rejection.
+    uploadFiles(Array.from(input.files))
+        .then(() => {
+            input.value = '';
+        })
+        .catch(() => {
+            /* nothing useful left to do; the status line already shows the result */
+        });
 });
 
 // Drag & drop onto the drop zone.
@@ -409,7 +416,7 @@ document.addEventListener('drop', (event: DragEvent) => {
     drop.classList.remove('is-dragover');
     const files = event.dataTransfer?.files;
     if (files?.length) {
-        void uploadFiles(Array.from(files));
+        uploadFiles(Array.from(files));
     }
 });
 
@@ -468,7 +475,7 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
     btn.disabled = true;
-    void Promise.all(tiles.map((tile) => {
+    Promise.all(tiles.map((tile) => {
         const id = tile.getAttribute('data-upload-id');
         if (!id) {
             return Promise.resolve();
@@ -518,7 +525,7 @@ document.addEventListener('click', (event: MouseEvent) => {
     }
     const url = btn.getAttribute('data-preview-url') ?? '/entries/htmx-preview';
     const body = new URLSearchParams({ text: textarea.value });
-    void fetch(url, {
+    fetch(url, {
         method: 'POST',
         headers: {
             'X-CSRF-Token': csrfToken(),
@@ -615,7 +622,7 @@ function enhancePosting(core: HTMLElement): void {
     };
     paintBkm(Boolean(data.isBookmarked));
     bkm.addEventListener('click', () => {
-        void fetch(`/entries/htmx-bookmark/${id}`, {
+        fetch(`/entries/htmx-bookmark/${id}`, {
             method: 'POST',
             headers: { 'X-CSRF-Token': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
             credentials: 'same-origin',
@@ -639,7 +646,7 @@ function enhancePosting(core: HTMLElement): void {
         let solved = Boolean(data.solves);
         paintSolve(solved);
         solve.addEventListener('click', () => {
-            void fetch(`/entries/solve/${id}`, {
+            fetch(`/entries/solve/${id}`, {
                 method: 'POST',
                 headers: { 'X-CSRF-Token': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin',
@@ -746,10 +753,10 @@ document.body.addEventListener('htmx:afterSwap', (event: Event) => {
 // Right-rail widgets: collapse/expand per widget, remembered in localStorage.
 // The sidebar htmx-reloads (poll / refresh-recent), so the collapsed state is
 // re-applied after every swap of freshly-rendered widgets.
-const WIDGETS_KEY = 'islandWidgetsCollapsed';
+const WIDGETS_STORAGE = 'islandWidgetsCollapsed';
 function collapsedWidgets(): string[] {
     try {
-        return JSON.parse(localStorage.getItem(WIDGETS_KEY) ?? '[]') as string[];
+        return JSON.parse(localStorage.getItem(WIDGETS_STORAGE) ?? '[]') as string[];
     } catch {
         return [];
     }
@@ -784,7 +791,7 @@ document.addEventListener('click', (event: MouseEvent) => {
         list.push(id);
     }
     try {
-        localStorage.setItem(WIDGETS_KEY, JSON.stringify(list));
+        localStorage.setItem(WIDGETS_STORAGE, JSON.stringify(list));
     } catch {
         /* localStorage unavailable */
     }
@@ -812,7 +819,7 @@ document.addEventListener('click', (event: MouseEvent) => {
     if (!id) {
         return;
     }
-    void fetch(`/entries/ajaxToggle/${id}/${toggle}`, {
+    fetch(`/entries/ajaxToggle/${id}/${toggle}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'same-origin',
     })
@@ -1079,7 +1086,7 @@ function refreshInsert(): void {
         return;
     }
     insertPreviewTimer = window.setTimeout(() => {
-        void fetch(insertPreviewUrl, {
+        fetch(insertPreviewUrl, {
             method: 'POST',
             headers: {
                 'X-CSRF-Token': csrfToken(),
