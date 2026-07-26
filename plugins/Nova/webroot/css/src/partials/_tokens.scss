@@ -1,0 +1,39 @@
+/******************************************************************************
+ * Nova design tokens
+ *
+ * The single source for Nova's look. Both presets (theme/night) set these
+ * SCSS variables before Bootstrap is imported, and this partial mirrors them
+ * into CSS custom properties so runtime layers — the htmx island stylesheet,
+ * plugin CSS, a site's own tweaks — can consume the same values instead of
+ * hard-coding hexes.
+ ******************************************************************************/
+
+:root {
+  /// Brand
+  --nova-accent: #{$primary};
+  --nova-accent-strong: #{darken($primary, 12%)};
+  --nova-accent-soft: #{rgba($primary, 0.1)};
+
+  /// Text
+  --nova-text: #{$body-color};
+  --nova-text-muted: #{$text-muted};
+
+  /// Surfaces
+  --nova-bg: #{$body-bg};
+  --nova-surface: #{$nova-surface};
+  --nova-surface-raised: #{$nova-surface-raised};
+
+  /// Lines
+  --nova-border: #{$border-color};
+  --nova-border-soft: #{$nova-border-soft};
+
+  /// Shape and depth
+  --nova-radius: #{$border-radius};
+  --nova-radius-sm: #{$border-radius-sm};
+  --nova-radius-lg: #{$border-radius-lg};
+  --nova-shadow: #{$nova-shadow};
+  --nova-shadow-lg: #{$nova-shadow-lg};
+
+  /// Reading measure — keep running text near 65 characters
+  --nova-measure: #{$readingWidth};
+}

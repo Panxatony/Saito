@@ -79,6 +79,7 @@
       "Bookmarks\\": "./plugins/Bookmarks/src",
       "Bookmarks\\Test\\": "./plugins/Bookmarks/tests",
       "Bota\\": "./plugins/Bota/src",
+      "Nova\\": "./plugins/Nova/src",
       "Commonmark\\": "./plugins/Commonmark/src",
       "Detectors\\": "./plugins/Detectors/src",
       "Detectors\\Test\\": "./plugins/Detectors/tests",

@@ -140,6 +140,10 @@ module.exports = function (grunt) {
         files: {
           'plugins/Bota/webroot/css/night.css': 'plugins/Bota/webroot/css/src/night.scss',
           'plugins/Bota/webroot/css/theme.css': 'plugins/Bota/webroot/css/src/theme.scss',
+          // Nova (the modern default) builds on Bota's partials, so it is
+          // compiled from the same task and rebuilt whenever Bota changes.
+          'plugins/Nova/webroot/css/night.css': 'plugins/Nova/webroot/css/src/night.scss',
+          'plugins/Nova/webroot/css/theme.css': 'plugins/Nova/webroot/css/src/theme.scss',
         }
       },
     },
@@ -149,7 +153,7 @@ module.exports = function (grunt) {
         tasks: ['dart-sass:static'],
       },
       sassTheme: {
-        files: ['plugins/Bota/webroot/css/src/**/*.scss'],
+        files: ['plugins/Bota/webroot/css/src/**/*.scss', 'plugins/Nova/webroot/css/src/**/*.scss'],
         tasks: ['dart-sass:theme'],
       },
     },
@@ -181,7 +185,8 @@ module.exports = function (grunt) {
       release: {
         src: [
           'webroot/css/stylesheets/static.css',
-          'plugins/Bota/webroot/css/*.css'
+          'plugins/Bota/webroot/css/*.css',
+          'plugins/Nova/webroot/css/*.css'
         ]
       },
     },

@@ -98,6 +98,10 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         // referenced by themes extending Bota) are served at /bota/... even when
         // a derived theme like Local is the active one.
         $this->addPlugin(\Bota\BotaPlugin::class);
+        // Nova is the modern default theme; it extends Bota and, like Bota,
+        // needs to be loaded so its assets are served even when a derived theme
+        // is active.
+        $this->addPlugin(\Nova\NovaPlugin::class);
 
         $this->addPlugin(\Cron\CronPlugin::class);
         $this->addPlugin(\Commonmark\CommonmarkPlugin::class);

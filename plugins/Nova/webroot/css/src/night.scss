@@ -1,0 +1,102 @@
+/******************************************************************************
+ * Nova — dark preset
+ *
+ * Designed, not inverted. Bota's night preset lifts a warm amber onto near
+ * black and then filters every image; Nova instead builds a proper dark palette
+ * — cool-neutral surfaces, text a few points off white, and an accent lightened
+ * until it actually passes contrast on a dark ground.
+ ******************************************************************************/
+
+/// Brand --------------------------------------------------------------------
+// The light preset's #c0342a is far too dark against a dark surface, so the
+// accent is lifted and desaturated rather than reused.
+$primary: #ff7a6b;
+
+/// Neutrals -----------------------------------------------------------------
+$body-color: #e8e3dd; // off-white: pure white glares on dark
+$body-bg: #17161a;
+$text-muted: #a09a94;
+$border-color: #332f36;
+
+/// Nova-only surface and line tokens
+$nova-surface: #1f1e23; // inputs, quiet fills
+$nova-surface-raised: #26242b; // card headers, code blocks
+$nova-border-soft: #2b2830;
+$nova-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+$nova-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55);
+
+/// Bootstrap surfaces derived from the above
+$form-bg: $nova-surface;
+$input-bg: $nova-surface;
+$card-bg: $nova-surface;
+$card-cap-bg: $nova-surface-raised;
+$list-group-bg: $nova-surface;
+$list-group-hover-bg: rgba($primary, 0.12);
+$modal-content-bg: $nova-surface;
+$progress-bg: $nova-surface-raised;
+$close-color: $body-color;
+$input-color: $body-color;
+$input-border-color: $border-color;
+$nav-tabs-link-active-color: $primary;
+
+/// Toasts
+$toast-background-color: $nova-surface;
+$toast-header-background-color: $nova-surface-raised;
+$toast-header-color: $body-color;
+
+/// Dropdown menu
+$dropdown-bg: $nova-surface;
+$dropdown-link-color: $body-color;
+$dropdown-link-hover-color: $body-bg;
+$dropdown-link-hover-bg: $primary;
+$dropdown-border-color: $border-color;
+$dropdown-divider-bg: $border-color;
+
+/// Shape, space, focus, type — same decisions as the light preset
+$enable-rounded: true;
+$border-radius: 0.5rem;
+$border-radius-sm: 0.35rem;
+$border-radius-lg: 0.7rem;
+$input-btn-padding-y: 0.45rem;
+$custom-select-padding-y: 0.45rem;
+$input-focus-border-color: $primary;
+$input-focus-box-shadow: 0 0 0 3px rgba($primary, 0.18);
+$font-size-base: 1rem;
+$small-font-size: 87.5%;
+$font-family-base: Cabin, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+/// Thread-line colours
+$font-color-new: $primary;
+$font-color-old: $body-color;
+$font-color-current: #ffb066;
+
+/******************************************************************************
+ * Bota base (Bootstrap + all Saito partials)
+ ******************************************************************************/
+
+@import "../../../../Bota/webroot/css/src/theme";
+
+/******************************************************************************
+ * Nova layer
+ ******************************************************************************/
+
+@import "partials/tokens";
+@import "partials/modern";
+
+/******************************************************************************
+ * Dark-only corrections
+ ******************************************************************************/
+
+// Bright media on a dark page is jarring. Bota sepia-filters everything, which
+// also recolours photos; a small brightness/contrast trim is enough and keeps
+// colours honest. Avatars and smilies stay untouched so faces read normally.
+.richtext img,
+.richtext video,
+.richtext iframe {
+  filter: brightness(0.92) contrast(0.96);
+}
+
+// Syntax-highlighted code ships with light-theme colours.
+.geshi-wrapper ol {
+  filter: invert(0.92) hue-rotate(180deg);
+}
