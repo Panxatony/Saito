@@ -261,7 +261,13 @@ class EntriesController extends AppController
         $this->Threads->incrementViewsForThread($postings, $this->CurrentUser);
         $this->MarkAsRead->thread($postings);
 
-        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_thread');
+        // The mix button expands a thread in place (see the island bundle), which
+        // needs the postings without the surrounding page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_thread_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_thread');
+        }
     }
 
     /**

@@ -187,6 +187,50 @@ document.addEventListener('click', (event: MouseEvent) => {
     window.location.href = href.replace(/\/entries\/view\/\d+/, `/entries/htmx-thread/${match[1]}`);
 });
 
+// Mix button on a thread box.
+//
+// Its href still points at the SPA's /entries/mix/<tid>, so on an island install
+// a click has to be redirected either way. With "expand posting on click"
+// (inline_view_on_click) switched on, the whole thread is pulled into the box
+// instead of loading a page — one request for every posting at once, rather than
+// opening them one by one. A second click puts the thread tree back.
+const mixCollapsed = new WeakMap<HTMLElement, string>();
+document.addEventListener('click', (event: MouseEvent) => {
+    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href*="/entries/mix/"]');
+    if (!link || !link.closest('.js-thread-island')) {
+        return;
+    }
+    const match = (link.getAttribute('href') ?? '').match(/\/entries\/mix\/(\d+)/);
+    if (!match) {
+        return;
+    }
+    event.preventDefault();
+    const threadUrl = `/entries/htmx-thread/${match[1]}`;
+
+    const tree = link.closest('.threadBox')?.querySelector<HTMLElement>('.threadBox-threadTree');
+    if (document.body.dataset.inlineOnClick !== '1' || !tree) {
+        // Setting off (or no box to expand into): the island thread page, not
+        // the SPA one.
+        window.location.href = threadUrl;
+
+        return;
+    }
+
+    const previous = mixCollapsed.get(tree);
+    if (previous !== undefined) {
+        tree.innerHTML = previous;
+        mixCollapsed.delete(tree);
+        tree.classList.remove('is-mix-expanded');
+        window.htmx.process(tree);
+
+        return;
+    }
+
+    mixCollapsed.set(tree, tree.innerHTML);
+    tree.classList.add('is-mix-expanded');
+    window.htmx.ajax('GET', threadUrl, { target: tree, swap: 'innerHTML' });
+});
+
 // BBCode editor toolbar: wrap the textarea selection in the button's tags.
 document.addEventListener('click', (event: MouseEvent) => {
     const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-bb-btn');
