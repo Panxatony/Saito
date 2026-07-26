@@ -43,9 +43,9 @@ Two things worth knowing up front:
 ## Themes
 
 Saito ships three: **Nova** (the default — a modern take on Bota), **Bota** (the
-long-standing base, still selectable) and **Local** (the macnemo identity, built
-on Nova). A theme sets its variables and then imports its parent's `theme.scss`,
-so a new theme is usually a short file of colours.
+long-standing base, still selectable) and **Macnemo** (the macnemo identity,
+built on Nova). A theme sets its variables and then imports its parent's
+`theme.scss`, so a new theme is usually a short file of colours.
 
 Every theme variable must be declared with `!default` — without it a child theme
 cannot override the value, and the override fails silently.
@@ -99,7 +99,38 @@ To generate a zip-package as found on the release page for distribution:
 vendor/bin/phing
 ```
 
+## Credits
+
+Saito was created and, for well over a decade, carried by **Schlaefer**. The
+threading model, the performance work that lets a shared-hosting account serve
+hundreds of postings on one page, and the test suite that still makes changes
+safe today are all his. This fork stands on that work — thank you.
+
 ## FAQ
+
+### How does it compare to [Schraib]
+
+[Schraib] is another threaded forum, and a deliberately different answer to the
+same problem. It is plain PHP with PDO — around 25k lines, no framework, no
+Composer, no build step — aimed squarely at operators who do not want to
+maintain a toolchain: unzip, point a browser at it, done. On classic shared
+hosting with Apache that is a genuinely smaller thing to run than Saito.
+
+Saito trades that simplicity for a foundation: CakePHP, a test suite, database
+migrations, and an asset pipeline. That is more moving parts and a real install
+procedure, and it is what makes larger changes — a PHP major version, a frontend
+rewrite — something you can do without holding your breath.
+
+Two practical differences worth knowing. Schraib is young (0.3.x at the time of
+writing), so it has had less time to accumulate the edge cases a decade-old
+forum runs into. And its hardening leans on Apache `.htaccess` — on nginx those
+rules are silently ignored, so anything relying on them has to be rebuilt in the
+server config.
+
+If you want a forum you can drop on a hoster and forget, look at Schraib. If you
+want one you can keep developing, stay here.
+
+[Schraib]: https://schraib.de/download
 
 ### How does it compare to [mylittleforum]
 
