@@ -144,7 +144,14 @@ class ContactsController extends AppController
         }
 
         $this->set('titleForPage', __('user_contact_title', $recipient->get('username')));
-        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_user');
+
+        // The profile opens this in the shared contact overlay, so htmx gets the
+        // bare form; a direct visit (or no JS) still gets the standalone page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_contact_user_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_user');
+        }
         $this->_contact(new ContactForm(), $recipient, $this->CurrentUser->getId());
     }
 

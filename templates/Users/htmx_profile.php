@@ -89,8 +89,11 @@ if ($user->get('signature')) {
                     || $CurrentUser->permission('saito.core.user.contact'); ?>
                 <div class="mt-3" style="display:flex; gap:.5rem; flex-wrap:wrap;">
                     <?php if ($canContact) : ?>
-                        <a href="<?= $this->request->getAttribute('webroot') ?>contacts/htmx-contact-user/<?= (int)$user->get('id') ?>"
-                           class="btn btn-outline-secondary">
+                        <?php $contactUrl = $this->request->getAttribute('webroot')
+                            . 'contacts/htmx-contact-user/' . (int)$user->get('id'); ?>
+                        <a href="<?= $contactUrl ?>"
+                           class="btn btn-outline-secondary js-contactModalOpen"
+                           data-modal-url="<?= $contactUrl ?>">
                             <i class="fa fa-envelope"></i> <?= h(__('user_contact_link')) ?>
                         </a>
                     <?php endif; ?>
