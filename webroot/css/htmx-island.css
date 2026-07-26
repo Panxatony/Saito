@@ -378,6 +378,16 @@
 }
 .htmx-island .beta-notice-help:hover { background: rgba(58, 47, 0, 0.22); }
 .htmx-island .beta-notice-help .fa { margin-right: 0; }
+/* Phones: the pill must wrap (nowrap made the sentence overflow the screen) and
+   sit on its own line under the notice. */
+@media (max-width: 640px) {
+    .htmx-island .beta-notice-help {
+        white-space: normal;
+        display: inline-block;
+        margin: 0.35rem 0 0;
+        text-align: center;
+    }
+}
 
 /* Slim standalone header ---------------------------------------------------- */
 .htmx-island #header.htmx-island-header {
