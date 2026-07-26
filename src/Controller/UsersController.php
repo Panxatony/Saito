@@ -519,6 +519,7 @@ class UsersController extends AppController
     public function htmxProfile($id = null)
     {
         $id = (int)$id;
+        /** @var \App\Model\Entity\User|null $user */
         $user = $this->Users->find()
             ->where(['Users.id' => $id])
             ->contain(['UserOnline'])
@@ -888,7 +889,7 @@ class UsersController extends AppController
     {
         $id = (int)$id;
 
-        /** @var \App\Model\Entity\User $user */
+        /** @var \App\Model\Entity\User|null $user */
         $user = $this->Users->find()
             ->where(['Users.id' => $id])
             ->first();
@@ -967,8 +968,10 @@ class UsersController extends AppController
             )->enableHydration(false)->all();
 
             // Wrap as postings, then restore the bookmark order (id DESC).
+            // Hydration is disabled above, so each row is a plain array.
             $byId = [];
             foreach ($entries as $entry) {
+                /** @var array<string, mixed> $entry */
                 $byId[$entry['id']] = (new Posting($entry))->withCurrentUser($this->CurrentUser);
             }
             foreach ($entryIds as $entryId) {

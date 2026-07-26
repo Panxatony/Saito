@@ -418,7 +418,7 @@ class EntriesController extends AppController
             throw new NotFoundException();
         }
 
-        /** @var \App\Model\Entity\Entry $entry */
+        /** @var \App\Model\Entity\Entry|null $entry */
         $entry = $this->Entries->findById($sourceId)->first();
         if (!$entry || !$entry->isRoot()) {
             throw new NotFoundException();
@@ -675,7 +675,7 @@ class EntriesController extends AppController
     /**
      * load front page force all entries mark-as-read
      *
-     * @return void
+     * @return \Cake\Http\Response|void an empty 204 for the island, else redirect
      */
     public function update()
     {
