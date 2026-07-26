@@ -810,7 +810,7 @@ class UsersController extends AppController
     /**
      * View user profile.
      *
-     * @param null $id user-ID
+     * @param string|int|null $id user-ID
      * @return \Cake\Http\Response|void
      */
     public function view($id = null)
@@ -1002,10 +1002,12 @@ class UsersController extends AppController
      */
     public function avatar($userId)
     {
-        if (!$this->Users->exists($userId)) {
-            throw new BadRequestException();
-        }
-
+        // No existence pre-check: Users->get() below already raises
+        // RecordNotFoundException (404) for an unknown id. The old
+        // exists($userId) guard passed a string where AppTable::exists() only
+        // unwraps ints, so it never actually rejected anything — the 404 always
+        // came from get(). Dropping it keeps that behaviour and the dead branch
+        // out of the way.
         /** @var User */
         $user = $this->Users->get($userId);
 
@@ -1062,9 +1064,7 @@ class UsersController extends AppController
     public function htmxAvatar($id = null)
     {
         $id = (int)$id;
-        if (!$this->Users->exists(['id' => $id])) {
-            throw new BadRequestException();
-        }
+        // get() raises RecordNotFoundException (404) for an unknown id.
         /** @var User $user */
         $user = $this->Users->get($id);
 

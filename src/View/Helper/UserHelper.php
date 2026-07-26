@@ -106,7 +106,7 @@ class UserHelper extends AppHelper
     /**
      * Link to user-profile
      *
-     * @param User|ForumsUserInterface $user user
+     * @param User|ForumsUserInterface|null $user user
      * @param bool|CurrentUserInterface $link link
      * @param array $options options
      * @return string
@@ -174,8 +174,11 @@ class UserHelper extends AppHelper
                 $imgUri = $this->Url->assetUrl($url);
             } else {
                 $name = $user->get('username');
-                $hdpi = 2 * $size;
-                $imgUri = (new Identicon())->getImageDataUri($name, $hdpi);
+                // The installed Identicon renders at its own fixed resolution:
+                // getImageDataUri() takes just the string, so the hi-dpi size we
+                // used to pass was silently discarded. Dropped rather than left
+                // as a no-op; scaling would need a different call.
+                $imgUri = (new Identicon())->getImageDataUri($name);
             }
 
             $style = "background-image: url({$imgUri});" . $options['style'];

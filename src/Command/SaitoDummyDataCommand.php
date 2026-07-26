@@ -30,6 +30,12 @@ class SaitoDummyDataCommand extends Command
 {
     use RememberTrait;
 
+    /** @var \App\Model\Table\EntriesTable */
+    protected $Entries;
+
+    /** @var \App\Model\Table\UsersTable */
+    protected $Users;
+
     protected $_text = null;
 
     protected $_Threads = [];
@@ -53,8 +59,12 @@ class SaitoDummyDataCommand extends Command
     {
         parent::initialize();
         Registry::initialize();
-        $this->fetchTable('Entries');
-        $this->fetchTable('Users');
+        // fetchTable() returns the table — unlike Cake 4's loadModel() it does
+        // NOT populate $this->Entries/$this->Users. Without assigning, every
+        // later use of those properties was an undefined-property access and
+        // the command died with a fatal error.
+        $this->Entries = $this->fetchTable('Entries');
+        $this->Users = $this->fetchTable('Users');
     }
 
     /**

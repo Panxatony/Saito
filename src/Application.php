@@ -129,10 +129,11 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ->add(AssetMiddleware::class)
 
             // Add routing middleware.
-            // Routes collection cache enabled by default, to disable route caching
-            // pass null as cacheConfig, example: `new RoutingMiddleware($this)`
-            // you might want to disable this cache in case your routing is extremely simple
-            ->add(new RoutingMiddleware($this, '_cake_routes_'))
+            // CakePHP 5's RoutingMiddleware takes only the application; the old
+            // `$cacheConfig` argument (we passed '_cake_routes_') no longer
+            // exists, so it was silently ignored — there is no route cache to
+            // configure or clear here anymore.
+            ->add(new RoutingMiddleware($this))
 
             // Parse JSON / form-urlencoded request bodies (Cake 3's
             // RequestHandlerComponent did this implicitly; in Cake 4 it

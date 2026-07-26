@@ -975,7 +975,7 @@ class EntriesController extends AppController
             throw new NotFoundException();
         }
 
-        /* @var Entry */
+        /** @var \App\Model\Entity\Entry|null $entry */
         $entry = $this->Entries->findById($sourceId)->first();
 
         if (!$entry || !$entry->isRoot()) {

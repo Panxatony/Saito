@@ -73,12 +73,6 @@ parameters:
 			path: plugins/Admin/src/Controller/UsersController.php
 
 		-
-			message: '#^Parameter \#1 \$timestamp of method App\\View\\Helper\\TimeHHelper\:\:formatTime\(\) expects DateTime, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: plugins/Admin/src/View/Helper/AdminHelper.php
-
-		-
 			message: '#^Parameter \#1 \$settings of class Plugin\\BbcodeParser\\src\\Lib\\Preprocessor constructor expects array, Saito\\Markup\\MarkupSettings\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -93,18 +87,6 @@ parameters:
 		-
 			message: '#^Offset 2 on array\{non\-empty\-list\<string\>, non\-empty\-list\<string\>, non\-empty\-list\<non\-empty\-string\>\} in empty\(\) always exists and is not falsy\.$#'
 			identifier: empty.offset
-			count: 1
-			path: plugins/BbcodeParser/src/Lib/jBBCode/Visitors/JbbCodeAutolinkVisitor.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between true and ''false'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: plugins/BbcodeParser/src/Lib/jBBCode/Visitors/JbbCodeAutolinkVisitor.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between true and ''none'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: plugins/BbcodeParser/src/Lib/jBBCode/Visitors/JbbCodeAutolinkVisitor.php
 
@@ -181,21 +163,9 @@ parameters:
 			path: plugins/Sitemap/src/Lib/SitemapEntries.php
 
 		-
-			message: '#^Class Cake\\Routing\\Middleware\\RoutingMiddleware constructor invoked with 2 parameters, 1 required\.$#'
-			identifier: arguments.count
+			message: '#^Call to an undefined method App\\Model\\Entity\\Entry\:\:errors\(\)\.$#'
+			identifier: method.notFound
 			count: 1
-			path: src/Application.php
-
-		-
-			message: '#^Access to an undefined property App\\Command\\SaitoDummyDataCommand\:\:\$Entries\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Command/SaitoDummyDataCommand.php
-
-		-
-			message: '#^Access to an undefined property App\\Command\\SaitoDummyDataCommand\:\:\$Users\.$#'
-			identifier: property.notFound
-			count: 2
 			path: src/Command/SaitoDummyDataCommand.php
 
 		-
@@ -277,12 +247,6 @@ parameters:
 			path: src/Controller/ContactsController.php
 
 		-
-			message: '#^Cannot call method isRoot\(\) on array\|Cake\\Datasource\\EntityInterface\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Controller/EntriesController.php
-
-		-
 			message: '#^Method App\\Controller\\EntriesController\:\:delete\(\) with return type void returns null but should not return anything\.$#'
 			identifier: return.void
 			count: 1
@@ -343,27 +307,9 @@ parameters:
 			path: src/Controller/PreviewController.php
 
 		-
-			message: '#^Call to function is_numeric\(\) with \*NEVER\* will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Controller/UsersController.php
-
-		-
 			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
 			identifier: cake.controller.redirectMustBeUsed
 			count: 6
-			path: src/Controller/UsersController.php
-
-		-
-			message: '#^Parameter \#1 \$conditions of method App\\Lib\\Model\\Table\\AppTable\:\:exists\(\) expects array\|ArrayAccess\|int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Controller/UsersController.php
-
-		-
-			message: '#^Result of && is always false\.$#'
-			identifier: booleanAnd.alwaysFalse
-			count: 1
 			path: src/Controller/UsersController.php
 
 		-
@@ -375,7 +321,7 @@ parameters:
 		-
 			message: '#^Variable \$id in empty\(\) always exists and is always falsy\.$#'
 			identifier: empty.variable
-			count: 2
+			count: 1
 			path: src/Controller/UsersController.php
 
 		-
@@ -407,18 +353,6 @@ parameters:
 			identifier: identical.alwaysTrue
 			count: 1
 			path: src/Lib/Saito/Cache/ItemCache.php
-
-		-
-			message: '#^Parameter \#2 \$callable of method Saito\\Event\\SaitoEventManager\:\:attach\(\) expects null, array\<int, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Lib/Saito/Event/SaitoEventManager.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between ''NULL'' and ''array'' will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: src/Lib/Saito/Event/SaitoEventManager.php
 
 		-
 			message: '#^Method Saito\\Exception\\Logger\\ExceptionLogger\:\:_filterData\(\) should return array but returns mixed\.$#'
@@ -605,15 +539,3 @@ parameters:
 			identifier: empty.property
 			count: 1
 			path: src/View/Helper/JsDataHelper.php
-
-		-
-			message: '#^Method Yzalis\\Identicon\\Identicon\:\:getImageDataUri\(\) invoked with 2 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: src/View/Helper/UserHelper.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between Saito\\User\\ForumsUserInterface and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: src/View/Helper/UserHelper.php
