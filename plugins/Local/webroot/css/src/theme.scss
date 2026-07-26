@@ -1,114 +1,91 @@
 /******************************************************************************
- * Macnemo Variablen
+ * macnemo — light preset
+ *
+ * Built on Nova, so this file carries only what makes the forum *macnemo*: the
+ * cream-and-orange identity and the fish backdrop. Shape, spacing, focus ring,
+ * type scale and the surface polish now come from Nova. They used to be copied
+ * here — and the copies never even took effect, because Bota's
+ * `$enable-rounded: false` carried no `!default` and silently won.
+ ******************************************************************************/
+
+/******************************************************************************
+ * Identity
  ******************************************************************************/
 
 $orange-lighter: #fff5cf;
 $orange: #ffa70e;
 $orange-darker: #fe5603;
 
-$body-color: #2a2620; // warm near-black (was #222)
-$primary: #fe5603;
-$form-bg: #ffffff; // clean white inputs (was a translucent yellow)
+/// The accent: macnemo's orange in place of Nova's brick red.
+$primary: $orange-darker;
 
+/// Text: warm near-black, a shade warmer than Nova's so it sits on cream.
+$body-color: #2a2620;
+
+/// Surfaces. The page is cream; inputs and cards stay white/near-white so text
+/// on them keeps full contrast.
+$body-bg: #fbf4dd; // softer cream than the old harsh #ffed9e
+$form-bg: #ffffff;
+$nova-surface: #ffffff; // inputs, quiet fills
+$nova-surface-raised: rgba(255, 247, 224, 0.6); // card headers: a hint of cream
+$border-color: #e2ddcf; // warm light border
+$nova-border-soft: rgba(120, 90, 40, 0.14);
+$text-muted: #7a6f5c; // warm muted, not grey
+
+/// Depth: warm shadows, so surfaces lift off the cream instead of greying it.
+$nova-shadow: 0 1px 2px rgba(80, 55, 20, 0.05);
+$nova-shadow-lg: 0 8px 24px rgba(80, 55, 20, 0.12);
+
+/// Thread lines keep macnemo's reading habit: unread is plain text, already-read
+/// turns orange — the reverse of Nova's default.
 $font-color-new: $body-color;
 $font-color-old: $primary;
 $font-color-current: $orange;
 
 /******************************************************************************
- * Saito 8 — refined-warm modernization
- *
- * Keep the macnemo identity (cream + orange) but bring the Bootstrap base up to
- * date: rounded corners, roomier controls, a proper focus ring and softer
- * greys. These override Bota's `!default` values (set before the import below).
+ * Nova base (which pulls in Bota, Bootstrap and all Saito partials)
  ******************************************************************************/
 
-$enable-rounded: true;
-$border-radius: 0.5rem;
-$border-radius-sm: 0.35rem;
-$border-radius-lg: 0.7rem;
-
-$input-btn-padding-y: 0.45rem;
-$input-btn-padding-x: 0.85rem;
-$input-btn-padding-y-sm: 0.3rem;
-
-$font-size-base: 1rem; // was 0.95rem
-$line-height-base: 1.55;
-
-$input-bg: $form-bg;
-$input-border-color: #e2ddcf; // warm light border
-$input-focus-border-color: $primary;
-$input-focus-box-shadow: 0 0 0 0.2rem rgba(254, 86, 3, 0.22);
-
-$card-border-radius: 0.6rem;
-$card-border-color: rgba(120, 90, 40, 0.14);
-$card-cap-bg: rgba(255, 247, 224, 0.6);
-
+@import "../../../../Nova/webroot/css/src/theme";
 
 /******************************************************************************
- * Core Theme Include
- ******************************************************************************/
-
-@import "../../../../../plugins/Bota/webroot/css/src/theme";
-
-/******************************************************************************
- * Macnemo Anpassungen
+ * macnemo specifics
  ******************************************************************************/
 
 @import "_gemeinsam.scss";
 
-body {
-  // Softer, less saturated cream (was the harsh #FFED9E).
-  background-color: #fbf4dd;
-}
-
-body.headerClosed #header {
-  // For closed header
-  position: inherit;
-}
-
+// The fish: macnemo's backdrop, fading into the cream page.
 #site {
   background:
     url('../img/bb.svg'),
-    linear-gradient(0deg, rgba(251,244,221,0) 0%, rgba(251,244,221,1) 70%, rgba(251,244,221,1) 100%),
+    linear-gradient(0deg, rgba(251, 244, 221, 0) 0%, rgba(251, 244, 221, 1) 70%, rgba(251, 244, 221, 1) 100%),
     white;
   background-repeat: no-repeat;
   background-size: 50%, 100% 8em, 100%;
   background-position-x: center;
 }
 
-/******************************************************************************
- * Saito 8 — refined-warm surface polish
- ******************************************************************************/
-
-// Cards / panels: soft warm shadow + rounded, so they read as real surfaces.
-.card,
-.panel {
-  border-radius: 0.6rem;
-  box-shadow: 0 1px 2px rgba(80, 55, 20, 0.05), 0 2px 8px rgba(80, 55, 20, 0.05);
-}
-
-// Primary (orange) buttons: a touch of lift.
-.btn-primary {
-  box-shadow: 0 1px 2px rgba(254, 86, 3, 0.25);
-
-  &:hover {
-    background-color: #e84e02;
-    border-color: #e84e02;
-  }
-}
-
-// Roomier, rounded inputs already come from the variables; just warm the muted
-// borders/rules a little.
-hr,
-.table td,
-.table th {
-  border-color: rgba(120, 90, 40, 0.12);
-}
-
 .headerClosed #site {
   background-size: 40%, 100% 5em, 100%;
 }
 
+// The logo sits on the cream directly; no separate hero surface.
 #header-hero {
   background: none;
+}
+
+body.headerClosed #header {
+  position: inherit;
+}
+
+// Orange is a bright accent, so the primary button gets a warm lift rather than
+// Nova's neutral shadow.
+.btn-primary {
+  box-shadow: 0 1px 2px rgba(254, 86, 3, 0.25);
+
+  &:hover,
+  &:focus {
+    background-color: darken($primary, 6%);
+    border-color: darken($primary, 6%);
+  }
 }

@@ -10,65 +10,65 @@
 /// Brand --------------------------------------------------------------------
 // The light preset's #c0342a is far too dark against a dark surface, so the
 // accent is lifted and desaturated rather than reused.
-$primary: #ff7a6b;
+$primary: #ff7a6b !default;
 
 /// Neutrals -----------------------------------------------------------------
-$body-color: #e8e3dd; // off-white: pure white glares on dark
-$body-bg: #17161a;
-$text-muted: #a09a94;
-$border-color: #332f36;
+$body-color: #e8e3dd !default; // off-white: pure white glares on dark
+$body-bg: #17161a !default;
+$text-muted: #a09a94 !default;
+$border-color: #332f36 !default;
 
 /// Nova-only surface and line tokens
-$nova-surface: #1f1e23; // inputs, quiet fills
-$nova-surface-raised: #26242b; // card headers, code blocks
-$nova-border-soft: #2b2830;
-$nova-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-$nova-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55);
+$nova-surface: #1f1e23 !default; // inputs, quiet fills
+$nova-surface-raised: #26242b !default; // card headers, code blocks
+$nova-border-soft: #2b2830 !default;
+$nova-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !default;
+$nova-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55) !default;
 
 /// Bootstrap surfaces derived from the above
-$form-bg: $nova-surface;
-$input-bg: $nova-surface;
-$card-bg: $nova-surface;
-$card-cap-bg: $nova-surface-raised;
-$list-group-bg: $nova-surface;
-$list-group-hover-bg: rgba($primary, 0.12);
-$modal-content-bg: $nova-surface;
-$progress-bg: $nova-surface-raised;
-$close-color: $body-color;
-$input-color: $body-color;
-$input-border-color: $border-color;
-$nav-tabs-link-active-color: $primary;
+$form-bg: $nova-surface !default;
+$input-bg: $nova-surface !default;
+$card-bg: $nova-surface !default;
+$card-cap-bg: $nova-surface-raised !default;
+$list-group-bg: $nova-surface !default;
+$list-group-hover-bg: rgba($primary, 0.12) !default;
+$modal-content-bg: $nova-surface !default;
+$progress-bg: $nova-surface-raised !default;
+$close-color: $body-color !default;
+$input-color: $body-color !default;
+$input-border-color: $border-color !default;
+$nav-tabs-link-active-color: $primary !default;
 
 /// Toasts
-$toast-background-color: $nova-surface;
-$toast-header-background-color: $nova-surface-raised;
-$toast-header-color: $body-color;
+$toast-background-color: $nova-surface !default;
+$toast-header-background-color: $nova-surface-raised !default;
+$toast-header-color: $body-color !default;
 
 /// Dropdown menu
-$dropdown-bg: $nova-surface;
-$dropdown-link-color: $body-color;
-$dropdown-link-hover-color: $body-bg;
-$dropdown-link-hover-bg: $primary;
-$dropdown-border-color: $border-color;
-$dropdown-divider-bg: $border-color;
+$dropdown-bg: $nova-surface !default;
+$dropdown-link-color: $body-color !default;
+$dropdown-link-hover-color: $body-bg !default;
+$dropdown-link-hover-bg: $primary !default;
+$dropdown-border-color: $border-color !default;
+$dropdown-divider-bg: $border-color !default;
 
 /// Shape, space, focus, type — same decisions as the light preset
-$enable-rounded: true;
-$border-radius: 0.5rem;
-$border-radius-sm: 0.35rem;
-$border-radius-lg: 0.7rem;
-$input-btn-padding-y: 0.45rem;
-$custom-select-padding-y: 0.45rem;
-$input-focus-border-color: $primary;
-$input-focus-box-shadow: 0 0 0 3px rgba($primary, 0.18);
-$font-size-base: 1rem;
-$small-font-size: 87.5%;
-$font-family-base: Cabin, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+$enable-rounded: true !default;
+$border-radius: 0.5rem !default;
+$border-radius-sm: 0.35rem !default;
+$border-radius-lg: 0.7rem !default;
+$input-btn-padding-y: 0.45rem !default;
+$custom-select-padding-y: 0.45rem !default;
+$input-focus-border-color: $primary !default;
+$input-focus-box-shadow: 0 0 0 3px rgba($primary, 0.18) !default;
+$font-size-base: 1rem !default;
+$small-font-size: 87.5% !default;
+$font-family-base: Cabin, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
 
 /// Thread-line colours
-$font-color-new: $primary;
-$font-color-old: $body-color;
-$font-color-current: #ffb066;
+$font-color-new: $primary !default;
+$font-color-old: $body-color !default;
+$font-color-current: #ffb066 !default;
 
 /******************************************************************************
  * Bota base (Bootstrap + all Saito partials)
