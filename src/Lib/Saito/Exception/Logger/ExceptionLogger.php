@@ -120,7 +120,7 @@ class ExceptionLogger
      * esp. cleartext passwords in $_POST data
      *
      * @param mixed $data data
-     * @return array
+     * @return mixed array with sensitive values masked; the input unchanged if it is not an array
      */
     protected function _filterData($data)
     {

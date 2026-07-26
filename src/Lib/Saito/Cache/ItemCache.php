@@ -150,7 +150,7 @@ class ItemCache
      *
      * @param string $key key
      * @param mixed $content content
-     * @param null $timestamp timestamp
+     * @param int|null $timestamp timestamp
      * @return void
      */
     public function set($key, $content, $timestamp = null)

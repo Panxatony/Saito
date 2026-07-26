@@ -175,12 +175,6 @@ parameters:
 			path: src/Controller/Component/AuthUserComponent.php
 
 		-
-			message: '#^PHPDoc type array of property App\\Controller\\Component\\ThemesComponent\:\:\$_defaultConfig is not covariant with PHPDoc type array\<string, mixed\> of overridden property Cake\\Controller\\Component\:\:\$_defaultConfig\.$#'
-			identifier: property.phpDocType
-			count: 1
-			path: src/Controller/Component/ThemesComponent.php
-
-		-
 			message: '#^Parameter \#2 \$callback of function array_reduce expects callable\(array\|float\|int, Cake\\Datasource\\EntityInterface\)\: \(array\|float\|int\), Closure\(mixed, Cake\\ORM\\Entity\)\: \(array\|float\|int\) given\.$#'
 			identifier: argument.type
 			count: 1
@@ -226,12 +220,6 @@ parameters:
 			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
 			identifier: cake.controller.renderMustBeUsed
 			count: 1
-			path: src/Controller/PostingsController.php
-
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 2
 			path: src/Controller/PostingsController.php
 
 		-
@@ -289,18 +277,6 @@ parameters:
 			path: src/Lib/Model/Table/AppTable.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between null and null will always evaluate to true\.$#'
-			identifier: identical.alwaysTrue
-			count: 1
-			path: src/Lib/Saito/Cache/ItemCache.php
-
-		-
-			message: '#^Method Saito\\Exception\\Logger\\ExceptionLogger\:\:_filterData\(\) should return array but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Lib/Saito/Exception/Logger/ExceptionLogger.php
-
-		-
 			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
 			identifier: cake.entity.arrayAccess
 			count: 11
@@ -355,18 +331,6 @@ parameters:
 			path: src/Lib/Saito/User/ReadPostings/ReadPostingsCookie.php
 
 		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: src/Model/Behavior/PostingBehavior.php
-
-		-
-			message: '#^Parameter \#1 \$postings of method Saito\\Posting\\TreeBuilder\:\:build\(\) expects array, Traversable given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Model/Behavior/PostingBehavior.php
-
-		-
 			message: '#^Call to App\\Model\\Table\\EntriesTable\:\:hasMany could not find the class for "Bookmarks"$#'
 			identifier: cake.addAssociation.existClass
 			count: 1
@@ -419,12 +383,6 @@ parameters:
 			identifier: empty.variable
 			count: 1
 			path: src/Model/Table/UsersTable.php
-
-		-
-			message: '#^PHPDoc type array of property App\\View\\Cell\\AppStatusCell\:\:\$_validCellOptions is not covariant with PHPDoc type array\<string\> of overridden property Cake\\View\\Cell\<Cake\\View\\View\>\:\:\$_validCellOptions\.$#'
-			identifier: property.phpDocType
-			count: 1
-			path: src/View/Cell/AppStatusCell.php
 
 		-
 			message: '#^Property App\\View\\Helper\\JsDataHelper\:\:\$Notifications \(Saito\\JsData\\Notifications\) in empty\(\) is not falsy\.$#'
