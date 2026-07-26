@@ -78,9 +78,9 @@ enabled = true
   # Browser SPA (jQuery / Backbone / Marionette).
   environment = ["browser"]
   # Everything still analysed here is ES-module source (the script-style theme
-  # and build files are excluded above). Without this the analyzer reads the
-  # .ts island as a plain script and reports its module-scoped declarations as
-  # globals (JS-0067).
+  # and build files are excluded above). Declared for correctness — note that
+  # it does NOT silence JS-0067 (tried on 2026-07-26, the count stayed at 23),
+  # so that rule still needs the dashboard ignore described below.
   module_system = "es-modules"
   dialect = "typescript"
 
@@ -94,8 +94,10 @@ enabled = true
 #   positive. Both files are ES modules (they carry `import` statements), so
 #   their top level is module scope, and Vite emits every entry as an IIFE
 #   (build.lib formats = ['iife'], the bundle starts with `(function(){...`).
-#   Nothing there reaches the global object. The `module_system` setting above
-#   is an attempt to fix this at the root rather than by ignoring it.
+#   Nothing there reaches the global object. Setting `module_system` /
+#   `dialect` above did not change the verdict, so the rule appears to flag
+#   top-level declarations regardless of module scope — it has to be ignored in
+#   the dashboard.
 #
 #   JS-0052 "Detected the use of `alert`, `confirm` and `prompt`" (1x, same
 #   file) — deliberate. It guards the bulk deletion of uploads. A custom
