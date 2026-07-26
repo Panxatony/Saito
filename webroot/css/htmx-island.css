@@ -657,6 +657,12 @@
     gap: 0.4rem;
     padding: 0.5rem 0.75rem;
     background: transparent;
+    /* A <button> does not inherit `color` — without this it falls back to the
+       browser's default button text, which ignores the page theme entirely. In
+       the light theme that happens to look right; in the dark one the heading
+       and its icon turn near-black on a near-black card. The caret next to them
+       stayed readable only because it carries its own colour. */
+    color: var(--nova-text, inherit);
     border: 0;
     border-bottom: 1px solid var(--isl-border-soft);
     font-weight: 700;
