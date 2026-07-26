@@ -10,4 +10,4 @@
  */
 
 echo $this->element('SaitoSearch.search_result_lines');
-echo $this->element('SaitoSearch.htmx_search_more');
+echo $this->element('SaitoSearch.htmx_search_more', compact('results'));

@@ -84,7 +84,7 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
         <?php
         if (!empty($results)) {
             echo $this->element('SaitoSearch.search_result_lines');
-            echo $this->element('SaitoSearch.htmx_search_more');
+            echo $this->element('SaitoSearch.htmx_search_more', compact('results'));
         }
         ?>
     </div>

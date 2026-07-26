@@ -46,5 +46,6 @@ foreach ($menuItems as $field => $item) {
 <table class="table th-left row-sep">
     <tbody>
         <?= $this->element('users/htmx_user_rows', ['users' => $users]) ?>
+        <?= $this->element('users/htmx_user_more', ['users' => $users]) ?>
     </tbody>
 </table>

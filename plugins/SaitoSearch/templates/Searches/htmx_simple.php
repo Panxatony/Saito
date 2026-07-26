@@ -80,11 +80,14 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
         <i class="fa fa-spinner fa-spin"></i> <?= __('Loading') ?>&hellip;
     </span>
 
-    <div id="js-searchResults" class="js-thread-island">
+    <?php // The panel sits on the container, not in the fragment, so pages
+          // appended by "load more" read as one continuous list. ?>
+    <div id="js-searchResults" class="js-thread-island search_results panel">
         <?php
         // Initial render for a bookmarked URL / no-JS submit with a term.
         if (!empty($searchDefaults['searchTerm'])) {
-            echo $this->element('SaitoSearch.search_results');
+            echo $this->element('SaitoSearch.search_result_lines');
+            echo $this->element('SaitoSearch.htmx_search_more', compact('results'));
         }
         ?>
     </div>

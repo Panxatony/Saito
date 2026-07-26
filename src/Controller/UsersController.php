@@ -488,19 +488,24 @@ class UsersController extends AppController
             'registered' => [__('registered'), ['direction' => 'desc']],
         ];
 
+        // 100, not the 400 that used to stand here: Cake's maxLimit defaults to
+        // 100 and silently capped it, so the list showed a hundred members and
+        // pretended that was all of them. It is now an honest page size with a
+        // "load more" control underneath.
         $this->paginate = [
             'sortableFields' => array_keys($menuItems),
             'finder' => 'paginated',
-            'limit' => 400,
+            'limit' => 100,
             'order' => ['Users.username' => 'asc'],
         ];
         $users = $this->paginate($this->Users);
         $this->set(compact('menuItems', 'users'));
 
         if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
-            $this->viewBuilder()
-                ->disableAutoLayout()
-                ->setTemplate('htmx_users_rows');
+            // A sort click re-renders the whole list; "load more" asks for just
+            // the next page's rows to append.
+            $template = $this->request->getQuery('more') ? 'htmx_users_more' : 'htmx_users_rows';
+            $this->viewBuilder()->disableAutoLayout()->setTemplate($template);
         } else {
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_users');
         }
