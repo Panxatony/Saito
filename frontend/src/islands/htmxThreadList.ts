@@ -970,6 +970,23 @@ document.addEventListener('click', (event: MouseEvent) => {
 
         return;
     }
+    // Change-password overlay: same shape as the contact one — open, then
+    // htmx-load the form fragment from the settings page.
+    const passwordOpener = (event.target as HTMLElement).closest<HTMLElement>('.js-passwordModalOpen');
+    if (passwordOpener) {
+        event.preventDefault();
+        const modal = document.getElementById('js-passwordModal');
+        const body = document.getElementById('js-passwordModalBody');
+        if (modal && body) {
+            modal.removeAttribute('hidden');
+            window.htmx.ajax('GET', passwordOpener.getAttribute('data-modal-url') ?? '/users/htmx-change-password', {
+                target: body,
+                swap: 'innerHTML',
+            });
+        }
+
+        return;
+    }
     const closer = (event.target as HTMLElement).closest('.js-modal-close');
     if (closer) {
         event.preventDefault();

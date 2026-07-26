@@ -138,7 +138,15 @@ class EntriesController extends AppController
         // logged-in user with a choice can filter the list (paginate() already
         // honours the user's active categories).
         if ($this->CurrentUser->isLoggedIn()) {
-            $catList = $this->CurrentUser->getCategories()->getAll('read', 'list');
+            // Only the categories the member actually wants to see: paginate()
+            // filters on getCurrent(), so listing every readable one here would
+            // offer choices that then show nothing.
+            $catList = $this->CurrentUser->getCategories()->getCurrent('read');
+            $titles = $this->CurrentUser->getCategories()->getAll('read', 'select');
+            $catList = array_map(
+                fn($id) => ['id' => $id, 'title' => $titles[$id] ?? (string)$id],
+                array_keys($catList)
+            );
             if (count($catList) > 1) {
                 $this->set('categoryChooser', $catList);
                 $this->set('activeCategory', $onlyCategories !== null ? (int)$catParam : 'all');

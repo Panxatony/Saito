@@ -2631,3 +2631,9 @@ msgstr "Ausgewählte Bilder wirklich löschen?"
 
 msgid "user_colors.default"
 msgstr "Themenfarbe"
+
+msgid "user_categories.pick"
+msgstr "Angezeigte Kategorien"
+
+msgid "user_categories.pick_exp"
+msgstr "Wirkt nur, wenn der Kategorienfilter oben aktiv ist. Nichts angehakt heißt: alle anzeigen."

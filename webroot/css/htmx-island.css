@@ -780,3 +780,28 @@
     color: var(--isl-text-muted, #6b6560);
     white-space: nowrap;
 }
+
+/* Settings: the "which categories to show" picker ---------------------------- */
+.htmx-island .settings-categories {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--isl-border-soft);
+}
+.htmx-island .settings-categories > label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+}
+.htmx-island .settings-categories-exp {
+    margin: 0 0 0.5rem;
+    font-size: 0.88rem;
+    color: var(--nova-text-muted, #6b6560);
+}
+/* Many categories: lay them out in columns instead of one long ladder. */
+.htmx-island .settings-categories .form-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 12rem;
+    margin: 0.1rem 1rem 0.1rem 0;
+}

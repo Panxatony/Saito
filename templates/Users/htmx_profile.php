@@ -15,8 +15,12 @@
 
 $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 
+// Island install: use the island's advanced search, so the link doesn't drop the
+// reader into the SPA shell.
 $historyUrl = [
-    'controller' => 'searches', 'action' => 'advanced', '?' => ['name' => $user->get('username')],
+    'controller' => 'searches',
+    'action' => \Cake\Core\Configure::read('Saito.frontend') === 'island' ? 'htmxAdvanced' : 'advanced',
+    '?' => ['name' => $user->get('username')],
 ];
 
 $rows = [
@@ -107,7 +111,7 @@ if ($user->get('signature')) {
 
     <div class="card mb-3">
         <div class="card-header">
-            <?= $this->Layout->panelHeading(__('user.recentposts.t')) ?>
+            <?= $this->Layout->panelHeading(__('user.recentposts.t', [$user->get('username')])) ?>
         </div>
         <div class="card-body js-thread-island">
             <?= $this->element(

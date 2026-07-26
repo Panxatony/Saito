@@ -141,11 +141,39 @@
                 echo '</div>';
             }
 
+            // Which categories to show on the front page. Only meaningful
+            // together with the "Kategorienfilter" switch above — the stored
+            // selection is ignored while that is off — so the list sits right
+            // below it and says so. More than one category, or there is nothing
+            // to choose.
+            if (count($readableCategories) > 1) {
+                echo '<div class="input settings-categories">';
+                echo '<label>' . h(__('user_categories.pick')) . '</label>';
+                echo '<p class="settings-categories-exp">' . h(__('user_categories.pick_exp')) . '</p>';
+                foreach ($readableCategories as $categoryId => $categoryTitle) {
+                    echo '<div class="form-check">';
+                    echo $this->Form->checkbox("categories.{$categoryId}", [
+                        'checked' => isset($selectedCategories[$categoryId]),
+                        'hiddenField' => false,
+                        'class' => 'form-check-input',
+                        'id' => "category-{$categoryId}",
+                    ]);
+                    echo $this->Form->label("category-{$categoryId}", h($categoryTitle), [
+                        'class' => 'form-check-label', 'for' => "category-{$categoryId}",
+                    ]);
+                    echo '</div>';
+                }
+                echo '</div>';
+            }
+
             echo $this->Form->button(__('Submit'), ['type' => 'submit', 'class' => 'btn btn-primary']);
             echo $this->Form->end();
             ?>
             <p style="margin-top: 1rem;">
-                <a href="<?= $this->request->getAttribute('webroot') ?>users/htmx-change-password">
+                <?php // Opens the overlay; the href is the no-JS fallback. ?>
+                <a href="<?= $this->request->getAttribute('webroot') ?>users/htmx-change-password"
+                   class="js-passwordModalOpen"
+                   data-modal-url="<?= $this->request->getAttribute('webroot') ?>users/htmx-change-password">
                     <?= h(__('change_password_link')) ?>
                 </a>
             </p>

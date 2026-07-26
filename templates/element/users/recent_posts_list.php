@@ -11,9 +11,12 @@
  * @var bool $hasMoreEntriesThanShownOnPage
  */
 
+// "Show all" leads to the advanced search pre-filled with this member. On an
+// island install point at the island action: the classic one renders in the SPA
+// shell, which would drop the reader out of the island mid-journey.
 $urlToHistory = [
     'controller' => 'searches',
-    'action' => 'advanced',
+    'action' => \Cake\Core\Configure::read('Saito.frontend') === 'island' ? 'htmxAdvanced' : 'advanced',
     '?' => ['name' => $user->get('username')],
 ];
 ?>

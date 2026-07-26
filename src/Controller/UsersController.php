@@ -655,6 +655,11 @@ class UsersController extends AppController
         $user = $this->Users->get($id);
         $this->set('username', $user->get('username'));
 
+        // The settings page opens this in an overlay, so htmx gets the bare form
+        // fragment; a direct visit (or a browser without JS) gets the page.
+        $isHtmx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+        $this->set('errorMessage', null);
+
         if ($this->request->is('post')) {
             $data = [];
             foreach (['password', 'password_old', 'password_confirm'] as $field) {
@@ -663,17 +668,33 @@ class UsersController extends AppController
             $this->Users->patchEntity($user, $data);
             if ($this->Users->save($user)) {
                 $this->Flash->set(__('change_password_success'), ['element' => 'success']);
+                if ($isHtmx) {
+                    // A 302 would be followed by htmx and swapped into the modal
+                    // body; HX-Redirect makes it a real navigation instead, so the
+                    // flash is shown on the settings page as usual.
+                    return $this->response->withHeader('HX-Redirect', Router::url(['action' => 'htmxEdit']));
+                }
 
                 return $this->redirect(['action' => 'htmxEdit']);
             }
             $errors = $user->getErrors();
             if (!empty($errors)) {
-                $this->Flash->set(__d('nondynamic', current(array_pop($errors))), ['element' => 'error']);
+                $message = __d('nondynamic', current(array_pop($errors)));
+                if ($isHtmx) {
+                    // The fragment has no layout, so it renders the error itself.
+                    $this->set('errorMessage', $message);
+                } else {
+                    $this->Flash->set($message, ['element' => 'error']);
+                }
             }
         }
 
         $this->set('titleForLayout', __('change_password_link'));
-        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_changepassword');
+        if ($isHtmx) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_changepassword_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_changepassword');
+        }
     }
 
     /**
@@ -710,6 +731,7 @@ class UsersController extends AppController
                 'user_signatures_hide', 'user_signatures_images_hide',
                 'user_sort_last_answer', 'user_show_thread_collapsed',
                 'user_category_override', 'user_forum_refresh_time',
+                'user_category_custom', 'user_category_active',
                 'user_color_new_postings', 'user_color_old_postings',
                 'user_color_actual_posting',
             ];
@@ -725,6 +747,30 @@ class UsersController extends AppController
                 }
                 unset($data[$colourField . '_default']);
             }
+
+            // Which categories the member wants on the front page. Saito stores
+            // this as [categoryId => truthy|falsy] in user_category_custom;
+            // Categories::getCustom() merges in anything new as enabled, so
+            // unchecked entries have to be written as an explicit falsy value
+            // rather than left out.
+            if (isset($data['categories'])) {
+                $readable = $this->CurrentUser->getCategories()->getAll('read', 'select');
+                $picked = (array)$data['categories'];
+                $custom = [];
+                foreach (array_keys($readable) as $categoryId) {
+                    $custom[$categoryId] = !empty($picked[$categoryId]) ? (string)$categoryId : '0';
+                }
+                // Unchecking everything would leave the front page with no
+                // readable category at all. Treat that as "no restriction"
+                // instead of an empty forum.
+                $data['user_category_custom'] = array_filter($custom) === [] ? [] : $custom;
+                // The stored selection only applies in 'custom' mode, which
+                // means no single active category. Clear it, otherwise saving the
+                // list would appear to do nothing.
+                $data['user_category_active'] = 0;
+                unset($data['categories']);
+            }
+
             $patched = $this->Users->patchEntity($user, $data, ['fields' => $allowedFields]);
             if (!$patched->getErrors() && $this->Users->save($patched)) {
                 $this->Flash->set(__('The user has been saved.'), ['element' => 'success']);
@@ -739,6 +785,10 @@ class UsersController extends AppController
 
         $availableThemes = $this->Themes->getAvailable($this->CurrentUser);
         $this->set('availableThemes', array_combine($availableThemes, $availableThemes));
+        // Category picker: every readable category, and which of them are
+        // currently enabled (getCustom() already merges new ones in as enabled).
+        $this->set('readableCategories', $this->CurrentUser->getCategories()->getAll('read', 'select'));
+        $this->set('selectedCategories', $this->CurrentUser->getCategories()->getCustom('read'));
         $this->set('user', $user);
         $this->set('titleForLayout', __('user.edit.t', [$user->get('username')]));
         $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_edit');
