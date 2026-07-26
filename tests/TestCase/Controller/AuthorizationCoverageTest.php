@@ -37,6 +37,16 @@ use Saito\Test\SaitoTestCase;
  * listed explicitly in MEMBER_OPEN with a reason. A new, unclassified
  * member-open action fails this test — forcing a conscious authorization
  * decision at review time rather than shipping an unguarded endpoint.
+ *
+ * Public actions are covered the same way via PUBLIC_OPEN, so opening an action
+ * to the internet is a reviewed decision too, not just an allowUnauthenticated()
+ * call somewhere in beforeFilter().
+ *
+ * KNOWN LIMIT — `inline` is pattern-based: it only proves the body *mentions* a
+ * guard, not that the guard gates access. UsersController::index is the standing
+ * example — its permission() call merely decides whether a sort column is shown,
+ * so the action counts as `inline` although it is effectively member-open. Read
+ * an `inline` verdict as "a human should have checked this", not as a guarantee.
  */
 class AuthorizationCoverageTest extends SaitoTestCase
 {
@@ -51,27 +61,72 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @var array<string, string>
      */
     private const MEMBER_OPEN = [
-        'EntriesController::add' => 'renders the new-posting form; the create itself is category-permission checked in PostingComponent',
-        'EntriesController::e' => 'renders the inline edit-marker fragment',
-        'EntriesController::source' => 'shows a posting the member may already read',
-        'StatusController::status' => 'read-only forum status for a logged-in member',
-        'UsersController::name' => 'view a public user profile by name (read)',
-        'UsersController::view' => 'view a public user profile (read)',
-        'UsersController::ignore' => 'adds to the current user\'s own ignore list (self-scoped)',
-        'UsersController::unignore' => 'removes from the current user\'s own ignore list (self-scoped)',
-        'UsersController::setcategory' => 'stores the current user\'s own category preference (self-scoped)',
-        'UsersController::slidetabOrder' => 'stores the current user\'s own slidetab order (self-scoped)',
-        'UsersController::uploads' => 'renders the current user\'s own uploads (self-scoped)',
+        'App\\Controller\\EntriesController::add' => 'renders the new-posting form; the create itself is category-permission checked in PostingComponent',
+        'App\\Controller\\EntriesController::e' => 'renders the inline edit-marker fragment',
+        'App\\Controller\\EntriesController::source' => 'shows a posting the member may already read',
+        'App\\Controller\\StatusController::status' => 'read-only forum status for a logged-in member',
+        'App\\Controller\\UsersController::name' => 'view a public user profile by name (read)',
+        'App\\Controller\\UsersController::view' => 'view a public user profile (read)',
+        'App\\Controller\\UsersController::ignore' => 'adds to the current user\'s own ignore list (self-scoped)',
+        'App\\Controller\\UsersController::unignore' => 'removes from the current user\'s own ignore list (self-scoped)',
+        'App\\Controller\\UsersController::setcategory' => 'stores the current user\'s own category preference (self-scoped)',
+        'App\\Controller\\UsersController::slidetabOrder' => 'stores the current user\'s own slidetab order (self-scoped)',
+        'App\\Controller\\UsersController::uploads' => 'renders the current user\'s own uploads (self-scoped)',
         // htmx island counterparts of the above — same exposure as the classic
         // action each one replaces (verified self-scoped or plain read).
-        'UsersController::htmxProfile' => 'view a public user profile in the island (read; same as view)',
-        'UsersController::htmxUsers' => 'member list in the island (read; same as index)',
-        'UsersController::recentPosts' => 'a user\'s recent postings, category-filtered for the reader (read)',
-        'UsersController::bookmarks' => 'renders the current user\'s own bookmarks (self-scoped)',
-        'UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
-        'EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
-        'EntriesController::htmxUploads' => 'lists the current user\'s own uploads (self-scoped)',
-        'EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
+        'App\\Controller\\UsersController::htmxProfile' => 'view a public user profile in the island (read; same as view)',
+        'App\\Controller\\UsersController::htmxUsers' => 'member list in the island (read; same as index)',
+        'App\\Controller\\UsersController::recentPosts' => 'a user\'s recent postings, category-filtered for the reader (read)',
+        'App\\Controller\\UsersController::bookmarks' => 'renders the current user\'s own bookmarks (self-scoped)',
+        'App\\Controller\\UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
+        'App\\Controller\\EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
+        'App\\Controller\\EntriesController::htmxUploads' => 'lists the current user\'s own uploads (self-scoped)',
+        'App\\Controller\\EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
+    ];
+
+    /**
+     * Actions intentionally reachable without login (declared in
+     * allowUnauthenticated). Key: "<Controller>::<action>", value: the reason.
+     *
+     * Public exposure is the riskier direction — an action added to
+     * allowUnauthenticated by mistake is open to the whole internet — so it must
+     * be a conscious, reviewed decision here too, not just a call somewhere in
+     * beforeFilter().
+     *
+     * @var array<string, string>
+     */
+    private const PUBLIC_OPEN = [
+        // Reading the forum: content itself is filtered by the reader's
+        // category read-permission (guests see public categories only).
+        'App\\Controller\\EntriesController::index' => 'forum front page (read; category-filtered)',
+        'App\\Controller\\EntriesController::view' => 'read a single posting (read; category-filtered)',
+        'App\\Controller\\EntriesController::mix' => 'read a whole thread (read; category-filtered)',
+        'App\\Controller\\EntriesController::htmxIndex' => 'island front page (read; category-filtered)',
+        'App\\Controller\\EntriesController::htmxThread' => 'island thread view (read; category-filtered)',
+        'App\\Controller\\EntriesController::htmxWidgets' => 'island sidebar widgets (read; category-filtered)',
+        'App\\Controller\\EntriesController::htmxNewCount' => 'polls the number of new postings (read; category-filtered)',
+        'App\\Controller\\EntriesController::update' => 'sets the visitor\'s own last-refresh marker (self-scoped, session only)',
+        // Authentication / registration flows must be reachable before login.
+        'App\\Controller\\UsersController::login' => 'login form + submit',
+        'App\\Controller\\UsersController::logout' => 'logout',
+        'App\\Controller\\UsersController::register' => 'registration (additionally gated by saito.core.user.register)',
+        'App\\Controller\\UsersController::rs' => 'account activation via the emailed code',
+        'App\\Controller\\UsersController::htmxLogin' => 'island login form',
+        'App\\Controller\\UsersController::htmxRegister' => 'island registration form',
+        // Public search + contact + static content.
+        'SaitoSearch\\Controller\\SearchesController::simple' => 'public fulltext search (results category-filtered)',
+        'SaitoSearch\\Controller\\SearchesController::htmxSimple' => 'island fulltext search (results category-filtered)',
+        'App\\Controller\\ContactsController::owner' => 'contact the operator (honeypot + timing guard)',
+        'App\\Controller\\ContactsController::htmxContactOwner' => 'island contact the operator (honeypot + timing guard)',
+        'App\\Controller\\PagesController::display' => 'static pages (imprint, help …)',
+        // Feeds / sitemap are public by design.
+        'Feeds\\Controller\\PostingsController::new' => 'public RSS feed of new postings (category-filtered)',
+        'Feeds\\Controller\\PostingsController::threads' => 'public RSS feed of new threads (category-filtered)',
+        'Sitemap\\Controller\\SitemapsController::index' => 'sitemap index for search engines',
+        'Sitemap\\Controller\\SitemapsController::file' => 'sitemap file for search engines',
+        'SaitoHelp\\Controller\\SaitoHelpsController::index' => 'help pages',
+        'SaitoHelp\\Controller\\SaitoHelpsController::view' => 'help page',
+        'SaitoHelp\\Controller\\SaitoHelpsController::languageRedirect' => 'redirects to the help page in the visitor\'s language',
     ];
 
     /**
@@ -119,6 +174,66 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * still-member-open action. A stale entry (action gained a gate, was renamed
      * or removed) must be pruned so the allowlist cannot hide a regression.
      */
+    /**
+     * Every publicly reachable action must be declared in PUBLIC_OPEN.
+     *
+     * The member-open tripwire above only asks "is this open to any member?" —
+     * it accepts `allowUnauthenticated` as a valid classification without
+     * questioning it. So an action wrongly added to allowUnauthenticated (open
+     * to the internet, the worse mistake) would pass unnoticed. This closes
+     * that gap: adding a public action forces a reviewed reason here.
+     *
+     * @return void
+     */
+    public function testEveryPublicActionIsDeclared(): void
+    {
+        $undeclared = [];
+        foreach ($this->discoverActions() as $key => [$class, $action, $file]) {
+            if (
+                $this->classify($class, $action, $file) === 'public'
+                && !isset(self::PUBLIC_OPEN[$key])
+            ) {
+                $undeclared[] = $key;
+            }
+        }
+        sort($undeclared);
+
+        $this->assertSame(
+            [],
+            $undeclared,
+            "These actions are reachable WITHOUT login but are not declared.\n"
+            . "If that is intended, add them to PUBLIC_OPEN with a reason;\n"
+            . "otherwise remove them from allowUnauthenticated():\n  "
+            . implode("\n  ", $undeclared),
+        );
+    }
+
+    /**
+     * Keep the public allowlist honest: no entries for actions that are no
+     * longer public (removed from allowUnauthenticated, renamed or deleted).
+     *
+     * @return void
+     */
+    public function testPublicAllowlistHasNoStaleEntries(): void
+    {
+        $actual = [];
+        foreach ($this->discoverActions() as $key => [$class, $action, $file]) {
+            if ($this->classify($class, $action, $file) === 'public') {
+                $actual[$key] = true;
+            }
+        }
+
+        $stale = array_values(array_diff(array_keys(self::PUBLIC_OPEN), array_keys($actual)));
+        sort($stale);
+
+        $this->assertSame(
+            [],
+            $stale,
+            "PUBLIC_OPEN lists actions that are no longer public (gated, renamed\n"
+            . "or removed). Remove them:\n  " . implode("\n  ", $stale),
+        );
+    }
+
     public function testMemberOpenAllowlistHasNoStaleEntries(): void
     {
         $actual = [];
@@ -190,7 +305,12 @@ class AuthorizationCoverageTest extends SaitoTestCase
                 ) {
                     continue;
                 }
-                $actions[$short . '::' . $name] = [$class, $name, $file];
+                // Key by fully-qualified class: several controllers share a
+                // short name (App\UsersController vs Admin\UsersController,
+                // Sitemap vs Sitemap\Admin, Feeds vs Api Postings). A
+                // short-name key let the later file silently shadow the earlier
+                // one, so those actions were never audited at all.
+                $actions[$class . '::' . $name] = [$class, $name, $file];
             }
         }
 

@@ -929,10 +929,14 @@ class EntriesController extends AppController
      */
     public function htmxBookmark($id)
     {
+        // POST only: this toggles state, so never accept it on a GET (`'ajax'`
+        // used to let a GET with X-Requested-With through, which CSRF
+        // middleware does not validate).
+        $this->request->allowMethod(['post']);
         $this->autoRender = false;
         $entryId = (int)$id;
         $userId = $this->CurrentUser->getId();
-        if (!$entryId || !$userId || !$this->request->is(['post', 'ajax'])) {
+        if (!$entryId || !$userId) {
             throw new BadRequestException();
         }
 

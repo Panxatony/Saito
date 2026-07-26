@@ -106,7 +106,16 @@ server {
 
     # User-uploaded images live under webroot/useruploads — serve them
     # straight from disk; never pipe through PHP.
-    location /useruploads/ {
+    #
+    # `^~` is essential: a plain prefix location loses to the regex locations
+    # below, so `/useruploads/x.php` would be handed to php-fpm. The uploader
+    # only ever stores whitelisted, server-detected extensions (never the
+    # client's filename), so nothing executable can land here — `^~` plus the
+    # inner deny is the defence-in-depth that keeps it that way.
+    location ^~ /useruploads/ {
+        location ~ \.php$ {
+            deny all;
+        }
         expires 7d;
         access_log off;
         # Uploads are attacker-controlled — repeat nosniff here so the browser
