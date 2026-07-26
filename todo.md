@@ -112,6 +112,53 @@ island (a beta safety net that must not survive into a single-frontend world).
 
 ---
 
+## Zeitzonen: die Datenbank hält Lokalzeit, das Framework glaubt an UTC
+
+Gefunden am 2026-07-26 beim Nachgehen eines ganz anderen Verdachts. **Kein
+Cutover-Schaden** — das liegt seit Jahren so und betrifft auch die SPA.
+
+**Der Befund**, an einem Beitrag durchgemessen:
+
+| Stelle | Wert |
+|---|---|
+| Server | `21:11 CEST` = `19:11 UTC` |
+| `entries.time` in der Datenbank | `20:54:02` — also **Lokalzeit** (DB-Zeitzone `SYSTEM`) |
+| `APP_DEFAULT_TIMEZONE` | `UTC` |
+| ausgeliefertes `<time datetime>` | `2026-07-26T20:54:02+00:00` |
+| RSS `<pubDate>` | `… +0000` |
+| angezeigter Text | `20:54` — **richtig** |
+
+**Warum die Anzeige trotzdem stimmt:** `TimeHHelper` rechnet
+`serverOffset - offset(Saito.Settings.timezone)`. Die Einstellung steht auf
+`Europe/Berlin`, der Server läuft auf CEST — die Differenz ist null, also wird
+der rohe Wert unverändert ausgegeben und trifft zufällig zu.
+
+**Was daraus folgt:**
+
+- Alles Maschinenlesbare ist um den lokalen Versatz falsch: `datetime`-Attribut,
+  RSS-`pubDate`, damit jeder Feedreader. Beiträge erscheinen dort **zwei Stunden
+  in der Zukunft** (im Winter eine).
+- Es ist zusätzlich **fragil**: Stellt man den Server auf UTC um — bei einem
+  Umzug naheliegend — kippt auch die bislang korrekte Anzeige um zwei Stunden.
+  Die Richtigkeit hängt daran, dass Serverzeitzone und Anzeigeeinstellung
+  zufällig übereinstimmen.
+
+**Warum nicht schnell behoben:** `APP_DEFAULT_TIMEZONE` auf `Europe/Berlin` zu
+setzen verschiebt schlagartig **alle** Zeiten, auch die von 2006 — und diese
+Altbestände wurden über die Jahre womöglich unter wechselnden Annahmen
+geschrieben. Das braucht:
+
+1. eine Bestandsaufnahme, ob `entries.time` durchgängig Lokalzeit enthält
+   (Sommer-/Winterzeitgrenzen prüfen, Zeiten um 02:00 im Oktober),
+2. eine Entscheidung: Bestand nach UTC migrieren (sauber, aber einmalig
+   riskant) oder dem Framework die richtige Zeitzone beibringen (billiger,
+   konserviert aber die Lokalzeit in der Datenbank),
+3. eine Prüfung aller Ausgabewege: `TimeHHelper`, `<time>`-Elemente, Feeds,
+   Sortierung, „seit wann ungelesen".
+
+Zusammen mit dem SPA-Rückbau anzugehen, nicht davor: Solange beide Frontends
+laufen, verdoppelt sich die Prüffläche.
+
 ## Not part of this, but adjacent
 
 - **`templates/Pages/forum_disabled.php`** — fixed on 2026-07-26 (external
