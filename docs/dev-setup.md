@@ -66,7 +66,7 @@ grunt release
 ```
 
 Each active theme compiles its own stylesheets (and purges unused CSS) via its
-`sass.sh`, e.g. `plugins/Local/sass.sh` (dart-sass + PurgeCSS); `grunt release`
+`sass.sh`, e.g. `plugins/Macnemo/sass.sh` (dart-sass + PurgeCSS); `grunt release`
 runs this as part of the build.
 
 ## 4. Run the App

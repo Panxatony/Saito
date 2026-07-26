@@ -7,13 +7,13 @@ The default theme *Bota* is implemented as a [CakePHP theme plugin](https://book
 
 To start your own theme I recommend using SASS and referencing the default theme.
 
-A good place to start is *plugins/local*, which is an empty [CakePHP plugin](https://book.cakephp.org/5/en/plugins.html#manually-autoloading-plugin-classes) specifically created to for local customizations.
+A theme is an ordinary [CakePHP plugin](https://book.cakephp.org/5/en/plugins.html#manually-autoloading-plugin-classes); `plugins/Macnemo` (the macnemo identity, built on Nova) is a worked example to read. The steps below use *MyTheme* as a placeholder — substitute your own name.
 
-1. Copy the theme resources (default template, webroot content) from  `plugins/Bota` to `plugins/Local`.
+1. Create `plugins/MyTheme` and copy the theme resources (default template, webroot content) from `plugins/Bota` into it.
 
-2. Activate *Local* as theme by setting it as default theme in *config/saito_config.php*.
+2. Register the plugin (`composer.json` autoload + `addPlugin()` in *src/Application.php*) and activate *MyTheme* as default theme in *config/saito_config.php*.
 
-3. Replace everything in *plugins/Local/webroot/css/theme.scss* with:
+3. Replace everything in *plugins/MyTheme/webroot/css/theme.scss* with:
 
 ```
 @import "../../../../../plugins/Bota/webroot/css/src/theme";

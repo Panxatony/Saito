@@ -1,12 +1,12 @@
 <?php
 
-namespace Local;
+namespace Macnemo;
 
 use Cake\Core\BasePlugin;
 
 /**
  * Plugin for Local
  */
-class LocalPlugin extends BasePlugin
+class MacnemoPlugin extends BasePlugin
 {
 }

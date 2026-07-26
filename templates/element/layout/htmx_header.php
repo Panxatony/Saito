@@ -19,7 +19,7 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
 <header id="header" class="htmx-island-header">
     <div id="header-hero">
         <a href="<?= $webroot ?>entries/htmx-index" id="btn_header_logo" class="btn btn-link">
-            <?php // The active theme's logo (e.g. plugins/Local/webroot/img/forum_logo.svg);
+            <?php // The active theme's logo (e.g. plugins/Macnemo/webroot/img/forum_logo.svg);
                   // Html->image resolves it from the theme's webroot. alt = forum name so
                   // there's a text fallback if the image is missing. ?>
             <div id="hero-homeLink"><?= $this->Html->image('forum_logo.svg', ['alt' => $forumName]) ?></div>
