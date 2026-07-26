@@ -21,6 +21,10 @@
             Alles Wichtige steht vorne. Ein <span class="island-help-mark">oranger Strich</span>
             links heißt „hier ist was Neues“ – sobald du reinschaust, verduftet er
             beleidigt. Über <em>„Mehr laden“</em> holst du dir Nachschub aus dem Archiv.
+            Wuchert ein Thread mit hundert Antworten? Der kleine Klapp-Pfeil links
+            daneben faltet ihn zusammen, bis nur das Eröffnungsposting übrig ist –
+            und in den Einstellungen lässt sich das gleich für alle Threads
+            voreinstellen.
         </div>
     </div>
 
@@ -30,8 +34,11 @@
             <strong>Beiträge schreiben</strong>
             Klick auf <em>„Neuer Beitrag“</em> und der Editor klappt gleich an Ort und
             Stelle auf – kein Seitenwechsel, kein Ladebalken-Kino. Die Knöpfchen oben
-            machen <strong>fett</strong>, <em>kursiv</em> und allerlei Formatierung.
-            Die Vorschau zeigt dir vorher, ob’s hübsch aussieht.
+            machen <strong>fett</strong>, <em>kursiv</em> und allerlei Formatierung,
+            das Smiley-Gesicht öffnet die Sammlung zum Anklicken. Die Vorschau zeigt
+            dir vorher, ob’s hübsch aussieht. Und wenn sich doch ein Tippfehler
+            eingeschlichen hat: <em>„Bearbeiten“</em> am eigenen Beitrag richtet das –
+            der Beitrag trägt danach einen dezenten Hinweis, dass er angefasst wurde.
         </div>
     </div>
 
@@ -43,7 +50,8 @@
             von selbst, ob es ein Bild, ein Video oder ein YouTube-Clip ist. Noch fauler?
             Einfach einen Link ins Editor-Feld <em>einfügen</em> (Strg/Cmd&nbsp;+&nbsp;V),
             der Rest passiert automatisch. Der Upload-Manager zeigt dein Bilderarchiv –
-            aussuchen, „Auswahl einfügen“, fertig.
+            aussuchen, „Auswahl einfügen“, fertig. Aufräumen geht in deinem Profil:
+            dort liegen alle Uploads, und was weg soll, darf weg.
         </div>
     </div>
 
@@ -108,9 +116,36 @@
         <i class="fa fa-user island-help-icon" aria-hidden="true"></i>
         <div>
             <strong>Profil &amp; Einstellungen</strong>
-            Hinter deinem Benutzer-Symbol wohnen deine Einstellungen: Signatur, Farben,
-            Sortierung – und die <em>Schriftgröße</em>, falls die Buchstaben mal Fangen
-            spielen. Alles deins, alles anpassbar.
+            Hinter <em>„Profil“</em> im Kopf wohnt alles Persönliche: dein
+            <em>Avatar</em>, Signatur, Farben, Sortierung – und die
+            <em>Schriftgröße</em>, falls die Buchstaben mal Fangen spielen. Auf der
+            Profilseite selbst findest du außerdem deine Lesezeichen, deine Uploads
+            und deine persönlichen RSS-Adressen, die auch die Bereiche mitliefern,
+            die nur angemeldet sichtbar sind.
+        </div>
+    </div>
+
+    <div class="island-help-item">
+        <i class="fa fa-envelope island-help-icon" aria-hidden="true"></i>
+        <div>
+            <strong>Miteinander reden – oder eben nicht</strong>
+            Etwas, das nicht alle lesen müssen? Auf dem Profil eines Mitglieds
+            steht <em>„Kontakt“</em> und schickt eine E-Mail, ohne dass Adressen
+            herumgereicht werden. Und wenn jemand dauerhaft an deinen Nerven sägt:
+            <em>„Ignorieren“</em> auf demselben Profil, dann ist Ruhe. Den Betreiber
+            erreichst du über <em>„Kontakt“</em> unten im Fuß der Seite.
+        </div>
+    </div>
+
+    <div class="island-help-item">
+        <i class="fa fa-wrench island-help-icon" aria-hidden="true"></i>
+        <div>
+            <strong>Das Werkzeug-Menü</strong>
+            Wenn du Moderationsrechte hast, sitzt an Beiträgen ein Schraubenschlüssel.
+            Dahinter liegt das schwere Gerät: <em>anpinnen</em> (Thread bleibt oben),
+            <em>sperren</em> (keine neuen Antworten), <em>zusammenführen</em> (hängt
+            einen ganzen Thread als Antwort unter einen anderen – praktisch bei
+            Doppelposts) und <em>löschen</em>. Mit Bedacht, das meiste davon merkt man.
         </div>
     </div>
 
