@@ -271,6 +271,59 @@ class EntriesController extends AppController
     }
 
     /**
+     * A single posting with the thread it belongs to, as an htmx island page.
+     *
+     * The counterpart to the SPA's {@see view()}: the posting in full at the
+     * top, the thread's tree of subject lines below it, so one can read a
+     * posting and still see where it sits in the conversation. That combination
+     * had no island equivalent — the front page opens postings inline, and
+     * htmxThread shows the whole thread flattened, but neither serves a
+     * deep-link to one posting.
+     *
+     * An `HX-Request` returns just the posting fragment, which is what the
+     * island uses to open a posting inline.
+     *
+     * @param string $id posting-ID
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxPosting(string $id)
+    {
+        $id = (int)$id;
+        if ($id <= 0) {
+            throw new BadRequestException();
+        }
+
+        $entry = $this->Entries->get($id);
+        $posting = $entry->toPosting()->withCurrentUser($this->CurrentUser);
+
+        if (!$this->CurrentUser->getCategories()->permission('read', $posting->get('category'))) {
+            return $this->_requireAuth();
+        }
+
+        $this->set('entry', $posting);
+        $this->Threads->incrementViewsForPosting($posting, $this->CurrentUser);
+        // view_posting needs the thread root and the answering flag.
+        $this->_setRootEntry($posting);
+        $this->_showAnsweringPanel();
+        $this->MarkAsRead->posting($posting);
+
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            // Ohne dies käme das Element im vollen Layout zurück — die SPA kam
+            // damit durch, weil sie den ajax-Layout-Umschalter benutzte.
+            $this->viewBuilder()->disableAutoLayout();
+
+            return $this->render('/element/entry/view_posting');
+        }
+
+        $this->set(
+            'tree',
+            $this->Entries->postingsForThread($posting->get('tid'), false, $this->CurrentUser)
+        );
+        $this->set('titleForLayout', $posting->get('subject'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_posting');
+    }
+
+    /**
      * Create a new thread (root posting) via the htmx island — the write path
      * for new topics (the SPA answering module's other half).
      *
@@ -1066,7 +1119,7 @@ class EntriesController extends AppController
             ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
                 'htmxEdit', 'htmxMerge', 'htmxUploadDelete']
         );
-        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxWidgets']);
+        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxPosting', 'htmxWidgets']);
 
         $this->AuthUser->authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock');
         $this->AuthUser->authorizeAction('merge', 'saito.core.posting.merge');

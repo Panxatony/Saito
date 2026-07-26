@@ -103,6 +103,7 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\EntriesController::mix' => 'read a whole thread (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxIndex' => 'island front page (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxThread' => 'island thread view (read; category-filtered)',
+        'App\\Controller\\EntriesController::htmxPosting' => 'island single posting + its thread (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxWidgets' => 'island sidebar widgets (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxNewCount' => 'polls the number of new postings (read; category-filtered)',
         'App\\Controller\\EntriesController::update' => 'sets the visitor\'s own last-refresh marker (self-scoped, session only)',
