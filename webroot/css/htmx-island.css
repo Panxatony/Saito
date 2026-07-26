@@ -356,11 +356,10 @@
     line-height: 1.6rem;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
-/* Phones: the beta banner + corner ribbon eat vertical space and the ribbon
-   clips the banner text. On narrow screens hide both entirely so the content
-   uses the full width/height (the header still carries the "help" hint). */
+/* Phones: the fixed corner ribbon overlaps and clips the banner text, so hide
+   just the ribbon. The beta banner itself stays (it carries the notice + the
+   help hint) and now uses the full width. */
 @media (max-width: 640px) {
-    .htmx-island .beta-notice,
     .htmx-island .beta-ribbon { display: none; }
 }
 
