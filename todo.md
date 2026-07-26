@@ -12,49 +12,38 @@ never part of the SPA and stays as it is.
 
 ---
 
-## 1. Decouple `/entries/view/<id>` (variant B)
+## 1. Decouple `/entries/view/<id>` (variant B) — **erledigt**
 
-The one remaining structural tie to the SPA. This URL does double duty: it is
-both the link target of a thread line **and** the AJAX endpoint the island posts
-to for opening a posting inline (`toggleInlinePosting` reads the `href` and
-posts to it). As long as that holds, the SPA's `EntriesController::view()`
-cannot be deleted.
+Umgesetzt am 2026-07-26, ausgerollt auf Test und Beta (prod bewusst noch nicht).
 
-**Emitters to switch to island URLs** (all gated on `Saito.frontend`, the same
-pattern already used for edit/merge/mix):
+`entries/view` tat zweierlei: Ziel des Betreff-Links **und** AJAX-Endpunkt fürs
+Aufklappen. Beides hängt jetzt an `EntriesController::htmxPosting()`, dem
+Insel-Gegenstück zur alten Einzelbeitrags-Ansicht: Beitrag vollständig oben,
+Threadbaum darunter — und bei `HX-Request` nur das Beitragsfragment. Eine URL
+für beides, genau wie beim Original.
 
-| Where | What |
+Umgestellte Erzeuger:
+
+| Stelle | jetzt |
 |---|---|
-| `PostingHelper::getFastLink()` | thread-line subject link — the main one |
-| `ThreadHtmlRenderer:91` | same link in the fast renderer (raw HTML string) |
-| `templates/element/entry/view_content.php:13` | link inside a rendered posting |
-| `templates/Entries/htmx_reply_done.php:13` | "reply posted" confirmation |
-| `EntriesController:873, 1003` | redirects after edit and merge |
-| `MarkupSettings::hashBaseUrl` | `#123` tags **inside members' posting text** |
+| `PostingHelper::getFastLink()` | `/entries/htmx-posting/<id>` |
+| `ThreadHtmlRenderer` | dito |
+| `templates/element/entry/view_content.php` | `/entries/htmx-thread/<tid>` |
+| `templates/Entries/htmx_reply_done.php` | `/entries/htmx-thread/<tid>` |
+| `EntriesController` (nach Löschen/Zusammenführen) | `/entries/htmx-thread/…` |
 
-**Decoupling the endpoint.** Cheaper than it looks: the thread leaf already
-carries `data-id` and a `data-leaf` JSON blob containing the `tid`. So the
-island can read the id from the element instead of the href (~5 lines), and
-navigation can go straight to `/entries/htmx-thread/<tid>` instead of relying on
-the 301 hop that today's code leans on.
+Das Bundle schreibt keine URLs mehr um — der `href` stimmt bereits, das hat
+Code entfernt statt hinzugefügt. Im Browser nachgeklickt: Aufklappen über das
+Icon lädt `POST /entries/htmx-posting/…`, Klick auf den Betreff öffnet inline,
+zweiter Klick führt auf die neue Seite mit Beitrag **und** Threadbaum.
 
-Variant B proper adds a dedicated island action, e.g.
-`EntriesController::htmxPosting($id)` (~15 lines) rendering the same
-`element/entry/view_posting`, so nothing points at an SPA action any more.
+**Noch offen an dieser Front:** `MarkupSettings::hashBaseUrl` (die `#123`-Tags
+im Beitragstext der Nutzer) und das schema.org-`url` in `view_content.php`.
+Beides betrifft nicht die Navigation, sondern die Darstellung bestehender
+Inhalte bzw. Metadaten für Suchmaschinen — das gehört mit Bedacht gemacht und
+an einem Beitrag mit so einem Tag geprüft.
 
-**Effort:** ~1–2 h for the emitters plus the JS decoupling, ~1 h more for the
-dedicated action.
-
-**Checked, so it does not surprise anyone later:**
-- No caching involved. Despite its name `thread_cached_init.php` caches
-  nothing, and parsed posting text is not cached either — no stale URLs.
-- 20 test references across 5 files, three of them hard expectations in
-  `PostingHelperTest`. Because the change is config-gated they stay green; add
-  island cases rather than rewriting them.
-- The real risk is `hashBaseUrl`: it decides how `#123` tags in **existing**
-  postings render. Render-time only and revertible, but verify it against a
-  posting that actually contains such a tag.
-
+## 2. Remove the SPA entry points
 ## 2. Remove the SPA entry points
 
 Delete the SPA actions and their templates — **not** the shared logic behind

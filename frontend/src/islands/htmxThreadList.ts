@@ -167,8 +167,9 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
     const href = link.getAttribute('href') ?? '';
-    const match = href.match(/\/entries\/view\/(\d+)/);
-    if (!match) {
+    // htmx-posting on an island install, view on the SPA; the classic form is
+    // still matched so a page rendered before the switch keeps working.
+    if (!/\/entries\/(?:view|htmx-posting)\/\d+/.test(href)) {
         return;
     }
 
@@ -182,9 +183,11 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
 
-    // Setting off, or already open (second click): go to the full thread page.
+    // Setting off, or already open (second click): follow the link. No rewriting
+    // any more — the href already points at the island page, which shows the
+    // posting *and* the thread it belongs to.
     event.preventDefault();
-    window.location.href = href.replace(/\/entries\/view\/\d+/, `/entries/htmx-thread/${match[1]}`);
+    window.location.href = href;
 });
 
 // Mix button on a thread box.

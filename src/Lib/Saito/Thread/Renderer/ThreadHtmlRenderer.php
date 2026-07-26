@@ -76,6 +76,10 @@ class ThreadHtmlRenderer extends HtmlRendererAbstract
         //= manual json_encode() for performance
         $tid = $posting['tid'];
         $isNew = $node->isUnread() ? 'true' : 'false';
+        // Wie im PostingHelper: die Insel deutet auf htmxPosting.
+        $postingAction = \Cake\Core\Configure::read('Saito.frontend') === 'island'
+            ? 'htmx-posting'
+            : 'view';
         $jsData = <<<EOF
 {"id":{$id},"new":{$isNew},"tid":{$tid}}
 EOF;
@@ -88,7 +92,7 @@ EOF;
 		<button class="btn btn-link btn_show_thread threadLine-pre et">
 			<i class="fa fa-thread"></i>
 		</button>
-		<a href="{$this->_webroot}entries/view/{$id}"
+		<a href="{$this->_webroot}entries/{$postingAction}/{$id}"
 			class="link_show_thread et threadLine-content">
 				{$threadLine} {$badges} </span>
 		</a>
