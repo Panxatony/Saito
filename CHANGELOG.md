@@ -7,6 +7,29 @@
 
 ## [next] -
 
+## [8.0.7] - 2026-07-26
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.6-alpha...8.0.7)
+
+### Changes
+
+- ＋ Themes: **Nova** is the new default — a modern take on Bota with rounded shapes, a warmer neutral palette and its own design tokens. It ships a Saito logo (a thread and two replies, wordmark in the theme's own Cabin cut converted to outlines) so a fresh installation no longer shows a broken image. The macnemo identity was rebuilt on top of Nova and renamed from `Local` to **`Macnemo`**; its bubble artwork now sits as a height-limited masthead motif over a warm wash instead of growing into a full-page mural on wide screens.
+- ＋ Profile settings: pick which categories to show as a checkbox list, reset each colour to the default with a tick box, and change the password in an overlay instead of on a separate page.
+- ＋ Search: results load in pages via "load more" instead of stopping silently at the first twenty, in the advanced search as well as the header widget.
+- ＋ Member list: reachable from the word "Benutzer" in the online widget and paged with "load more".
+- ＋ Thread list: the mix button expands the whole thread in place when "expand posting on click" is enabled — one request for every posting at once, a second click folds it back.
+- ＋ Privacy policy page at `/pages/privacy`, fed from `Saito.privacy` like the imprint and linked in the footer. `docs/privacy-policy-template.md` inventories what the software actually processes.
+- ✓ Fix: the advanced search's time filter never worked after the CakePHP 3 migration. The controller read the old `month[month]`/`year[year]` shape while the widgets submitted flat values, so the search was silently capped at the last twelve months regardless of what was selected; the year list offered future years because `minYear`/`maxYear` are not CakePHP 4+ option names. The two controls are now one month field that the controller actually reads.
+- ✓ Fix: the member list showed a hundred members and pretended that was all of them — `limit => 400` is silently capped by CakePHP's `maxLimit`, and the island offered no page navigation at all.
+- ✓ Fix: every username in the forum linked to the SPA profile page on island installations, as did the statistics line in the footer, the edit, merge and mix actions on a posting. All of them now follow the active frontend.
+- ✓ Fix: "Letzte Beiträge {0}" showed the placeholder instead of the member's name.
+- ✓ Fix: widgets stayed light in dark mode; the sort-order radio group ran together; colour pickers showed black for an unset colour.
+- ✓ Fix: the profile's upload list had the wrong heading and its multi-selection did nothing — several uploads can now be deleted together.
+- Δ Privacy: CakePHP appends the full client IP to every logged exception with no way to switch it off, which quietly undid an installation's decision not to store IP addresses. It is now masked the same way the `store_ip_anonymized` setting masks it for postings.
+- Δ Privacy: the maintenance page pulled a Google webfont over plain http — a third-party request and, on an https site, mixed content. No template makes an external request any more.
+- Δ Standalone island pages carry a "back to the forum" link; contacting a member opens an overlay like contacting the owner does.
+- Δ `fullBaseUrl` can be set from `SAITO_FULL_BASE_URL`. Behind a TLS-terminating proxy the application only sees plain http, which made upload thumbnails trigger mixed-content warnings and put insecure links into outgoing mail.
+
 ## [7.5.2] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.5.1...7.5.2)
