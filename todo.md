@@ -112,64 +112,61 @@ island (a beta safety net that must not survive into a single-frontend world).
 
 ---
 
-## Scanner-Sonden fluten das Fehlerprotokoll — und jede kostet einen PHP-Prozess
+## Scanner-Sonden im Fehlerprotokoll — Rest: skipLog
 
-Gefunden am 2026-07-26. **Kein Cutover-Schaden**, das läuft seit Jahren so.
+Gefunden und zu zwei Dritteln behoben am 2026-07-26. **Kein Cutover-Schaden**,
+das lief seit Jahren so.
 
-**Der Befund.** Jede Anfrage auf einen nicht existierenden Pfad landet bei
-CakePHP und erzeugt dort eine `MissingControllerException` samt vollständigem
-Stack Trace im Protokoll. Ausgezählt über alle Protokolle:
+**Der Befund war:** Jede Anfrage auf einen nicht existierenden Pfad landete bei
+CakePHP und schrieb dort eine `MissingControllerException` samt vollem Stack
+Trace. Ausgezählt über alle Protokolle: `Config` 2.975×, `Api` 1.835×, `Core`
+848×, `WpIncludes` 252× — ganz überwiegend Schwachstellenscanner. Daher wuchs
+`error.log` binnen zehn Tagen auf 10 MB, und jede Sonde belegte kurz einen
+PHP-Prozess.
 
-| Aufrufe | „Controller" | was es ist |
-|---|---|---|
-| 2.975 | `Config` | Schwachstellenscanner |
-| 1.835 | `Api` | Scanner |
-| 848 | `Core` | Scanner |
-| 392 | `Src` | Scanner |
-| 357 | `Server` | Scanner |
-| 252 | `WpIncludes` | WordPress-Scanner |
+### Erledigt
 
-Das ist der Grund, warum `error.log` binnen zehn Tagen auf 10 MB läuft.
-Nebenbei belegt jede Sonde kurz einen PHP-Arbeitsprozess.
+**Schritt 1 — Plugin-Assets sind echte Dateien.** `bin/cake plugin assets
+symlink` auf allen drei Installationen; neun Symlinks (`macnemo`, `nova`,
+`bota`, `admin`, `saito_help`, `saito_search`, `spectrum_colorpicker`,
+`stopwatch`, `bootstrap_u_i`). Vorher lieferte CakePHPs `AssetMiddleware` die
+Theme-Dateien über PHP aus — gemessen 240 Anfragen auf `/macnemo/…`, 75 auf
+`/bota/…`. **Genau deshalb musste dieser Schritt zuerst kommen:** Ohne die
+Symlinks hätte Schritt 2 das Theme abgeschaltet.
 
-**Warum es passiert.** In `forum_locations.inc` fallen auch statische
-Endungen auf die Anwendung durch:
+**Schritt 2 — nginx beantwortet fehlende Dateien selbst.** Im Block für
+statische Endungen `try_files $uri =404;` statt des Durchfalls auf `index.php`.
+Gemessen: `/gibtesnicht.png`, `/wp-content/uploads/x.png` und `/assets/style.css`
+liefern 404 mit **null** neuen Protokolleinträgen.
 
-```nginx
-location ~* \.(?:css|js|woff2?|…|png|jpg|…)$ {
-    … try_files $uri /index.php?$args;
-}
-```
+Vorher abgesichert, dass nichts anderes statische Endungen erzeugt: Avatare
+liegen unter `/useruploads/` (eigener Block, längst `=404`), Identicons sind
+data:-URIs ohne HTTP-Anfrage.
 
-Das ist **kein Versehen**: prod hat **keine Plugin-Symlinks im webroot**, also
-liefert CakePHPs `AssetMiddleware` sämtliche Theme-Dateien aus — über PHP.
-Gemessen im Zugriffsprotokoll: 240 Anfragen auf `/macnemo/…`, 75 auf `/bota/…`,
-dazu `spectrum_colorpicker`, `saito_search`, `saito_help`, `admin`.
-Stellt man `try_files` auf `=404`, ist das Theme sofort tot.
+*Falle für später:* `add_header` in einem verschachtelten `location` **ersetzt**
+geerbte Header, statt sie zu ergänzen. Beim Nachziehen der Beta hätte der neue
+Block deren `X-Robots-Tag: noindex` entfernt; die Zeile steht dort deshalb
+erneut drin.
 
-**Die richtige Lösung, in genau dieser Reihenfolge:**
+### Offen: Schritt 3
 
-1. **Plugin-Assets als echte Dateien bereitstellen** — `bin/cake plugin assets
-   symlink` auf jeder Installation. Danach liegen `/macnemo/…`, `/bota/…`,
-   `/admin/…` als Symlinks im webroot und nginx liefert sie direkt aus.
-   *Nebengewinn:* CSS, Schriften und Bilder kosten dann keinen PHP-Prozess mehr.
-2. **Erst dann** nginx schärfen: im Block für statische Endungen
-   `try_files $uri =404;` statt des Durchfalls. Ab da sterben alle Sonden mit
-   Dateiendung an nginx, ohne PHP je zu erreichen.
-3. **Zum Schluss** `Error.skipLog` in `config/app.php` um
-   `MissingControllerException` und `MissingRouteException` ergänzen — für die
-   verbleibenden Sonden *ohne* Endung (`/config/`, `/api/`), die weiterhin über
-   `location /` bei der Anwendung landen.
+Sonden **ohne** Dateiendung (`/config/database`, `/api/…`) laufen weiterhin über
+`location /` bei der Anwendung auf und schreiben je einen Stack Trace — nach
+Schritt 2 nachgemessen: ein neuer Eintrag pro Sonde.
 
-**Die Reihenfolge ist der ganze Punkt.** Schritt 2 vor Schritt 1 schaltet das
-Theme ab. Schritt 3 allein wäre Symptombehandlung: Das Protokoll wäre ruhig,
-die Sonden kosteten weiterhin PHP-Prozesse, und echte Routing-Fehler blieben
-ebenfalls unsichtbar.
+Dagegen hilft `Error.skipLog` in `config/app.php`, ergänzt um
+`MissingControllerException` und `MissingRouteException`.
 
-**Randbefund:** 165 Anfragen auf `/local/…` stehen im Protokoll — Browser mit
-zwischengespeichertem HTML von vor der Theme-Umbenennung. Sie laufen ins Leere,
-bis der Cache dieser Besucher abläuft. Nach Schritt 1 könnte ein zusätzlicher
-`local`-Symlink auf `Macnemo` das übergangsweise abfangen.
+**Die Abwägung, weshalb das offen ist:** Damit würde auch ein *echter* fehlender
+Controller im eigenen Code stillschweigend nicht mehr protokolliert. Bei
+getesteten Routen ist das Risiko gering, aber es ist eine Entscheidung darüber,
+was auf dem Server protokolliert wird — keine reine Technikfrage. Wer sie
+trifft, sollte wissen, dass sie beide Fälle betrifft.
+
+*Erledigt nebenbei:* `/apple-touch-icon-precomposed.png` fehlte (327 Sonden) und
+ist jetzt ein Symlink; ein Übergangs-Symlink `local` → `Macnemo/webroot` fängt
+Browser mit zwischengespeichertem HTML von vor der Theme-Umbenennung ab
+(165 Anfragen).
 
 ## Zeitzonen: die Datenbank hält Lokalzeit, das Framework glaubt an UTC
 
