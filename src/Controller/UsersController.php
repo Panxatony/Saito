@@ -713,7 +713,19 @@ class UsersController extends AppController
                 'user_color_new_postings', 'user_color_old_postings',
                 'user_color_actual_posting',
             ];
-            $patched = $this->Users->patchEntity($user, $this->request->getData(), ['fields' => $allowedFields]);
+            $data = $this->request->getData();
+            // The thread-line colours are a tri-state: a colour, or unset so the
+            // theme decides. <input type="color"> cannot say "unset" — it always
+            // posts a colour — so the form pairs each picker with a "theme
+            // colour" checkbox. Honour it here, otherwise saving the form would
+            // silently write #000000 and dye the thread lines black.
+            foreach (['user_color_new_postings', 'user_color_old_postings', 'user_color_actual_posting'] as $colourField) {
+                if (!empty($data[$colourField . '_default'])) {
+                    $data[$colourField] = '';
+                }
+                unset($data[$colourField . '_default']);
+            }
+            $patched = $this->Users->patchEntity($user, $data, ['fields' => $allowedFields]);
             if (!$patched->getErrors() && $this->Users->save($patched)) {
                 $this->Flash->set(__('The user has been saved.'), ['element' => 'success']);
 

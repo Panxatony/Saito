@@ -88,19 +88,36 @@
                 'label' => __('user_forum_refresh_time'),
             ]);
 
-            // Custom thread-line colours (classic view).
+            // Custom thread-line colours. These are a tri-state: a colour, or
+            // "unset" so the theme decides. Saito stores unset as an empty value
+            // or a bare '#' (UserHelper::generateCss() skips both), but
+            // <input type="color"> cannot express "unset" — it always reports a
+            // colour, and an invalid value shows as black. Rendering the raw
+            // value therefore both looked broken (three black swatches) and, on
+            // save, would have written #000000 and dyed the thread lines black.
+            // So each colour gets an explicit "use the theme's colour" checkbox.
             echo '<div class="input"><label>' . h(__('user_colors')) . '</label>';
             foreach ([
                 'user_color_new_postings' => 'user_color_new_postings_exp',
                 'user_color_old_postings' => 'user_color_old_postinings_exp',
                 'user_color_actual_posting' => 'user_color_actual_posting_exp',
             ] as $colourField => $expKey) {
-                echo '<div style="display:flex;align-items:center;gap:.5rem;margin:.2rem 0;">';
+                $stored = (string)$user->get($colourField);
+                $isSet = (bool)preg_match('/^#[0-9a-f]{6}$/i', $stored);
+                echo '<div class="settings-colour-row">';
                 echo $this->Form->control($colourField, [
                     'type' => 'color', 'label' => false,
-                    'style' => 'width:3rem;height:2rem;padding:2px;',
+                    'value' => $isSet ? $stored : '#808080',
+                    'class' => 'settings-colour-input',
                 ]);
-                echo '<span>' . h(__($expKey)) . '</span></div>';
+                echo '<span class="settings-colour-label">' . h(__($expKey)) . '</span>';
+                echo '<label class="settings-colour-default">';
+                echo $this->Form->checkbox($colourField . '_default', [
+                    'checked' => !$isSet, 'hiddenField' => false,
+                    'class' => 'form-check-input',
+                ]);
+                echo ' ' . h(__('user_colors.default')) . '</label>';
+                echo '</div>';
             }
             echo '</div>';
 

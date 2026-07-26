@@ -1791,3 +1791,6 @@ msgstr "Delete selection"
 
 msgid "upl.delete.confirm"
 msgstr "Really delete the selected images?"
+
+msgid "user_colors.default"
+msgstr "Theme colour"

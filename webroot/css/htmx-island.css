@@ -734,3 +734,47 @@
     font-weight: 700;
 }
 .htmx-island .island-help-outro { margin: 1rem 0 0; color: #555; }
+
+/* Settings form: radio groups and the colour rows -------------------------- */
+/* BootstrapUI renders a radio group as a bare group label followed by
+   `<label><input>Option</label>` siblings with no spacing, so "Sortierreihenfolge
+   Zeit Letzte Antwort" ran together into one word. Put the group label on its own
+   line and space the options. */
+.htmx-island .input.radio > label:first-of-type {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+.htmx-island .input.radio > label:not(:first-of-type) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 1.25rem 0 0;
+    font-weight: 400;
+}
+
+/* Thread-line colour pickers: swatch, what it applies to, and the "use the
+   theme's colour" opt-out on one row. */
+.htmx-island .settings-colour-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0.35rem 0;
+}
+.htmx-island .settings-colour-input {
+    width: 3rem;
+    height: 2rem;
+    padding: 2px;
+    flex: 0 0 auto;
+}
+.htmx-island .settings-colour-label { flex: 1 1 12rem; }
+.htmx-island .settings-colour-default {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    font-weight: 400;
+    color: var(--isl-text-muted, #6b6560);
+    white-space: nowrap;
+}
