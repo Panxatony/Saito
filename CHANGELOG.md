@@ -7,6 +7,15 @@
 
 ## [next] -
 
+## [8.0.8] - 2026-07-26
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.7...8.0.8)
+
+### Changes
+
+- ✓ Fix: two beta safeguards hung off `Saito.frontend === 'island'` and would therefore have followed a live forum the moment it switched to the island frontend — a corner ribbon reading "Beta", and, far worse, the default *not to send email at all*: registration confirmations, password resets and thread subscriptions would have gone silently to the log. Both now hang off a separate `Saito.beta` flag that is off by default, so a live installation is clean without anyone having to remember an environment variable at switch-over time. Set `SAITO_BETA=true` on a test deployment.
+- Δ The notice banner stays on a live installation after the switch, because that is exactly when people arrive with a stale browser cache and an interface they have never seen: it now leads with the cache hint (including the reload shortcuts) and points at the help below it. On a beta the beta notice takes the lead instead. CSS classes renamed `beta-*` → `island-*` accordingly.
+
 ## [8.0.7] - 2026-07-26
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.6-alpha...8.0.7)
