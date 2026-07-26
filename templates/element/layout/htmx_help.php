@@ -24,7 +24,11 @@
             Wuchert ein Thread mit hundert Antworten? Der kleine Klapp-Pfeil links
             daneben faltet ihn zusammen, bis nur das Eröffnungsposting übrig ist –
             und in den Einstellungen lässt sich das gleich für alle Threads
-            voreinstellen.
+            voreinstellen. Daneben sitzt die <em>Mix-Ansicht</em>: sie legt alle
+            Beiträge des Threads am Stück untereinander. Hast du in den
+            Einstellungen <em>„Posting aufklappen“</em> an, passiert das direkt an
+            Ort und Stelle, ohne Seitenwechsel – noch ein Klick, und der Baum ist
+            zurück.
         </div>
     </div>
 
@@ -92,8 +96,11 @@
         <div>
             <strong>Die Widgets rechts</strong>
             Rechts (am Handy weiter unten) plaudern kleine Kästchen darüber, wer gerade
-            online ist und was zuletzt geschrieben wurde. Zu neugierig? Kopf antippen und
-            das Widget klappt diskret zusammen.
+            online ist und was zuletzt geschrieben wurde. Das Wort <em>„Benutzer“</em>
+            in der Überschrift führt zur vollständigen Mitgliederliste – die lädt
+            in Hundertergruppen nach, das Forum hat mehr Leute, als auf eine Seite
+            passen. Zu neugierig? Kopf antippen und das Widget klappt diskret
+            zusammen (auf den Link natürlich nicht, der will woanders hin).
         </div>
     </div>
 
@@ -140,8 +147,9 @@
         <div>
             <strong>Miteinander reden – oder eben nicht</strong>
             Etwas, das nicht alle lesen müssen? Auf dem Profil eines Mitglieds
-            steht <em>„Kontakt“</em> und schickt eine E-Mail, ohne dass Adressen
-            herumgereicht werden. Und wenn jemand dauerhaft an deinen Nerven sägt:
+            steht <em>„Kontakt“</em> und öffnet ein Fenster, das eine E-Mail schickt,
+            ohne dass Adressen herumgereicht werden. Ein Postfach im Forum gibt es
+            nicht – was hier rausgeht, landet im Mailprogramm. Und wenn jemand dauerhaft an deinen Nerven sägt:
             <em>„Ignorieren“</em> auf demselben Profil, dann ist Ruhe. Den Betreiber
             erreichst du über <em>„Kontakt“</em> unten im Fuß der Seite.
         </div>
