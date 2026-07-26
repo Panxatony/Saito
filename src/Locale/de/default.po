@@ -2619,3 +2619,12 @@ msgstr "Die Änderungen wurden gespeichert."
 
 msgid "Admin"
 msgstr "Admin"
+
+msgid "upl.manage.exp"
+msgstr "Bilder antippen zum Auswählen – mehrere gehen auch. Einzelne löschst du über das Papierkorb-Symbol."
+
+msgid "upl.delete.selected"
+msgstr "Auswahl löschen"
+
+msgid "upl.delete.confirm"
+msgstr "Ausgewählte Bilder wirklich löschen?"

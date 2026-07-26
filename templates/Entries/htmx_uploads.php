@@ -28,6 +28,7 @@ foreach ($uploads as $u) :
     ob_start();
     ?>
     <button type="button" class="js-uploadTile"
+            data-upload-id="<?= (int)$u->get('id') ?>"
             data-name="<?= h($attr['name']) ?>" data-mime="<?= h($attr['mime']) ?>"
             title="<?= h($attr['title'] ?: $attr['name']) ?>">
         <?php if ($isImage) : ?>

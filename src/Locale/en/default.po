@@ -1782,3 +1782,12 @@ msgstr "The changes have been saved."
 
 msgid "Admin"
 msgstr "Admin"
+
+msgid "upl.manage.exp"
+msgstr "Tap images to select them — several at once is fine. Delete a single one with its trash icon."
+
+msgid "upl.delete.selected"
+msgstr "Delete selection"
+
+msgid "upl.delete.confirm"
+msgstr "Really delete the selected images?"

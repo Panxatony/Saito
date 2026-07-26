@@ -420,8 +420,27 @@ function updateUploadInsertBtn(): void {
     }
 }
 
-// Clicking an archive tile toggles its selection (insertion is deferred to the
-// "insert selected" button).
+// The profile's upload manager has no "insert" button — selecting tiles there is
+// for deleting several at once. Keep its button in step with the selection and
+// show the count, so it is obvious how much is about to go.
+function updateUploadsDeleteBtn(): void {
+    const btn = document.querySelector<HTMLButtonElement>('.js-uploadsDeleteSelected');
+    if (!btn) {
+        return;
+    }
+    const count = document.querySelectorAll('.js-uploadManageGrid .js-uploadTile.is-selected').length;
+    btn.disabled = count === 0;
+    const label = btn.getAttribute('data-label') ?? '';
+    const icon = btn.querySelector('i');
+    btn.textContent = count > 0 ? ` ${label} (${count})` : ` ${label}`;
+    if (icon) {
+        btn.prepend(icon);
+    }
+}
+
+// Clicking an archive tile toggles its selection (what happens with the
+// selection depends on where the grid sits: insert in the editor overlay,
+// delete in the profile).
 document.addEventListener('click', (event: MouseEvent) => {
     const tile = (event.target as HTMLElement).closest<HTMLElement>('.js-uploadTile');
     if (!tile) {
@@ -430,6 +449,43 @@ document.addEventListener('click', (event: MouseEvent) => {
     event.preventDefault();
     tile.classList.toggle('is-selected');
     updateUploadInsertBtn();
+    updateUploadsDeleteBtn();
+});
+
+// "Delete selection" in the profile: confirm once for the whole batch, then
+// remove each upload and drop its tile. Deleting is per-upload on the server, so
+// a single failure leaves the rest done and that tile in place.
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-uploadsDeleteSelected');
+    if (!btn) {
+        return;
+    }
+    event.preventDefault();
+    const tiles = Array.from(
+        document.querySelectorAll<HTMLElement>('.js-uploadManageGrid .js-uploadTile.is-selected')
+    );
+    if (!tiles.length || !window.confirm(btn.getAttribute('data-confirm') ?? 'Delete?')) {
+        return;
+    }
+    btn.disabled = true;
+    void Promise.all(tiles.map((tile) => {
+        const id = tile.getAttribute('data-upload-id');
+        if (!id) {
+            return Promise.resolve();
+        }
+
+        return fetch(`/entries/htmx-upload-delete/${id}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        })
+            .then((response) => {
+                if (response.ok) {
+                    tile.closest('.js-uploadManageItem')?.remove();
+                }
+            })
+            .catch(() => undefined);
+    })).then(() => updateUploadsDeleteBtn());
 });
 
 // "Insert selected" → insert every selected tile's BBCode, then close.

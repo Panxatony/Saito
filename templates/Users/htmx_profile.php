@@ -131,12 +131,26 @@ if ($user->get('signature')) {
               // editor overlay), so give it a .upload-grid to lay out in. ?>
         <div class="card mb-3">
             <div class="card-header">
-                <?= $this->Layout->panelHeading(__('upload_media_title')) ?>
+                <?php // "Uploads", not "upload images": this manages the archive. ?>
+                <?= $this->Layout->panelHeading(__('upl.title.pl')) ?>
             </div>
             <div class="card-body">
-                <div class="upload-grid" hx-get="<?= $webroot ?>entries/htmx-uploads?manage=1"
+                <p class="text-muted" style="margin: 0 0 .5rem; font-size: .9rem;">
+                    <?= h(__('upl.manage.exp')) ?>
+                </p>
+                <div class="upload-grid js-uploadManageGrid"
+                     hx-get="<?= $webroot ?>entries/htmx-uploads?manage=1"
                      hx-trigger="load" hx-swap="innerHTML">
                     <p class="text-muted"><?= h(__('Loading …')) ?></p>
+                </div>
+                <?php // Bulk action: lives outside the grid so it survives the
+                      // htmx swaps that "load more" performs. ?>
+                <div class="upload-actions">
+                    <button type="button" class="btn btn-outline-danger js-uploadsDeleteSelected"
+                            data-label="<?= h(__('upl.delete.selected')) ?>"
+                            data-confirm="<?= h(__('upl.delete.confirm')) ?>" disabled>
+                        <i class="fa fa-trash-o"></i> <?= h(__('upl.delete.selected')) ?>
+                    </button>
                 </div>
             </div>
         </div>
