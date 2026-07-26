@@ -870,7 +870,8 @@ class EntriesController extends AppController
                 $redirect = '/';
             } else {
                 $message = __('delete_subtree_success');
-                $redirect = '/entries/view/' . $posting->get('pid');
+                $redirect = ($this->isIslandFrontend() ? '/entries/htmx-thread/' : '/entries/view/')
+                    . $posting->get('pid');
             }
         } else {
             $flashType = 'error';
@@ -1000,7 +1001,9 @@ class EntriesController extends AppController
         $targetId = (int)$this->request->getData('targetId');
         if (!empty($targetId)) {
             if ($this->Entries->threadMerge($sourceId, $targetId)) {
-                $this->redirect('/entries/view/' . $sourceId);
+                $this->redirect(
+                    ($this->isIslandFrontend() ? '/entries/htmx-thread/' : '/entries/view/') . $sourceId
+                );
 
                 return;
             } else {

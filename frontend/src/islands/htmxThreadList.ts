@@ -234,6 +234,39 @@ document.addEventListener('click', (event: MouseEvent) => {
     window.htmx.ajax('GET', threadUrl, { target: tree, swap: 'innerHTML' });
 });
 
+// Nach einer Antwort den umgebenden Thread neu laden.
+//
+// htmxReply ersetzt nur das Formular durch die Bestaetigung; der neue Beitrag
+// stand nirgends. Wer geantwortet hatte, sah "gespeichert" und danach seine
+// Antwort nicht — und hielt sie fuer verloren. Der Thread wird deshalb neu
+// geholt, sobald die Bestaetigung erscheint: in der Threadliste nur der
+// betroffene Threadkasten, in der Threadansicht die ganze Insel.
+document.body.addEventListener('htmx:afterSwap', (event: Event) => {
+    const target = (event as CustomEvent).detail?.target as HTMLElement | undefined;
+    const done = target?.querySelector<HTMLElement>('.js-replyDone[data-refresh-tid]')
+        ?? (target?.matches?.('.js-replyDone[data-refresh-tid]') ? target : null);
+    if (!done) {
+        return;
+    }
+    const tid = done.getAttribute('data-refresh-tid');
+    if (!tid) {
+        return;
+    }
+    // Erst den Erfolg lesen lassen, dann austauschen.
+    window.setTimeout(() => {
+        const box = done.closest<HTMLElement>('.threadBox-threadTree');
+        const island = done.closest<HTMLElement>('.js-thread-island');
+        const container = box ?? island;
+        if (!container) {
+            return;
+        }
+        window.htmx.ajax('GET', `/entries/htmx-thread/${tid}`, {
+            target: container,
+            swap: 'innerHTML',
+        });
+    }, 1200);
+});
+
 // BBCode editor toolbar: wrap the textarea selection in the button's tags.
 document.addEventListener('click', (event: MouseEvent) => {
     const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-bb-btn');
