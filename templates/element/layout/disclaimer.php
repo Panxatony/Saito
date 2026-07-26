@@ -44,6 +44,11 @@ Stopwatch::start('layout/disclaimer.ctp');
                     <li>
                         <a href="<?= $this->request->getAttribute('webroot') ?>pages/impressum">Impressum</a>
                     </li>
+                    <li>
+                        <a href="<?= $this->request->getAttribute('webroot') ?>pages/privacy">
+                            <?= h(__('privacy.t')) ?>
+                        </a>
+                    </li>
                      
                 </ul>
             </div>

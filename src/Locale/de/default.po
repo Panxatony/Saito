@@ -2639,3 +2639,9 @@ msgstr "Angezeigte Kategorien"
 
 msgid "user_categories.pick_exp"
 msgstr "Wirkt nur, wenn der Kategorienfilter oben aktiv ist. Nichts angehakt heißt: alle anzeigen."
+
+msgid "privacy.t"
+msgstr "Datenschutzerklärung"
+
+msgid "privacy.none"
+msgstr "Für diese Installation ist keine Datenschutzerklärung hinterlegt."

@@ -10,12 +10,14 @@ if (!$isIsland) {
     $this->end();
 }
 
-$title = __('Impressum');
+$title = __('privacy.t');
 $this->set('titleForPage', $title);
 
-// Imprint content is environment-specific and configured as trusted HTML
-// in config/saito_config.php under 'Saito.imprint'.
-$imprint = (string)Configure::read('Saito.imprint');
+// What a given installation has to declare depends on its hosting, analytics
+// and admin settings, so the text is trusted HTML configured per installation
+// under 'Saito.privacy'. See docs/privacy-policy-template.md for what Saito
+// itself processes.
+$privacy = (string)Configure::read('Saito.privacy');
 ?>
 <?php if ($isIsland) : ?>
     <?= $this->element('layout/htmx_back') ?>
@@ -25,10 +27,10 @@ $imprint = (string)Configure::read('Saito.imprint');
         <?= $this->Layout->panelHeading($title, ['pageHeading' => true]) ?>
     </div>
     <div class="card-body panel-content richtext">
-        <?php if ($imprint !== ''): ?>
-            <?= $imprint ?>
+        <?php if ($privacy !== ''): ?>
+            <?= $privacy ?>
         <?php else: ?>
-            <p><?= h(__('No imprint has been configured for this installation.')) ?></p>
+            <p><?= h(__('privacy.none')) ?></p>
         <?php endif; ?>
     </div>
 </div>

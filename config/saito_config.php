@@ -69,6 +69,18 @@ $config = [
         'imprint' => '',
 
         /**
+         * Privacy policy (Datenschutzerklärung)
+         *
+         * Trusted HTML rendered on the /pages/privacy page and linked from the
+         * disclaimer footer. Environment-specific like the imprint — what a
+         * given installation has to declare depends on its hosting, its
+         * analytics and its admin settings (e.g. whether store_ip is on).
+         * docs/privacy-policy-template.md lists what Saito itself processes as
+         * a starting point. Empty shows a "not configured" notice.
+         */
+        'privacy' => '',
+
+        /**
          * Custom HTML injected into every page's <head> (e.g. a privacy-friendly
          * analytics snippet). Trusted, operator-controlled — set it per
          * installation. Empty by default (nothing injected).

@@ -1803,3 +1803,9 @@ msgstr "Categories to show"
 
 msgid "user_categories.pick_exp"
 msgstr "Only takes effect while the category filter above is on. Nothing ticked means: show everything."
+
+msgid "privacy.t"
+msgstr "Privacy policy"
+
+msgid "privacy.none"
+msgstr "No privacy policy has been configured for this installation."
