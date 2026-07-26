@@ -711,7 +711,6 @@ msgstr "Einstellungen"
 #: plugins/Admin/src/Template/Users/block.ctp:2
 #: plugins/Admin/src/Template/Users/index.ctp:4
 #: plugins/Admin/src/Template/Users/index.ctp:7
-#, fuzzy
 msgid "Users"
 msgstr "Benutzer"
 
@@ -2586,6 +2585,9 @@ msgstr "Auswahl einfügen"
 
 msgid "{0} online"
 msgstr "{0} online"
+
+msgid "{0} {1} online"
+msgstr "{0} {1} online"
 
 msgid "Guests"
 msgstr "Gäste"

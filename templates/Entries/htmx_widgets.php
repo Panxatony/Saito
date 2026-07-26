@@ -56,7 +56,13 @@ $postingList = function ($entries) use ($webroot) {
 <?php if (isset($online)) : ?>
     <section class="island-widget" data-widget="online">
         <button type="button" class="island-widget-head js-widgetToggle">
-            <?= $this->Layout->textWithIcon(h(__('{0} online', (int)($onlineCount ?? 0))), 'users') ?>
+            <?php // "3 Benutzer online" — das Wort führt zur Mitgliederübersicht.
+                  // textWithIcon maskiert nicht, der Link darf also HTML sein. ?>
+            <?php $usersLink = $this->Html->link(__('Users'), $webroot . 'users/htmx-users'); ?>
+            <?= $this->Layout->textWithIcon(
+                __('{0} {1} online', (int)($onlineCount ?? 0), $usersLink),
+                'users'
+            ) ?>
             <i class="fa fa-chevron-up island-widget-caret" aria-hidden="true"></i>
         </button>
         <div class="island-widget-body">

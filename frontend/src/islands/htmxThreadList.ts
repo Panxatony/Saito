@@ -766,6 +766,12 @@ document.addEventListener('click', (event: MouseEvent) => {
     if (!head) {
         return;
     }
+    // A heading may contain a real link (the online widget links the word
+    // "users" to the member list). Let that navigate instead of swallowing the
+    // click and collapsing the widget.
+    if ((event.target as HTMLElement).closest('a')) {
+        return;
+    }
     event.preventDefault();
     const widget = head.closest<HTMLElement>('.island-widget');
     if (!widget) {

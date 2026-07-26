@@ -1750,6 +1750,9 @@ msgstr "Insert selected"
 msgid "{0} online"
 msgstr "{0} online"
 
+msgid "{0} {1} online"
+msgstr "{0} {1} online"
+
 msgid "Guests"
 msgstr "Guests"
 
