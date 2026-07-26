@@ -40,6 +40,10 @@ use Saito\Test\SaitoTestCase;
  */
 class AuthorizationCoverageTest extends SaitoTestCase
 {
+    /** @var string guard patterns that mark an action as checking permission itself */
+    private const INLINE_GUARD =
+        '/permission\(|SaitoForbidden|isEditingAllowed|isAnsweringAllowed|onOwner|->isUser\(/';
+
     /**
      * Actions intentionally open to any logged-in member (self-scoped writes or
      * plain reads/renders). Key: "<Controller>::<action>", value: the reason.
@@ -58,6 +62,16 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'UsersController::setcategory' => 'stores the current user\'s own category preference (self-scoped)',
         'UsersController::slidetabOrder' => 'stores the current user\'s own slidetab order (self-scoped)',
         'UsersController::uploads' => 'renders the current user\'s own uploads (self-scoped)',
+        // htmx island counterparts of the above — same exposure as the classic
+        // action each one replaces (verified self-scoped or plain read).
+        'UsersController::htmxProfile' => 'view a public user profile in the island (read; same as view)',
+        'UsersController::htmxUsers' => 'member list in the island (read; same as index)',
+        'UsersController::recentPosts' => 'a user\'s recent postings, category-filtered for the reader (read)',
+        'UsersController::bookmarks' => 'renders the current user\'s own bookmarks (self-scoped)',
+        'UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
+        'EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
+        'EntriesController::htmxUploads' => 'lists the current user\'s own uploads (self-scoped)',
+        'EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
     ];
 
     /**
@@ -219,16 +233,52 @@ class AuthorizationCoverageTest extends SaitoTestCase
         }
 
         // inline permission / ownership check inside the action body
-        $method = new ReflectionMethod($class, $action);
         $lines = file($file);
-        $body = implode(
-            '',
-            array_slice($lines, $method->getStartLine() - 1, $method->getEndLine() - $method->getStartLine() + 1),
-        );
-        if (preg_match('/permission\(|SaitoForbidden|isEditingAllowed|isAnsweringAllowed|onOwner|->isUser\(/', $body)) {
+        $body = $this->methodBody($class, $action, $lines);
+        if (preg_match(self::INLINE_GUARD, $body)) {
             return 'inline';
         }
 
+        // An action may delegate its guard to a non-public helper on the same
+        // controller (e.g. advanced() and htmxAdvanced() both call the protected
+        // prepareAdvancedSearch(), which raises SaitoForbiddenException). Follow
+        // one hop into such helpers so a refactor that merely moves the check
+        // does not read as an unguarded action. Deliberately narrow: only
+        // non-public methods declared on this very controller — never other
+        // actions or shared AppController helpers, which would blunt the
+        // tripwire for every action.
+        preg_match_all('/\$this->([a-zA-Z_]\w*)\s*\(/', $body, $calls);
+        foreach (array_unique($calls[1]) as $callee) {
+            if ($callee === $action || !method_exists($class, $callee)) {
+                continue;
+            }
+            $ref = new ReflectionMethod($class, $callee);
+            if ($ref->isPublic() || $ref->getDeclaringClass()->getName() !== $class) {
+                continue;
+            }
+            if (preg_match(self::INLINE_GUARD, $this->methodBody($class, $callee, $lines))) {
+                return 'inline';
+            }
+        }
+
         return 'member-open';
+    }
+
+    /**
+     * Source of a method's body (for guard-pattern matching).
+     *
+     * @param string $class class name
+     * @param string $method method name
+     * @param string[] $lines the class file's lines
+     * @return string
+     */
+    private function methodBody(string $class, string $method, array $lines): string
+    {
+        $ref = new ReflectionMethod($class, $method);
+
+        return implode(
+            '',
+            array_slice($lines, $ref->getStartLine() - 1, $ref->getEndLine() - $ref->getStartLine() + 1),
+        );
     }
 }
