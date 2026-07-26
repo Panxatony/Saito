@@ -81,6 +81,14 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         // $this->addPlugin(\DebugKit\Plugin::class);
         // Load more plugins here
 
+        // CakePHP writes the full client IP into every logged exception and has
+        // no setting for it, which quietly undoes the forum's own "do not store
+        // IP addresses" decision. Wired here rather than in config/app.php so it
+        // holds for every installation, including those that never touched their
+        // config. middleware() reads Configure::read('Error') after bootstrap(),
+        // so setting it at this point takes effect.
+        Configure::write('Error.logger', \App\Error\AnonymizingErrorLogger::class);
+
         Registry::initialize();
 
         $this->addPlugin('Authentication');
