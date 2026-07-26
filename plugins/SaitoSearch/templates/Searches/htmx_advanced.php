@@ -12,6 +12,8 @@
  * @var int $month
  * @var int $year
  * @var int $startYear
+ * @var string $since
+ * @var string $sinceMax
  * @var mixed $results
  */
 
@@ -46,16 +48,20 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
 
             echo $this->Form->label(__d('saito_search', 'lbl.categories'));
             echo $this->Form->select('category_id', $categories, [
-                'empty' => __('all'),
+                'empty' => __d('saito_search', 'allCategories'),
                 'class' => 'form-control mb-3',
             ]);
 
-            echo $this->Form->label(__d('saito_search', 'since.l'));
-            echo $this->Form->month('month', ['class' => 'form-control mb-3', 'value' => $month]);
-            echo $this->Form->year(
-                'year',
-                ['class' => 'form-control mb-3', 'minYear' => $startYear, 'maxYear' => date('Y'), 'value' => $year]
-            );
+            // One month field rather than the old month+year pair: it submits a
+            // flat YYYY-MM the controller actually reads, and its bounds are the
+            // range the forum has entries for.
+            echo $this->Form->control('since', [
+                'type' => 'month',
+                'class' => 'form-control mb-3',
+                'label' => __d('saito_search', 'since.l'),
+                'value' => $since,
+                'max' => $sinceMax,
+            ]);
 
             echo $this->Form->button(__d('saito_search', 'submit.l'), [
                 'type' => 'submit',
@@ -70,10 +76,14 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
         <i class="fa fa-spinner fa-spin"></i> <?= __('Loading') ?>&hellip;
     </span>
 
-    <div id="js-searchResults" class="js-thread-island">
+    <?php // The panel sits on the container, not in the fragment: each appended
+          // page adds only lines, so they read as one continuous list. Empty
+          // until a search runs (hidden via :empty in the island stylesheet). ?>
+    <div id="js-searchResults" class="js-thread-island search_results panel">
         <?php
         if (!empty($results)) {
-            echo $this->element('SaitoSearch.search_results');
+            echo $this->element('SaitoSearch.search_result_lines');
+            echo $this->element('SaitoSearch.htmx_search_more');
         }
         ?>
     </div>

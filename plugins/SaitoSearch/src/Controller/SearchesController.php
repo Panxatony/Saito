@@ -235,10 +235,27 @@ class SearchesController extends AppController
         }
         $startYear = $startDate->format('Y');
 
-        // calculate current month and year
-        $month = $queryData['month']['month'] ?? $defaultDate->month;
-        $year = $queryData['year']['year'] ?? $defaultDate->year;
-        $this->set(compact('month', 'year', 'startYear'));
+        // "Since" is one month value (YYYY-MM). The Cake 3 widgets submitted
+        // month[month] + year[year]; the modern ones submit a flat value, so the
+        // legacy pair is still accepted for bookmarked URLs.
+        $raw = $queryData['since'] ?? $queryData['month'] ?? null;
+        if (is_string($raw) && preg_match('/^(\d{4})-(\d{2})$/', $raw, $matches)) {
+            $year = (int)$matches[1];
+            $month = (int)$matches[2];
+        } else {
+            $month = (int)($queryData['month']['month'] ?? $defaultDate->month);
+            $year = (int)($queryData['year']['year'] ?? $defaultDate->year);
+        }
+        // Guard against a hand-edited URL asking for month 99 or the year 3000.
+        // Deliberately no lower bound: "since 1999" on a forum that started in
+        // 2011 must mean *everything*, and the oldest entry by id is not
+        // necessarily the oldest by time anyway.
+        $month = min(12, max(1, $month));
+        $year = min((int)$now->year, max(1900, $year));
+
+        $since = sprintf('%04d-%02d', $year, $month);
+        $sinceMax = $now->format('Y-m');
+        $this->set(compact('month', 'year', 'startYear', 'since', 'sinceMax'));
 
         /// Category drop-down data
         $categories = $this->CurrentUser->getCategories()->getAll('read', 'select');
@@ -255,11 +272,10 @@ class SearchesController extends AppController
             ->contain(['Categories', 'Users'])
             ->orderBy(['Entries.id' => 'DESC']);
 
-        /// Time filter
-        $time = Chronos::createFromDate((int)$year, (int)$month, 1);
-        if ($now->year !== $defaultDate->year || $now->month !== $defaultDate->month) {
-            $query->where(['time >=' => $time]);
-        }
+        /// Time filter. Always applied, because the form now shows exactly the
+        /// month it filters from — the old conditional compared the *default*
+        /// against today and so ignored what the user had picked.
+        $query->where(['time >=' => Chronos::createFromDate($year, $month, 1)]);
 
         /// Category filter
         $categories = array_flip($categories);

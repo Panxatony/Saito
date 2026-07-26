@@ -805,3 +805,16 @@
     min-width: 12rem;
     margin: 0.1rem 1rem 0.1rem 0;
 }
+
+/* Advanced search: the results container carries the panel, so pages appended
+   by "load more" flow into one list instead of stacking separate cards. Before
+   the first search it holds nothing and must not show as an empty box. */
+.htmx-island #js-searchResults {
+    padding: 0.75rem 1rem;
+}
+
+.htmx-island #js-searchResults:empty {
+    display: none;
+    padding: 0;
+    border: 0;
+}

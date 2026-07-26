@@ -54,12 +54,15 @@ $this->end();
                 )?>
             </div>
             <div class="form-group col-sm-6">
-                <?= $this->Form->label(__d('saito_search', 'since.l')) ?>
-                <?= $this->Form->month('month', ['class' => 'form-control mb-3', 'value' => $month]) ?>
-                <?= $this->Form->year(
-                    'year',
-                    ['class' => 'form-control mb-3', 'minYear' => $startYear, 'maxYear' => date('Y'), 'value' => $year]
-                ) ?>
+                <?php // One month field (YYYY-MM); the old month+year pair
+                      // submitted values the controller never read. ?>
+                <?= $this->Form->control('since', [
+                    'type' => 'month',
+                    'class' => 'form-control mb-3',
+                    'label' => __d('saito_search', 'since.l'),
+                    'value' => $since,
+                        'max' => $sinceMax,
+                ]) ?>
             </div>
         </div>
 
