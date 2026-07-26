@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\View\Helper;
 
 use App\Model\Entity\User;
+use Cake\Core\Configure;
 use Cake\View\Helper\HtmlHelper;
 use Cake\View\Helper\UrlHelper;
 use Yzalis\Identicon\Identicon;
@@ -132,7 +133,12 @@ class UserHelper extends AppHelper
             ($link === true)
             || ($link instanceof CurrentUserInterface && $link->isLoggedIn())
         ) {
-            return $this->Html->link($name, '/users/view/' . $id, $options);
+            // Every username in the forum runs through here — postings, the
+            // online widget, moderation reports. On an island install they must
+            // land on the island profile, not the SPA page.
+            $action = Configure::read('Saito.frontend') === 'island' ? 'htmx-profile' : 'view';
+
+            return $this->Html->link($name, '/users/' . $action . '/' . $id, $options);
         } else {
             $html = $name;
         }

@@ -7,7 +7,12 @@ use Cake\Utility\Text;
     <?php
     $loggedin = $Stats->getNumberOfRegisteredUsersOnline();
     if ($CurrentUser->isLoggedIn()) {
-        $loggedin = $this->Html->link($loggedin, '/users/index');
+        // The statistics line sits in the footer of both frontends, so the
+        // member-list link has to follow whichever one is running.
+        $usersList = \Cake\Core\Configure::read('Saito.frontend') === 'island'
+            ? '/users/htmx-users'
+            : '/users/index';
+        $loggedin = $this->Html->link($loggedin, $usersList);
     }
     echo Text::insert(
         __('discl.status'),
