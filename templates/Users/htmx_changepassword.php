@@ -7,6 +7,7 @@
  */
 ?>
 <div class="users changepassword">
+    <?= $this->element('layout/htmx_back') ?>
     <div class="card panel-form panel-center" style="max-width: 26rem; margin: 2rem auto;">
         <div class="card-header">
             <?= $this->Layout->panelHeading(__('change_password_link')) ?>

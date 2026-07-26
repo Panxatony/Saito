@@ -12,11 +12,7 @@ $webroot = $this->request->getAttribute('webroot');
 ?>
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 <div class="user contact">
-    <p class="mix-back" style="margin: 0 0 .75rem;">
-        <a href="<?= $webroot ?>entries/htmx-index" class="btn btn-link" rel="nofollow">
-            <?= $this->Layout->textWithIcon(h(__('Back')), 'arrow-left') ?>
-        </a>
-    </p>
+    <?= $this->element('layout/htmx_back') ?>
     <div class="card panel-center">
         <div class="card-header">
             <?= $this->Layout->panelHeading(__('owner_contact_title')) ?>

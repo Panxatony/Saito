@@ -28,6 +28,7 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
 <div class="container search advanced">
+    <?= $this->element('layout/htmx_back') ?>
     <div class="searchForm card panel-form panel-center">
         <div class="card-body">
             <?php

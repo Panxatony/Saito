@@ -14,6 +14,7 @@
  */
 ?>
 <div class="users edit">
+    <?= $this->element('layout/htmx_back') ?>
     <?php // Avatar upload / delete (own account). Native multipart form posting to
           // htmxAvatar, which saves and redirects back here. ?>
     <div class="card mb-3">

@@ -818,3 +818,13 @@
     padding: 0;
     border: 0;
 }
+
+/* "Back to the forum" on standalone pages — quiet, above the content, and
+   aligned with the page gutter rather than the card it sits over. */
+.htmx-island .island-back {
+    margin: 0 0 .75rem;
+}
+
+.htmx-island .island-back .btn {
+    padding-left: 0;
+}

@@ -65,6 +65,7 @@ if ($user->get('signature')) {
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
 <div class="users view">
+    <?= $this->element('layout/htmx_back') ?>
     <div class="card mb-3">
         <div class="card-header">
             <?= $this->Layout->panelHeading(__('user.b.profile')) ?>

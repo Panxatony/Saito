@@ -19,6 +19,7 @@ $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
 <div class="user index">
+    <?= $this->element('layout/htmx_back') ?>
     <div class="panel">
         <?= $this->Layout->panelHeading(__('Members'), ['pageHeading' => true]) ?>
         <div class="panel-content" id="js-userList">
