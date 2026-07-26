@@ -189,18 +189,21 @@ document.addEventListener('click', (event: MouseEvent) => {
 
 // Mix button on a thread box.
 //
-// Its href still points at the SPA's /entries/mix/<tid>, so on an island install
-// a click has to be redirected either way. With "expand posting on click"
+// The href points at the island thread route already, so a plain click (or a new
+// tab) is correct without this handler. With "expand posting on click"
 // (inline_view_on_click) switched on, the whole thread is pulled into the box
 // instead of loading a page — one request for every posting at once, rather than
 // opening them one by one. A second click puts the thread tree back.
 const mixCollapsed = new WeakMap<HTMLElement, string>();
 document.addEventListener('click', (event: MouseEvent) => {
-    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href*="/entries/mix/"]');
+    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a.js-mixToggle');
     if (!link || !link.closest('.js-thread-island')) {
         return;
     }
-    const match = (link.getAttribute('href') ?? '').match(/\/entries\/mix\/(\d+)/);
+    // The href is already the island route on an island install; the classic
+    // /entries/mix/ form is still matched so the handler keeps working on a
+    // page that was rendered before this change.
+    const match = (link.getAttribute('href') ?? '').match(/\/entries\/(?:mix|htmx-thread)\/(\d+)/);
     if (!match) {
         return;
     }
@@ -758,25 +761,6 @@ document.addEventListener('click', (event: MouseEvent) => {
 document.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
         closeIslandDropdowns();
-    }
-});
-
-// Keep edit / merge inside the island: the shared posting template renders
-// classic links (/entries/edit|merge/<id>) that would drop into the SPA. Point
-// them at the island equivalents instead (replace in place to keep any webroot
-// prefix).
-document.addEventListener('click', (event: MouseEvent) => {
-    const anchor = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href]');
-    if (!anchor?.closest('.js-thread-island')) {
-        return;
-    }
-    const href = anchor.getAttribute('href') ?? '';
-    if (/\/entries\/edit\/\d+/.test(href)) {
-        event.preventDefault();
-        window.location.href = href.replace(/\/entries\/edit\/(\d+)/, '/entries/htmx-edit/$1');
-    } else if (/\/entries\/merge\/\d+/.test(href)) {
-        event.preventDefault();
-        window.location.href = href.replace(/\/entries\/merge\/(\d+)/, '/entries/htmx-merge/$1');
     }
 });
 
