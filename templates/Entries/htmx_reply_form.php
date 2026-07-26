@@ -39,7 +39,12 @@ $text = $submitted['text'] ?? '';
     </div>
     <?= $this->element('entry/htmx_editor_toolbar') ?>
     <div class="form-group">
-        <textarea name="text" class="form-control" rows="4" required
+        <?php // Bewusst ohne `required`: ein Beitrag ohne Text ist gewollt. Saito
+              // kennt das seit jeher als "n/t" (no text) — isNt() ist schlicht
+              // ein leerer Text, und PostingHelper haengt beim Rendern " n/t"
+              // an den Betreff. Nur dieses Formular verlangte Text und
+              // verhinderte damit eine Funktion, die es laengst gibt. ?>
+        <textarea name="text" class="form-control" rows="4"
                   placeholder="<?= h(__('text')) ?>"><?= h($text) ?></textarea>
     </div>
     <button type="submit" class="btn btn-primary">
