@@ -45,7 +45,7 @@ $text = $submitted['text'] ?? '';
               // an den Betreff. Nur dieses Formular verlangte Text und
               // verhinderte damit eine Funktion, die es laengst gibt. ?>
         <textarea name="text" class="form-control" rows="4"
-                  placeholder="<?= h(__('text')) ?>"><?= h($text) ?></textarea>
+                  placeholder="<?= h(__('entry.text.ph.nt')) ?>"><?= h($text) ?></textarea>
     </div>
     <button type="submit" class="btn btn-primary">
         <?= h(__('forum_answer_linkname')) ?>

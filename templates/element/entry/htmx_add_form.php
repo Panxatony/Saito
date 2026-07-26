@@ -34,8 +34,11 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
     ]);
     echo $this->Form->control('subject', ['class' => 'form-control', 'label' => __('subject')]);
     echo $this->element('entry/htmx_editor_toolbar');
+    // Der Platzhalter ist der einzige Hinweis darauf, dass das Feld leer bleiben
+    // darf — ohne ihn ist "n/t" zwar moeglich, aber unauffindbar.
     echo $this->Form->control('text', [
         'class' => 'form-control', 'type' => 'textarea', 'rows' => 6, 'label' => __('text'),
+        'placeholder' => __('entry.text.ph.nt'),
     ]);
 
     if ($inline) {

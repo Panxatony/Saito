@@ -2651,3 +2651,6 @@ msgstr "Das Forum hat eine neue Oberfläche bekommen – gleiche Inhalte, neuer 
 
 msgid "notice.help.btn"
 msgstr "Zur Hilfe"
+
+msgid "entry.text.ph.nt"
+msgstr "Text – leer lassen für n/t"
