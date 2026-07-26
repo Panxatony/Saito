@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <?php // The note is a fixed 320px column; without this it renders
+          // postage-stamp sized on a phone — which is exactly where people land
+          // when they wonder why the forum is down. ?>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= h($titleForLayout) ?></title>
 </head>
 <body>
     <style type="text/css">
-        @import url(http://fonts.googleapis.com/css?family=Give+You+Glory);
+        /* No webfont here. This page used to @import "Give You Glory" from
+           Google over plain http: a request to a third party from a page the
+           operator cannot annotate in a privacy policy, and mixed content on an
+           https site to boot. A handwriting stack from the system keeps the
+           note looking handwritten and asks nobody for permission. */
         body > div {
             min-height: inherit; height: 100%;
         }
@@ -49,7 +58,7 @@
             vertical-align: middle;
             width: 240px;
             height: 220px;
-            font-family: 'Give You Glory', cursive;
+            font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', ui-rounded, cursive;
             font-size: 30px;
 
             padding: 40px;
