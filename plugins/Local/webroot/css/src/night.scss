@@ -55,6 +55,7 @@ $font-color-current: #ffc866;
   background: none;
 }
 
+// Bota makes the collapsed header sticky; macnemo does not want that.
 body.headerClosed #header {
   position: inherit;
 }

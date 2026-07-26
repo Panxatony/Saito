@@ -54,19 +54,41 @@ $font-color-current: $orange;
 
 @import "_gemeinsam.scss";
 
-// The fish: macnemo's backdrop, fading into the cream page.
+// The fish (bb.svg) as the masthead backdrop.
+//
+// It rides on #site rather than on #header: the island header is only ~60px
+// tall, so a motif clipped to it would show nothing but the artwork's empty top
+// edge. Anchored here it sits behind the header and the cream band, while
+// #content keeps its plain white — the gradient layer fades cream into white
+// exactly as it did before the fish existed.
+//
+// Sized by HEIGHT (not the old `50%` width), so it stays a masthead motif at any
+// viewport width instead of growing into a full-page mural. The path is relative
+// to the compiled stylesheet, so `../img/bb.svg` resolves to /local/img/bb.svg.
+// The artwork is pure white throughout, so on plain cream the bubbles almost
+// vanish. Rather than repainting macnemo's asset, a warm amber wash sits *under*
+// it — light through water — and the white now has something to stand against.
 #site {
   background:
     url('../img/bb.svg'),
+    radial-gradient(55rem 15rem at 50% 0, rgba(254, 86, 3, 0.16), rgba(254, 86, 3, 0) 72%),
     linear-gradient(0deg, rgba(251, 244, 221, 0) 0%, rgba(251, 244, 221, 1) 70%, rgba(251, 244, 221, 1) 100%),
     white;
   background-repeat: no-repeat;
-  background-size: 50%, 100% 8em, 100%;
-  background-position-x: center;
+  background-size: auto 14rem, 100% 15rem, 100% 8em, 100%;
+  background-position: center top, center top, left top, left top;
 }
 
 .headerClosed #site {
-  background-size: 40%, 100% 5em, 100%;
+  background-size: auto 9rem, 100% 10rem, 100% 5em, 100%;
+}
+
+// Phones: a smaller motif, so it stays behind the header instead of reaching
+// down into the first postings.
+@media (max-width: 640px) {
+  #site {
+    background-size: auto 8rem, 100% 9rem, 100% 6em, 100%;
+  }
 }
 
 // The logo sits on the cream directly; no separate hero surface.
@@ -74,6 +96,7 @@ $font-color-current: $orange;
   background: none;
 }
 
+// Bota makes the collapsed header sticky; macnemo does not want that.
 body.headerClosed #header {
   position: inherit;
 }

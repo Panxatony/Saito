@@ -61,6 +61,9 @@
             <strong>Kategorien filtern</strong>
             Nur an einem Thema interessiert? Über die Kategorie-Auswahl oben blendest du
             den Rest aus – digitaler Scheuklappen-Modus, ganz ohne schlechtes Gewissen.
+            Dauerhaft geht es auch: In den Einstellungen hakst du unter
+            <em>„Angezeigte Kategorien“</em> an, was dich überhaupt interessiert. Die
+            Auswahl oben bietet dann nur noch genau das an.
         </div>
     </div>
 
@@ -99,7 +102,10 @@
         <div>
             <strong>Suche</strong>
             Die Lupe im Kopf durchwühlt das Forum nach Stichworten – schneller, als du
-            „Wo war das nochmal?“ tippen kannst.
+            „Wo war das nochmal?“ tippen kannst. In der erweiterten Suche schränkst du
+            zusätzlich auf Betreff, Verfasser, Kategorie und einen Monat ein, ab dem
+            gesucht wird. Findet sie mehr, als auf eine Seite passt, holst du dir den
+            Rest unten über <em>„Mehr laden“</em> – so lange, bis nichts mehr kommt.
         </div>
     </div>
 
@@ -118,7 +124,11 @@
             <strong>Profil &amp; Einstellungen</strong>
             Hinter <em>„Profil“</em> im Kopf wohnt alles Persönliche: dein
             <em>Avatar</em>, Signatur, Farben, Sortierung – und die
-            <em>Schriftgröße</em>, falls die Buchstaben mal Fangen spielen. Auf der
+            <em>Schriftgröße</em>, falls die Buchstaben mal Fangen spielen. Bei den
+            Farben gibt es neben dem Farbtopf jeweils ein <em>„Standard“</em>-Häkchen,
+            falls dir dein eigener Geschmack doch zu bunt wurde. Das Passwort änderst
+            du dort ebenfalls – es klappt als Overlay auf, ohne dass du die Seite
+            verlässt. Auf der
             Profilseite selbst findest du außerdem deine Lesezeichen, deine Uploads
             und deine persönlichen RSS-Adressen, die auch die Bereiche mitliefern,
             die nur angemeldet sichtbar sind.

@@ -11586,16 +11586,21 @@ time {
 }
 
 #site {
-  background: url("../img/bb.svg"), linear-gradient(0deg, rgba(251, 244, 221, 0) 0%, #fbf4dd 70%, #fbf4dd 100%), white;
+  background: url("../img/bb.svg"), radial-gradient(55rem 15rem at 50% 0, rgba(254, 86, 3, 0.16), rgba(254, 86, 3, 0) 72%), linear-gradient(0deg, rgba(251, 244, 221, 0) 0%, #fbf4dd 70%, #fbf4dd 100%), white;
   background-repeat: no-repeat;
-  background-size: 50%, 100% 8em, 100%;
-  background-position-x: center;
+  background-size: auto 14rem, 100% 15rem, 100% 8em, 100%;
+  background-position: center top, center top, left top, left top;
 }
 
 .headerClosed #site {
-  background-size: 40%, 100% 5em, 100%;
+  background-size: auto 9rem, 100% 10rem, 100% 5em, 100%;
 }
 
+@media (max-width: 640px) {
+  #site {
+    background-size: auto 8rem, 100% 9rem, 100% 6em, 100%;
+  }
+}
 #header-hero {
   background: none;
 }
