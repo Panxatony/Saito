@@ -194,13 +194,13 @@ class EntriesController extends AppController
      */
     public function htmxWidgets()
     {
+        // Registry::get() always returns an object (it throws on a missing key),
+        // so no null check is needed here.
         $stats = \Saito\App\Registry::get('AppStats');
-        if ($stats !== null) {
-            $this->set('online', $stats->getRegistredUsersOnline());
-            $this->set('onlineCount', $stats->getNumberOfRegisteredUsersOnline());
-            $this->set('guestCount', $stats->getNumberOfAnonUsersOnline());
-            $this->set('botCount', $stats->getNumberOfBotsOnline());
-        }
+        $this->set('online', $stats->getRegistredUsersOnline());
+        $this->set('onlineCount', $stats->getNumberOfRegisteredUsersOnline());
+        $this->set('guestCount', $stats->getNumberOfAnonUsersOnline());
+        $this->set('botCount', $stats->getNumberOfBotsOnline());
         $this->set('recentEntries', $this->Entries->getRecentPostings($this->CurrentUser));
         if ($this->CurrentUser->isLoggedIn()) {
             $this->set('myPosts', $this->Entries->getRecentPostings(

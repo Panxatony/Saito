@@ -65,7 +65,9 @@ class CakeLogEntry
         if (empty($this->_message)) {
             $this->_message = array_shift($lines);
         }
-        $this->_detail = implode($lines, '<br>');
+        // implode(array, string) was removed in PHP 8.0 — with strict_types this
+        // raised a TypeError whenever a log entry had continuation lines.
+        $this->_detail = implode('<br>', $lines);
     }
 
     /**

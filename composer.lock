@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "118a890424f56cd5c7c1c548de80ecac",
+    "content-hash": "5ab80f8624589e1f7b5bb67c789c4cab",
     "packages": [
         {
             "name": "aura/di",
@@ -4590,28 +4590,29 @@
         },
         {
             "name": "cakedc/cakephp-phpstan",
-            "version": "3.2.0",
+            "version": "4.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CakeDC/cakephp-phpstan.git",
-                "reference": "e7bb4a4afa11c52b1992156dccec27fd783239a4"
+                "reference": "b2b353893f9243bf6ecf9c1a2865e979b684fc79"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CakeDC/cakephp-phpstan/zipball/e7bb4a4afa11c52b1992156dccec27fd783239a4",
-                "reference": "e7bb4a4afa11c52b1992156dccec27fd783239a4",
+                "url": "https://api.github.com/repos/CakeDC/cakephp-phpstan/zipball/b2b353893f9243bf6ecf9c1a2865e979b684fc79",
+                "reference": "b2b353893f9243bf6ecf9c1a2865e979b684fc79",
                 "shasum": ""
             },
             "require": {
                 "cakephp/cakephp": "^5.0",
                 "php": ">=8.1.0",
-                "phpstan/phpstan": "^1.12"
+                "phpstan/phpstan": "^2.1.26"
             },
             "require-dev": {
                 "cakephp/cakephp-codesniffer": "^5.0",
-                "phpstan/phpstan-phpunit": "^1.0",
-                "phpunit/phpunit": "^10.1",
-                "symplify/phpstan-rules": "^12.4"
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^10.5 || ^11.5 || ^12.1"
             },
             "type": "phpstan-extension",
             "extra": {
@@ -4640,9 +4641,9 @@
             "description": "CakePHP plugin extension for PHPStan.",
             "support": {
                 "issues": "https://github.com/CakeDC/cakephp-phpstan/issues",
-                "source": "https://github.com/CakeDC/cakephp-phpstan/tree/3.2.0"
+                "source": "https://github.com/CakeDC/cakephp-phpstan/tree/4.3.0"
             },
-            "time": "2024-10-21T15:00:17+00:00"
+            "time": "2026-05-21T19:35:04+00:00"
         },
         {
             "name": "cakephp/bake",
@@ -7090,15 +7091,15 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.12.33",
+            "version": "2.2.5",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/37982d6fc7cbb746dda7773530cda557cdf119e1",
-                "reference": "37982d6fc7cbb746dda7773530cda557cdf119e1",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/909c1e5fef7989ac0d0c1c5c42e32a5c4f6198a0",
+                "reference": "909c1e5fef7989ac0d0c1c5c42e32a5c4f6198a0",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.2|^8.0"
+                "php": "^7.4|^8.0"
             },
             "conflict": {
                 "phpstan/phpstan-shim": "*"
@@ -7116,6 +7117,17 @@
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ondřej Mirtes"
+                },
+                {
+                    "name": "Markus Staab"
+                },
+                {
+                    "name": "Vincent Langlet"
+                }
             ],
             "description": "PHPStan - PHP Static Analysis Tool",
             "keywords": [
@@ -7139,7 +7151,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-28T20:30:03+00:00"
+            "time": "2026-07-05T06:31:06+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

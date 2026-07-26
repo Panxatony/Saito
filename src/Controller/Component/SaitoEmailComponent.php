@@ -144,7 +144,10 @@ class SaitoEmailComponent extends Component
         $result = $email->send();
 
         if ($debug) {
-            $this->log($result, 'debug');
+            // Mailer::send() returns an array (headers + body); log() takes a
+            // string, so with strict_types passing it raw raised a TypeError —
+            // exactly in the debug-email mode this branch exists for.
+            $this->log(print_r($result, true), 'debug');
         }
     }
 }
