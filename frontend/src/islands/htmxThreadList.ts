@@ -296,7 +296,7 @@ document.addEventListener('click', (event: MouseEvent) => {
     event.preventDefault();
     const textarea = smiley.closest('form')?.querySelector<HTMLTextAreaElement>('textarea[name="text"]');
     if (textarea) {
-        insertAtCursor(textarea, (smiley.getAttribute('data-code') ?? '') + ' ');
+        insertAtCursor(textarea, `${smiley.getAttribute('data-code') ?? ''} `);
     }
 });
 
@@ -408,7 +408,7 @@ document.addEventListener('drop', (event: DragEvent) => {
     event.preventDefault();
     drop.classList.remove('is-dragover');
     const files = event.dataTransfer?.files;
-    if (files && files.length) {
+    if (files?.length) {
         void uploadFiles(Array.from(files));
     }
 });
@@ -499,7 +499,7 @@ document.addEventListener('click', (event: MouseEvent) => {
         if (href) {
             link.href = href;
         }
-    } catch (e) {
+    } catch {
         /* localStorage unavailable */
     }
 });
@@ -557,7 +557,7 @@ function enhancePosting(core: HTMLElement): void {
         bkm.innerHTML = `<i class="fa ${on ? 'fa-bookmark' : 'fa-bookmark-o'}"></i>`;
         bkm.setAttribute('aria-pressed', on ? 'true' : 'false');
     };
-    paintBkm(!!data.isBookmarked);
+    paintBkm(Boolean(data.isBookmarked));
     bkm.addEventListener('click', () => {
         void fetch(`/entries/htmx-bookmark/${id}`, {
             method: 'POST',
@@ -565,7 +565,7 @@ function enhancePosting(core: HTMLElement): void {
             credentials: 'same-origin',
         })
             .then((r) => r.json())
-            .then((j: { bookmarked?: boolean }) => paintBkm(!!j.bookmarked))
+            .then((j: { bookmarked?: boolean }) => paintBkm(Boolean(j.bookmarked)))
             .catch(() => undefined);
     });
     group.appendChild(bkm);
@@ -580,7 +580,7 @@ function enhancePosting(core: HTMLElement): void {
             solve.innerHTML = `<i class="fa fa-check-circle${on ? '' : '-o'}"></i>`;
             solve.setAttribute('aria-pressed', on ? 'true' : 'false');
         };
-        let solved = !!data.solves;
+        let solved = Boolean(data.solves);
         paintSolve(solved);
         solve.addEventListener('click', () => {
             void fetch(`/entries/solve/${id}`, {
@@ -634,10 +634,10 @@ function closeIslandDropdowns(): void {
 }
 document.addEventListener('click', (event: MouseEvent) => {
     const toggle = (event.target as HTMLElement).closest<HTMLElement>('[data-toggle="dropdown"]');
-    if (toggle && toggle.closest('.js-thread-island')) {
+    if (toggle?.closest('.js-thread-island')) {
         event.preventDefault();
         const menu = toggle.parentElement?.querySelector<HTMLElement>('.dropdown-menu') ?? null;
-        const willOpen = !!menu && !menu.classList.contains('show');
+        const willOpen = Boolean(menu) && !menu.classList.contains('show');
         closeIslandDropdowns();
         if (willOpen && menu) {
             menu.classList.add('show');
@@ -659,11 +659,11 @@ document.addEventListener('keydown', (event: KeyboardEvent) => {
 // them at the island equivalents instead (replace in place to keep any webroot
 // prefix).
 document.addEventListener('click', (event: MouseEvent) => {
-    const a = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href]');
-    if (!a || !a.closest('.js-thread-island')) {
+    const anchor = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href]');
+    if (!anchor?.closest('.js-thread-island')) {
         return;
     }
-    const href = a.getAttribute('href') ?? '';
+    const href = anchor.getAttribute('href') ?? '';
     if (/\/entries\/edit\/\d+/.test(href)) {
         event.preventDefault();
         window.location.href = href.replace(/\/entries\/edit\/(\d+)/, '/entries/htmx-edit/$1');
@@ -940,29 +940,29 @@ function youtubeId(url: string): string | null {
 }
 
 function urlToBbcode(url: string, text: string): { type: string; bbcode: string } {
-    const u = url.trim();
-    if (!u) {
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) {
         return { type: '', bbcode: '' };
     }
-    const id = youtubeId(u);
+    const id = youtubeId(trimmedUrl);
     if (id) {
         return {
             type: 'YouTube',
             bbcode: `[iframe src=//www.youtube-nocookie.com/embed/${id} allowfullscreen=allowfullscreen`
-                + ` frameborder=0 height=315 width=560][/iframe]`,
+                + ' frameborder=0 height=315 width=560][/iframe]',
         };
     }
-    if (/\.(png|gif|jpe?g|webp|svg)([/?#]|$)/i.test(u)) {
-        return { type: 'Bild', bbcode: `[img]${u}[/img]` };
+    if (/\.(png|gif|jpe?g|webp|svg)([/?#]|$)/i.test(trimmedUrl)) {
+        return { type: 'Bild', bbcode: `[img]${trimmedUrl}[/img]` };
     }
-    if (/\.(mp4|webm|m4v)([/?#]|$)/i.test(u)) {
-        return { type: 'Video', bbcode: `[video]${u}[/video]` };
+    if (/\.(mp4|webm|m4v)([/?#]|$)/i.test(trimmedUrl)) {
+        return { type: 'Video', bbcode: `[video]${trimmedUrl}[/video]` };
     }
-    if (/\.(m4a|ogg|mp3|wav|opus)([/?#]|$)/i.test(u)) {
-        return { type: 'Audio', bbcode: `[audio]${u}[/audio]` };
+    if (/\.(m4a|ogg|mp3|wav|opus)([/?#]|$)/i.test(trimmedUrl)) {
+        return { type: 'Audio', bbcode: `[audio]${trimmedUrl}[/audio]` };
     }
     const label = text.trim();
-    return { type: 'Link', bbcode: label ? `[url=${u}]${label}[/url]` : `[url]${u}[/url]` };
+    return { type: 'Link', bbcode: label ? `[url=${trimmedUrl}]${label}[/url]` : `[url]${trimmedUrl}[/url]` };
 }
 
 function insertAtCursor(ta: HTMLTextAreaElement, text: string): void {

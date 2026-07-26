@@ -194,13 +194,13 @@ class EntriesController extends AppController
      */
     public function htmxWidgets()
     {
+        // Registry::get() always returns an object (it throws on a missing key),
+        // so no null check is needed here.
         $stats = \Saito\App\Registry::get('AppStats');
-        if ($stats !== null) {
-            $this->set('online', $stats->getRegistredUsersOnline());
-            $this->set('onlineCount', $stats->getNumberOfRegisteredUsersOnline());
-            $this->set('guestCount', $stats->getNumberOfAnonUsersOnline());
-            $this->set('botCount', $stats->getNumberOfBotsOnline());
-        }
+        $this->set('online', $stats->getRegistredUsersOnline());
+        $this->set('onlineCount', $stats->getNumberOfRegisteredUsersOnline());
+        $this->set('guestCount', $stats->getNumberOfAnonUsersOnline());
+        $this->set('botCount', $stats->getNumberOfBotsOnline());
         $this->set('recentEntries', $this->Entries->getRecentPostings($this->CurrentUser));
         if ($this->CurrentUser->isLoggedIn()) {
             $this->set('myPosts', $this->Entries->getRecentPostings(
@@ -844,7 +844,7 @@ class EntriesController extends AppController
         if (!$this->request->is(['post', 'delete'])) {
             $this->set('posting', $posting);
 
-            return null;
+            return;
         }
 
         $success = $this->Entries->deletePosting($id);
@@ -975,7 +975,7 @@ class EntriesController extends AppController
             throw new NotFoundException();
         }
 
-        /* @var Entry */
+        /** @var \App\Model\Entity\Entry|null $entry */
         $entry = $this->Entries->findById($sourceId)->first();
 
         if (!$entry || !$entry->isRoot()) {

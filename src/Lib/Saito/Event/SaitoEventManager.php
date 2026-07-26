@@ -73,7 +73,7 @@ class SaitoEventManager implements EventListenerInterface
      * attaches event-listener
      *
      * @param string|SaitoEventListener $key key
-     * @param null $callable function if $key is set
+     * @param callable|array|null $callable function if $key is set
      * @return void
      * @throws \InvalidArgumentException
      */

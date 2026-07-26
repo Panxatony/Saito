@@ -18,7 +18,6 @@ use App\Model\Entity\Entry;
 use App\Model\Table\EntriesTable;
 use Cake\Core\Configure;
 use Cake\Http\Exception\BadRequestException;
-use Cake\Http\Exception\NotFoundException;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\PostingInterface;
 
@@ -92,10 +91,8 @@ class PostingsController extends ApiAppController
             throw new BadRequestException('No posting-id provided.');
         }
 
+        // get() already raises RecordNotFoundException (404) for an unknown id.
         $posting = $this->Entries->get($id);
-        if (!$posting) {
-            throw new NotFoundException('Posting not found.');
-        }
 
         $data = $this->getRequest()->getData();
         // `edited` and `edited_by` are server-set below — they must NOT be
@@ -144,10 +141,8 @@ class PostingsController extends ApiAppController
             throw new BadRequestException('No posting-id provided.');
         }
         /** @var Entry $posting */
+        // get() already raises RecordNotFoundException (404) for an unknown id.
         $posting = $this->Entries->get($id);
-        if (!$posting) {
-            throw new NotFoundException('Posting not found.');
-        }
 
         // Same two-layer authorization as the server-side EntriesController
         // (beforeFilter authorizeAction + in-action category check): the general

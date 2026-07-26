@@ -17,7 +17,7 @@ class TreeBuilder
     /**
      * build tree
      *
-     * @param array $postings postings
+     * @param iterable $postings postings
      * @return array
      */
     public function build($postings)

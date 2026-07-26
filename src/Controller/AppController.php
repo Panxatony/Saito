@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\Component\AuthUserComponent;
-use App\Controller\Component\JsDataComponent;
 use App\Controller\Component\RefererComponent;
 use App\Controller\Component\SaitoEmailComponent;
 use App\Controller\Component\SlidetabsComponent;
@@ -40,7 +39,6 @@ use Stopwatch\Lib\Stopwatch;
  *
  * @property AuthUserComponent $AuthUser
  * @property AuthenticationComponent $Authentication
- * @property JsDataComponent $JsData
  * @property RefererComponent $Referer
  * @property SaitoEmailComponent $SaitoEmail
  * @property SlidetabsComponent $Slidetabs
@@ -159,7 +157,7 @@ class AppController extends Controller
             $this->render('/Pages/forum_disabled');
             $this->response = $this->response->withStatus(503);
 
-            return null;
+            return;
         }
 
         // allow sql explain for DebugKit toolbar

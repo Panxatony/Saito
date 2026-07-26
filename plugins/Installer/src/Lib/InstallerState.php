@@ -64,7 +64,6 @@ class InstallerState
      * during the installation.
      *
      * @return string file path
-     * @throws \RuntimeException
      */
     private static function getFilePath(): string
     {

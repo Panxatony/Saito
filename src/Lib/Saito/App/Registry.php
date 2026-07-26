@@ -27,7 +27,7 @@ use Saito\User\Permission\Permissions;
 class Registry
 {
     /**
-     * @var Container;
+     * @var Container
      */
     protected static $dic;
 

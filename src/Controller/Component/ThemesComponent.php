@@ -24,7 +24,7 @@ class ThemesComponent extends Component
     /**
      * Default configuration for InstanceConfigTrait
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected array $_defaultConfig = [];
 

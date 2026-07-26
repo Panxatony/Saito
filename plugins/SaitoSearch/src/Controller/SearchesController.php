@@ -25,7 +25,7 @@ use Search\Controller\Component\PrgComponent;
 
 /**
  * @property EntriesTable $Entries
- * @property PrgComponent $Prg
+ * @property \Search\Controller\Component\SearchComponent $Search
  */
 class SearchesController extends AppController
 {
