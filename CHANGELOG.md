@@ -7,6 +7,18 @@
 
 ## [next] -
 
+## [8.1.0-alpha.3] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha.2...8.1.0-alpha.3)
+
+Two controls in the backend that the previous release left dead. Neither raised an error — they simply stopped doing anything.
+
+### Changes
+
+- ✓ Fix: the category delete overlay could not be opened at all. `x-show` reveals an element by clearing the inline `display` it set, which handed the dialog back to Bootstrap's `.modal { display: none }` — the stylesheet we deliberately kept. Visibility now rides on a bound class.
+- ✓ Fix: the settings sidebar stopped highlighting the section in view. It configured Bootstrap's ScrollSpy, which left with Bootstrap's JavaScript; a small scroll handler took over.
+- ✓ Fix: the delete overlay's close button still carried Bootstrap's `data-dismiss`. Escape, the backdrop and Cancel had always gone through Alpine; only the X was affected.
+
 ## [8.1.0-alpha.2] - 2026-07-27
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha...8.1.0-alpha.2)
