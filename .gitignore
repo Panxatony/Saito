@@ -44,3 +44,6 @@ plugins/*/webroot/css/*.css.map
 
 # Stray CI/pipeline logs
 *.log
+
+# PHPUnit writes this on every run; it is per-machine state, not source.
+.phpunit.result.cache

@@ -103,8 +103,11 @@ module.exports = function (grunt) {
       },
       static: {
         files: {
+          // The admin stylesheet is not built here: it moved into the plugin
+          // with the Bootstrap 4 rewrite and is loaded as 'Admin.admin.css'.
+          // This entry named a source that has not existed since, and
+          // grunt-dart-sass skips a missing file without a word.
           'webroot/css/stylesheets/static.css': 'webroot/css/src/static.scss',
-          'webroot/css/stylesheets/admin.css': 'webroot/css/src/admin.scss',
         }
       },
       theme: {
@@ -166,7 +169,10 @@ module.exports = function (grunt) {
         src: [
           'webroot/css/stylesheets/static.css',
           'plugins/Bota/webroot/css/*.css',
-          'plugins/Nova/webroot/css/*.css'
+          'plugins/Nova/webroot/css/*.css',
+          // Macnemo is compiled by dart-sass:theme but was missing here, so it
+          // was the one theme released unprefixed and unminified.
+          'plugins/Macnemo/webroot/css/*.css'
         ]
       },
     },

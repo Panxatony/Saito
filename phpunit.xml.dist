@@ -1,67 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit
-	colors="true"
-	processIsolation="false"
-	stopOnFailure="false"
-	bootstrap="./tests/bootstrap.php"
-	>
-	<php>
-		<ini name="memory_limit" value="-1"/>
-		<ini name="apc.enable_cli" value="1"/>
-	</php>
-
-	<!-- Add any additional test suites you want to run here -->
-	<testsuites>
-		<testsuite name="App Test Suite">
-			<directory>./tests/TestCase</directory>
-		</testsuite>
-        <testsuite name="Plugins Test Suites">
-            <directory>./plugins/*/tests/TestCase</directory>
-        </testsuite>
-	</testsuites>
-    <!--
-	<testsuites>
-		<testsuite name="App Test Suite">
-			<directory>./tests/TestCase</directory>
-		</testsuite>
-
-        <testsuite name="Api plugin">
-            <directory>./plugins/Api/tests/TestCase</directory>
-        </testsuite>
-
-        <testsuite name="BbcodeParser plugin">
-            <directory>./plugins/BbcodeParser/tests/TestCase</directory>
-        </testsuite>
-
-		<testsuite name="Bookmark plugin">
-			<directory>./plugins/Bookmarks/tests/TestCase</directory>
-		</testsuite>
-
-		<testsuite name="ImageUploader plugin">
-			<directory>./plugins/ImageUploader/tests/TestCase</directory>
-		</testsuite>
-
-		<testsuite name="Sitemap plugin">
-			<directory>./plugins/Sitemap/tests/TestCase</directory>
-		</testsuite>
-	</testsuites>
-    -->
-
-
-    <!-- Setup a listener for fixtures (PHPUnit 9-compatible shim) -->
-    <listeners>
-        <listener
-        class="\App\Test\FixtureInjector"
-        file="./tests/FixtureInjector.php">
-        </listener>
-    </listeners>
-
-    <!-- Code coverage: which directories to include -->
-    <coverage>
-        <include>
-            <directory suffix=".php">./src/</directory>
-            <directory suffix=".php">./plugins/*/src/</directory>
-        </include>
-    </coverage>
-
+<phpunit colors="true" processIsolation="false" stopOnFailure="false" bootstrap="./tests/bootstrap.php">
+  <php>
+    <ini name="memory_limit" value="-1"/>
+    <ini name="apc.enable_cli" value="1"/>
+  </php>
+  <!-- Add any additional test suites you want to run here -->
+  <testsuites>
+    <testsuite name="App Test Suite">
+      <directory>./tests/TestCase</directory>
+    </testsuite>
+    <testsuite name="Plugins Test Suites">
+      <directory>./plugins/*/tests/TestCase</directory>
+    </testsuite>
+  </testsuites>
+  <!-- Code coverage: which directories to include -->
+  <source>
+    <include>
+      <directory suffix=".php">./src/</directory>
+      <directory suffix=".php">./plugins/*/src/</directory>
+    </include>
+  </source>
 </phpunit>

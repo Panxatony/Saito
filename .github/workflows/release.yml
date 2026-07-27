@@ -146,17 +146,14 @@ jobs:
             --exclude='./tests' \
             --exclude='./pipeline-failed.log' \
             --exclude='./Gruntfile.js' \
-            --exclude='./karma.conf.js' \
             --exclude='./package.json' \
             --exclude='./phpcs.xml.dist' \
             --exclude='./phpstan.neon' \
             --exclude='./phpunit.xml.dist' \
             --exclude='./tsconfig.json' \
             --exclude='./.eslintrc.json' \
-            --exclude='./webpack.config.js' \
             --exclude='./vite.config.ts' \
             --exclude='./yarn.lock' \
-            --exclude='./build.xml' \
             --exclude='*/tests' \
             .
           # Record the checksum with a bare filename, not `build/…`: whoever

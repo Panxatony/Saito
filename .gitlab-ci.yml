@@ -191,16 +191,13 @@ build:
       --exclude='./tests'
       --exclude='./pipeline-failed.log'
       --exclude='./Gruntfile.js'
-      --exclude='./karma.conf.js'
       --exclude='./package.json'
       --exclude='./phpcs.xml.dist'
       --exclude='./phpstan.neon'
       --exclude='./phpunit.xml.dist'
       --exclude='./tsconfig.json'
       --exclude='./.eslintrc.json'
-      --exclude='./webpack.config.js'
       --exclude='./yarn.lock'
-      --exclude='./build.xml'
       --exclude='*/tests'
       .
     - sha256sum "build/${RELEASE_NAME}.tar.gz" > "build/${RELEASE_NAME}.tar.gz.sha256"
