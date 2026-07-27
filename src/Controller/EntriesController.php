@@ -132,12 +132,19 @@ class EntriesController extends AppController
         $sortKey = $this->CurrentUser->get('user_sort_last_answer') ? 'last_answer' : 'time';
         $order = ['fixed' => 'DESC', $sortKey => 'DESC'];
 
-        // Island category filter (?category=<id>): restrict the list to one
-        // readable category; 'all'/absent shows everything.
+        // Island category filter (?category=3,7): restrict the list to the
+        // chosen readable categories; 'all'/absent shows everything. Several at
+        // once, as the retired chooser allowed — paginate() has always taken a
+        // list and intersects it with what the member may read, so an unknown or
+        // unreadable id simply drops out.
         $onlyCategories = null;
-        $catParam = $this->getRequest()->getQuery('category');
-        if ($catParam !== null && $catParam !== 'all' && ctype_digit((string)$catParam)) {
-            $onlyCategories = [(int)$catParam];
+        $catParam = (string)($this->getRequest()->getQuery('category') ?? '');
+        if ($catParam !== '' && $catParam !== 'all') {
+            $ids = array_values(array_unique(array_filter(
+                array_map('trim', explode(',', $catParam)),
+                'ctype_digit'
+            )));
+            $onlyCategories = $ids === [] ? null : array_map('intval', $ids);
         }
         $this->set('entries', $this->Threads->paginate($order, $this->CurrentUser, $onlyCategories));
 
@@ -162,7 +169,8 @@ class EntriesController extends AppController
             );
             if (count($catList) > 1) {
                 $this->set('categoryChooser', $catList);
-                $this->set('activeCategory', $onlyCategories !== null ? (int)$catParam : 'all');
+                // A list, not a single id: the chooser ticks every active box.
+                $this->set('activeCategories', $onlyCategories ?? []);
             }
         }
 
