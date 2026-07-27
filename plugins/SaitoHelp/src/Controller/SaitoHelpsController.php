@@ -18,10 +18,8 @@ use Cake\Core\Plugin;
 use Cake\Event\Event;
 use Cake\Http\Response;
 use Cake\ORM\Entity;
-use SaitoHelp\Model\Table\SaitoHelpTable;
 
 /**
- * @property SaitoHelpTable $SaitoHelp
  */
 class SaitoHelpsController extends AppController
 {
@@ -104,6 +102,18 @@ class SaitoHelpsController extends AppController
     {
         parent::beforeFilter($event);
         $this->Authentication->allowUnauthenticated(['languageRedirect', 'view', 'index']);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function beforeRender(\Cake\Event\EventInterface $event)
+    {
+        parent::beforeRender($event);
+        // Match the island frontend on beta installs (help is static content).
+        if ($this->isIslandFrontend()) {
+            $this->viewBuilder()->setLayout('htmx_island');
+        }
     }
 
     /**

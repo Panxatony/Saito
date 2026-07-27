@@ -1,9 +1,14 @@
 <?php
 use Cake\Core\Configure;
 
-$this->start('headerSubnavLeft');
-echo $this->Layout->navbarBack();
-$this->end();
+// The island layout renders no header subnav, so navbarBack() would vanish
+// there — it gets the standalone back link instead.
+$isIsland = Configure::read('Saito.frontend') === 'island';
+if (!$isIsland) {
+    $this->start('headerSubnavLeft');
+    echo $this->Layout->navbarBack();
+    $this->end();
+}
 
 $title = __('Impressum');
 $this->set('titleForPage', $title);
@@ -12,6 +17,9 @@ $this->set('titleForPage', $title);
 // in config/saito_config.php under 'Saito.imprint'.
 $imprint = (string)Configure::read('Saito.imprint');
 ?>
+<?php if ($isIsland) : ?>
+    <?= $this->element('layout/htmx_back') ?>
+<?php endif; ?>
 <div class="card panel-center">
     <div class="card-header">
         <?= $this->Layout->panelHeading($title, ['pageHeading' => true]) ?>

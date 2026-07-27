@@ -13,10 +13,14 @@ import { Application } from 'backbone.marionette';
 import 'lib/jquery.i18n/jquery.i18n.extend';
 import 'lib/saito/backbone.initHelper';
 import moment from 'moment';
+// Ship only the locales Saito actually translates (de). English is built into
+// moment/numeral core, so it needs no explicit import. Webpack used to bundle
+// *every* locale by default; the Vite build pulls in only what is used.
+import 'moment/locale/de';
 /// Load numeral.js
 import numeral from 'numeral';
 // load locales for numeral.js
-require('numeral/locales'); // side-effect load of numeral locales; require kept for the legacy build toolchain skipcq: JS-0359
+import 'numeral/locales/de';
 
 interface ISaitoCallbacks {
     beforeAppInit: CallableFunction[];

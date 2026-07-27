@@ -2,6 +2,7 @@
 
 namespace App\Test\TestCase\View\Helper;
 
+use Cake\Core\Configure;
 use App\View\Helper\PostingHelper;
 use Cake\View\View;
 use Saito\Cache\ItemCache;
@@ -76,5 +77,40 @@ class PostingHelperTest extends SaitoTestCase
 
         $result = $this->Helper->urlToMix($posting, false);
         $this->assertEquals('/entries/mix/2', $result);
+    }
+
+    /**
+     * On an island installation the subject must not point at the SPA action —
+     * that link is also the endpoint the island posts to when opening a posting
+     * inline, so getting it wrong breaks both navigation and expanding.
+     *
+     * @return void
+     */
+    public function testGetFastLinkFollowsTheFrontend(): void
+    {
+        $posting = new Posting([
+            'id' => 3,
+            'tid' => 1,
+            'pid' => 1,
+            'subject' => 'Subject',
+            'text' => 'Text',
+        ]);
+
+        // Wie im Test darueber: der webroot kommt aus der Anfrage.
+        $this->Helper->getView()->setRequest(
+            $this->Helper->getView()->getRequest()->withAttribute('webroot', 'localhost/')
+        );
+
+        Configure::write('Saito.frontend', 'island');
+        $this->assertEquals(
+            '<a href="localhost/entries/htmx-posting/3" class="">Subject</a>',
+            $this->Helper->getFastLink($posting)
+        );
+
+        Configure::write('Saito.frontend', 'spa');
+        $this->assertEquals(
+            '<a href="localhost/entries/view/3" class="">Subject</a>',
+            $this->Helper->getFastLink($posting)
+        );
     }
 }

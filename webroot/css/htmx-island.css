@@ -1,0 +1,999 @@
+/*
+ * Saito 8 — structural layer for the standalone htmx island pages.
+ *
+ * Since the macnemo theme refresh (refined-warm: rounded, roomy controls, card
+ * shadows, orange accent) the shared theme now provides the visual styling, so
+ * this file only adds what the standalone island pages need on top: a fluid
+ * full-width layout, the slim standalone header/footer layout, and the editor
+ * toolbar. Colours, cards, forms and buttons come from the theme.
+ */
+
+.htmx-island {
+    /* Fluid content width: uses the browser width, capped on ultra-wide so
+       lines don't get unreadably long. Side padding scales with the viewport. */
+    --isl-maxw: min(1800px, 100%);
+    --isl-gutter: clamp(1rem, 4vw, 3rem);
+    --isl-border-soft: rgba(120, 90, 40, 0.16);
+}
+
+.htmx-island #content {
+    max-width: var(--isl-maxw);
+    margin: 1.5rem auto;
+    padding: 0 var(--isl-gutter);
+}
+
+/* Login modal overlay ------------------------------------------------------- */
+.htmx-island .island-modal[hidden] { display: none; }
+.htmx-island .island-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 6vh 1rem 1rem;
+}
+.htmx-island .island-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 15, 5, 0.5);
+}
+.htmx-island .island-modal-dialog {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 24rem;
+    background: var(--nova-surface, #fff);
+    border-radius: 0.6rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+.htmx-island .island-modal-close {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.6rem;
+    border: 0;
+    background: transparent;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--nova-text-muted, #666);
+}
+.htmx-island .island-modal-close:hover { color: var(--nova-text, #000); }
+
+/* Upload overlay: wider dialog, a drop zone, and a thumbnail grid of the user's
+   archive. */
+/* Upload dialog: bounded height with the archive grid scrolling inside, so
+   loading more tiles scrolls instead of overflowing the viewport. */
+.htmx-island #js-uploadModal .island-modal-dialog {
+    width: 56rem;
+    max-width: 96vw;
+    max-height: 88vh;
+    /* dvh tracks the *visible* viewport on mobile (excludes the iOS URL bar), so
+       the dialog — and its bottom "insert" action — stay on-screen. */
+    max-height: calc(100dvh - 3rem);
+    display: flex;
+    flex-direction: column;
+}
+.htmx-island .upload-drop {
+    border: 2px dashed var(--isl-border-soft, rgba(120, 90, 40, 0.3));
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    text-align: center;
+    transition: border-color .15s, background .15s;
+    flex: 0 0 auto;
+}
+.htmx-island .upload-drop.is-dragover {
+    border-color: var(--isl-accent, #fe5603);
+    background: rgba(254, 86, 3, 0.06);
+}
+.htmx-island .upload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    grid-auto-rows: min-content;
+    gap: 0.4rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin-top: 0.5rem;
+    align-content: start;
+}
+.htmx-island .js-uploadTile {
+    padding: 0;
+    border: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.2));
+    border-radius: 0.35rem;
+    background: var(--nova-surface, #fff);
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    cursor: pointer;
+}
+.htmx-island .js-uploadTile:hover { border-color: var(--isl-accent, #fe5603); }
+/* Absolutely-positioned image fills the square tile — avoids the circular
+   height dependency (button height ← img height ← button height) that squished
+   the images. */
+.htmx-island .js-uploadTile img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.htmx-island .js-uploadTile .upload-tile-file {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem; font-weight: 700; color: var(--nova-text-muted, #888);
+}
+.htmx-island .upload-grid .js-uploadsMore { grid-column: 1 / -1; }
+
+/* Profile "manage uploads": each tile in a square cell with a delete button. */
+.htmx-island .upload-manage-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+}
+.htmx-island .upload-manage-item .js-uploadTile {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+}
+.htmx-island .upload-tile-del {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    z-index: 2;
+    width: 1.6rem;
+    height: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(200, 40, 40, 0.85);
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .12s;
+}
+.htmx-island .upload-manage-item:hover .upload-tile-del,
+.htmx-island .upload-tile-del:focus { opacity: 1; }
+.htmx-island .upload-tile-del:hover { background: rgba(200, 40, 40, 1); }
+
+/* Selected tiles: accent outline + a check badge. Insertion happens on the
+   "insert selected" button, not on click. */
+.htmx-island .js-uploadTile.is-selected {
+    border-color: var(--isl-accent, #fe5603);
+    outline: 2px solid var(--isl-accent, #fe5603);
+    outline-offset: -2px;
+}
+.htmx-island .js-uploadTile.is-selected::after {
+    content: "\2713";
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    z-index: 1;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--isl-accent, #fe5603);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+}
+.htmx-island .upload-actions {
+    flex: 0 0 auto;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    text-align: right;
+    border-top: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.15));
+    background: var(--nova-surface, #fff);
+}
+
+/* Phones: the overlays fill the screen (less wasted chrome), and the upload
+   dialog gives its scrolling grid the room so the bottom action stays reachable. */
+@media (max-width: 640px) {
+    .htmx-island .island-modal { padding: 0.75rem 0.5rem; align-items: stretch; }
+    .htmx-island #js-uploadModal .island-modal-dialog,
+    .htmx-island #js-insertModal .island-modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100dvh - 1.5rem);
+        padding: 1rem 1rem 1rem;
+    }
+    .htmx-island #js-uploadModal .island-modal-dialog { display: flex; flex-direction: column; }
+}
+
+/* Editor toolbar: modern ghost icon-buttons instead of solid grey Bootstrap
+   buttons. Transparent with a soft border; accent tint on hover/focus. */
+.htmx-island .js-editor-toolbar { align-items: center; }
+.htmx-island .js-editor-toolbar .btn-group { gap: 0.3rem; }
+.htmx-island .js-editor-toolbar .js-bb-btn,
+.htmx-island .js-editor-toolbar .js-insertOpen,
+.htmx-island .js-editor-toolbar .js-smiley-toggle {
+    background: transparent;
+    border: 1px solid var(--isl-border-soft);
+    color: var(--nova-text-muted, #6b6357);
+    border-radius: 0.5rem !important;
+    padding: 0.34rem 0.55rem;
+    transition: background .12s, color .12s, border-color .12s;
+}
+.htmx-island .js-editor-toolbar .js-bb-btn:hover,
+.htmx-island .js-editor-toolbar .js-insertOpen:hover,
+.htmx-island .js-editor-toolbar .js-smiley-toggle:hover,
+.htmx-island .js-editor-toolbar .js-bb-btn:focus,
+.htmx-island .js-editor-toolbar .js-insertOpen:focus,
+.htmx-island .js-editor-toolbar .js-smiley-toggle:focus {
+    background: rgba(254, 86, 3, 0.08);
+    border-color: var(--isl-accent, #fe5603);
+    color: var(--isl-accent, #fe5603);
+    box-shadow: none;
+}
+
+/* Whole-thread collapse (list): hide the answer subtree, keep the root line. */
+.htmx-island .threadBox.is-thread-collapsed .threadLeaf:not(.et-root) { display: none; }
+.htmx-island .btn-threadCollapse .fa { transition: transform .12s ease; }
+.htmx-island .threadBox.is-thread-collapsed .btn-threadCollapse .fa { transform: rotate(-90deg); }
+
+/* RSS overlay list. */
+.htmx-island .island-rss-list { list-style: none; margin: 0; padding: 0; }
+.htmx-island .island-rss-list > li { padding: 0.35rem 0; }
+.htmx-island .island-rss-list > li + li { border-top: 1px solid var(--isl-border-soft); }
+.htmx-island .island-rss-list .fa-rss { color: #f26522; margin-right: 0.35rem; }
+
+/* Island flash messages: room for the close button (top-right). */
+.htmx-island .js-island-flash { position: relative; padding-right: 2.2rem; }
+.htmx-island .js-flash-close {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.5rem;
+    border: 0;
+    background: transparent;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.55;
+}
+.htmx-island .js-flash-close:hover { opacity: 1; }
+
+/* Smiley picker panel (editor toolbar). Full-width row of smiley buttons. */
+.htmx-island .smiley-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem;
+    width: 100%;
+    margin: 0.25rem 0;
+    padding: 0.4rem;
+    border: 1px solid var(--isl-border-soft);
+    border-radius: 0.4rem;
+    background: rgba(0, 0, 0, 0.02);
+    max-height: 12rem;
+    overflow-y: auto;
+}
+.htmx-island .smiley-panel[hidden] { display: none; }
+.htmx-island .js-smiley {
+    border: 0;
+    background: transparent;
+    padding: 0.2rem;
+    cursor: pointer;
+    line-height: 1;
+    border-radius: 0.25rem;
+}
+.htmx-island .js-smiley:hover { background: rgba(0, 0, 0, 0.08); }
+.htmx-island .js-smiley .saito-smiley-image { width: 1.4rem; height: 1.4rem; display: block; }
+.htmx-island .js-smiley .saito-smiley-font { font-size: 1.3rem; }
+
+/* Insert overlay is wider (for the media live-preview) and its preview keeps
+   embeds/images responsive inside the dialog. */
+.htmx-island #js-insertModal .island-modal-dialog { max-width: 40rem; }
+.htmx-island .js-insertPreview { margin: 0.25rem 0 0.75rem; }
+.htmx-island .js-insertPreview iframe,
+.htmx-island .js-insertPreview img,
+.htmx-island .js-insertPreview video {
+    max-width: 100%;
+    height: auto;
+}
+.htmx-island .js-insertPreview:empty { display: none; }
+
+/* Beta notice banner (island-frontend installs only) ------------------------ */
+.htmx-island .island-notice {
+    background: #ffce56;
+    color: #3a2f00;
+    padding: 0.5rem var(--isl-gutter);
+    text-align: center;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.htmx-island .island-notice .fa {
+    margin-right: 0.4rem;
+}
+
+/* Posting tool-menu dropdown: the island toggles `.show` (no Bootstrap JS), so
+   anchor the menu under the wrench button and align it to the right edge. */
+.htmx-island .js-thread-island .dropdown { position: relative; }
+.htmx-island .js-thread-island .dropdown-menu {
+    left: auto;
+    right: 0;
+}
+.htmx-island .js-thread-island .dropdown-menu.show { display: block; }
+
+/* Phones: the tool menu stands in the flow instead of floating over the
+   posting.
+   
+   Not a style preference — it cannot float here. Below the `md` breakpoint the
+   theme gives `.threadBox` `overflow-x: auto`, so a deeply indented thread tree
+   can be scrolled sideways instead of stretching the page. CSS then forces
+   `overflow-y` to `auto` as well: there is no way to scroll on one axis and
+   overflow on the other. The absolutely-positioned menu is therefore clipped at
+   the box's bottom edge, which is what a phone shows — the first two entries and
+   nothing after them.
+
+   In the flow it needs no positioning at all, the box simply grows, and full
+   width makes the targets easier to hit with a thumb than a floating panel. */
+@media (max-width: 767px) {
+    .htmx-island .js-thread-island .dropdown-menu.show {
+        position: static;
+        float: none;
+        width: 100%;
+        margin-top: 0.35rem;
+    }
+}
+
+/* Fixed diagonal "Beta" ribbon in the top-right corner (island installs only). */
+.htmx-island .island-ribbon {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 8rem;
+    height: 8rem;
+    overflow: hidden;
+    pointer-events: none;
+    /* below the modal layer (1000) so open overlays cover it */
+    z-index: 900;
+}
+.htmx-island .island-ribbon span {
+    position: absolute;
+    top: 1.55rem;
+    right: -2.4rem;
+    width: 10rem;
+    transform: rotate(45deg);
+    background: #d9534f;
+    color: #fff;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.6rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+/* Phones: the fixed corner ribbon overlaps and clips the banner text, so hide
+   just the ribbon. The beta banner itself stays (it carries the notice + the
+   help hint) and now uses the full width. */
+@media (max-width: 640px) {
+    .htmx-island .island-ribbon { display: none; }
+}
+
+/* Inline "open the help" nudge inside the beta banner. */
+.htmx-island .island-notice-help {
+    border: 0;
+    background: rgba(58, 47, 0, 0.12);
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    margin-left: 0.4rem;
+    white-space: nowrap;
+}
+.htmx-island .island-notice-help:hover { background: rgba(58, 47, 0, 0.22); }
+.htmx-island .island-notice-help .fa { margin-right: 0; }
+/* Phones: the pill must wrap (nowrap made the sentence overflow the screen) and
+   sit on its own line under the notice. */
+@media (max-width: 640px) {
+    .htmx-island .island-notice-help {
+        white-space: normal;
+        display: inline-block;
+        margin: 0.35rem 0 0;
+        text-align: center;
+    }
+}
+
+/* Slim standalone header ---------------------------------------------------- */
+.htmx-island #header.htmx-island-header {
+    display: flex;
+    /* The theme forces `#header { flex-direction: column }`, so stretch (not
+       center) the children — otherwise #header-menu shrinks to content width and
+       its three zones cluster in the middle instead of spreading left/right. */
+    align-items: stretch;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-width: var(--isl-maxw);
+    margin: 0 auto;
+    padding: 0.6rem var(--isl-gutter);
+    border-bottom: 1px solid var(--isl-border-soft);
+}
+
+.htmx-island #hero-homeLink {
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+/* The theme underlines #header-hero and #header-menu (border-bottom !important),
+   which shows as stray rules under the logo and under the icon row. The slim
+   island header carries its own single bottom border, so drop those. */
+.htmx-island #header-hero,
+.htmx-island #header-menu {
+    border-bottom: 0 !important;
+}
+
+/* Theme logo in the slim island header: cap its height, keep aspect ratio. */
+.htmx-island #hero-homeLink img {
+    height: 2.4rem;
+    width: auto;
+    max-width: 100%;
+    display: block;
+}
+
+.htmx-island #header-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex-wrap: wrap;
+}
+
+/* Keep each menu group (first / middle / last) on one line, so e.g. logout
+   never breaks onto its own row; only whole groups may wrap. */
+.htmx-island #header-menu > div {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+/* Distribute the three groups: auth left, search truly centred, the rest right.
+   Equal-flex first/last make the middle sit in the header's real centre. */
+.htmx-island #header-menu {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.htmx-island #header-menu .first {
+    flex: 1 1 0;
+    justify-content: flex-start;
+}
+/* Plain in-header button label (the theme hides .saito-icon-text globally). */
+.htmx-island .island-btn-label { margin-left: 0.35rem; }
+/* Narrow screens: drop the labels, keep the icons, so the bar never overflows. */
+@media (max-width: 720px) {
+    .htmx-island #header-menu .island-btn-label { display: none; }
+}
+.htmx-island #header-menu .middle {
+    flex: 0 0 auto;
+}
+.htmx-island #header-menu .last {
+    flex: 1 1 0;
+    justify-content: flex-end;
+}
+
+/* Footer (disclaimer) ------------------------------------------------------- */
+.htmx-island .disclaimer {
+    max-width: var(--isl-maxw);
+    margin: 2rem auto 1rem;
+    padding: 1.25rem var(--isl-gutter);
+    border-top: 1px solid var(--isl-border-soft);
+    font-size: 0.9rem;
+}
+
+/* Fill the fluid disclaimer instead of the theme's capped Bootstrap container. */
+.htmx-island .disclaimer > .container {
+    max-width: none;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.htmx-island .disclaimer .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+/* Three equal columns that share the row (the theme's max-width:33.33% plus the
+   gap overflowed 100%, wrapping the third card). */
+.htmx-island .disclaimer-card {
+    flex: 1 1 220px;
+    max-width: none;
+    min-width: 0;
+}
+
+/* Header-triggered action slot (search) ------------------------------------- */
+/* #js-headerActions sits outside #content (direct child of #site), so constrain
+   it to the same fluid width/gutter as the content, else its card spans edge to
+   edge and misaligns with the thread list below. */
+.htmx-island #js-headerActions {
+    max-width: var(--isl-maxw);
+    margin: 0 auto;
+    padding: 0 var(--isl-gutter);
+}
+
+/* In-list new-entry editor -------------------------------------------------- */
+/* The inline editor loads bare (no card), so it looked unstyled sitting flush on
+   the page. Give it a card surface — scoped to the in-list slot so the
+   standalone /entries/htmx-add page (its own .panel) is untouched. */
+.htmx-island #js-newEntrySlot .js-addForm-wrap {
+    background: var(--nova-surface, #fff);
+    border: 1px solid var(--isl-border-soft);
+    border-radius: 0.6rem;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Island form controls ------------------------------------------------------ */
+/* Vertical rhythm for CakePHP's default `.input` control wrappers (label above
+   field). The Bootstrap theme styles `.form-group`, not `.input`, so every
+   island form built with FormHelper defaults (settings, login, register, change
+   password, new entry) needs the label/field spacing here. */
+.htmx-island .input {
+    margin-bottom: 0.85rem;
+}
+
+.htmx-island .input > label {
+    display: inline-block;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+}
+
+/* Full-width fields inside island cards (the theme leaves bare inputs shrink-
+   to-fit in some contexts). */
+.htmx-island .input > .form-control,
+.htmx-island .input > select.form-control {
+    width: 100%;
+}
+
+/* Checkbox rows use standard Bootstrap-4 `.form-check` markup; just add a little
+   breathing room between rows and keep the label weight normal. */
+.htmx-island .form-check {
+    margin-bottom: 0.5rem;
+}
+
+.htmx-island .form-check .form-check-label {
+    font-weight: 400;
+}
+
+/* Editor toolbar ------------------------------------------------------------ */
+.htmx-island .js-editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.htmx-island .js-editor-toolbar .btn-group {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.htmx-island .js-bb-btn {
+    min-width: 2.2rem;
+    justify-content: center;
+}
+
+.htmx-island .js-editor-preview {
+    flex-basis: 100%;
+}
+
+/* Injected per-posting action toggles (bookmark / mark-as-solution). */
+.htmx-island .island-posting-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    margin-right: 0.35rem;
+}
+
+.htmx-island .island-posting-tools .btn {
+    padding: 0.15rem 0.4rem;
+}
+
+.htmx-island .js-island-bookmark[aria-pressed="true"] i,
+.htmx-island .js-island-solve[aria-pressed="true"] i {
+    color: var(--isl-accent, #fe5603);
+}
+
+/* Read / unread marking on thread lines. The server already tags each line
+   et-new (unread) / et-old (read); give unread a clear accent rail + weight so
+   it stands out, and align read lines to the same indent. */
+.htmx-island .threadLeaf .threadLine {
+    border-left: 3px solid transparent;
+    padding-left: 0.5rem;
+}
+/* Unread marking only makes sense for logged-in members (a guest has no
+   persistent read state), so the accent rail + bold are gated on .is-member. */
+.htmx-island.is-member .threadLeaf.et-new .threadLine {
+    border-left-color: var(--isl-accent, #fe5603);
+}
+.htmx-island.is-member .threadLeaf.et-new .link_show_thread {
+    font-weight: 700;
+}
+.htmx-island.is-member .threadLeaf.et-old .link_show_thread {
+    font-weight: 400;
+}
+
+/* Inline posting slider spacing (recent/search/thread lists). */
+.htmx-island .threadInline-slider {
+    margin: 0.5rem 0 0.5rem 1.5rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--isl-border-soft);
+}
+
+/* Front-page 2-column layout: thread list + right widget rail --------------- */
+.htmx-island .island-cols {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+.htmx-island .island-main { min-width: 0; }
+.htmx-island .island-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+/* Right rail only once there's room; below that the widgets reflow under the
+   list (and drop last so the thread list leads on mobile). */
+@media (min-width: 1100px) {
+    .htmx-island .island-cols { grid-template-columns: minmax(0, 1fr) 19rem; }
+    .htmx-island .island-sidebar { position: sticky; top: 1rem; }
+
+    /* Every widget minimised → the rail is a strip of icons and the thread list
+       takes the width back. Anything less than "all of them" keeps the full
+       rail, because one open card needs it anyway. */
+    .htmx-island .island-cols.is-railMin { grid-template-columns: minmax(0, 1fr) 3.25rem; }
+}
+
+/* A minimised widget: a square icon button docked in the rail ---------------- */
+.htmx-island .island-widget.is-min {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: auto;          /* dock right, so the icons line up on the edge */
+    overflow: visible;          /* the badge sits slightly outside */
+    position: relative;
+}
+.htmx-island .island-widget.is-min .island-widget-body,
+.htmx-island .island-widget.is-min .island-widget-label {
+    display: none;
+}
+.htmx-island .island-widget.is-min .island-widget-head {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.htmx-island .island-widget-icon { display: none; font-size: 1.05rem; }
+.htmx-island .island-widget.is-min .island-widget-icon { display: block; }
+
+/* Unread-style count on the online icon. Signed-in members only — the guests
+   and bots shown inside the open widget are not what the number means. */
+.htmx-island .island-widget-badge {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    min-width: 1.15rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--nova-accent, #d9534f);
+    color: #fff;
+    font-size: 0.7rem;
+    line-height: 1.15rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.htmx-island .island-widget:not(.is-min) .island-widget-badge { display: none; }
+
+/* Narrow screens: the rail already reflows under the thread list, so shrinking
+   a widget to an icon would win no width — but folding its content away still
+   saves scrolling, which is exactly what this control did before. So the same
+   click means "fold" here and "shrink to an icon" on a wide screen; the widget
+   keeps its heading either way.
+
+   Note the one line that must NOT be here: restoring the body. An earlier
+   version did, which left the control marking the widget as minimised while
+   nothing visibly happened — a dead button on every phone. */
+@media (max-width: 1099px) {
+    .htmx-island .island-widget.is-min {
+        width: auto;
+        height: auto;
+        margin-left: 0;
+    }
+    .htmx-island .island-widget.is-min .island-widget-head {
+        width: auto;
+        height: auto;
+        justify-content: flex-start;
+        padding: revert;
+    }
+    .htmx-island .island-widget.is-min .island-widget-label { display: revert; }
+    .htmx-island .island-widget.is-min .island-widget-icon { display: none; }
+    .htmx-island .island-widget.is-min .island-widget-badge { display: none; }
+}
+
+/* The caret points down while the content is showing and up once it is folded
+   away, on both layouts — otherwise a folded widget looks like an empty one. */
+.htmx-island .island-widget.is-min .island-widget-caret { transform: rotate(180deg); }
+@media (max-width: 1099px) {
+    .htmx-island .island-sidebar { order: 2; }
+}
+
+/* Widget cards */
+.htmx-island .island-widget {
+    border: 1px solid var(--isl-border-soft);
+    border-radius: 0.6rem;
+    /* Follow the theme: a hard #fff left the widgets glowing white in dark mode. */
+    background: var(--nova-surface, #fff);
+    color: var(--nova-text, inherit);
+    overflow: hidden;
+}
+.htmx-island .island-widget-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    /* A <button> does not inherit `color` — without this it falls back to the
+       browser's default button text, which ignores the page theme entirely. In
+       the light theme that happens to look right; in the dark one the heading
+       and its icon turn near-black on a near-black card. The caret next to them
+       stayed readable only because it carries its own colour. */
+    color: var(--nova-text, inherit);
+    border: 0;
+    border-bottom: 1px solid var(--isl-border-soft);
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-align: left;
+}
+.htmx-island .island-widget-caret {
+    margin-left: auto;
+    transition: transform .15s ease;
+    color: var(--nova-text-muted, #999);
+}
+.htmx-island .island-widget.is-collapsed .island-widget-caret { transform: rotate(180deg); }
+.htmx-island .island-widget.is-collapsed .island-widget-body { display: none; }
+.htmx-island .island-widget.is-collapsed .island-widget-head { border-bottom: 0; }
+.htmx-island .island-widget-body {
+    padding: 0.35rem 0.75rem;
+    max-height: 22rem;
+    overflow-y: auto;
+}
+.htmx-island .island-widget-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.htmx-island .island-widget-list > li { padding: 0.3rem 0; font-size: 0.88rem; line-height: 1.3; }
+.htmx-island .island-widget-list > li + li { border-top: 1px solid rgba(120, 90, 40, 0.08); }
+.htmx-island .island-widget-meta { display: block; color: var(--nova-text-muted, #888); font-size: 0.78rem; }
+.htmx-island .island-widget-users { display: flex; flex-wrap: wrap; gap: 0.25rem 0.6rem; }
+.htmx-island .island-widget-users > li {
+    border: 0 !important;
+    padding: 0.1rem 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.htmx-island .island-widget-empty { color: var(--nova-text-muted, #999); margin: 0.2rem 0; }
+
+/* Online-user role badges. */
+.htmx-island .island-role-icon { font-size: 0.75rem; width: 1em; text-align: center; color: #b0b0b0; }
+.htmx-island .island-role-mod { color: #2e8b57; }
+.htmx-island .island-role-admin { color: #d9534f; }
+.htmx-island .island-role-owner { color: #e0a800; }
+
+/* Guests + bots headcount under the named users. */
+.htmx-island .island-widget-anon {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(120, 90, 40, 0.08);
+    color: var(--nova-text-muted, #888);
+    font-size: 0.82rem;
+}
+.htmx-island .island-widget-anon .fa { color: #aaa; }
+
+/* Help overlay: roomy dialog, readable feature list. */
+.htmx-island .island-help-dialog { max-width: 40rem; max-height: calc(100dvh - 3rem); overflow-y: auto; }
+.htmx-island .island-help-lead { margin: 0 0 1rem; color: var(--nova-text-muted, #555); }
+.htmx-island .island-help-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.12));
+}
+.htmx-island .island-help-icon {
+    flex: 0 0 auto;
+    width: 1.4rem;
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--isl-accent, #fe5603);
+    margin-top: 0.15rem;
+}
+.htmx-island .island-help-item strong:first-child { display: block; margin-bottom: 0.15rem; }
+.htmx-island .island-help-mark {
+    color: var(--isl-accent, #fe5603);
+    font-weight: 700;
+}
+.htmx-island .island-help-outro { margin: 1rem 0 0; color: var(--nova-text-muted, #555); }
+
+/* Settings form: radio groups and the colour rows -------------------------- */
+/* BootstrapUI renders a radio group as a bare group label followed by
+   `<label><input>Option</label>` siblings with no spacing, so "Sortierreihenfolge
+   Zeit Letzte Antwort" ran together into one word. Put the group label on its own
+   line and space the options. */
+.htmx-island .input.radio > label:first-of-type {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+.htmx-island .input.radio > label:not(:first-of-type) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 1.25rem 0 0;
+    font-weight: 400;
+}
+
+/* Thread-line colour pickers: swatch, what it applies to, and the "use the
+   theme's colour" opt-out on one row. */
+.htmx-island .settings-colour-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0.35rem 0;
+}
+.htmx-island .settings-colour-input {
+    width: 3rem;
+    height: 2rem;
+    padding: 2px;
+    flex: 0 0 auto;
+}
+.htmx-island .settings-colour-label { flex: 1 1 12rem; }
+.htmx-island .settings-colour-default {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    font-weight: 400;
+    color: var(--isl-text-muted, #6b6560);
+    white-space: nowrap;
+}
+
+/* Settings: the "which categories to show" picker ---------------------------- */
+.htmx-island .settings-categories {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--isl-border-soft);
+}
+.htmx-island .settings-categories > label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+}
+.htmx-island .settings-categories-exp {
+    margin: 0 0 0.5rem;
+    font-size: 0.88rem;
+    color: var(--nova-text-muted, #6b6560);
+}
+/* Many categories: lay them out in columns instead of one long ladder. */
+.htmx-island .settings-categories .form-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 12rem;
+    margin: 0.1rem 1rem 0.1rem 0;
+}
+
+/* Advanced search: the results container carries the panel, so pages appended
+   by "load more" flow into one list instead of stacking separate cards. Before
+   the first search it holds nothing and must not show as an empty box. */
+.htmx-island #js-searchResults {
+    padding: 0.75rem 1rem;
+}
+
+.htmx-island #js-searchResults:empty {
+    display: none;
+    padding: 0;
+    border: 0;
+}
+
+/* "Back to the forum" on standalone pages — quiet, above the content, and
+   aligned with the page gutter rather than the card it sits over. */
+.htmx-island .island-back {
+    margin: 0 0 .75rem;
+}
+
+.htmx-island .island-back .btn {
+    padding-left: 0;
+}
+
+/* The notice carries two lines now: what happened, and where to get help. */
+.htmx-island .island-notice-lead {
+    margin: 0 0 0.35rem;
+}
+
+.htmx-island .island-notice-help-line {
+    margin: 0;
+}
+
+/* Single posting + its thread (the counterpart to the SPA's entries/view):
+   the tree below needs a little air and a quiet heading so it reads as
+   context, not as a second article. */
+.htmx-island .viewEntry-thread {
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--isl-border-soft);
+}
+
+.htmx-island .viewEntry-threadHeading {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--nova-text-muted, #6b6560);
+    margin: 0 0 0.5rem;
+}
+
+/* Category filter: a button plus a checkbox menu ---------------------------- */
+.htmx-island .island-catFilter {
+    position: relative;
+    display: inline-block;
+    margin-left: 0.5rem;
+}
+.htmx-island .island-catFilter-menu {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    min-width: 13rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.4rem;
+    border: 1px solid var(--isl-border-soft);
+    border-radius: 0.5rem;
+    background: var(--nova-surface, #fff);
+    color: var(--nova-text, inherit);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+.htmx-island .island-catFilter-menu[hidden] { display: none; }
+.htmx-island .island-catFilter-menu label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0.3rem 0.4rem;
+    border-radius: 0.35rem;
+    font-weight: normal;
+    cursor: pointer;
+}
+.htmx-island .island-catFilter-menu label:hover { background: var(--isl-hover, rgba(0, 0, 0, 0.05)); }
+.htmx-island .island-catFilter-all {
+    border-bottom: 1px solid var(--isl-border-soft);
+    margin-bottom: 0.25rem !important;
+    padding-bottom: 0.4rem !important;
+    border-radius: 0 !important;
+}

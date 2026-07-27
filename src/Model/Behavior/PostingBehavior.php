@@ -363,12 +363,8 @@ class PostingBehavior extends Behavior
             return false;
         }
 
+        // get() raises RecordNotFoundException if the target does not exist.
         $targetPosting = $table->get($targetId);
-
-        // check that target exists
-        if (!$targetPosting) {
-            return false;
-        }
 
         // check that a thread is not merged onto itself
         if ($targetPosting->get('tid') === $sourcePosting->get('tid')) {

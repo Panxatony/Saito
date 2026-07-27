@@ -107,8 +107,11 @@ module.exports = function (grunt) {
         `,
         options: { stdout: true, stderr: true, failOnError: true, }
       },
-      webpack: {
-        command: 'npx webpack --mode=production --devtool=none',
+      bundle: {
+        // JS bundle via Vite (replaces the legacy Webpack 4 build). Emits one
+        // self-contained IIFE per entry into webroot/js; no NODE_OPTIONS
+        // --openssl-legacy-provider flag required.
+        command: 'yarn build',
         options: { stdout: true, stderr: true, failOnError: true, },
       },
       yarn: {
@@ -137,6 +140,15 @@ module.exports = function (grunt) {
         files: {
           'plugins/Bota/webroot/css/night.css': 'plugins/Bota/webroot/css/src/night.scss',
           'plugins/Bota/webroot/css/theme.css': 'plugins/Bota/webroot/css/src/theme.scss',
+          // Nova (the modern default) builds on Bota's partials, so it is
+          // compiled from the same task and rebuilt whenever Bota changes.
+          'plugins/Nova/webroot/css/night.css': 'plugins/Nova/webroot/css/src/night.scss',
+          'plugins/Nova/webroot/css/theme.css': 'plugins/Nova/webroot/css/src/theme.scss',
+          // Macnemo imports Nova, which imports Bota's partials — but it was
+          // missing here, so every change to those partials stopped at Nova and
+          // the macnemo theme silently drifted away from its own source.
+          'plugins/Macnemo/webroot/css/night.css': 'plugins/Macnemo/webroot/css/src/night.scss',
+          'plugins/Macnemo/webroot/css/theme.css': 'plugins/Macnemo/webroot/css/src/theme.scss',
         }
       },
     },
@@ -146,7 +158,11 @@ module.exports = function (grunt) {
         tasks: ['dart-sass:static'],
       },
       sassTheme: {
-        files: ['plugins/Bota/webroot/css/src/**/*.scss'],
+        files: [
+            'plugins/Bota/webroot/css/src/**/*.scss',
+            'plugins/Nova/webroot/css/src/**/*.scss',
+            'plugins/Macnemo/webroot/css/src/**/*.scss',
+          ],
         tasks: ['dart-sass:theme'],
       },
     },
@@ -178,7 +194,8 @@ module.exports = function (grunt) {
       release: {
         src: [
           'webroot/css/stylesheets/static.css',
-          'plugins/Bota/webroot/css/*.css'
+          'plugins/Bota/webroot/css/*.css',
+          'plugins/Nova/webroot/css/*.css'
         ]
       },
     },
@@ -208,8 +225,8 @@ module.exports = function (grunt) {
     'dart-sass:static',
     'dart-sass:theme',
     'postcss:release',
-    // webpack
-    'shell:webpack',
+    // JS bundle (Vite)
+    'shell:bundle',
     // JS
     'copy:nonmin',
     'uglify:release',

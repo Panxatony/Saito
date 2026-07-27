@@ -81,6 +81,14 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         // $this->addPlugin(\DebugKit\Plugin::class);
         // Load more plugins here
 
+        // CakePHP writes the full client IP into every logged exception and has
+        // no setting for it, which quietly undoes the forum's own "do not store
+        // IP addresses" decision. Wired here rather than in config/app.php so it
+        // holds for every installation, including those that never touched their
+        // config. middleware() reads Configure::read('Error') after bootstrap(),
+        // so setting it at this point takes effect.
+        Configure::write('Error.logger', \App\Error\AnonymizingErrorLogger::class);
+
         Registry::initialize();
 
         $this->addPlugin('Authentication');
@@ -98,6 +106,10 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         // referenced by themes extending Bota) are served at /bota/... even when
         // a derived theme like Local is the active one.
         $this->addPlugin(\Bota\BotaPlugin::class);
+        // Nova is the modern default theme; it extends Bota and, like Bota,
+        // needs to be loaded so its assets are served even when a derived theme
+        // is active.
+        $this->addPlugin(\Nova\NovaPlugin::class);
 
         $this->addPlugin(\Cron\CronPlugin::class);
         $this->addPlugin(\Commonmark\CommonmarkPlugin::class);
@@ -106,7 +118,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         $this->addPlugin(\SpectrumColorpicker\SpectrumColorpickerPlugin::class);
         $this->addPlugin(\Stopwatch\StopwatchPlugin::class);
 
-        $this->addPlugin('Local');
+        $this->addPlugin('Macnemo');
         $this->loadDefaultThemePlugin();
 
         Stopwatch::stop('Application::bootstrap');
@@ -129,10 +141,11 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ->add(AssetMiddleware::class)
 
             // Add routing middleware.
-            // Routes collection cache enabled by default, to disable route caching
-            // pass null as cacheConfig, example: `new RoutingMiddleware($this)`
-            // you might want to disable this cache in case your routing is extremely simple
-            ->add(new RoutingMiddleware($this, '_cake_routes_'))
+            // CakePHP 5's RoutingMiddleware takes only the application; the old
+            // `$cacheConfig` argument (we passed '_cake_routes_') no longer
+            // exists, so it was silently ignored — there is no route cache to
+            // configure or clear here anymore.
+            ->add(new RoutingMiddleware($this))
 
             // Parse JSON / form-urlencoded request bodies (Cake 3's
             // RequestHandlerComponent did this implicitly; in Cake 4 it
@@ -142,6 +155,19 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ->add(new BodyParserMiddleware())
 
             ->insertAfter(RoutingMiddleware::class, new SaitoBootstrapMiddleware())
+
+            // Behind a trusted reverse proxy (e.g. the beta edge) honour the
+            // X-Forwarded-* headers so the app sees the real client IP and the
+            // https scheme. Runs before routing so scheme/host detection and CSRF
+            // are correct. Gated by Saito.trustProxy: a direct-access install
+            // must NOT trust these headers (they'd be spoofable).
+            ->insertBefore(RoutingMiddleware::class, function ($request, $handler) {
+                if (Configure::read('Saito.trustProxy')) {
+                    $request->trustProxy = true;
+                }
+
+                return $handler->handle($request);
+            })
 
             ->add(new EncryptedCookieMiddleware(
                 // Names of cookies to protect

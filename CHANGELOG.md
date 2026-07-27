@@ -7,6 +7,105 @@
 
 ## [next] -
 
+## [8.0.13] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.12...8.0.13)
+
+Three things that failed quietly: broken smiley images on the default theme, and two ways a page could silently lose its ability to send anything.
+
+### Changes
+
+- ✓ Fix: image smilies were broken on Nova, the default theme. The forum emits `/img/smilies/<name>.svg`, which CakePHP resolves against the active theme and then falls back to the application webroot — but that directory did not exist, and Nova carries no images of its own. Members saw broken images. The 23 pictures now ship in `webroot/img/smilies/` as the base every theme falls back to. A theme keeps its own copy only if it wants different ones; Macnemo's is identical, so nothing changes visually there.
+- ✓ Fix: the CSRF meta tag was rendered by nine templates individually, and the ones written later did not have it. On those pages every scripted write request was answered with 403 — the editor preview, uploads and the widget state, each failing without a word. It is emitted by the island layout now, where a new page cannot forget it.
+- ✓ Fix: reading a member's minimised widgets suppressed errors with `@`, which hides more than the one warning it meant to. Narrowed to a handler scoped to that single call.
+- Δ `docs/upgrade.md` names both migrations and says plainly to upgrade to 8.0.12 or later, with the query that shows whether an earlier 8.0.x truncated anything.
+
+## [8.0.12] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.11...8.0.12)
+
+**Recommended for anyone still to upgrade from Saito 5.x.** A migration shipped since 8.0.0 narrowed a column instead of only converting its character set, which can destroy data on forums with many categories.
+
+### Changes
+
+- ✓ Fix: the utf8mb4 migration restated `users.user_category_custom` as `VARCHAR(512)`, undoing the widening to 1024 that Saito 5.0.0 made — while its description promised a character-set conversion and nothing else. The column holds a serialized map of the categories a member chose to see: 512 characters run out at roughly 40 categories, 1024 at roughly 75. Outside MySQL's strict mode the value is cut silently, and a cut serialized array cannot be read back at all.
+- ✓ Fix: a second migration widens the column again on installations that already ran the narrowing version — Migrations never replays a recorded version, so they cannot be repaired any other way. Widening never truncates and is safe to run at any current width.
+
+## [8.0.11] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.10...8.0.11)
+
+### Changes
+
+- ＋ The front page can be filtered by several categories at once again, as the retired chooser allowed — a button showing the selection opens a list of checkboxes. Almost nothing had to be built: the query layer has always taken a list of categories and intersects it with what the member may read; only the controller read a single value.
+- ✓ Fix: sending a message from the contact overlay left the overlay standing with no confirmation. The mail went out and the flash message then turned up on whatever page the sender opened next. `_contact()` builds a response — an `HX-Redirect` for the overlay, a 302 otherwise — and all four call sites dropped it. The standalone contact page was affected too: it re-rendered its own empty form instead of redirecting.
+- ✓ Fix: on a phone, tapping a widget heading did nothing at all. The minimise-to-icon behaviour added in 8.0.10 disabled itself on narrow screens — correctly, an icon wins no width there — but took the folding away with it. The same tap now folds the content on a phone and shrinks to an icon on a wide screen.
+- ✓ Fix: the posting tool menu was cut off mid-list on a phone. Below the `md` breakpoint the theme gives the thread box `overflow-x: auto` so a deeply indented tree can be scrolled sideways, and CSS then forces `overflow-y` to `auto` as well — there is no way to scroll one axis and overflow the other. The menu now stands in the flow there instead of floating.
+- Δ The help overlay describes the category filter and the widget rail as they now behave.
+
+## [8.0.10] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.9...8.0.10)
+
+### Changes
+
+- ＋ Moderation the island frontend had left unreachable is back. Changing a member's role and deleting an account moved into the administration backend; blocking a member sits on their profile page, where moderators can reach it — the backend is admin-only, and the permission has always granted blocking to moderators. Since the cutover none of the three had a door at all: they hung off the retired profile page, so nothing errored, the buttons were simply on a page nobody sees any more.
+- ＋ The front page's right-rail widgets can be minimised to icons docked at the right edge, as the old slidetabs were. With every widget minimised the rail narrows and the thread list takes the width back. The online icon carries the number of signed-in members; guests and bots stay inside the open widget. The arrangement is stored on the member's account, so it follows them to another device.
+- Δ Deleting an account is now admins and the owner only. Previously the permission also granted it to moderators while the backend did not let them in — two places disagreeing about who may do something is how a later refactor quietly hands the right back.
+- ✓ Fix: unblocking from the administration backend was broken. The link built `/admin/users/unlock/<id>`, an action that does not exist there — `'admin' => false` is a CakePHP 2/3 idiom that stopped resetting the route.
+- ✓ Fix: `@name` mentions and `#123` tags in posting text dropped the reader back into the retired interface on an island installation. Both now follow the active frontend.
+- ✓ Fix: the mix icon sat six pixels off-centre in its button. The toolbar tightening removed the button's left padding entirely; the padding is now split evenly, so the button keeps its width and the icon is centred.
+- ✓ Fix: replying inside a thread on the front page unfolded every posting in that thread. The refresh now returns the subject lines the reader had.
+- ✓ Fix: a block duration is validated against what the controls actually offer, instead of being taken as sent — a hand-made request could set a block of any length.
+- Δ Internal: the macnemo theme was missing from the Sass build, so changes to the shared partials stopped at Nova and never reached the theme macnemo.de runs.
+
+## [8.0.9] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.8...8.0.9)
+
+### Changes
+
+- ＋ Postings without a text are possible again: leave the field empty and the subject is shown with ` n/t` appended, as Saito has always rendered them. The model never required a text and neither did the new-thread form — only the island's reply form carried a `required`, which is why the "n/t" in older subjects had to be typed by hand. The placeholder now says the field may stay empty; without that the feature exists but nobody finds it.
+- ＋ A single posting has an island page again: `/entries/htmx-posting/<id>` shows the posting in full with the thread's tree below it — the counterpart to the SPA's `entries/view`, which was the one of the original three thread views without an island equivalent.
+- ✓ Fix: after replying inside a thread the new posting did not appear. The reply only swapped the form for a confirmation, so the author saw "saved" and then no posting — and reasonably assumed it was lost. The thread is now reloaded around the confirmation.
+- ✓ Fix: a too-long subject produced "Please check your entry." because the form discarded the validator's messages and only checked whether the list was empty. It now says what is actually wrong, and the field carries a `maxlength` taken from the *Subject length* admin setting, so the limit cannot be exceeded in the first place.
+- ✓ Fix: widget headings and their icons were near-black on a near-black card in the dark theme. The heading is a `<button>`, and a button does not inherit `color` — without an explicit one it falls back to the browser default, which ignores the page theme.
+- ✓ Fix: several links still led into the SPA on an island installation — a posting's subject, "show thread" after replying, and the redirects after deleting or merging.
+- Δ Privacy: exceptions no longer carry a full client IP into the log; the host part is masked as the `store_ip_anonymized` setting does for postings. Scanner probes (`/config/…`, `/wp-includes/…`) are no longer written to error.log at all but to `logs/probe.log` — told apart from a genuine routing bug by whether the referer points at this installation, so a dead link of our own is still logged as an error.
+- Δ `docs/deployment-debian.md` documents anonymised nginx access logs, and the shipped `saito.conf.example` carries the `map`/`log_format` for it.
+
+## [8.0.8] - 2026-07-26
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.7...8.0.8)
+
+### Changes
+
+- ✓ Fix: two beta safeguards hung off `Saito.frontend === 'island'` and would therefore have followed a live forum the moment it switched to the island frontend — a corner ribbon reading "Beta", and, far worse, the default *not to send email at all*: registration confirmations, password resets and thread subscriptions would have gone silently to the log. Both now hang off a separate `Saito.beta` flag that is off by default, so a live installation is clean without anyone having to remember an environment variable at switch-over time. Set `SAITO_BETA=true` on a test deployment.
+- Δ The notice banner stays on a live installation after the switch, because that is exactly when people arrive with a stale browser cache and an interface they have never seen: it now leads with the cache hint (including the reload shortcuts) and points at the help below it. On a beta the beta notice takes the lead instead. CSS classes renamed `beta-*` → `island-*` accordingly.
+
+## [8.0.7] - 2026-07-26
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.6-alpha...8.0.7)
+
+### Changes
+
+- ＋ Themes: **Nova** is the new default — a modern take on Bota with rounded shapes, a warmer neutral palette and its own design tokens. It ships a Saito logo (a thread and two replies, wordmark in the theme's own Cabin cut converted to outlines) so a fresh installation no longer shows a broken image. The macnemo identity was rebuilt on top of Nova and renamed from `Local` to **`Macnemo`**; its bubble artwork now sits as a height-limited masthead motif over a warm wash instead of growing into a full-page mural on wide screens.
+- ＋ Profile settings: pick which categories to show as a checkbox list, reset each colour to the default with a tick box, and change the password in an overlay instead of on a separate page.
+- ＋ Search: results load in pages via "load more" instead of stopping silently at the first twenty, in the advanced search as well as the header widget.
+- ＋ Member list: reachable from the word "Benutzer" in the online widget and paged with "load more".
+- ＋ Thread list: the mix button expands the whole thread in place when "expand posting on click" is enabled — one request for every posting at once, a second click folds it back.
+- ＋ Privacy policy page at `/pages/privacy`, fed from `Saito.privacy` like the imprint and linked in the footer. `docs/privacy-policy-template.md` inventories what the software actually processes.
+- ✓ Fix: the advanced search's time filter never worked after the CakePHP 3 migration. The controller read the old `month[month]`/`year[year]` shape while the widgets submitted flat values, so the search was silently capped at the last twelve months regardless of what was selected; the year list offered future years because `minYear`/`maxYear` are not CakePHP 4+ option names. The two controls are now one month field that the controller actually reads.
+- ✓ Fix: the member list showed a hundred members and pretended that was all of them — `limit => 400` is silently capped by CakePHP's `maxLimit`, and the island offered no page navigation at all.
+- ✓ Fix: every username in the forum linked to the SPA profile page on island installations, as did the statistics line in the footer, the edit, merge and mix actions on a posting. All of them now follow the active frontend.
+- ✓ Fix: "Letzte Beiträge {0}" showed the placeholder instead of the member's name.
+- ✓ Fix: widgets stayed light in dark mode; the sort-order radio group ran together; colour pickers showed black for an unset colour.
+- ✓ Fix: the profile's upload list had the wrong heading and its multi-selection did nothing — several uploads can now be deleted together.
+- Δ Privacy: CakePHP appends the full client IP to every logged exception with no way to switch it off, which quietly undid an installation's decision not to store IP addresses. It is now masked the same way the `store_ip_anonymized` setting masks it for postings.
+- Δ Privacy: the maintenance page pulled a Google webfont over plain http — a third-party request and, on an https site, mixed content. No template makes an external request any more.
+- Δ Standalone island pages carry a "back to the forum" link; contacting a member opens an overlay like contacting the owner does.
+- Δ `fullBaseUrl` can be set from `SAITO_FULL_BASE_URL`. Behind a TLS-terminating proxy the application only sees plain http, which made upload thumbnails trigger mixed-content warnings and put insecure links into outgoing mail.
+
 ## [7.5.2] - 2026-07-24
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/7.5.1...7.5.2)

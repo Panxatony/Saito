@@ -91,7 +91,11 @@ trait UrlParserTrait
      *
      * @param string $url URL
      * @param string $text title
-     * @param bool $label show label
+     * @param bool|string $label show the domain label. Comes straight from the
+     *     posting's BBCode attributes, so besides the bool default it can be the
+     *     string a user wrote — `'none'` and `'false'` suppress the label. The
+     *     docblock used to claim plain bool, which made static analysis treat
+     *     those (live) string checks as dead code.
      * @param bool $truncate trunctate
      *
      * @return string

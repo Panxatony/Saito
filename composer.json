@@ -50,14 +50,14 @@
     "psy/psysh": "@stable",
     "phpunit/phpunit": "^11.5",
     "squizlabs/php_codesniffer": "^3.0",
-    "phpstan/phpstan": "^1.0",
+    "phpstan/phpstan": "^2.1",
 
     "phing/phing": "^2.16",
     "symfony/css-selector": "^5.4|^6.0",
     "symfony/dom-crawler": "^5.4|^6.0",
     "doctrine/instantiator": "^1.5",
     "vimeo/psalm": "^6",
-    "cakedc/cakephp-phpstan": "^3.2"
+    "cakedc/cakephp-phpstan": "^4.3"
   },
   "suggest": {
     "cakephp/cakephp-codesniffer": "Allows to check the code against the coding standards used in CakePHP."
@@ -79,6 +79,7 @@
       "Bookmarks\\": "./plugins/Bookmarks/src",
       "Bookmarks\\Test\\": "./plugins/Bookmarks/tests",
       "Bota\\": "./plugins/Bota/src",
+      "Nova\\": "./plugins/Nova/src",
       "Commonmark\\": "./plugins/Commonmark/src",
       "Detectors\\": "./plugins/Detectors/src",
       "Detectors\\Test\\": "./plugins/Detectors/tests",
@@ -90,8 +91,8 @@
       "ImageUploader\\Test\\": "plugins/ImageUploader/tests",
       "Installer\\": "plugins/Installer/src",
       "Installer\\Test\\": "plugins/Installer/tests",
-      "Local\\": "./plugins/Local/src/",
-      "Local\\Test\\": "./plugins/Local/tests/",
+      "Macnemo\\": "./plugins/Macnemo/src/",
+      "Macnemo\\Test\\": "./plugins/Macnemo/tests/",
       "SaitoHelp\\": "./plugins/SaitoHelp/src",
       "SaitoSearch\\": "./plugins/SaitoSearch/src",
       "Sitemap\\": "./plugins/Sitemap/src",

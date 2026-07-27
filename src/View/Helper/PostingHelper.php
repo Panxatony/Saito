@@ -76,7 +76,12 @@ class PostingHelper extends AppHelper
         $options += ['class' => ''];
         $id = $posting->get('id');
         $webroot = $this->getView()->getRequest()->getAttribute('webroot');
-        $url = "{$webroot}entries/view/{$id}";
+        // Auf einer Insel-Installation zeigt der Betreff auf htmxPosting: die
+        // Seite ist der Ersatz fuer entries/view (Beitrag plus Threadbaum) und
+        // liefert bei HX-Request dasselbe Fragment, das die Insel zum
+        // Aufklappen holt. Eine URL fuer beides, wie beim Original.
+        $action = Configure::read('Saito.frontend') === 'island' ? 'htmx-posting' : 'view';
+        $url = "{$webroot}entries/{$action}/{$id}";
         $link = "<a href=\"{$url}\" class=\"{$options['class']}\">" . $this->getSubject($posting) . '</a>';
 
         return $link;
@@ -208,7 +213,12 @@ class PostingHelper extends AppHelper
         if ($base) {
             $url .= $this->getView()->getRequest()->getAttribute('base');
         }
-        $url .= "/entries/mix/{$tid}";
+        // The island renders the same flattened thread at its own route. Emitting
+        // that URL directly means the link is correct in a new tab and without
+        // JavaScript, instead of relying on the bundle to rewrite it on click.
+        $url .= Configure::read('Saito.frontend') === 'island'
+            ? "/entries/htmx-thread/{$tid}"
+            : "/entries/mix/{$tid}";
         $url .= $jump ? '#' . $posting->get('id') : '';
 
         return $url;

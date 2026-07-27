@@ -30,6 +30,49 @@ $config = [
         'language' => env('SAITO_LANGUAGE', 'en'),
 
         /**
+         * Frontend flavour (strangler-fig migration).
+         *
+         * - 'spa'    the classic Backbone/Marionette single-page app (default).
+         * - 'island' the htmx/Alpine "island" frontend: '/' serves the island
+         *            front page and server-rendered pages (static pages, help)
+         *            use the island shell. Opt a deployment in — e.g. the beta —
+         *            by setting SAITO_FRONTEND=island; live installs stay 'spa'.
+         */
+        'frontend' => env('SAITO_FRONTEND', 'spa'),
+
+        /**
+         * Marks a test/beta deployment.
+         *
+         * Deliberately separate from `frontend`: the beta ribbon and the
+         * "do not send email" default used to hang off `frontend === 'island'`,
+         * which meant a live install would inherit both the moment it switched
+         * to the island frontend — a corner ribbon reading "Beta" and, far
+         * worse, silently stopped sending registration and password-reset mail.
+         *
+         * Off by default, so production is clean without anybody having to
+         * remember an environment variable. Set SAITO_BETA=true on a beta.
+         */
+        'beta' => filter_var(env('SAITO_BETA', false), FILTER_VALIDATE_BOOLEAN),
+
+        /**
+         * Ask search engines not to index this install (robots noindex).
+         *
+         * Set SAITO_NOINDEX=true on non-public deployments such as the beta, so
+         * the test frontend (running on a clone of the live content) is kept out
+         * of search results. Belt-and-suspenders with an nginx `X-Robots-Tag`
+         * header on the beta vhost. Default: indexable.
+         */
+        'noindex' => filter_var(env('SAITO_NOINDEX', false), FILTER_VALIDATE_BOOLEAN),
+
+        /**
+         * Trust a reverse proxy's X-Forwarded-* headers (real client IP + https
+         * scheme). Enable (SAITO_TRUST_PROXY=true) ONLY when the app sits behind
+         * a trusted proxy such as the beta edge — a directly-reachable install
+         * must leave this off, or clients could spoof their IP (throttle bypass).
+         */
+        'trustProxy' => filter_var(env('SAITO_TRUST_PROXY', false), FILTER_VALIDATE_BOOLEAN),
+
+        /**
          * Imprint / legal notice (Impressum)
          *
          * Trusted HTML rendered on the /pages/impressum page (linked from the
@@ -38,6 +81,18 @@ $config = [
          * "not configured" notice instead of the page content.
          */
         'imprint' => '',
+
+        /**
+         * Privacy policy (Datenschutzerklärung)
+         *
+         * Trusted HTML rendered on the /pages/privacy page and linked from the
+         * disclaimer footer. Environment-specific like the imprint — what a
+         * given installation has to declare depends on its hosting, its
+         * analytics and its admin settings (e.g. whether store_ip is on).
+         * docs/privacy-policy-template.md lists what Saito itself processes as
+         * a starting point. Empty shows a "not configured" notice.
+         */
+        'privacy' => '',
 
         /**
          * Custom HTML injected into every page's <head> (e.g. a privacy-friendly
@@ -74,8 +129,14 @@ $config = [
         'themes' => [
             /**
              * Sets the default theme
+             *
+             * Nova is the current default: a modern take on Bota (same
+             * Bootstrap base and partials) with a reworked visual layer. Bota
+             * ships alongside it and stays selectable — existing installs keep
+             * whatever their own config says, this only sets what a fresh
+             * installation starts with.
              */
-            'default' => 'Bota',
+            'default' => 'Nova',
 
             /**
              * Array with additional themes available for all users
@@ -104,8 +165,17 @@ $config = [
         'debug' => [
             /**
              * Log emails in debug.log instead of sending them.
+             *
+             * Safety default for a beta (see 'beta' above): it runs on a clone
+             * of the live database with real addresses, so email defaults to OFF
+             * there — register, notifications and password reset never reach
+             * real users. Override with SAITO_DEBUG_EMAIL if a beta really
+             * should send. Live installs send (default false).
              */
-            'email' => false,
+            'email' => filter_var(
+                env('SAITO_DEBUG_EMAIL', env('SAITO_BETA', false)),
+                FILTER_VALIDATE_BOOLEAN
+            ),
             /**
              * Log additional non-error information in info.log
              */
@@ -124,7 +194,7 @@ $config['Saito']['Settings']['uploader'] = (new UploaderConfig())
     /**
      * Max number of uploads per user
      */
-    ->setMaxNumberOfUploadsPerUser(20)
+    ->setMaxNumberOfUploadsPerUser(5000)
     /**
      * Max file size
      */

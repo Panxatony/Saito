@@ -38,6 +38,8 @@ class InstallController extends AppController
 
     /**
      * {@inheritdoc}
+     *
+     * @return \Cake\Http\Response|void a redirect once the forum is installed
      */
     public function beforeFilter(\Cake\Event\EventInterface $event)
     {

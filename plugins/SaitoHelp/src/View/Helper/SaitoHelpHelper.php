@@ -95,7 +95,9 @@ class SaitoHelpHelper extends Helper
                         return $text;
                     }
                     $uid = $CurrentUser->getId();
-                    $url = str_replace(':uid', $uid, $url);
+                    // Cast: str_replace() takes string|array, and strict_types
+                    // makes the raw int a TypeError.
+                    $url = str_replace(':uid', (string)$uid, $url);
                 }
 
                 if (strpos($url, 'webroot:') === 0) {

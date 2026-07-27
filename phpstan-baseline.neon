@@ -1,361 +1,373 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.redirectMustBeUsed
+			count: 1
+			path: plugins/Admin/src/Controller/AdminsController.php
+
+		-
+			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.redirectMustBeUsed
 			count: 1
 			path: plugins/Admin/src/Controller/CategoriesController.php
 
 		-
-			message: "#^Variable \\$setting in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: plugins/Admin/src/Controller/CategoriesController.php
+
+		-
+			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.renderMustBeUsed
 			count: 1
 			path: plugins/Admin/src/Controller/SettingsController.php
 
 		-
-			message: "#^Parameter \\#1 \\$smiley of method Admin\\\\Controller\\\\SmileyCodesController\\:\\:_addEditCommon\\(\\) expects Cake\\\\ORM\\\\Entity, Cake\\\\Datasource\\\\EntityInterface given\\.$#"
+			message: '#^Variable \$setting in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: plugins/Admin/src/Controller/SettingsController.php
+
+		-
+			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.redirectMustBeUsed
+			count: 5
+			path: plugins/Admin/src/Controller/SmileyCodesController.php
+
+		-
+			message: '#^Parameter \#1 \$smiley of method Admin\\Controller\\SmileyCodesController\:\:_addEditCommon\(\) expects Cake\\ORM\\Entity, Cake\\Datasource\\EntityInterface given\.$#'
+			identifier: argument.type
 			count: 2
 			path: plugins/Admin/src/Controller/SmileyCodesController.php
 
 		-
-			message: "#^Result of \\|\\| is always true\\.$#"
+			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.redirectMustBeUsed
+			count: 4
+			path: plugins/Admin/src/Controller/SmiliesController.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
 			count: 1
 			path: plugins/Admin/src/Controller/SmiliesController.php
 
 		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
 			count: 1
 			path: plugins/Admin/src/Controller/SmiliesController.php
 
 		-
-			message: "#^Variable \\$id in empty\\(\\) always exists and is always falsy\\.$#"
+			message: '#^Variable \$id in empty\(\) always exists and is always falsy\.$#'
+			identifier: empty.variable
 			count: 2
 			path: plugins/Admin/src/Controller/SmiliesController.php
 
 		-
-			message: "#^Variable \\$user in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Variable \$user in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: plugins/Admin/src/Controller/UsersController.php
 
 		-
-			message: "#^Parameter \\#2 \\$array of function implode expects array\\|null, string given\\.$#"
-			count: 1
-			path: plugins/Admin/src/Lib/CakeLogEntry.php
-
-		-
-			message: "#^Parameter \\#1 \\$timestamp of method App\\\\View\\\\Helper\\\\TimeHHelper\\:\\:formatTime\\(\\) expects DateTime, string given\\.$#"
-			count: 1
-			path: plugins/Admin/src/View/Helper/AdminHelper.php
-
-		-
-			message: "#^Parameter \\#1 \\$settings of class Plugin\\\\BbcodeParser\\\\src\\\\Lib\\\\Preprocessor constructor expects array, Saito\\\\Markup\\\\MarkupSettings\\|null given\\.$#"
+			message: '#^Parameter \#1 \$settings of class Plugin\\BbcodeParser\\src\\Lib\\Preprocessor constructor expects array, Saito\\Markup\\MarkupSettings\|null given\.$#'
+			identifier: argument.type
 			count: 1
 			path: plugins/BbcodeParser/src/Lib/Markup.php
 
 		-
-			message: "#^Parameter \\#1 \\$Helper of class Plugin\\\\BbcodeParser\\\\src\\\\Lib\\\\jBBCode\\\\Visitors\\\\JbbCodeSmileyVisitor constructor expects App\\\\View\\\\Helper\\\\ParserHelper, Cake\\\\View\\\\Helper given\\.$#"
+			message: '#^Parameter \#1 \$Helper of class Plugin\\BbcodeParser\\src\\Lib\\jBBCode\\Visitors\\JbbCodeSmileyVisitor constructor expects App\\View\\Helper\\ParserHelper, Cake\\View\\Helper given\.$#'
+			identifier: argument.type
 			count: 1
 			path: plugins/BbcodeParser/src/Lib/Parser.php
 
 		-
-			message: "#^PHPDoc tag @var above assignment does not specify variable name\\.$#"
+			message: '#^Offset 2 on array\{non\-empty\-list\<string\>, non\-empty\-list\<string\>, non\-empty\-list\<non\-empty\-string\>\} in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.offset
 			count: 1
-			path: plugins/Feeds/src/Controller/PostingsController.php
+			path: plugins/BbcodeParser/src/Lib/jBBCode/Visitors/JbbCodeAutolinkVisitor.php
 
 		-
-			message: "#^Method Installer\\\\Controller\\\\InstallController\\:\\:beforeFilter\\(\\) with return type void returns Cake\\\\Http\\\\Response\\|null but should not return anything\\.$#"
+			message: '#^Strict comparison using \=\=\= between false and false will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
 			count: 1
-			path: plugins/Installer/src/Controller/InstallController.php
+			path: plugins/BbcodeParser/src/Lib/jBBCode/Visitors/JbbCodeAutolinkVisitor.php
 
 		-
-			message: "#^Expression in empty\\(\\) is not falsy\\.$#"
+			message: '#^Call to function is_int\(\) with int will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 3
+			path: plugins/ImageUploader/src/Lib/UploaderConfig.php
+
+		-
+			message: '#^Expression in empty\(\) is not falsy\.$#'
+			identifier: empty.expr
 			count: 1
 			path: plugins/Installer/src/Lib/InstallerState.php
 
 		-
-			message: "#^Parameter \\#2 \\$replace of function str_replace expects array\\|string, int given\\.$#"
+			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.redirectMustBeUsed
 			count: 1
-			path: plugins/SaitoHelp/src/View/Helper/SaitoHelpHelper.php
+			path: plugins/SaitoHelp/src/Controller/SaitoHelpsController.php
 
 		-
-			message: "#^Access to an undefined property SaitoSearch\\\\Controller\\\\SearchesController\\:\\:\\$Search\\.$#"
-			count: 2
-			path: plugins/SaitoSearch/src/Controller/SearchesController.php
+			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
+			identifier: cake.entity.arrayAccess
+			count: 4
+			path: plugins/Sitemap/src/Lib/SitemapEntries.php
 
 		-
-			message: "#^Variable \\$entries in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Variable \$entries in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: plugins/Sitemap/src/Lib/SitemapEntries.php
 
 		-
-			message: "#^Class Cake\\\\Routing\\\\Middleware\\\\RoutingMiddleware constructor invoked with 2 parameters, 1 required\\.$#"
-			count: 1
-			path: src/Application.php
-
-		-
-			message: "#^Access to an undefined property App\\\\Command\\\\SaitoDummyDataCommand\\:\\:\\$Entries\\.$#"
-			count: 2
-			path: src/Command/SaitoDummyDataCommand.php
-
-		-
-			message: "#^Access to an undefined property App\\\\Command\\\\SaitoDummyDataCommand\\:\\:\\$Users\\.$#"
-			count: 2
-			path: src/Command/SaitoDummyDataCommand.php
-
-		-
-			message: "#^Method App\\\\Controller\\\\AppController\\:\\:beforeFilter\\(\\) with return type void returns null but should not return anything\\.$#"
+			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.renderMustBeUsed
 			count: 1
 			path: src/Controller/AppController.php
 
 		-
-			message: "#^Call to an undefined method Cake\\\\Controller\\\\Component\\:\\:isBot\\(\\)\\.$#"
+			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
+			identifier: cake.entity.arrayAccess
+			count: 4
+			path: src/Controller/Component/AuthUserComponent.php
+
+		-
+			message: '#^Method App\\Controller\\Component\\AuthUserComponent\:\:authenticate\(\) should return App\\Model\\Entity\\User\|null but returns Cake\\Datasource\\EntityInterface\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Controller/Component/AuthUserComponent.php
 
 		-
-			message: "#^Method App\\\\Controller\\\\Component\\\\AuthUserComponent\\:\\:authenticate\\(\\) should return App\\\\Model\\\\Entity\\\\User\\|null but returns Cake\\\\Datasource\\\\EntityInterface\\.$#"
+			message: '#^Parameter \#1 \$user of method App\\Controller\\Component\\AuthUserComponent\:\:isAuthorized\(\) expects Saito\\User\\CurrentUser\\CurrentUser, Saito\\User\\CurrentUser\\CurrentUserInterface given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Controller/Component/AuthUserComponent.php
 
 		-
-			message: "#^Parameter \\#1 \\$user of method App\\\\Controller\\\\Component\\\\AuthUserComponent\\:\\:isAuthorized\\(\\) expects Saito\\\\User\\\\CurrentUser\\\\CurrentUser, Saito\\\\User\\\\CurrentUser\\\\CurrentUserInterface given\\.$#"
+			message: '#^Property App\\Controller\\Component\\AuthUserComponent\:\:\$CurrentUser \(Saito\\User\\CurrentUser\\CurrentUserInterface\) in empty\(\) is not falsy\.$#'
+			identifier: empty.property
 			count: 1
 			path: src/Controller/Component/AuthUserComponent.php
 
 		-
-			message: "#^Property App\\\\Controller\\\\Component\\\\AuthUserComponent\\:\\:\\$CurrentUser \\(Saito\\\\User\\\\CurrentUser\\\\CurrentUserInterface\\) in empty\\(\\) is not falsy\\.$#"
+			message: '#^Variable \$cookie in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Controller/Component/AuthUserComponent.php
 
 		-
-			message: "#^Variable \\$cookie in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 1
-			path: src/Controller/Component/AuthUserComponent.php
-
-		-
-			message: "#^Call to an undefined method Cake\\\\Mailer\\\\Mailer\\:\\:getOriginalSubject\\(\\)\\.$#"
-			count: 1
-			path: src/Controller/Component/SaitoEmailComponent.php
-
-		-
-			message: "#^Parameter \\#1 \\$message of method App\\\\Controller\\\\Component\\\\SaitoEmailComponent\\:\\:log\\(\\) expects string\\|Stringable, array\\<string, string\\> given\\.$#"
-			count: 1
-			path: src/Controller/Component/SaitoEmailComponent.php
-
-		-
-			message: "#^PHPDoc type array of property App\\\\Controller\\\\Component\\\\ThemesComponent\\:\\:\\$_defaultConfig is not covariant with PHPDoc type array\\<string, mixed\\> of overridden property Cake\\\\Controller\\\\Component\\:\\:\\$_defaultConfig\\.$#"
-			count: 1
-			path: src/Controller/Component/ThemesComponent.php
-
-		-
-			message: "#^Parameter \\#2 \\$callback of function array_reduce expects callable\\(array\\|float\\|int, Cake\\\\Datasource\\\\EntityInterface\\)\\: \\(array\\|float\\|int\\), Closure\\(mixed, Cake\\\\ORM\\\\Entity\\)\\: \\(array\\|float\\|int\\) given\\.$#"
+			message: '#^Parameter \#2 \$callback of function array_reduce expects callable\(array\|float\|int, Cake\\Datasource\\EntityInterface\)\: \(array\|float\|int\), Closure\(mixed, Cake\\ORM\\Entity\)\: \(array\|float\|int\) given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Controller/Component/ThreadsComponent.php
 
 		-
-			message: "#^Method App\\\\Controller\\\\ContactsController\\:\\:owner\\(\\) with return type void returns Cake\\\\Http\\\\Response\\|null but should not return anything\\.$#"
-			count: 1
-			path: src/Controller/ContactsController.php
+			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.redirectMustBeUsed
+			count: 3
+			path: src/Controller/EntriesController.php
 
 		-
-			message: "#^Cannot call method isRoot\\(\\) on array\\|Cake\\\\Datasource\\\\EntityInterface\\.$#"
+			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.renderMustBeUsed
 			count: 1
 			path: src/Controller/EntriesController.php
 
 		-
-			message: "#^Method App\\\\Controller\\\\EntriesController\\:\\:delete\\(\\) with return type void returns null but should not return anything\\.$#"
+			message: '#^Parameter \#1 \$posting of method App\\Controller\\Component\\TitleComponent\:\:setFromPosting\(\) expects Saito\\Posting\\Posting, Saito\\Posting\\PostingInterface given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Controller/EntriesController.php
 
 		-
-			message: "#^Parameter \\#1 \\$posting of method App\\\\Controller\\\\Component\\\\TitleComponent\\:\\:setFromPosting\\(\\) expects Saito\\\\Posting\\\\Posting, Saito\\\\Posting\\\\PostingInterface given\\.$#"
+			message: '#^Variable \$posting in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Controller/EntriesController.php
 
 		-
-			message: "#^Variable \\$posting in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.renderMustBeUsed
 			count: 1
-			path: src/Controller/EntriesController.php
+			path: src/Controller/PagesController.php
 
 		-
-			message: "#^Negated boolean expression is always false\\.$#"
-			count: 2
+			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.renderMustBeUsed
+			count: 1
 			path: src/Controller/PostingsController.php
 
 		-
-			message: "#^Variable \\$posting in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Variable \$posting in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Controller/PostingsController.php
 
 		-
-			message: "#^Parameter \\#1 \\$conditions of method App\\\\Lib\\\\Model\\\\Table\\\\AppTable\\:\\:exists\\(\\) expects array\\|ArrayAccess\\|int, string given\\.$#"
+			message: '#^Array access to entity App\\Model\\Entity\\Entry is not allowed, access as object instead$#'
+			identifier: cake.entity.arrayAccess
+			count: 3
+			path: src/Controller/PreviewController.php
+
+		-
+			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
+			identifier: cake.controller.redirectMustBeUsed
+			count: 6
+			path: src/Controller/UsersController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
 			count: 1
 			path: src/Controller/UsersController.php
 
 		-
-			message: "#^Result of && is always false\\.$#"
+			message: '#^Variable \$id in empty\(\) always exists and is always falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Controller/UsersController.php
 
 		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			message: '#^Variable \$user in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Controller/UsersController.php
 
 		-
-			message: "#^Variable \\$id in empty\\(\\) always exists and is always falsy\\.$#"
-			count: 2
-			path: src/Controller/UsersController.php
-
-		-
-			message: "#^Variable \\$user in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 1
-			path: src/Controller/UsersController.php
-
-		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
 			count: 1
 			path: src/Lib/BaseFunctions.php
 
 		-
-			message: "#^Property App\\\\Lib\\\\Model\\\\Table\\\\AppTable\\:\\:\\$_SEM \\(Saito\\\\Event\\\\SaitoEventManager\\) in empty\\(\\) is not falsy\\.$#"
+			message: '#^Call to function is_int\(\) with int will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Lib/Model/Table/AppTable.php
 
 		-
-			message: "#^Parameter \\#2 \\$callable of method Saito\\\\Event\\\\SaitoEventManager\\:\\:attach\\(\\) expects null, array\\<int, mixed\\> given\\.$#"
+			message: '#^Property App\\Lib\\Model\\Table\\AppTable\:\:\$_SEM \(Saito\\Event\\SaitoEventManager\) in empty\(\) is not falsy\.$#'
+			identifier: empty.property
 			count: 1
-			path: src/Lib/Saito/Event/SaitoEventManager.php
+			path: src/Lib/Model/Table/AppTable.php
 
 		-
-			message: "#^Strict comparison using \\=\\=\\= between 'NULL' and 'array' will always evaluate to false\\.$#"
-			count: 1
-			path: src/Lib/Saito/Event/SaitoEventManager.php
+			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
+			identifier: cake.entity.arrayAccess
+			count: 11
+			path: src/Lib/Saito/Smiley/SmileyLoader.php
 
 		-
-			message: "#^Method Saito\\\\Exception\\\\Logger\\\\ExceptionLogger\\:\\:_filterData\\(\\) should return array but returns mixed\\.$#"
-			count: 1
-			path: src/Lib/Saito/Exception/Logger/ExceptionLogger.php
-
-		-
-			message: "#^Parameter \\#1 \\$smiley of method Saito\\\\Smiley\\\\SmileyLoader\\:\\:_getType\\(\\) expects array, Cake\\\\Datasource\\\\EntityInterface given\\.$#"
+			message: '#^Parameter \#1 \$smiley of method Saito\\Smiley\\SmileyLoader\:\:_getType\(\) expects array, Cake\\Datasource\\EntityInterface given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Lib/Saito/Smiley/SmileyLoader.php
 
 		-
-			message: "#^Result of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEquals\\(\\) \\(void\\) is used\\.$#"
+			message: '#^Result of method PHPUnit\\Framework\\Assert\:\:assertEquals\(\) \(void\) is used\.$#'
+			identifier: method.void
 			count: 1
 			path: src/Lib/Saito/Test/IntegrationTestCase.php
 
 		-
-			message: "#^Result of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEquals\\(\\) \\(void\\) is used\\.$#"
+			message: '#^Use of debug function "debug" is not allowed\. The use in shipped code is discouraged because they can leak sensitive information or clutter output\.$#'
+			identifier: cake.debug.debugFuncCallUse
+			count: 1
+			path: src/Lib/Saito/Test/IntegrationTestCase.php
+
+		-
+			message: '#^Cannot unset property Saito\\Test\\Model\\Table\\SaitoTableTestCase\:\:\$Table because it might have hooks in a subclass\.$#'
+			identifier: unset.possiblyHookedProperty
+			count: 1
+			path: src/Lib/Saito/Test/Model/Table/SaitoTableTestCase.php
+
+		-
+			message: '#^Result of method PHPUnit\\Framework\\Assert\:\:assertEquals\(\) \(void\) is used\.$#'
+			identifier: method.void
 			count: 1
 			path: src/Lib/Saito/Test/SaitoTestCase.php
 
 		-
-			message: "#^Variable \\$user in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Use of debug function "debug" is not allowed\. The use in shipped code is discouraged because they can leak sensitive information or clutter output\.$#'
+			identifier: cake.debug.debugFuncCallUse
+			count: 1
+			path: src/Lib/Saito/Test/SaitoTestCase.php
+
+		-
+			message: '#^Variable \$user in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Lib/Saito/User/Blocker/ManualBlocker.php
 
 		-
-			message: "#^Variable \\$new in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Variable \$new in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Lib/Saito/User/ReadPostings/ReadPostingsCookie.php
 
 		-
-			message: "#^Negated boolean expression is always false\\.$#"
-			count: 1
-			path: src/Model/Behavior/PostingBehavior.php
-
-		-
-			message: "#^Parameter \\#1 \\$postings of method Saito\\\\Posting\\\\TreeBuilder\\:\\:build\\(\\) expects array, Traversable given\\.$#"
-			count: 1
-			path: src/Model/Behavior/PostingBehavior.php
-
-		-
-			message: "#^Call to App\\\\Model\\\\Table\\\\EntriesTable\\:\\:hasMany could not find the class for \"Bookmarks\"$#"
+			message: '#^Call to App\\Model\\Table\\EntriesTable\:\:hasMany could not find the class for "Bookmarks"$#'
+			identifier: cake.addAssociation.existClass
 			count: 1
 			path: src/Model/Table/EntriesTable.php
 
 		-
-			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:deletePosting\\(\\)\\.$#"
+			message: '#^Parameter \#1 \$entry of method App\\Model\\Table\\DraftsTable\:\:deleteDraftForPosting\(\) expects App\\Model\\Entity\\Entry, Cake\\ORM\\Entity given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Model/Table/EntriesTable.php
 
 		-
-			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:getRecentPostings\\(\\)\\.$#"
+			message: '#^Variable \$new in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Model/Table/EntriesTable.php
 
 		-
-			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:postingsForThread\\(\\)\\.$#"
+			message: '#^Variable \$posting in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Model/Table/EntriesTable.php
 
 		-
-			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:postingsForThreads\\(\\)\\.$#"
+			message: '#^Variable \$result in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Model/Table/EntriesTable.php
 
 		-
-			message: "#^Call to an undefined method Cake\\\\ORM\\\\Behavior\\:\\:threadMerge\\(\\)\\.$#"
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: "#^Parameter \\#1 \\$entry of method App\\\\Model\\\\Table\\\\DraftsTable\\:\\:deleteDraftForPosting\\(\\) expects App\\\\Model\\\\Entity\\\\Entry, Cake\\\\ORM\\\\Entity given\\.$#"
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: "#^Variable \\$new in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: "#^Variable \\$posting in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: "#^Variable \\$result in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
-			message: "#^Variable \\$settings in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Variable \$settings in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Model/Table/SettingsTable.php
 
 		-
-			message: "#^Dead catch \\- PDOException is never thrown in the try block\\.$#"
+			message: '#^Dead catch \- PDOException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
 			count: 1
 			path: src/Model/Table/UserOnlineTable.php
 
 		-
-			message: "#^Call to App\\\\Model\\\\Table\\\\UsersTable\\:\\:hasMany could not find the class for \"Bookmarks\"$#"
+			message: '#^Call to App\\Model\\Table\\UsersTable\:\:hasMany could not find the class for "Bookmarks"$#'
+			identifier: cake.addAssociation.existClass
 			count: 1
 			path: src/Model/Table/UsersTable.php
 
 		-
-			message: "#^Variable \\$user in empty\\(\\) always exists and is not falsy\\.$#"
+			message: '#^Variable \$user in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: src/Model/Table/UsersTable.php
 
 		-
-			message: "#^PHPDoc type array of property App\\\\View\\\\Cell\\\\AppStatusCell\\:\\:\\$_validCellOptions is not covariant with PHPDoc type array\\<string\\> of overridden property Cake\\\\View\\\\Cell\\<Cake\\\\View\\\\View\\>\\:\\:\\$_validCellOptions\\.$#"
-			count: 1
-			path: src/View/Cell/AppStatusCell.php
-
-		-
-			message: "#^Property App\\\\View\\\\Helper\\\\JsDataHelper\\:\\:\\$Notifications \\(Saito\\\\JsData\\\\Notifications\\) in empty\\(\\) is not falsy\\.$#"
+			message: '#^Property App\\View\\Helper\\JsDataHelper\:\:\$Notifications \(Saito\\JsData\\Notifications\) in empty\(\) is not falsy\.$#'
+			identifier: empty.property
 			count: 1
 			path: src/View/Helper/JsDataHelper.php
-
-		-
-			message: "#^Method Yzalis\\\\Identicon\\\\Identicon\\:\\:getImageDataUri\\(\\) invoked with 2 parameters, 1 required\\.$#"
-			count: 1
-			path: src/View/Helper/UserHelper.php
-
-		-
-			message: "#^Strict comparison using \\=\\=\\= between Saito\\\\User\\\\ForumsUserInterface and null will always evaluate to false\\.$#"
-			count: 1
-			path: src/View/Helper/UserHelper.php

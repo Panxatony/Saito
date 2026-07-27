@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\View\Helper;
 
 use App\Model\Entity\User;
+use Cake\Core\Configure;
 use Cake\View\Helper\HtmlHelper;
 use Cake\View\Helper\UrlHelper;
 use Yzalis\Identicon\Identicon;
@@ -106,7 +107,7 @@ class UserHelper extends AppHelper
     /**
      * Link to user-profile
      *
-     * @param User|ForumsUserInterface $user user
+     * @param User|ForumsUserInterface|null $user user
      * @param bool|CurrentUserInterface $link link
      * @param array $options options
      * @return string
@@ -132,7 +133,12 @@ class UserHelper extends AppHelper
             ($link === true)
             || ($link instanceof CurrentUserInterface && $link->isLoggedIn())
         ) {
-            return $this->Html->link($name, '/users/view/' . $id, $options);
+            // Every username in the forum runs through here — postings, the
+            // online widget, moderation reports. On an island install they must
+            // land on the island profile, not the SPA page.
+            $action = Configure::read('Saito.frontend') === 'island' ? 'htmx-profile' : 'view';
+
+            return $this->Html->link($name, '/users/' . $action . '/' . $id, $options);
         } else {
             $html = $name;
         }
@@ -174,8 +180,11 @@ class UserHelper extends AppHelper
                 $imgUri = $this->Url->assetUrl($url);
             } else {
                 $name = $user->get('username');
-                $hdpi = 2 * $size;
-                $imgUri = (new Identicon())->getImageDataUri($name, $hdpi);
+                // The installed Identicon renders at its own fixed resolution:
+                // getImageDataUri() takes just the string, so the hi-dpi size we
+                // used to pass was silently discarded. Dropped rather than left
+                // as a no-op; scaling would need a different call.
+                $imgUri = (new Identicon())->getImageDataUri($name);
             }
 
             $style = "background-image: url({$imgUri});" . $options['style'];

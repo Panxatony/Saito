@@ -711,7 +711,6 @@ msgstr "Einstellungen"
 #: plugins/Admin/src/Template/Users/block.ctp:2
 #: plugins/Admin/src/Template/Users/index.ctp:4
 #: plugins/Admin/src/Template/Users/index.ctp:7
-#, fuzzy
 msgid "Users"
 msgstr "Benutzer"
 
@@ -2483,3 +2482,175 @@ msgstr "Löschen"
 
 msgid "delete_confirm.cancel"
 msgstr "Abbrechen"
+
+#
+# htmx/Alpine island frontend (Saito 8) — server-rendered strings that
+# previously lived only in the SPA's frontend locale or were untranslated.
+#
+msgid "Category"
+msgstr "Kategorie"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "text"
+msgstr "Text"
+
+msgid "bkm.title.pl"
+msgstr "Lesezeichen"
+
+msgid "upl.title.pl"
+msgstr "Uploads"
+
+msgid "user.rememberMe.t"
+msgstr "Angemeldet bleiben"
+
+msgid "forum_show_thread"
+msgstr "Thread anzeigen"
+
+msgid "register_password_confirm"
+msgstr "Passwort bestätigen"
+
+msgid "Load more"
+msgstr "Mehr laden"
+
+msgid "Members"
+msgstr "Mitglieder"
+
+msgid "No bookmarks yet."
+msgstr "Noch keine Lesezeichen."
+
+msgid "Please check your entry."
+msgstr "Bitte überprüfe deine Eingabe."
+
+msgid "Preview"
+msgstr "Vorschau"
+
+msgid "Quote"
+msgstr "Zitat"
+
+msgid "Strikethrough"
+msgstr "Durchgestrichen"
+
+msgid "Toggle dark / light"
+msgstr "Hell / Dunkel umschalten"
+
+msgid "Your reply has been saved."
+msgstr "Dein Beitrag wurde gespeichert."
+
+msgid "Answering is not allowed here."
+msgstr "Antworten ist hier nicht erlaubt."
+
+msgid "subject"
+msgstr "Betreff"
+
+msgid "{0} new posting(s) — show"
+msgstr "{0} neue Beiträge — anzeigen"
+
+msgid "Font size"
+msgstr "Schriftgröße"
+
+msgid "Applies to this browser."
+msgstr "Gilt nur für diesen Browser."
+
+msgid "beta_notice"
+msgstr "Beta-Test: Dieses Forum läuft auf einer separaten, nächtlich erneuerten Kopie von Datenbank und Uploads. Änderungen betreffen nicht das echte Forum."
+
+msgid "mark_all_read"
+msgstr "Alles gelesen"
+
+msgid "insert_link_media"
+msgstr "Link / Medien einfügen"
+
+msgid "insert_text_optional"
+msgstr "Text (optional)"
+
+msgid "insert_btn"
+msgstr "Einfügen"
+
+msgid "upload_media_title"
+msgstr "Bilder hochladen"
+
+msgid "upload_drop_hint"
+msgstr "Dateien hierher ziehen oder auswählen"
+
+msgid "upload_choose_files"
+msgstr "Dateien auswählen"
+
+msgid "all_categories"
+msgstr "Alle Kategorien"
+
+msgid "upload_insert_selected"
+msgstr "Auswahl einfügen"
+
+msgid "{0} online"
+msgstr "{0} online"
+
+msgid "{0} {1} online"
+msgstr "{0} {1} online"
+
+msgid "Guests"
+msgstr "Gäste"
+
+msgid "Bots"
+msgstr "Bots"
+
+msgid "beta_notice_help"
+msgstr "Neu hier? Klick ruhig mal aufs Hilfe-Icon oben – der Rundgang tut nicht weh."
+
+msgid "The whole thread will be moved so it becomes an answer to the target posting."
+msgstr "Der gesamte Thread wird verschoben und wird zu einer Antwort auf den Ziel-Beitrag."
+
+msgid "Loading …"
+msgstr "Wird geladen …"
+
+msgid "Delete this upload?"
+msgstr "Diesen Upload löschen?"
+
+msgid "user_avatar"
+msgstr "Avatar"
+
+msgid "gn.saved"
+msgstr "Gespeichert."
+
+msgid "user_contact_link"
+msgstr "Kontakt"
+
+msgid "The user has been saved."
+msgstr "Die Änderungen wurden gespeichert."
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "upl.manage.exp"
+msgstr "Bilder antippen zum Auswählen – mehrere gehen auch. Einzelne löschst du über das Papierkorb-Symbol."
+
+msgid "upl.delete.selected"
+msgstr "Auswahl löschen"
+
+msgid "upl.delete.confirm"
+msgstr "Ausgewählte Bilder wirklich löschen?"
+
+msgid "user_colors.default"
+msgstr "Themenfarbe"
+
+msgid "user_categories.pick"
+msgstr "Angezeigte Kategorien"
+
+msgid "user_categories.pick_exp"
+msgstr "Wirkt nur, wenn der Kategorienfilter oben aktiv ist. Nichts angehakt heißt: alle anzeigen."
+
+msgid "privacy.t"
+msgstr "Datenschutzerklärung"
+
+msgid "privacy.none"
+msgstr "Für diese Installation ist keine Datenschutzerklärung hinterlegt."
+
+msgid "notice.modernised"
+msgstr "Das Forum hat eine neue Oberfläche bekommen – gleiche Inhalte, neuer Anstrich. Sieht bei dir etwas verrutscht aus? Dann hält dein Browser noch alte Dateien fest: einmal mit Strg+Umschalt+R (am Mac Cmd+Umschalt+R) neu laden, notfalls den Cache leeren, dann sitzt alles."
+
+msgid "notice.help.btn"
+msgstr "Zur Hilfe"
+
+msgid "entry.text.ph.nt"
+msgstr "Text – leer lassen für n/t"

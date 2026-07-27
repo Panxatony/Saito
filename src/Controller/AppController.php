@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\Component\AuthUserComponent;
-use App\Controller\Component\JsDataComponent;
 use App\Controller\Component\RefererComponent;
 use App\Controller\Component\SaitoEmailComponent;
 use App\Controller\Component\SlidetabsComponent;
@@ -40,7 +39,6 @@ use Stopwatch\Lib\Stopwatch;
  *
  * @property AuthUserComponent $AuthUser
  * @property AuthenticationComponent $Authentication
- * @property JsDataComponent $JsData
  * @property RefererComponent $Referer
  * @property SaitoEmailComponent $SaitoEmail
  * @property SlidetabsComponent $Slidetabs
@@ -159,7 +157,7 @@ class AppController extends Controller
             $this->render('/Pages/forum_disabled');
             $this->response = $this->response->withStatus(503);
 
-            return null;
+            return;
         }
 
         // allow sql explain for DebugKit toolbar
@@ -243,6 +241,21 @@ class AppController extends Controller
         if (!empty($lang)) {
             Configure::write('Saito.language', $lang);
         };
+    }
+
+    /**
+     * Whether this install runs the htmx/Alpine island frontend as its default.
+     *
+     * Gated by the `Saito.frontend` config value (set per install in app.php):
+     * 'island' opts a deployment (e.g. the beta) into the new frontend, while
+     * the live SPA installs leave it unset. Content controllers use this to pick
+     * the island layout for otherwise server-rendered pages (static pages, help).
+     *
+     * @return bool
+     */
+    protected function isIslandFrontend(): bool
+    {
+        return Configure::read('Saito.frontend') === 'island';
     }
 
     /**

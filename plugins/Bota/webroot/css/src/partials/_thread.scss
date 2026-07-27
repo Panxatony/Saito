@@ -61,9 +61,18 @@ li.ignored + li:not(.threadLeaf) {
     line-height: 1.5rem;
 
     &.btn:not(:first-child) {
-      /// Keep toolbar buttons closer together
-      padding-left: 0;
-      text-align: left;
+      /// Keep toolbar buttons closer together — by splitting the horizontal
+      /// padding evenly instead of dropping it on one side. The button keeps
+      /// exactly the width it had, so nothing in the toolbar moves; the icon is
+      /// simply centred in its own box now instead of sitting half a padding
+      /// width to the left. That was invisible while these buttons had no
+      /// background, but the island gives them a hover surface.
+      ///
+      /// Not a negative margin: that centres the icon too, but pulls the
+      /// button's box under its neighbour, and an overlapping click target is a
+      /// worse problem than the one being fixed.
+      padding-left: $btn-padding-x * 0.5;
+      padding-right: $btn-padding-x * 0.5;
     }
 }
 

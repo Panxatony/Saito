@@ -1,0 +1,114 @@
+/******************************************************************************
+ * macnemo — light preset
+ *
+ * Built on Nova, so this file carries only what makes the forum *macnemo*: the
+ * cream-and-orange identity and the fish backdrop. Shape, spacing, focus ring,
+ * type scale and the surface polish now come from Nova. They used to be copied
+ * here — and the copies never even took effect, because Bota's
+ * `$enable-rounded: false` carried no `!default` and silently won.
+ ******************************************************************************/
+
+/******************************************************************************
+ * Identity
+ ******************************************************************************/
+
+$orange-lighter: #fff5cf;
+$orange: #ffa70e;
+$orange-darker: #fe5603;
+
+/// The accent: macnemo's orange in place of Nova's brick red.
+$primary: $orange-darker;
+
+/// Text: warm near-black, a shade warmer than Nova's so it sits on cream.
+$body-color: #2a2620;
+
+/// Surfaces. The page is cream; inputs and cards stay white/near-white so text
+/// on them keeps full contrast.
+$body-bg: #fbf4dd; // softer cream than the old harsh #ffed9e
+$form-bg: #ffffff;
+$nova-surface: #ffffff; // inputs, quiet fills
+$nova-surface-raised: rgba(255, 247, 224, 0.6); // card headers: a hint of cream
+$border-color: #e2ddcf; // warm light border
+$nova-border-soft: rgba(120, 90, 40, 0.14);
+$text-muted: #7a6f5c; // warm muted, not grey
+
+/// Depth: warm shadows, so surfaces lift off the cream instead of greying it.
+$nova-shadow: 0 1px 2px rgba(80, 55, 20, 0.05);
+$nova-shadow-lg: 0 8px 24px rgba(80, 55, 20, 0.12);
+
+/// Thread lines keep macnemo's reading habit: unread is plain text, already-read
+/// turns orange — the reverse of Nova's default.
+$font-color-new: $body-color;
+$font-color-old: $primary;
+$font-color-current: $orange;
+
+/******************************************************************************
+ * Nova base (which pulls in Bota, Bootstrap and all Saito partials)
+ ******************************************************************************/
+
+@import "../../../../Nova/webroot/css/src/theme";
+
+/******************************************************************************
+ * macnemo specifics
+ ******************************************************************************/
+
+@import "_gemeinsam.scss";
+
+// The fish (bb.svg) as the masthead backdrop.
+//
+// It rides on #site rather than on #header: the island header is only ~60px
+// tall, so a motif clipped to it would show nothing but the artwork's empty top
+// edge. Anchored here it sits behind the header and the cream band, while
+// #content keeps its plain white — the gradient layer fades cream into white
+// exactly as it did before the fish existed.
+//
+// Sized by HEIGHT (not the old `50%` width), so it stays a masthead motif at any
+// viewport width instead of growing into a full-page mural. The path is relative
+// to the compiled stylesheet, so `../img/bb.svg` resolves to /local/img/bb.svg.
+// The artwork is pure white throughout, so on plain cream the bubbles almost
+// vanish. Rather than repainting macnemo's asset, a warm amber wash sits *under*
+// it — light through water — and the white now has something to stand against.
+#site {
+  background:
+    url('../img/bb.svg'),
+    radial-gradient(55rem 15rem at 50% 0, rgba(254, 86, 3, 0.16), rgba(254, 86, 3, 0) 72%),
+    linear-gradient(0deg, rgba(251, 244, 221, 0) 0%, rgba(251, 244, 221, 1) 70%, rgba(251, 244, 221, 1) 100%),
+    white;
+  background-repeat: no-repeat;
+  background-size: auto 14rem, 100% 15rem, 100% 8em, 100%;
+  background-position: center top, center top, left top, left top;
+}
+
+.headerClosed #site {
+  background-size: auto 9rem, 100% 10rem, 100% 5em, 100%;
+}
+
+// Phones: a smaller motif, so it stays behind the header instead of reaching
+// down into the first postings.
+@media (max-width: 640px) {
+  #site {
+    background-size: auto 8rem, 100% 9rem, 100% 6em, 100%;
+  }
+}
+
+// The logo sits on the cream directly; no separate hero surface.
+#header-hero {
+  background: none;
+}
+
+// Bota makes the collapsed header sticky; macnemo does not want that.
+body.headerClosed #header {
+  position: inherit;
+}
+
+// Orange is a bright accent, so the primary button gets a warm lift rather than
+// Nova's neutral shadow.
+.btn-primary {
+  box-shadow: 0 1px 2px rgba(254, 86, 3, 0.25);
+
+  &:hover,
+  &:focus {
+    background-color: darken($primary, 6%);
+    border-color: darken($primary, 6%);
+  }
+}

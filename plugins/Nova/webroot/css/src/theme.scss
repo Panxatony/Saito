@@ -1,0 +1,78 @@
+/******************************************************************************
+ * Nova — Saito's modern default theme (light preset)
+ *
+ * A modern take on Bota: same Bootstrap base and the same partials, so every
+ * Saito view keeps working, but a reworked visual layer. Set the variables
+ * first (Bota declares its own with `!default`, so ours win), then pull in
+ * Bota's theme, then Nova's own layer on top.
+ ******************************************************************************/
+
+/// Brand --------------------------------------------------------------------
+// Bota's rgb(213, 6, 6) is a fully saturated pure red: loud next to text and
+// hard on the eyes over a long reading session. Nova keeps a red identity but
+// takes it deeper and slightly warm, so it stays recognisable as an accent
+// while receding behind the content.
+$primary: #c0342a !default;
+
+/// Neutrals -----------------------------------------------------------------
+// Deliberately warm-biased rather than pure grey: a neutral that shares a hint
+// of the accent's hue reads as chosen instead of inherited.
+$body-color: #23201f !default; // near-black with a warm cast
+$body-bg: #ffffff !default;
+$text-muted: #6b6560 !default;
+$border-color: #e2ddd8 !default;
+
+/// Nova-only surface and line tokens (consumed by _tokens/_modern)
+$nova-surface: #faf9f8 !default; // inputs, quiet fills
+$nova-surface-raised: #f3f1ef !default; // card headers, code blocks
+$nova-border-soft: #ebe7e2 !default;
+$nova-shadow: 0 1px 2px rgba(35, 32, 31, 0.05) !default;
+$nova-shadow-lg: 0 8px 24px rgba(35, 32, 31, 0.12) !default;
+
+/// Bootstrap surfaces derived from the above
+$form-bg: $nova-surface !default;
+$input-bg: $nova-surface !default;
+$card-cap-bg: $nova-surface-raised !default;
+
+/// Shape -------------------------------------------------------------------
+// Bota switches Bootstrap's radii off entirely. Nova puts a modest radius back:
+// enough to feel current, not so much that it turns into bubbles.
+$enable-rounded: true !default;
+$border-radius: 0.5rem !default;
+$border-radius-sm: 0.35rem !default;
+$border-radius-lg: 0.7rem !default;
+
+/// Space -------------------------------------------------------------------
+// Bota's 0.1rem control padding is very tight and makes inputs hard to hit on
+// touch screens.
+$input-btn-padding-y: 0.45rem !default;
+$custom-select-padding-y: 0.45rem !default;
+
+/// Focus -------------------------------------------------------------------
+// Bota replaces the focus shadow with a bare border colour, which is easy to
+// miss. The real ring is drawn in _modern; these keep Bootstrap consistent.
+$input-focus-border-color: $primary !default;
+$input-focus-box-shadow: 0 0 0 3px rgba($primary, 0.1) !default;
+
+/// Type --------------------------------------------------------------------
+$font-size-base: 1rem !default; // was 0.95rem — small for long-form reading
+$small-font-size: 87.5% !default;
+$font-family-base: Cabin, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
+
+/// Thread-line colours -----------------------------------------------------
+$font-color-new: $primary !default; // unread stands out
+$font-color-old: $body-color !default; // read is plain text
+$font-color-current: #b26a00 !default; // the posting being viewed
+
+/******************************************************************************
+ * Bota base (Bootstrap + all Saito partials)
+ ******************************************************************************/
+
+@import "../../../../Bota/webroot/css/src/theme";
+
+/******************************************************************************
+ * Nova layer
+ ******************************************************************************/
+
+@import "partials/tokens";
+@import "partials/modern";

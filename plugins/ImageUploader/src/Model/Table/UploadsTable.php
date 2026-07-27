@@ -17,10 +17,12 @@ use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\I18n\Number;
 use Cake\ORM\RulesChecker;
+use Cake\Utility\Security;
 use Cake\Validation\Validation;
 use Cake\Validation\Validator;
 use claviska\SimpleImage;
 use ImageUploader\Lib\MimeType;
+use RuntimeException;
 use ImageUploader\Model\Entity\Upload;
 
 /**
@@ -51,6 +53,79 @@ class UploadsTable extends AppTable
 
         $this->belongsTo('Users', ['foreignKey' => 'user_id']);
         $this->UploaderConfig = Configure::read('Saito.Settings.uploader');
+    }
+
+    /**
+     * Validate and store a single submitted file.
+     *
+     * Shared by the REST UploadsController and the session htmx editor upload:
+     * detects the MIME from the file contents (never the client filename),
+     * whitelists it to a safe extension, generates a collision-free name and
+     * saves. Throws {@see \RuntimeException} with a user-facing reason on reject.
+     *
+     * @param array $file normalized upload (name/type/tmp_name/error/size)
+     * @param int $userId owner the upload is stored for
+     * @return \ImageUploader\Model\Entity\Upload the saved upload entity
+     * @throws \RuntimeException
+     */
+    public function createFromUpload(array $file, int $userId): Upload
+    {
+        try {
+            $mime = MimeType::get($file['tmp_name'], $file['name']);
+        } catch (RuntimeException $e) {
+            throw new RuntimeException((string)__d('image_uploader', 'add.failure'));
+        }
+        $ext = self::mimeToExtension($mime);
+        if ($ext === null) {
+            throw new RuntimeException((string)__d('image_uploader', 'add.failure'));
+        }
+
+        $name = $userId . '_' . substr(Security::hash($file['name'], 'sha256'), 32) . '.' . $ext;
+        $document = $this->newEntity([
+            'document' => $file,
+            'name' => $name,
+            'title' => $file['name'],
+            'size' => $file['size'],
+            'user_id' => $userId,
+        ]);
+
+        if (!$this->save($document)) {
+            $saveErrors = $document->getErrors();
+            throw new RuntimeException(
+                $saveErrors ? (string)current(current($saveErrors)) : (string)__d('image_uploader', 'add.failure'),
+            );
+        }
+
+        return $document;
+    }
+
+    /**
+     * Map a server-detected MIME type to a safe, whitelisted extension, or null.
+     *
+     * @param string $mime server-determined MIME type
+     * @return string|null
+     */
+    private static function mimeToExtension(string $mime): ?string
+    {
+        $map = [
+            'audio/mp4' => 'mp4',
+            'audio/mpeg' => 'mp3',
+            'audio/ogg' => 'ogg',
+            'audio/opus' => 'opus',
+            'audio/webm' => 'webm',
+            'image/gif' => 'gif',
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            // 'image/svg+xml' deliberately NOT allowed: SVGs are served inline
+            // from our origin and can carry executable script (stored XSS).
+            'image/webp' => 'webp',
+            'text/plain' => 'txt',
+            'video/mp4' => 'mp4',
+            'video/ogg' => 'ogv',
+            'video/webm' => 'webm',
+        ];
+
+        return $map[$mime] ?? null;
     }
 
     /**

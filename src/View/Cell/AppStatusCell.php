@@ -26,7 +26,7 @@ class AppStatusCell extends Cell
      * List of valid options that can be passed into this
      * cell's constructor.
      *
-     * @var array
+     * @var array<string>
      */
     protected array $_validCellOptions = [];
 

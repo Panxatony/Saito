@@ -3,6 +3,12 @@
 use Saito\User\Permission\ResourceAI;
 
 // setup
+// On an island install the classic edit/merge routes render the SPA, so emit the
+// island equivalents here rather than rewriting them in JavaScript afterwards —
+// that also keeps "open in new tab" and the no-JS case correct.
+$isIsland = \Cake\Core\Configure::read('Saito.frontend') === 'island';
+$editUrlPrefix = $isIsland ? '/entries/htmx-edit/' : '/entries/edit/';
+$mergeUrlPrefix = $isIsland ? '/entries/htmx-merge/' : '/entries/merge/';
 $level = $level ?? 0;
 $editLinkIsShown = false;
 $showSignature = false;
@@ -95,7 +101,7 @@ $jsEntry = json_encode(
             if ($entry->isEditingAsUserAllowed()) {
                 echo $this->Html->link(
                     __('edit_linkname'),
-                    '/entries/edit/' . $entry->get('id'),
+                    $editUrlPrefix . $entry->get('id'),
                     ['class' => 'btn btn-secondary js-btn-edit']
                 );
             } elseif ($entry->isEditingAllowed()) {
@@ -103,7 +109,7 @@ $jsEntry = json_encode(
                 $editLinkIsShown = true;
                 $menuItems[] = $this->Html->link(
                     '<i class="fa fa-fw fa-pencil"></i> ' . __('edit_linkname'),
-                    '/entries/edit/' . $entry->get('id'),
+                    $editUrlPrefix . $entry->get('id'),
                     ['class' => 'dropdown-item', 'escape' => false]
                 );
             }
@@ -147,7 +153,7 @@ $jsEntry = json_encode(
                     // merge thread
                     $menuItems[] = $this->Html->link(
                         '<i class="fa fa-fw fa-compress"></i>&nbsp;' . h(__('merge_tree_link')),
-                        '/entries/merge/' . $entry->get('id'),
+                        $mergeUrlPrefix . $entry->get('id'),
                         ['class' => 'dropdown-item', 'escape' => false]
                     );
                 }

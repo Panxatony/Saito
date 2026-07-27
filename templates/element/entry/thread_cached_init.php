@@ -41,8 +41,10 @@ foreach ($entriesSub as $entrySub) :
                     <i class="fa fa-fw fa-thread-open" title="<?= $l10nCache['collapse'] ?>";></i>
                 </button>
 
+                <?php // js-mixToggle: the island expands the thread in place instead
+                      // of following the link (see htmxThreadList). ?>
                 <a href="<?= $this->Posting->urlToMix($entrySub, false)?>"
-                    class="btn btn-link threadBox-tools-btn"
+                    class="btn btn-link threadBox-tools-btn js-mixToggle"
                     title="<?= $l10nCache['mix'] ?>"
                     rel="nofollow">
                         <i class="fa fa-fw fa-mix"></i>

@@ -25,7 +25,7 @@ use Search\Controller\Component\PrgComponent;
 
 /**
  * @property EntriesTable $Entries
- * @property PrgComponent $Prg
+ * @property \Search\Controller\Component\SearchComponent $Search
  */
 class SearchesController extends AppController
 {
@@ -41,13 +41,13 @@ class SearchesController extends AppController
         $this->Entries = $this->fetchTable('Entries');
 
 
-        if ($this->getRequest()->getParam('action') === 'simple') {
+        if (in_array($this->getRequest()->getParam('action'), ['simple', 'htmxSimple'], true)) {
             $this->Entries->addBehavior('SaitoSearch.SaitoSearch');
         } else {
             $this->Entries->addBehavior('Search.Search');
             // friendsofcake/search v6: Search component replaces PrgComponent
             $this->loadComponent('Search.Search');
-            $this->Search->setConfig('actions', ['advanced']);
+            $this->Search->setConfig('actions', ['advanced', 'htmxAdvanced']);
             $this->Search->setConfig('queryStringWhitelist', []);
         }
     }
@@ -58,7 +58,7 @@ class SearchesController extends AppController
     public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
-        $this->Authentication->allowUnauthenticated(['simple']);
+        $this->Authentication->allowUnauthenticated(['simple', 'htmxSimple']);
     }
 
     /**
@@ -91,6 +91,21 @@ class SearchesController extends AppController
             return;
         }
 
+        $this->runSimpleSearch($query);
+        $this->set('showBottomNavigation', true);
+    }
+
+    /**
+     * Run the fulltext search for a query and set the result view vars.
+     *
+     * Shared by {@see simple()} (full SPA page) and {@see htmxSimple()} (htmx
+     * island). Sets `results`, `omittedWords`, `minWordLength`.
+     *
+     * @param array $query normalised query params (`searchTerm`, `order`)
+     * @return void
+     */
+    protected function runSimpleSearch(array $query): void
+    {
         $searchString = new SimpleSearchString($query['searchTerm']);
         $finder = $query['order'] === 'rank' ? 'simpleSearchByRank' : 'simpleSearchByTime';
         $config = [
@@ -108,7 +123,52 @@ class SearchesController extends AppController
         $this->set('omittedWords', $searchString->getOmittedWords());
         $this->set('minWordLength', $searchString->getMinWordLength());
         $this->set('results', $results);
-        $this->set('showBottomNavigation', true);
+    }
+
+    /**
+     * Simple search as an htmx island (strangler-fig migration).
+     *
+     * Reuses the same fulltext search as {@see simple()} but renders standalone
+     * (no SPA). The search form submits via htmx: an `HX-Request` returns only
+     * the results fragment, which htmx swaps in place; a direct visit gets the
+     * full shell page (form + results) in the htmx_island layout.
+     *
+     * @return void|\Cake\Http\Response
+     */
+    public function htmxSimple()
+    {
+        $this->set('titleForPage', __d('saito_search', 'simple.t'));
+
+        // @td pgsql — the fulltext finder is MySQL-only, like simple().
+        if (!($this->Entries->getConnection()->getDriver() instanceof Mysql)) {
+            return $this->redirect(['action' => 'advanced']);
+        }
+
+        $query = $this->request->getQueryParams();
+        $query = array_intersect_key($query, array_flip(['searchTerm', 'order']));
+        $query += ['searchTerm' => '', 'order' => 'time'];
+        $this->set('searchDefaults', $query);
+
+        $this->set('results', null);
+        if (!empty($query['searchTerm'])) {
+            $this->runSimpleSearch($query);
+        }
+
+        // The header "search" link loads a compact widget (form + results slot).
+        if ($this->getRequest()->getQuery('widget')) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_search_widget');
+
+            return;
+        }
+
+        // htmx swaps only the results fragment; a direct visit gets the shell.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()
+                ->disableAutoLayout()
+                ->setTemplate('htmx_results');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_simple');
+        }
     }
 
     /**
@@ -118,7 +178,43 @@ class SearchesController extends AppController
      */
     public function advanced()
     {
+        $this->prepareAdvancedSearch();
+    }
+
+    /**
+     * Advanced search as an htmx island (strangler-fig migration).
+     *
+     * Reuses the same query as {@see advanced()} (extracted to
+     * prepareAdvancedSearch()); an `HX-Request` returns just the results
+     * fragment, a direct visit the shell (form + results) in the htmx_island
+     * layout.
+     *
+     * @return void
+     */
+    public function htmxAdvanced()
+    {
+        $this->prepareAdvancedSearch();
+
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()
+                ->disableAutoLayout()
+                ->setTemplate('htmx_results');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_advanced');
+        }
+    }
+
+    /**
+     * Run the advanced search and set the form + result view vars.
+     *
+     * Shared by {@see advanced()} (SPA page) and {@see htmxAdvanced()}.
+     *
+     * @return void
+     */
+    protected function prepareAdvancedSearch(): void
+    {
         $this->set('titleForPage', __d('saito_search', 'advanced.t'));
+        $this->set('results', null);
 
         $queryData = $this->request->getQueryParams();
 
@@ -139,10 +235,27 @@ class SearchesController extends AppController
         }
         $startYear = $startDate->format('Y');
 
-        // calculate current month and year
-        $month = $queryData['month']['month'] ?? $defaultDate->month;
-        $year = $queryData['year']['year'] ?? $defaultDate->year;
-        $this->set(compact('month', 'year', 'startYear'));
+        // "Since" is one month value (YYYY-MM). The Cake 3 widgets submitted
+        // month[month] + year[year]; the modern ones submit a flat value, so the
+        // legacy pair is still accepted for bookmarked URLs.
+        $raw = $queryData['since'] ?? $queryData['month'] ?? null;
+        if (is_string($raw) && preg_match('/^(\d{4})-(\d{2})$/', $raw, $matches)) {
+            $year = (int)$matches[1];
+            $month = (int)$matches[2];
+        } else {
+            $month = (int)($queryData['month']['month'] ?? $defaultDate->month);
+            $year = (int)($queryData['year']['year'] ?? $defaultDate->year);
+        }
+        // Guard against a hand-edited URL asking for month 99 or the year 3000.
+        // Deliberately no lower bound: "since 1999" on a forum that started in
+        // 2011 must mean *everything*, and the oldest entry by id is not
+        // necessarily the oldest by time anyway.
+        $month = min(12, max(1, $month));
+        $year = min((int)$now->year, max(1900, $year));
+
+        $since = sprintf('%04d-%02d', $year, $month);
+        $sinceMax = $now->format('Y-m');
+        $this->set(compact('month', 'year', 'startYear', 'since', 'sinceMax'));
 
         /// Category drop-down data
         $categories = $this->CurrentUser->getCategories()->getAll('read', 'select');
@@ -159,11 +272,10 @@ class SearchesController extends AppController
             ->contain(['Categories', 'Users'])
             ->orderBy(['Entries.id' => 'DESC']);
 
-        /// Time filter
-        $time = Chronos::createFromDate((int)$year, (int)$month, 1);
-        if ($now->year !== $defaultDate->year || $now->month !== $defaultDate->month) {
-            $query->where(['time >=' => $time]);
-        }
+        /// Time filter. Always applied, because the form now shows exactly the
+        /// month it filters from — the old conditional compared the *default*
+        /// against today and so ignored what the user had picked.
+        $query->where(['time >=' => Chronos::createFromDate($year, $month, 1)]);
 
         /// Category filter
         $categories = array_flip($categories);

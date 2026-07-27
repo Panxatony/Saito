@@ -20,6 +20,32 @@
 # Adjust if you run PHP over TCP (127.0.0.1:9000) or a different PHP version.
 
 # -------------------------------------------------------------------
+# Access log without full IP addresses
+# -------------------------------------------------------------------
+# These two directives belong in the *http* context, not inside a server
+# block — put them in nginx.conf (or a file included from there) and keep
+# only the `access_log … anonymised;` line below in the vhost.
+#
+# The host part of the address is dropped: the last octet of an IPv4
+# address, everything past the fourth block of an IPv6 one. Different
+# networks stay distinguishable, individuals do not. Worth doing even if
+# you never look at the log: it is personal data the moment it is written,
+# and a privacy policy that claims otherwise is wrong.
+#
+# Note this narrows abuse analysis — if you run fail2ban against the
+# access log, keep a separate unmasked log for it or match on the error
+# log instead.
+#
+# map $remote_addr $remote_addr_anon {
+#     default                                                "0.0.0.0";
+#     "~^(?<ip4>[0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+$"              "$ip4.0";
+#     "~*^(?<ip6>[0-9a-f]*:[0-9a-f]*:[0-9a-f]*:[0-9a-f]*):"   "$ip6::";
+# }
+#
+# log_format anonymised '$remote_addr_anon - $remote_user [$time_local] "$request" '
+#                       '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
+
+# -------------------------------------------------------------------
 # HTTP -> HTTPS redirect
 # -------------------------------------------------------------------
 server {
@@ -106,7 +132,16 @@ server {
 
     # User-uploaded images live under webroot/useruploads — serve them
     # straight from disk; never pipe through PHP.
-    location /useruploads/ {
+    #
+    # `^~` is essential: a plain prefix location loses to the regex locations
+    # below, so `/useruploads/x.php` would be handed to php-fpm. The uploader
+    # only ever stores whitelisted, server-detected extensions (never the
+    # client's filename), so nothing executable can land here — `^~` plus the
+    # inner deny is the defence-in-depth that keeps it that way.
+    location ^~ /useruploads/ {
+        location ~ \.php$ {
+            deny all;
+        }
         expires 7d;
         access_log off;
         # Uploads are attacker-controlled — repeat nosniff here so the browser
@@ -169,6 +204,8 @@ server {
     # ----------------------------------------------------------------
     # Logging
     # ----------------------------------------------------------------
+    # Append `anonymised` once the map/log_format above are in the http
+    # context; without them nginx fails to start with "unknown log format".
     access_log /var/log/nginx/saito.access.log;
     error_log  /var/log/nginx/saito.error.log warn;
 }

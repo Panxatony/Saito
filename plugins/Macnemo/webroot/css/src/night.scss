@@ -1,0 +1,73 @@
+/******************************************************************************
+ * macnemo — dark preset
+ *
+ * Nova's dark preset with macnemo's warmth: the orange identity survives, but
+ * lifted until it holds contrast on a dark ground, and the neutrals carry a
+ * brown cast instead of Nova's cool grey. Everything structural — shape,
+ * spacing, focus ring, the media-brightness trim — comes from Nova, where it
+ * only needs maintaining once.
+ ******************************************************************************/
+
+/******************************************************************************
+ * Identity
+ ******************************************************************************/
+
+/// macnemo's lighter amber becomes the accent here: the deeper #fe5603 does not
+/// hold contrast against a dark ground.
+$primary: #ffa70e;
+
+/// Neutrals with a warm/brown cast rather than Nova's cool grey.
+$body-color: #ece2d2; // warm off-white
+$body-bg: #1b1813;
+$text-muted: #a3947c;
+$border-color: #3a3225;
+
+$nova-surface: #24201a; // inputs, quiet fills
+$nova-surface-raised: #2d2820; // card headers, code blocks
+$nova-border-soft: #332d23;
+$nova-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+$nova-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+/// Thread lines: same reading habit as the light preset — read turns orange.
+$font-color-new: $body-color;
+$font-color-old: $primary;
+$font-color-current: #ffc866;
+
+/******************************************************************************
+ * Nova base (dark)
+ ******************************************************************************/
+
+@import "../../../../Nova/webroot/css/src/night";
+
+/******************************************************************************
+ * macnemo specifics
+ ******************************************************************************/
+
+@import "_gemeinsam.scss";
+
+// No cream backdrop in the dark preset — the fish would glow against it. Keep
+// the page flat and let the content carry it.
+#site {
+  background: none;
+}
+
+#header-hero {
+  background: none;
+}
+
+// Bota makes the collapsed header sticky; macnemo does not want that.
+body.headerClosed #header {
+  position: inherit;
+}
+
+.btn-primary {
+  // Amber is bright enough that it needs dark text on it.
+  color: #1b1813;
+
+  &:hover,
+  &:focus {
+    background-color: lighten($primary, 6%);
+    border-color: lighten($primary, 6%);
+    color: #1b1813;
+  }
+}

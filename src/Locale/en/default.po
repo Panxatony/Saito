@@ -1677,3 +1677,144 @@ msgstr "Delete"
 
 msgid "delete_confirm.cancel"
 msgstr "Cancel"
+
+#
+# htmx/Alpine island frontend (Saito 8) — server-rendered strings.
+#
+msgid "Category"
+msgstr "Category"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "text"
+msgstr "Text"
+
+msgid "bkm.title.pl"
+msgstr "Bookmarks"
+
+msgid "upl.title.pl"
+msgstr "Uploads"
+
+msgid "user.rememberMe.t"
+msgstr "Remember me"
+
+msgid "forum_show_thread"
+msgstr "Show thread"
+
+msgid "register_password_confirm"
+msgstr "Confirm password"
+
+msgid "subject"
+msgstr "Subject"
+
+msgid "{0} new posting(s) — show"
+msgstr "{0} new posting(s) — show"
+
+msgid "Font size"
+msgstr "Font size"
+
+msgid "Applies to this browser."
+msgstr "Applies to this browser."
+
+msgid "beta_notice"
+msgstr "Beta test: this forum runs on a separate copy of the database and uploads, refreshed nightly. Changes do not affect the live forum."
+
+msgid "mark_all_read"
+msgstr "Mark all read"
+
+msgid "insert_link_media"
+msgstr "Insert link / media"
+
+msgid "insert_text_optional"
+msgstr "Text (optional)"
+
+msgid "insert_btn"
+msgstr "Insert"
+
+msgid "upload_media_title"
+msgstr "Upload images"
+
+msgid "upload_drop_hint"
+msgstr "Drag files here, or choose"
+
+msgid "upload_choose_files"
+msgstr "Choose files"
+
+msgid "all_categories"
+msgstr "All categories"
+
+msgid "upload_insert_selected"
+msgstr "Insert selected"
+
+msgid "{0} online"
+msgstr "{0} online"
+
+msgid "{0} {1} online"
+msgstr "{0} {1} online"
+
+msgid "Guests"
+msgstr "Guests"
+
+msgid "Bots"
+msgstr "Bots"
+
+msgid "beta_notice_help"
+msgstr "New here? Go ahead and tap the help icon above – the tour is painless."
+
+msgid "The whole thread will be moved so it becomes an answer to the target posting."
+msgstr "The whole thread will be moved so it becomes an answer to the target posting."
+
+msgid "Loading …"
+msgstr "Loading …"
+
+msgid "Delete this upload?"
+msgstr "Delete this upload?"
+
+msgid "user_avatar"
+msgstr "Avatar"
+
+msgid "gn.saved"
+msgstr "Saved."
+
+msgid "user_contact_link"
+msgstr "Contact"
+
+msgid "The user has been saved."
+msgstr "The changes have been saved."
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "upl.manage.exp"
+msgstr "Tap images to select them — several at once is fine. Delete a single one with its trash icon."
+
+msgid "upl.delete.selected"
+msgstr "Delete selection"
+
+msgid "upl.delete.confirm"
+msgstr "Really delete the selected images?"
+
+msgid "user_colors.default"
+msgstr "Theme colour"
+
+msgid "user_categories.pick"
+msgstr "Categories to show"
+
+msgid "user_categories.pick_exp"
+msgstr "Only takes effect while the category filter above is on. Nothing ticked means: show everything."
+
+msgid "privacy.t"
+msgstr "Privacy policy"
+
+msgid "privacy.none"
+msgstr "No privacy policy has been configured for this installation."
+
+msgid "notice.modernised"
+msgstr "The forum has a new interface — same content, fresh paint. Looks a bit askew? Your browser is still holding on to the old files: reload with Ctrl+Shift+R (Cmd+Shift+R on a Mac), or clear the cache, and it will settle."
+
+msgid "notice.help.btn"
+msgstr "Open the help"
+
+msgid "entry.text.ph.nt"
+msgstr "Text — leave empty for n/t"

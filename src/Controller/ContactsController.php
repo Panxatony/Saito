@@ -31,12 +31,12 @@ class ContactsController extends AppController
     {
         parent::beforeFilter($event);
         $this->set('showDisclaimer', true);
-        $this->Authentication->allowUnauthenticated(['owner']);
+        $this->Authentication->allowUnauthenticated(['owner', 'htmxContactOwner']);
 
         // FormProtection form tokens cause false-positives for anonymous users
         // (session timeouts, bots). We already have CSRF + honeypot + timing protection.
         if (
-            $this->getRequest()->getParam('action') === 'owner'
+            in_array($this->getRequest()->getParam('action'), ['owner', 'htmxContactOwner'], true)
             && $this->components()->has('FormProtection')
         ) {
             $this->components()->unload('FormProtection');
@@ -46,7 +46,7 @@ class ContactsController extends AppController
     /**
      * Contacts forum's owner via contact address
      *
-     * @return void
+     * @return \Cake\Http\Response|void
      */
     public function owner()
     {
@@ -75,14 +75,14 @@ class ContactsController extends AppController
             $sender = [$senderContact => $senderContact];
         }
 
-        $this->_contact(new ContactFormOwner(), $recipient, $sender);
+        return $this->_contact(new ContactFormOwner(), $recipient, $sender);
     }
 
     /**
      * Contacts individual user
      *
      * @param string $id user-ID
-     * @return void
+     * @return \Cake\Http\Response|void
      * @throws \InvalidArgumentException
      * @throws BadRequestException
      */
@@ -113,7 +113,90 @@ class ContactsController extends AppController
         );
 
         $sender = $this->CurrentUser->getId();
-        $this->_contact(new ContactForm(), $recipient, $sender);
+
+        return $this->_contact(new ContactForm(), $recipient, $sender);
+    }
+
+    /**
+     * Contact a member via the htmx island — same logic as {@see user()} but
+     * rendered standalone in the island layout. Login required.
+     *
+     * @param string|null $id user id
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxContactUser($id = null)
+    {
+        if (empty($id) || !$this->CurrentUser->isLoggedIn()) {
+            throw new BadRequestException();
+        }
+        $Users = TableRegistry::getTableLocator()->get('Users');
+        try {
+            $recipient = $Users->get($id);
+        } catch (RecordNotFoundException $e) {
+            throw new BadRequestException();
+        }
+        $this->set('user', $recipient);
+
+        if (
+            !$recipient->get('personal_messages')
+            && !$this->CurrentUser->permission('saito.core.user.contact')
+        ) {
+            throw new BadRequestException(null, 1562415010);
+        }
+
+        $this->set('titleForPage', __('user_contact_title', $recipient->get('username')));
+
+        // The profile opens this in the shared contact overlay, so htmx gets the
+        // bare form; a direct visit (or no JS) still gets the standalone page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_contact_user_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_user');
+        }
+        return $this->_contact(new ContactForm(), $recipient, $this->CurrentUser->getId());
+    }
+
+    /**
+     * Contact the forum owner via the htmx island — same logic as {@see owner()}
+     * (public; honeypot + timing guard for anonymous senders) rendered in the
+     * island layout.
+     *
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxContactOwner()
+    {
+        $recipient = 'contact';
+        $session = $this->request->getSession();
+
+        if ($this->request->is('get')) {
+            $session->write('Contact.formLoadTime', time());
+        }
+        if ($this->request->is('post') && !$this->CurrentUser->isLoggedIn()) {
+            $formLoadTime = (int)$session->read('Contact.formLoadTime');
+            if ($formLoadTime === 0 || (time() - $formLoadTime) < 5) {
+                $this->Flash->set(__('error_subject_empty'), ['element' => 'error']);
+
+                return $this->redirect(['action' => 'htmxContactOwner']);
+            }
+            $session->delete('Contact.formLoadTime');
+        }
+
+        if ($this->CurrentUser->isLoggedIn()) {
+            $sender = $this->CurrentUser->getId();
+            $this->request = $this->request->withData('sender_contact', $this->CurrentUser->get('user_email'));
+        } else {
+            $senderContact = $this->request->getData('sender_contact');
+            $sender = [$senderContact => $senderContact];
+        }
+
+        // htmx (footer overlay) gets just the form fragment; a direct visit gets
+        // the standalone island page.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_contact_owner_fragment');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_owner');
+        }
+        return $this->_contact(new ContactFormOwner(), $recipient, $sender);
     }
 
     /**
@@ -126,6 +209,11 @@ class ContactsController extends AppController
      */
     protected function _contact(Form $contact, $recipient, $sender)
     {
+        // NOTE for callers: this returns a Response on success — an HX-Redirect
+        // for the overlay, a 302 otherwise. Every call site must `return` it.
+        // Dropping it silently sends the mail and then re-renders the form: the
+        // overlay stays open, and the flash message sits in the session until
+        // the visitor happens to navigate somewhere else.
         if ($this->request->is('get')) {
             if ($this->request->getData('cc') === null) {
                 $this->request = $this->request->withData('cc', true);
@@ -147,6 +235,15 @@ class ContactsController extends AppController
                     $this->SaitoEmail->email($email);
                     $message = __('Message was send.');
                     $this->Flash->set($message, ['element' => 'success']);
+
+                    // htmx (overlay) can't follow a 302 into a modal — send the
+                    // client-side redirect header so the page navigates to '/'.
+                    if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+                        return $this->response->withHeader(
+                            'HX-Redirect',
+                            \Cake\Routing\Router::url('/')
+                        );
+                    }
 
                     return $this->redirect('/');
                 } catch (\Exception $e) {

@@ -34,8 +34,9 @@ class PostingsController extends AppController
     {
         parent::initialize();
 
-        /** @var EntriesTable */
-        $this->Entries = $this->fetchTable('Entries');
+        /** @var EntriesTable $entries */
+        $entries = $this->fetchTable('Entries');
+        $this->Entries = $entries;
         $this->Entries->addBehavior(FeedsPostingBehavior::class);
     }
 

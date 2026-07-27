@@ -55,7 +55,13 @@ return [
         'webroot' => 'webroot',
         'wwwRoot' => WWW_ROOT,
         //'baseUrl' => env('SCRIPT_NAME'),
-        'fullBaseUrl' => false,
+        // Behind a TLS-terminating proxy (macnemo runs Anubis in front) the app
+        // only ever sees plain HTTP, so every absolute URL it derives from the
+        // request comes out as http:// — upload thumbnails trigger mixed-content
+        // warnings and, worse, the links in outgoing mail are insecure. Set
+        // SAITO_FULL_BASE_URL to the public origin (e.g. https://example.com) on
+        // such installs; false keeps Cake's request-derived behaviour.
+        'fullBaseUrl' => env('SAITO_FULL_BASE_URL', false),
         'imageBaseUrl' => 'img/',
         'cssBaseUrl' => 'css/',
         'jsBaseUrl' => 'js/',
@@ -78,6 +84,9 @@ return [
     'Security' => [
         'salt' => env('SECURITY_SALT', '__SALT__'),
         'cookieSalt' => env('SECURITY_COOKIE_SALT', '__SALT__'),
+        // Dedicated key for API tokens, so ops can invalidate every issued token
+        // without also logging everyone out. Falls back to `salt` when unset.
+        'jwtSalt' => env('SECURITY_JWT_SALT', '__SALT__'),
         'cookieAuthName' => 'Saito-AU',
     ],
 
@@ -357,7 +366,7 @@ return [
             'path' => LOGS,
             'file' => 'debug',
             'url' => env('LOG_DEBUG_URL', null),
-            'scopes' => false,
+            'scopes' => null,
             'levels' => ['notice', 'info', 'debug'],
         ],
         'error' => [
@@ -365,7 +374,7 @@ return [
             'path' => LOGS,
             'file' => 'error',
             'url' => env('LOG_ERROR_URL', null),
-            'scopes' => false,
+            'scopes' => null,
             'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
         ],
         // To enable this dedicated query log, you need set your datasource's log flag to true
