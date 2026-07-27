@@ -38,6 +38,18 @@ use Stopwatch\Lib\Stopwatch;
 class UsersController extends AppController
 {
     /**
+     * Block durations offered on the profile page, in seconds.
+     *
+     * The retired SPA profile used a range slider from 6 hours to 5 days with
+     * JavaScript mirroring the value into a hidden field. A fixed list does the
+     * same job without a script and, because {@see lock()} validates against
+     * it, also bounds what can be submitted.
+     *
+     * @var list<int>
+     */
+    public const LOCK_DURATIONS = [21600, 43200, 86400, 259200, 432000];
+
+    /**
      * {@inheritDoc}
      */
     public function initialize(): void
@@ -527,7 +539,7 @@ class UsersController extends AppController
         /** @var \App\Model\Entity\User|null $user */
         $user = $this->Users->find()
             ->where(['Users.id' => $id])
-            ->contain(['UserOnline'])
+            ->contain(['UserOnline', 'UserBlocks'])
             ->first();
 
         if (empty($user)) {
@@ -535,6 +547,18 @@ class UsersController extends AppController
 
             return $this->redirect('/');
         }
+
+        // Blocking lives on the profile page, not in the admin backend: the
+        // permission `saito.core.user.lock.set` grants it to moderators, and the
+        // backend is admin-only. This is also where a moderator already is when
+        // they decide somebody needs a break.
+        $mayLock = (bool)$this->CurrentUser->permission(
+            'saito.core.user.lock.set',
+            (new ResourceAI())->onRole($user->getRole())
+        );
+        $this->set('mayLock', $mayLock);
+        $this->set('blockForm', $mayLock ? new BlockForm() : null);
+        $this->set('lockDurations', self::LOCK_DURATIONS);
 
         $entriesShownOnPage = 20;
         $this->set(
@@ -1335,12 +1359,22 @@ class UsersController extends AppController
             );
         }
 
+        // Bounded against the offered list rather than taken as sent: the field
+        // is a plain number in the request, so without this a crafted POST could
+        // set a block of any length it liked. Checked outside the try below,
+        // which swallows every exception into a generic flash message.
+        $duration = (int)$this->request->getData('lockPeriod');
+        if (!in_array($duration, self::LOCK_DURATIONS, true)) {
+            throw new BadRequestException(
+                sprintf('Lock duration "%d" is not one of the offered ones.', $duration)
+            );
+        }
+
         if ($this->CurrentUser->isUser($readUser)) {
             $message = __('You can\'t lock yourself.');
             $this->Flash->set($message, ['element' => 'error']);
         } else {
             try {
-                $duration = (int)$this->request->getData('lockPeriod');
                 $blocker = new ManualBlocker($this->CurrentUser->getId(), $duration);
                 $status = $this->Users->UserBlocks->block($blocker, $id);
                 if (!$status) {

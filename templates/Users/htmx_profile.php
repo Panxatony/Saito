@@ -125,6 +125,54 @@ if ($user->get('signature')) {
         </div>
     </div>
 
+    <?php
+    // Moderation: blocking lives here rather than in the admin backend, because
+    // `saito.core.user.lock.set` grants it to moderators and the backend is
+    // admin-only. The SPA had this on its own profile page; without it, a forum
+    // on the island frontend cannot block anybody.
+    if ($mayLock) : ?>
+        <div class="card mb-3">
+            <div class="card-header">
+                <?= $this->Layout->panelHeading(__('user.block.history')) ?>
+            </div>
+            <div class="card-body">
+                <?= $this->element('users/block-report', ['UserBlock' => $user->get('user_blocks')]) ?>
+
+                <?php if (!$user->get('user_lock')) : ?>
+                    <?php
+                    $durationLabels = [];
+                    foreach ($lockDurations as $seconds) {
+                        $hours = (int)($seconds / 3600);
+                        $durationLabels[$seconds] = $hours < 48
+                            ? __('user.block.hours', ['hours' => $hours])
+                            : __n('{0} day', '{0} days', (int)($hours / 24), (int)($hours / 24));
+                    }
+                    ?>
+                    <?= $this->Form->create($blockForm, [
+                        'url' => ['controller' => 'Users', 'action' => 'lock'],
+                        'class' => 'mt-3',
+                    ]) ?>
+                    <?= $this->Form->hidden('lockUserId', ['value' => (int)$user->get('id')]) ?>
+                    <div class="form-group">
+                        <?php // A plain select, so blocking works without JavaScript —
+                              // the SPA drove a range slider from a script. ?>
+                        <?= $this->Form->control('lockPeriod', [
+                            'type' => 'select',
+                            'options' => $durationLabels,
+                            'default' => 86400,
+                            'label' => __('user.block.t'),
+                        ]) ?>
+                    </div>
+                    <?= $this->Form->button(
+                        '<i class="fa fa-ban"></i> ' . h(__('Block User')),
+                        ['type' => 'submit', 'class' => 'btn btn-outline-danger', 'escapeTitle' => false]
+                    ) ?>
+                    <?= $this->Form->end() ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <?php // Own profile → private sections: bookmarks + uploads, lazy-loaded via
           // htmx from their existing island endpoints (HX-Request → fragment). ?>
     <?php if ($CurrentUser->isLoggedIn() && $CurrentUser->isUser($user)) : ?>

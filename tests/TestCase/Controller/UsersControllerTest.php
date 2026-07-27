@@ -9,6 +9,7 @@ use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\Http\Cookie\CookieCollection;
+use Cake\Http\Exception\BadRequestException;
 use Cake\Mailer\Message;
 use Cake\ORM\TableRegistry;
 use Laminas\Diactoros\UploadedFile;
@@ -916,6 +917,73 @@ class UsersControllerTest extends IntegrationTestCase
      *
      * @return void
      */
+    /**
+     * Blocking a member sits on the profile page, not in the admin backend:
+     * `saito.core.user.lock.set` grants it to moderators, and the backend is
+     * admin-only. The SPA profile had it; without it here, a forum on the
+     * island frontend cannot block anybody at all.
+     *
+     * @return void
+     */
+    public function testProfileOffersBlockingToAModerator()
+    {
+        $this->_loginUser(2); // Mitch, moderator
+        $this->get('/users/htmx-profile/3'); // Ulysses, plain member
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('lockUserId');
+        $this->assertResponseContains('lockPeriod');
+    }
+
+    /**
+     * ...and stays invisible to everybody else, so a member does not see
+     * controls they cannot use.
+     *
+     * @return void
+     */
+    public function testProfileHidesBlockingFromAPlainMember()
+    {
+        $this->_loginUser(3);
+        $this->get('/users/htmx-profile/9');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('lockUserId');
+    }
+
+    /**
+     * The happy path, through the form the profile page renders.
+     *
+     * @return void
+     */
+    public function testModeratorCanBlockAMember()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(2);
+        $this->post('/users/lock', ['lockUserId' => 3, 'lockPeriod' => 86400]);
+
+        $blocks = TableRegistry::getTableLocator()->get('UserBlocks');
+        $this->assertNotEmpty(
+            $blocks->find()->where(['user_id' => 3, 'ended IS' => null])->first(),
+            'the moderator could not block the member'
+        );
+    }
+
+    /**
+     * The duration is a plain number in the request. Without bounding it against
+     * the offered list, a crafted POST could set a block of any length — a
+     * moderator handing out a hundred-year ban through a hand-made form.
+     *
+     * @return void
+     */
+    public function testBlockDurationIsBoundedToTheOfferedList()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(2);
+
+        $this->expectException(BadRequestException::class);
+        $this->post('/users/lock', ['lockUserId' => 3, 'lockPeriod' => 3153600000]);
+    }
+
     public function testName()
     {
         $this->_loginUser(3);

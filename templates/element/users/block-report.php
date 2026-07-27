@@ -75,12 +75,18 @@ $format = ($mode === 'full') ? 'eng' : 'normal';
 
         $unblock = '';
         if (empty($block['ended'])) {
+            // `plugin => false`, not `admin => false`. This element is rendered
+            // both on the profile page and inside the Admin plugin's block
+            // list; the old key is a CakePHP 2/3 prefix idiom that stopped
+            // resetting anything, so from the backend the link pointed at
+            // /admin/users/unlock/<id> — an action that does not exist there.
+            // Unblocking from the backend was quietly broken.
             $unblock = $this->Form->postLink(
                 __('user.block.unblock'),
                 [
-                    'controller' => 'users',
+                    'plugin' => false,
+                    'controller' => 'Users',
                     'action' => 'unlock',
-                    'admin' => false,
                     $block['id'],
                 ]
             );
