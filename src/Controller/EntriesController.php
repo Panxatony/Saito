@@ -29,6 +29,7 @@ use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Basic\BasicPostingInterface;
 use Saito\User\CurrentUser\CurrentUserInterface;
 use Saito\User\Permission\ResourceAI;
+use Saito\User\WidgetPreferences;
 use Stopwatch\Lib\Stopwatch;
 
 /**
@@ -43,6 +44,18 @@ use Stopwatch\Lib\Stopwatch;
  */
 class EntriesController extends AppController
 {
+    /**
+     * The front page's right-rail widgets, in the order they are rendered.
+     *
+     * The single list of what exists: the template renders from it, and the
+     * stored per-member preference is filtered against it, so a widget that is
+     * removed here simply stops being minimisable instead of lingering in
+     * everybody's saved state.
+     *
+     * @var list<string>
+     */
+    public const WIDGETS = ['online', 'recent', 'mine'];
+
     /**
      * {@inheritDoc}
      */
@@ -160,6 +173,11 @@ class EntriesController extends AppController
                 ->disableAutoLayout()
                 ->setTemplate('htmx_index_threads');
         } else {
+            // The rail loads asynchronously, but its width decides the layout —
+            // so the page has to know on first paint whether it is a full rail
+            // or a strip of icons, or the thread list visibly jumps.
+            $this->set('minimisedWidgets', $this->minimisedWidgets());
+            $this->set('widgetCatalogue', self::WIDGETS);
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_index');
         }
     }
@@ -216,7 +234,31 @@ class EntriesController extends AppController
                 ['user_id' => $this->CurrentUser->getId(), 'limit' => 5]
             ));
         }
+        // Rendered server-side rather than applied by script afterwards: the
+        // rail would otherwise flash open on every load before collapsing.
+        $this->set('minimisedWidgets', $this->minimisedWidgets());
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_widgets');
+    }
+
+    /**
+     * Which rail widgets the current member keeps minimised.
+     *
+     * Signed-in members have this on their account (see WidgetPreferences);
+     * for everyone else the island falls back to the browser's own storage,
+     * so the preference still survives a reload without an account.
+     *
+     * @return list<string>
+     */
+    protected function minimisedWidgets(): array
+    {
+        if (!$this->CurrentUser->isLoggedIn()) {
+            return [];
+        }
+
+        return WidgetPreferences::read(
+            $this->CurrentUser->get('slidetab_order'),
+            self::WIDGETS
+        );
     }
 
     /**

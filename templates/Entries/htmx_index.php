@@ -12,6 +12,8 @@
  * @var \App\View\AppView $this
  * @var array $entries
  * @var int $newestEntryId
+ * @var list<string>|null $minimisedWidgets
+ * @var list<string>|null $widgetCatalogue
  */
 
 $csrfToken = $this->getRequest()->getAttribute('csrfToken');
@@ -19,7 +21,14 @@ $webroot = $this->getRequest()->getAttribute('webroot');
 ?>
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
-<div class="island-cols">
+<?php
+// The rail arrives asynchronously but decides the column width, so its state is
+// rendered here on first paint — otherwise the thread list is laid out wide,
+// then jumps when the widgets land.
+$railMinimised = !empty($widgetCatalogue)
+    && count($minimisedWidgets ?? []) === count($widgetCatalogue);
+?>
+<div class="island-cols<?= $railMinimised ? ' is-railMin' : '' ?>">
 <div class="island-main">
 
 <?php // Live poll: every 30s ask whether new postings arrived since page load. ?>

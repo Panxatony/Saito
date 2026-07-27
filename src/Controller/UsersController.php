@@ -30,6 +30,7 @@ use Saito\Exception\SaitoForbiddenException;
 use Saito\User\Blocker\ManualBlocker;
 use Saito\User\Permission\Permissions;
 use Saito\User\Permission\ResourceAI;
+use Saito\User\WidgetPreferences;
 use Stopwatch\Lib\Stopwatch;
 
 /**
@@ -1618,6 +1619,35 @@ class UsersController extends AppController
     }
 
     /**
+     * Store which right-rail widgets the member keeps minimised.
+     *
+     * Written to `users.slidetab_order` — the column the retired slidetabs used
+     * for the same purpose, which arrangement of the rail this member prefers.
+     * Reusing it keeps this a code change rather than a migration.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function htmxWidgetState(): Response
+    {
+        if (!$this->getRequest()->is('post')) {
+            throw new BadRequestException();
+        }
+
+        $submitted = (array)$this->getRequest()->getData('widgets');
+        $value = WidgetPreferences::write($submitted, EntriesController::WIDGETS);
+
+        $userId = (int)$this->CurrentUser->getId();
+        $user = $this->Users->get($userId);
+        $this->Users->patchEntity($user, ['slidetab_order' => $value]);
+        $this->Users->save($user);
+        // Keep the session copy in step, or the next render would still show the
+        // old arrangement until the member logs in again.
+        $this->CurrentUser->set('slidetab_order', $value);
+
+        return $this->getResponse()->withStringBody('');
+    }
+
+    /**
      * Set slidetab-order.
      *
      * @return \Cake\Http\Response
@@ -1697,7 +1727,12 @@ class UsersController extends AppController
         parent::beforeFilter($event);
         Stopwatch::start('Users->beforeFilter()');
 
-        $unlocked = ['slidetabToggle', 'slidetabOrder', 'htmxEdit', 'htmxChangePassword', 'htmxAvatar'];
+        $unlocked = [
+            'slidetabToggle', 'slidetabOrder', 'htmxEdit', 'htmxChangePassword', 'htmxAvatar',
+            // Posted by the island with a CSRF token in the header, like the
+            // other island write endpoints.
+            'htmxWidgetState',
+        ];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
         $this->Authentication->allowUnauthenticated(['login', 'logout', 'register', 'rs', 'htmxLogin', 'htmxRegister']);
