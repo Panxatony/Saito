@@ -16,18 +16,19 @@ use Cake\ORM\TableRegistry;
 use Saito\Test\IntegrationTestCase;
 
 /**
- * Class CategoriesControllerTest
+ * Class UsersControllerTest
  *
  * @package App\Test\TestCase\Controller\Admin
  */
 class UsersControllerTest extends IntegrationTestCase
 {
-
     public array $fixtures = [
         'app.Category',
+        'app.Entry',
         'app.Setting',
         'app.User',
         'app.UserBlock',
+        'app.UserIgnore',
         'app.UserRead',
         'app.UserOnline',
     ];
@@ -45,5 +46,162 @@ class UsersControllerTest extends IntegrationTestCase
     public function testUsersIndexAccess()
     {
         $this->assertRouteForRole('/admin/users/block', 'admin');
+    }
+
+    /**
+     * Role and account deletion moved here when the SPA was retired. They used
+     * to hang off the forum's own profile page — the only way to reach them —
+     * so the island frontend had left the forum with no way to appoint a
+     * moderator or remove an account at all.
+     *
+     * @return void
+     */
+    public function testRoleRequiresTheBackend()
+    {
+        $this->assertRouteForRole('/admin/users/role/3', 'admin');
+    }
+
+    /**
+     * @return void
+     */
+    public function testDeleteRequiresTheBackend()
+    {
+        $this->assertRouteForRole('/admin/users/delete/3', 'admin');
+    }
+
+    /**
+     * The form offers exactly the roles the current user may assign — an admin
+     * must not be able to hand out `owner`.
+     *
+     * @return void
+     */
+    public function testRoleFormOffersOnlyAssignableRoles()
+    {
+        $this->_loginUser(1);
+        $this->get('/admin/users/role/3');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('user_type');
+        $this->assertResponseNotContains('value="owner"');
+    }
+
+    /**
+     * The happy path: promote a plain member to moderator.
+     *
+     * @return void
+     */
+    public function testRoleIsChanged()
+    {
+        $this->_loginUser(1);
+        $this->post('/admin/users/role/3', ['user_type' => 'mod']);
+
+        $this->assertRedirect('/admin/users');
+        $this->assertSame('mod', $this->Users->get(3)->get('user_type'));
+    }
+
+    /**
+     * `user_type` is guarded against mass assignment on the entity; this action
+     * is the one authorized path around that guard. A role the current user may
+     * not assign has to be refused rather than quietly written.
+     *
+     * @return void
+     */
+    public function testRoleRejectsARoleTheUserMayNotAssign()
+    {
+        $this->_loginUser(1);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->post('/admin/users/role/3', ['user_type' => 'owner']);
+    }
+
+    /**
+     * A GET must not change anything — otherwise a crawler or a prefetching
+     * browser could promote users by following a link.
+     *
+     * @return void
+     */
+    public function testRoleGetDoesNotChangeAnything()
+    {
+        $this->_loginUser(1);
+        $this->get('/admin/users/role/3');
+
+        $this->assertSame('user', $this->Users->get(3)->get('user_type'));
+    }
+
+    /**
+     * Deleting needs the explicit confirmation the form asks for. Without it
+     * the request is a no-op, not a deletion.
+     *
+     * @return void
+     */
+    public function testDeleteWithoutConfirmationKeepsTheAccount()
+    {
+        $this->_loginUser(1);
+        $this->post('/admin/users/delete/3', []);
+
+        $this->assertNotEmpty($this->Users->find()->where(['id' => 3])->first());
+    }
+
+    /**
+     * Likewise a GET only renders the confirmation page.
+     *
+     * @return void
+     */
+    public function testDeleteGetOnlyShowsTheForm()
+    {
+        $this->_loginUser(1);
+        $this->get('/admin/users/delete/3');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('userdeleteconfirm');
+        $this->assertNotEmpty($this->Users->find()->where(['id' => 3])->first());
+    }
+
+    /**
+     * An admin may delete moderators and members, not their peers — so deleting
+     * another admin, or themselves, is already stopped by the permission check,
+     * before the self-deletion guard is ever reached.
+     *
+     * @return void
+     */
+    public function testAdminCannotDeleteAnAdmin()
+    {
+        $this->_loginUser(1);
+
+        $this->expectException(\Saito\Exception\SaitoForbiddenException::class);
+        $this->post('/admin/users/delete/6', ['userdeleteconfirm' => 1]);
+    }
+
+    /**
+     * The owner may delete any role, which makes them the one user who reaches
+     * the self-deletion guard. It has to hold: deleting yourself would lock the
+     * forum's owner out of their own forum.
+     *
+     * @return void
+     */
+    public function testOwnerCannotDeleteThemselves()
+    {
+        $this->_loginUser(11);
+        $this->post('/admin/users/delete/11', ['userdeleteconfirm' => 1]);
+
+        $this->assertNotEmpty(
+            $this->Users->find()->where(['id' => 11])->first(),
+            'the owner deleted themselves'
+        );
+    }
+
+    /**
+     * The happy path. Postings survive the account on purpose — discussions
+     * others took part in stay readable.
+     *
+     * @return void
+     */
+    public function testDeleteRemovesTheAccount()
+    {
+        $this->_loginUser(1);
+        $this->post('/admin/users/delete/3', ['userdeleteconfirm' => 1]);
+
+        $this->assertRedirect('/admin/users');
+        $this->assertEmpty($this->Users->find()->where(['id' => 3])->first());
     }
 }
