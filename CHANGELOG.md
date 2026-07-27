@@ -7,6 +7,23 @@
 
 ## [next] -
 
+## [8.1.0-alpha.4] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha.3...8.1.0-alpha.4)
+
+Carries everything from 8.0.12 and 8.0.13, plus the island bundle rearranged into one file per feature.
+
+### Changes
+
+- ✓ Fix: the utf8mb4 migration restated `users.user_category_custom` as `VARCHAR(512)`, undoing the widening to 1024 that Saito 5.0.0 made. The column holds a serialized list of chosen categories — 512 characters run out at roughly 40 of them, and outside MySQL's strict mode the value is cut silently, which does not shorten such a list but destroys it. A second migration widens the column again where the narrowing version already ran.
+- ✓ Fix: image smilies were broken on Nova, the default theme. `/img/smilies/<name>.svg` resolves against the active theme and then falls back to the application webroot, but that directory did not exist and Nova carries no images of its own. The 23 pictures now ship there as the base every theme falls back to.
+- ✓ Fix: the CSRF meta tag was rendered by nine templates individually and missing from the ones written later, so on those pages every scripted write was answered with 403 — the editor preview, uploads and the widget state, each failing silently. The island layout emits it now.
+- ✓ Fix: the category delete overlay in the backend could not be opened at all. `x-show` reveals an element by clearing the inline display it set, which handed the dialog back to Bootstrap's `.modal { display: none }`.
+- ✓ Fix: the settings sidebar stopped marking the section in view — it configured Bootstrap's ScrollSpy, which left with Bootstrap's JavaScript.
+- Δ The island bundle is one file per feature instead of one file of 1360 lines: threads, postings, editor, uploads, smartInsert, widgets, categoryFilter, headerActions, modals, flash, appearance. `runtime` publishes htmx and Alpine, `lib/dom` holds what several features share.
+- Δ The five overlays are described as a table rather than five near-identical branches of one click handler.
+- Δ CI takes Node from Debian and pins the container image, after an unpinned `php:8.4-cli` moved to Debian 13 mid-release and NodeSource — which publishes nothing for it — left the build without npm.
+
 ## [8.1.0-alpha.3] - 2026-07-27
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha.2...8.1.0-alpha.3)
