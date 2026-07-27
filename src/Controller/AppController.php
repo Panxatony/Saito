@@ -15,7 +15,6 @@ namespace App\Controller;
 use App\Controller\Component\AuthUserComponent;
 use App\Controller\Component\RefererComponent;
 use App\Controller\Component\SaitoEmailComponent;
-use App\Controller\Component\SlidetabsComponent;
 use App\Controller\Component\ThemesComponent;
 use App\Controller\Component\TitleComponent;
 use App\Model\Table\UsersTable;
@@ -41,7 +40,6 @@ use Stopwatch\Lib\Stopwatch;
  * @property AuthenticationComponent $Authentication
  * @property RefererComponent $Referer
  * @property SaitoEmailComponent $SaitoEmail
- * @property SlidetabsComponent $Slidetabs
  * @property ThemesComponent $Themes
  * @property TitleComponent $Title
  * @property UsersTable $Users
@@ -129,7 +127,6 @@ class AppController extends Controller
         $this->loadComponent('AuthUser');
         $this->loadComponent('Parser');
         $this->loadComponent('SaitoEmail');
-        $this->loadComponent('Slidetabs');
         $this->loadComponent('Themes', Configure::read('Saito.themes'));
         $this->loadComponent('Flash');
         $this->loadComponent('Title');

@@ -34,7 +34,10 @@ class LegacyUrlRedirectTest extends TestCase
         return [
             'posting' => ['/entries/view/1', '/entries/htmx-posting/1'],
             'thread' => ['/entries/mix/1', '/entries/htmx-thread/1'],
-            'front page' => ['/entries/index', '/entries/htmx-index'],
+            // Lands on `/`, not `/entries/htmx-index`: the root route connects
+            // to htmxIndex, so the router builds the shortest form — which is
+            // also the canonical address to hand a crawler.
+            'front page' => ['/entries/index', '/'],
             'profile' => ['/users/view/2', '/users/htmx-profile/2'],
             'member list' => ['/users/index', '/users/htmx-users'],
             'registration' => ['/users/register', '/users/htmx-register'],

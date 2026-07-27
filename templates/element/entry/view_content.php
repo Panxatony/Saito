@@ -10,11 +10,11 @@ $schemaMeta = [];
             <?php
             $subject = $this->Posting->getSubject($entry);
             $url = $this->Url->build(
-                '/entries/view/' . $entry->get('id'),
+                '/entries/htmx-posting/' . $entry->get('id'),
                 ['fullBase' => true]
             );
             $schemaMeta['url'] = $url;
-            // only make subject a link if it is not in entries/view
+            // only make subject a link if it is not already the single-posting page
             if (
                 $this->request->getParam('action') !== 'preview' &&
                 ($this->request->is('ajax') || $this->request->getParam('action') === 'mix')

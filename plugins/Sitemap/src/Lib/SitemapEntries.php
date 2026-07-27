@@ -112,7 +112,7 @@ class SitemapEntries extends SitemapGenerator
                 $changefreq = 'hourly';
             }
             $urls[] = [
-                    'loc' => 'entries/view/' . $entry['id'],
+                    'loc' => 'entries/htmx-posting/' . $entry['id'],
                     'lastmod' => date('c', $lastmod),
                     'changefreq' => $changefreq,
             ];

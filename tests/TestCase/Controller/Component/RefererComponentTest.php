@@ -69,23 +69,23 @@ class RefererComponentTest extends SaitoTestCase
         $event = new Event('Controller.beforeRender', $this->controller);
         $this->component->beforeRender($event);
         $result = $this->component->getController()->viewBuilder()->getVar('referer');
-        $this->assertEquals(['controller' => 'entries', 'action' => 'index'], $result);
+        $this->assertEquals(['controller' => 'entries', 'action' => 'htmxindex'], $result);
         $this->assertTrue($this->component->wasController('entries'));
         $this->assertFalse($this->component->wasController('users'));
-        $this->assertTrue($this->component->wasAction('index'));
-        $this->assertFalse($this->component->wasAction('view'));
+        $this->assertTrue($this->component->wasAction('htmxIndex'));
+        $this->assertFalse($this->component->wasAction('htmxPosting'));
 
-        $this->controller->setRequest($request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/entries/view'));
+        $this->controller->setRequest($request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/entries/htmx-posting'));
         $event = new Event('Controller.beforeFilter', $this->controller);
         $this->component->beforeFilter($event);
         $event = new Event('Controller.beforeRender', $this->controller);
         $this->component->beforeRender($event);
         $result = $this->component->getController()->viewBuilder()->getVar('referer');
-        $this->assertEquals(['controller' => 'entries', 'action' => 'view'], $result);
+        $this->assertEquals(['controller' => 'entries', 'action' => 'htmxposting'], $result);
         $this->assertTrue($this->component->wasController('entries'));
         $this->assertFalse($this->component->wasController('users'));
-        $this->assertTrue($this->component->wasAction('view'));
-        $this->assertFalse($this->component->wasAction('index'));
+        $this->assertTrue($this->component->wasAction('htmxPosting'));
+        $this->assertFalse($this->component->wasAction('htmxIndex'));
 
         $this->controller->setRequest($request->withEnv('HTTP_REFERER', $baseUrl . $webroot . '/some/'));
         $event = new Event('Controller.beforeFilter', $this->controller);
@@ -107,6 +107,6 @@ class RefererComponentTest extends SaitoTestCase
         $result = $this->component->getController()->viewBuilder()->getVar('referer');
         $this->assertEquals([], $result);
         $this->assertFalse($this->component->wasController('entries'));
-        $this->assertFalse($this->component->wasAction('index'));
+        $this->assertFalse($this->component->wasAction('htmxIndex'));
     }
 }

@@ -67,6 +67,14 @@ class SaitoBootstrapMiddleware implements MiddlewareInterface
             // from individual attributes.
             $params = (array)$request->getAttribute('params', []);
             $params['plugin'] = 'Installer';
+            // Keep the action only for the installer's own routes. Anything else
+            // arrives with whatever action its normal route resolved to, and
+            // InstallController has no such method — the front page used to work
+            // by coincidence, because the root route's action happened to be
+            // named `index` as well.
+            if (($params['controller'] ?? null) !== 'Install') {
+                $params['action'] = 'index';
+            }
             $params['controller'] = 'Install';
             $request = $request->withAttribute('params', $params);
 

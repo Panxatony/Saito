@@ -43,10 +43,11 @@ use Saito\Test\SaitoTestCase;
  * call somewhere in beforeFilter().
  *
  * KNOWN LIMIT — `inline` is pattern-based: it only proves the body *mentions* a
- * guard, not that the guard gates access. UsersController::index is the standing
- * example — its permission() call merely decides whether a sort column is shown,
- * so the action counts as `inline` although it is effectively member-open. Read
- * an `inline` verdict as "a human should have checked this", not as a guarantee.
+ * guard, not that the guard gates access. UsersController::htmxProfile is the
+ * standing example — its permission() call merely decides whether the blocking
+ * controls are rendered, so the action counts as `inline` although the profile
+ * itself is a plain member-open read. Read an `inline` verdict as "a human
+ * should have checked this", not as a guarantee.
  */
 class AuthorizationCoverageTest extends SaitoTestCase
 {
@@ -61,20 +62,12 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @var array<string, string>
      */
     private const MEMBER_OPEN = [
-        'App\\Controller\\EntriesController::add' => 'renders the new-posting form; the create itself is category-permission checked in PostingComponent',
-        'App\\Controller\\EntriesController::e' => 'renders the inline edit-marker fragment',
-        'App\\Controller\\EntriesController::source' => 'shows a posting the member may already read',
         'App\\Controller\\StatusController::status' => 'read-only forum status for a logged-in member',
         'App\\Controller\\UsersController::name' => 'view a public user profile by name (read)',
-        'App\\Controller\\UsersController::view' => 'view a public user profile (read)',
         'App\\Controller\\UsersController::ignore' => 'adds to the current user\'s own ignore list (self-scoped)',
         'App\\Controller\\UsersController::unignore' => 'removes from the current user\'s own ignore list (self-scoped)',
-        'App\\Controller\\UsersController::setcategory' => 'stores the current user\'s own category preference (self-scoped)',
-        'App\\Controller\\UsersController::slidetabOrder' => 'stores the current user\'s own slidetab order (self-scoped)',
-        'App\\Controller\\UsersController::uploads' => 'renders the current user\'s own uploads (self-scoped)',
         // htmx island counterparts of the above — same exposure as the classic
         // action each one replaces (verified self-scoped or plain read).
-        'App\\Controller\\UsersController::htmxProfile' => 'view a public user profile in the island (read; same as view)',
         'App\\Controller\\UsersController::htmxUsers' => 'member list in the island (read; same as index)',
         'App\\Controller\\UsersController::recentPosts' => 'a user\'s recent postings, category-filtered for the reader (read)',
         'App\\Controller\\UsersController::bookmarks' => 'renders the current user\'s own bookmarks (self-scoped)',
@@ -98,9 +91,6 @@ class AuthorizationCoverageTest extends SaitoTestCase
     private const PUBLIC_OPEN = [
         // Reading the forum: content itself is filtered by the reader's
         // category read-permission (guests see public categories only).
-        'App\\Controller\\EntriesController::index' => 'forum front page (read; category-filtered)',
-        'App\\Controller\\EntriesController::view' => 'read a single posting (read; category-filtered)',
-        'App\\Controller\\EntriesController::mix' => 'read a whole thread (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxIndex' => 'island front page (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxThread' => 'island thread view (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxPosting' => 'island single posting + its thread (read; category-filtered)',
@@ -110,14 +100,11 @@ class AuthorizationCoverageTest extends SaitoTestCase
         // Authentication / registration flows must be reachable before login.
         'App\\Controller\\UsersController::login' => 'login form + submit',
         'App\\Controller\\UsersController::logout' => 'logout',
-        'App\\Controller\\UsersController::register' => 'registration (additionally gated by saito.core.user.register)',
         'App\\Controller\\UsersController::rs' => 'account activation via the emailed code',
         'App\\Controller\\UsersController::htmxLogin' => 'island login form',
         'App\\Controller\\UsersController::htmxRegister' => 'island registration form',
         // Public search + contact + static content.
-        'SaitoSearch\\Controller\\SearchesController::simple' => 'public fulltext search (results category-filtered)',
         'SaitoSearch\\Controller\\SearchesController::htmxSimple' => 'island fulltext search (results category-filtered)',
-        'App\\Controller\\ContactsController::owner' => 'contact the operator (honeypot + timing guard)',
         'App\\Controller\\ContactsController::htmxContactOwner' => 'island contact the operator (honeypot + timing guard)',
         'App\\Controller\\PagesController::display' => 'static pages (imprint, help …)',
         // Feeds / sitemap are public by design.
@@ -342,7 +329,14 @@ class AuthorizationCoverageTest extends SaitoTestCase
         $src = file_get_contents($file);
 
         // allowUnauthenticated([...])
-        preg_match_all('/allowUnauthenticated\(\[([^\]]*)\]/s', $src, $ua);
+        //
+        // `\s*` between the paren and the bracket on purpose: without it a call
+        // whose array is wrapped onto its own line stops matching, and every
+        // action in it silently drops out of the `public` class — the test then
+        // reports them as unclassified, or worse, as stale allowlist entries.
+        // A tripwire that switches itself off when someone reformats the code
+        // it watches is worse than no tripwire.
+        preg_match_all('/allowUnauthenticated\(\s*\[([^\]]*)\]/s', $src, $ua);
         foreach ($ua[1] as $block) {
             if (preg_match("/'" . preg_quote($action, '/') . "'/", $block)) {
                 return 'public';

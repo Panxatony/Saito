@@ -27,7 +27,7 @@ class AppControllerTest extends IntegrationTestCase
      */
     public function testSetTitleForLayoutEmpty()
     {
-        $this->get('/entries/index');
+        $this->get('/entries/htmx-index');
         $result = $this->viewVariable('titleForLayout');
         $this->assertEquals('Forum – macnemo', $result);
         $result = $this->viewVariable('titleForPage');
@@ -41,7 +41,7 @@ class AppControllerTest extends IntegrationTestCase
      */
     public function testSetTitleForLayoutNotEmpty()
     {
-        $this->get('/entries/view/1');
+        $this->get('/entries/htmx-posting/1');
         $result = $this->viewVariable('titleForLayout');
         $this->assertEquals('First_Subject | Ontopic – macnemo', $result);
     }
@@ -51,7 +51,7 @@ class AppControllerTest extends IntegrationTestCase
      */
     public function testSetTitleForLayoutPoFile()
     {
-        $this->get('/users/register');
+        $this->get('/users/htmx-register');
         $result = $this->viewVariable('titleForLayout');
         $this->assertEquals('Register – macnemo', $result);
     }

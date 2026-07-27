@@ -50,10 +50,16 @@ $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
                    data-modal-url="<?= $webroot ?>login" title="<?= h(__('login_btn')) ?>">
                     <?= $iconLabel('sign-in', __('login_btn')) ?>
                 </a>
-                <a href="<?= $webroot ?>users/htmx-register" class="btn btn-link js-authModalOpen"
-                   data-modal-url="<?= $webroot ?>users/htmx-register" title="<?= h(__('register_linkname')) ?>">
-                    <?= $iconLabel('user-plus', __('register_linkname')) ?>
-                </a>
+                <?php // Only where registration is actually open. The retired
+                      // header checked this; the island one did not, so a forum
+                      // with registration switched off still invited people to
+                      // register and then refused them. ?>
+                <?php if ($CurrentUser->permission('saito.core.user.register')) : ?>
+                    <a href="<?= $webroot ?>users/htmx-register" class="btn btn-link js-authModalOpen"
+                       data-modal-url="<?= $webroot ?>users/htmx-register" title="<?= h(__('register_linkname')) ?>">
+                        <?= $iconLabel('user-plus', __('register_linkname')) ?>
+                    </a>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
         <?php // Middle: search with label. ?>
