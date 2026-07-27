@@ -7,10 +7,8 @@
  * @var \Cake\Form\Form $contact
  */
 
-$csrfToken = $this->getRequest()->getAttribute('csrfToken');
 $webroot = $this->request->getAttribute('webroot');
 ?>
-<meta name="csrf-token" content="<?= h($csrfToken) ?>">
 <div class="user contact">
     <?= $this->element('layout/htmx_back') ?>
     <div class="card panel-center">

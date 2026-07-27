@@ -8,10 +8,8 @@
  * @var \App\Model\Entity\User $user
  */
 
-$csrfToken = $this->getRequest()->getAttribute('csrfToken');
 $webroot = $this->request->getAttribute('webroot');
 ?>
-<meta name="csrf-token" content="<?= h($csrfToken) ?>">
 <div class="user contact">
     <?= $this->element('layout/htmx_back', ['url' => $webroot . 'users/htmx-profile/' . (int)$user->get('id'), 'label' => __('Back')]) ?>
     <div class="card panel-center">

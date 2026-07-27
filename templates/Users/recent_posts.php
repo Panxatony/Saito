@@ -18,10 +18,7 @@ $fragmentUrl = $this->Url->build([
     'action' => 'recentPosts',
     $user->get('id'),
 ]);
-$csrfToken = $this->getRequest()->getAttribute('csrfToken');
 ?>
-<meta name="csrf-token" content="<?= h($csrfToken) ?>">
-
 <div class="users recent-posts-htmx"
      x-data="{
         auto: false,
