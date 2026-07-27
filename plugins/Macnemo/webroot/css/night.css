@@ -10741,35 +10741,35 @@ tt {
   font-style: normal;
   font-display: swap;
   font-weight: 400;
-  src: local("Cabin Regular "), local("Cabin-Regular"), url("./../fonts/cabin-latin-400.woff2") format("woff2");
+  src: local("Cabin Regular "), local("Cabin-Regular"), url("/bota/fonts/cabin-latin-400.woff2") format("woff2");
 }
 @font-face {
   font-family: "Cabin";
   font-style: italic;
   font-display: swap;
   font-weight: 400;
-  src: local("Cabin Regular italic"), local("Cabin-Regularitalic"), url("./../fonts/cabin-latin-400italic.woff2") format("woff2");
+  src: local("Cabin Regular italic"), local("Cabin-Regularitalic"), url("/bota/fonts/cabin-latin-400italic.woff2") format("woff2");
 }
 @font-face {
   font-family: "Cabin";
   font-style: normal;
   font-display: swap;
   font-weight: 700;
-  src: local("Cabin Bold "), local("Cabin-Bold"), url("./../fonts/cabin-latin-700.woff2") format("woff2");
+  src: local("Cabin Bold "), local("Cabin-Bold"), url("/bota/fonts/cabin-latin-700.woff2") format("woff2");
 }
 @font-face {
   font-family: "Cabin";
   font-style: italic;
   font-display: swap;
   font-weight: 700;
-  src: local("Cabin Bold italic"), local("Cabin-Bolditalic"), url("./../fonts/cabin-latin-700italic.woff2") format("woff2");
+  src: local("Cabin Bold italic"), local("Cabin-Bolditalic"), url("/bota/fonts/cabin-latin-700italic.woff2") format("woff2");
 }
 @font-face {
   font-family: "Fenix";
   font-style: normal;
   font-display: swap;
   font-weight: 400;
-  src: local("Fenix Regular "), local("Fenix-Regular"), url("./../fonts/fenix-latin-400.woff2") format("woff2");
+  src: local("Fenix Regular "), local("Fenix-Regular"), url("/bota/fonts/fenix-latin-400.woff2") format("woff2");
 }
 a,
 a.btn-link,
@@ -11542,41 +11542,6 @@ time {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-}
-@font-face {
-  font-family: "Cabin";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/bota/fonts/cabin-latin-400.woff2") format("woff2"), url("/bota/fonts/cabin-latin-400.woff") format("woff");
-}
-@font-face {
-  font-family: "Cabin";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/bota/fonts/cabin-latin-700.woff2") format("woff2"), url("/bota/fonts/cabin-latin-700.woff") format("woff");
-}
-@font-face {
-  font-family: "Cabin";
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/bota/fonts/cabin-latin-400italic.woff2") format("woff2"), url("/bota/fonts/cabin-latin-400italic.woff") format("woff");
-}
-@font-face {
-  font-family: "Cabin";
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/bota/fonts/cabin-latin-700italic.woff2") format("woff2"), url("/bota/fonts/cabin-latin-700italic.woff") format("woff");
-}
-@font-face {
-  font-family: "Fenix";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/bota/fonts/fenix-latin-400.woff2") format("woff2"), url("/bota/fonts/fenix-latin-400.woff") format("woff");
 }
 /******************************************************************************
  * Dark-only corrections

@@ -228,40 +228,7 @@ time {
 }
 
 /// Fonts --------------------------------------------------------------------
-// Bota declares its @font-face rules with paths relative to its own stylesheet
-// (`./../fonts/…`). Compiled into a derived theme those resolve under that
-// theme's webroot (/nova/fonts/…) and 404, silently falling back to a system
-// font. Re-declare the faces against Bota's served webroot instead of shipping
-// a second copy of the binaries.
-$nova-bota-fonts: "/bota/fonts";
-
-@each $weight, $file in (400: "cabin-latin-400", 700: "cabin-latin-700") {
-  @font-face {
-    font-family: "Cabin";
-    font-style: normal;
-    font-weight: $weight;
-    font-display: swap;
-    src: url("#{$nova-bota-fonts}/#{$file}.woff2") format("woff2"),
-         url("#{$nova-bota-fonts}/#{$file}.woff") format("woff");
-  }
-}
-
-@each $weight, $file in (400: "cabin-latin-400italic", 700: "cabin-latin-700italic") {
-  @font-face {
-    font-family: "Cabin";
-    font-style: italic;
-    font-weight: $weight;
-    font-display: swap;
-    src: url("#{$nova-bota-fonts}/#{$file}.woff2") format("woff2"),
-         url("#{$nova-bota-fonts}/#{$file}.woff") format("woff");
-  }
-}
-
-@font-face {
-  font-family: "Fenix";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("#{$nova-bota-fonts}/fenix-latin-400.woff2") format("woff2"),
-       url("#{$nova-bota-fonts}/fenix-latin-400.woff") format("woff");
-}
+// Nothing to do here any more. Bota declares its @font-face rules against
+// /bota/fonts, an absolute path that stays correct when its partials are
+// compiled into this theme. Nova used to re-declare every face because those
+// paths were relative and resolved under /nova/fonts, where they 404'd.
