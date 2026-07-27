@@ -82,7 +82,7 @@ class ContactsController extends AppController
      * Contacts individual user
      *
      * @param string $id user-ID
-     * @return void
+     * @return \Cake\Http\Response|null redirect after a sent message, null to render
      * @throws \InvalidArgumentException
      * @throws BadRequestException
      */
