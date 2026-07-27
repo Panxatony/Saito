@@ -13,6 +13,14 @@ use Migrations\BaseMigration;
  *
  * Both hold short ASCII-only values today, so the conversion is data-safe.
  * `phinxlog` is intentionally left untouched (it is managed by Migrations).
+ *
+ * The VARCHAR length must stay 1024. `MODIFY` restates the whole column
+ * definition, so anything omitted or mistyped here silently redefines it —
+ * this migration originally said 512 and would have narrowed the column that
+ * 20180620093430_Saitox5x0x0 widened in 2018. `user_category_custom` holds a
+ * PHP-serialized category map; truncating it does not shorten the value, it
+ * destroys it. See 20260727190000_RestoreUserCategoryCustomWidth, which
+ * repairs installs that ran the narrowing version.
  */
 class ConvertLegacyTablesToUtf8mb4 extends BaseMigration
 {
@@ -22,7 +30,7 @@ class ConvertLegacyTablesToUtf8mb4 extends BaseMigration
         // surgically so the rest of the (large) table is not rewritten.
         $this->execute(
             'ALTER TABLE `users` '
-            . 'MODIFY `user_category_custom` VARCHAR(512) '
+            . 'MODIFY `user_category_custom` VARCHAR(1024) '
             . 'CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL'
         );
 
@@ -37,7 +45,7 @@ class ConvertLegacyTablesToUtf8mb4 extends BaseMigration
     {
         $this->execute(
             'ALTER TABLE `users` '
-            . 'MODIFY `user_category_custom` VARCHAR(512) '
+            . 'MODIFY `user_category_custom` VARCHAR(1024) '
             . 'CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NULL DEFAULT NULL'
         );
 
