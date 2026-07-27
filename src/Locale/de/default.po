@@ -22,7 +22,7 @@ msgstr ""
 
 #: plugins/Admin/src/Controller/AdminsController.php:52
 msgid "Caches cleared."
-msgstr "vld"
+msgstr "Zwischenspeicher geleert."
 
 #: plugins/Admin/src/Controller/CategoriesController.php:68
 #: plugins/Admin/src/Controller/CategoriesController.php:113
