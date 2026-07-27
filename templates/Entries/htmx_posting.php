@@ -12,11 +12,8 @@
  * @var \Saito\Posting\PostingInterface $tree
  */
 
-$csrfToken = $this->getRequest()->getAttribute('csrfToken');
 $webroot = $this->getRequest()->getAttribute('webroot');
 ?>
-<meta name="csrf-token" content="<?= h($csrfToken) ?>">
-
 <?= $this->element('layout/htmx_back') ?>
 
 <div class="entry view js-thread-island">

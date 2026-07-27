@@ -20,6 +20,14 @@
     <?php if (\Cake\Core\Configure::read('Saito.noindex')) : ?>
         <meta name="robots" content="noindex, nofollow">
     <?php endif; ?>
+    <?php
+    // The CSRF token every scripted write request needs. It belongs to the
+    // layout, not to individual templates: nine of them carried their own copy
+    // and the ones added later did not, so on those pages `csrfToken()` in the
+    // island bundle found nothing and every POST came back 403 — the editor
+    // preview, uploads and the widget state, all failing silently.
+    ?>
+    <meta name="csrf-token" content="<?= h($this->getRequest()->getAttribute('csrfToken')) ?>">
     <?= $this->fetch('meta') ?>
     <?= $this->Html->css('stylesheets/static.css') ?>
     <?= $this->fetch('css') ?>

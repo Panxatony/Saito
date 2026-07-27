@@ -7,10 +7,7 @@
  * @var array<int, string|null> $bookmarkComments
  */
 
-$csrfToken = $this->getRequest()->getAttribute('csrfToken');
 ?>
-<meta name="csrf-token" content="<?= h($csrfToken) ?>">
-
 <?= $this->element('users/bookmarks_content', compact('bookmarkPostings', 'bookmarkComments')) ?>
 
 <?php
