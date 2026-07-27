@@ -4,13 +4,13 @@ import path from 'node:path';
 
 const SRC = path.resolve(__dirname, 'frontend/src');
 
-// One entry per build (ENTRY=htmx-threads|exports); the npm script runs it once
-// per entry. `htmx-threads` is the frontend — the htmx/Alpine islands. `exports`
-// is only the jQuery/underscore/Bootstrap globals the administration backend
-// needs; it is not part of the forum itself.
+// One entry per build (ENTRY=htmx-threads|admin); the npm script runs it once
+// per entry. `htmx-threads` is the forum's frontend — the htmx/Alpine islands.
+// `admin` is the administration backend's behaviour, built from the same Alpine
+// rather than a second stack.
 const entryFiles: Record<string, string> = {
     'htmx-threads': 'islands/htmxThreadList.ts',
-    exports: 'exports.js',
+    admin: 'admin.ts',
 };
 const requested = process.env.ENTRY ?? 'htmx-threads';
 const entry = entryFiles[requested] ? requested : 'htmx-threads';
@@ -20,12 +20,9 @@ export default defineConfig({
     ],
     resolve: {
         // Single jQuery instance (nested plugins pin older copies otherwise).
-        dedupe: ['jquery'],
         alias: [
-            { find: 'jquery', replacement: path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js') },
             // GitHub dep without a package.json main — resolve the subpath by hand.
             // Bare specifier `import 'exports'` used by index.js.
-            { find: /^exports$/, replacement: path.join(SRC, 'exports.js') },
             // Webpack `resolve.modules:[frontend/src]` — map the top-level dirs so
             // `models/app`, `modules/…`, `lib/…`, `collections/…` etc. resolve.
             {

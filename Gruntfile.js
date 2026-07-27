@@ -9,19 +9,6 @@ module.exports = function (grunt) {
     copy: {
       nonmin: { // non minified files needed for debug modus
         files: [
-          // jQuery Datatables. Copied under a plain `datatables/` dir (not a
-          // `node_modules/` one) so deploys that filter node_modules — rsync
-          // --exclude, Docker .dockerignore, naive tar — don't strip the
-          // web-served assets. cwd drops the node_modules/ prefix from dest.
-          {
-            expand: true,
-            cwd: './node_modules/',
-            src: [
-              'datatables.net/js/jquery.dataTables.js',
-              'datatables.net-bs4/**/*{.js,.css}',
-            ],
-            dest: './webroot/js/datatables/',
-          },
           // CSS (+ sourcemap so DevTools have something to load instead of 404)
           {
             expand: true,

@@ -4,17 +4,12 @@
   "dependencies": {
     "alpinejs": "^3.15.12",
     "bootstrap": "^4.4.0",
-    "datatables.net": "^1.10.19",
-    "datatables.net-bs4": "^1.10.16",
     "font-awesome": "^4.7.0",
     "grunt": "^1.0.4",
     "htmx.org": "^2.0.10",
-    "jquery": "^3.7.1",
-    "popper.js": "^1.14.3",
     "spectrum-colorpicker": "^1.8.0",
     "typeface-cabin": "^0.0.72",
     "typeface-fenix": "^0.0.72",
-    "underscore": "~1.9.0",
     "yarn": "^1.15.2"
   },
   "devDependencies": {
@@ -40,7 +35,7 @@
   },
   "scripts": {
     "lint": "eslint \"frontend/src/**/*.ts\"",
-    "build": "ENTRY=htmx-threads vite build && ENTRY=exports vite build",
+    "build": "ENTRY=htmx-threads vite build && ENTRY=admin vite build",
     "dev": "ENTRY=htmx-threads vite build --watch"
   }
 }

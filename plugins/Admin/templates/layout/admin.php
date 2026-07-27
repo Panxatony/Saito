@@ -5,12 +5,11 @@
     <?php
     echo $this->Html->charset();
 
-    // exports.bundle.js is the self-contained Vite bundle: it sets up the
-    // jQuery/Bootstrap/underscore globals the admin backend needs. (The old
-    // webpack vendor.bundle.js split no longer exists under Vite.)
-    echo $this->Html->script([
-        'exports.bundle.js',
-    ]);
+    // admin.bundle.js is Alpine plus the four behaviours this backend needs:
+    // a sortable/filterable table, the confirmation overlay and the two menus.
+    // It replaced jQuery, DataTables and Bootstrap's JavaScript — Bootstrap's
+    // *stylesheet* stays, which is why the pages still look the same.
+    echo $this->Html->script(['admin.bundle.js'], ['defer' => true]);
 
     echo $this->Html->css([
         'stylesheets/bootstrap.min',
