@@ -14,7 +14,8 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 [Test it here][SaitoSupport] (login: test/test).
 
 [cake]: http://cakephp.org/
-[marionette]: https://marionettejs.com/
+[htmx]: https://htmx.org/
+[alpine]: https://alpinejs.dev/
 [SaitoHomepage]: https://saito.siezi.com/
 [SaitoSupport]: https://saito-forum.de/
 [ConversationThreading]: https://en.wikipedia.org/wiki/Conversation_threading
@@ -57,7 +58,7 @@ cannot override the value, and the override fails silently.
 You need a more or less generic environement providing:
 
 -  PHP with `composer` for the server-backend (mainly build on [CakePHP][cake])
--  node with `yarn` and `grunt-cli` for the browser-frontend (mainly build on [Marionette][marionette])
+-  node with `yarn` and `grunt-cli` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts)
 -  a database
 
 ### Install Files

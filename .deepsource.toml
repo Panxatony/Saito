@@ -5,9 +5,8 @@ exclude_patterns = [
   "vendor/**",
   "webroot/**",
   # Per-plugin webroot: served JS/CSS assets and install-specific theme code
-  # (e.g. the Macnemo/Bota themes, the SaitoSearch form init), not the core SPA
-  # source under frontend/src. These are non-module scripts that use globals
-  # ($, _, Backbone, Marionette, SaitoApp) loaded via <script> tags, so a
+  # (e.g. the Macnemo/Bota themes, the SaitoSearch form init). These are
+  # non-module scripts that use globals ($, _) loaded via <script> tags, so a
   # module analysis flags them (JS-0125 undeclared vars, JS-R1002, ...).
   # DeepSource's glob does not honour a mid-pattern wildcard, so the leading
   # `**/webroot/**` form is used, plus explicit per-plugin paths (no wildcard
@@ -34,31 +33,18 @@ exclude_patterns = [
   "templates/**",
   "**/templates/**",
   # Frontend: analyse our own TypeScript source under frontend/src, but skip
-  # dependencies, build output and vendored/minified third-party libraries.
+  # dependencies and minified third-party libraries.
   "frontend/node_modules/**",
   "frontend/**/*.min.js",
-  "frontend/src/lib/jquery-ui/**",
-  "frontend/src/lib/jquery.i18n/**",
-  # Karma/Jasmine test specs: .js ES modules using webpack-alias imports and
-  # test globals (describe/it/expect) — low analysis value and noisy.
-  "frontend/test/**",
-  # Root build-tooling config (Node/CommonJS), not SPA app source — analysing
-  # them as ES-module app code produces false positives (e.g. JS-0118 flags the
-  # `'use strict'` that is actually correct in a CommonJS module). Explicit
-  # filenames because the glob `**` does not match direct root files.
+  # Root build-tooling config (Node/CommonJS), not application source —
+  # analysing it as ES-module code produces false positives (e.g. JS-0118 flags
+  # the `'use strict'` that is correct in a CommonJS module). Named explicitly
+  # because the glob `**` does not match direct root files.
   "Gruntfile.js",
-  "karma.conf.js",
-  "webpack.config.js",
-  # Legacy ES-module .js among the .ts source (entry wiring + old prototype/
-  # jQuery-plugin helpers). DeepSource parses .js as a script and errors on
-  # `import` (JS-0833); they carry near-zero analysis value and converting the
-  # prototype/plugin code to strict .ts is not worth the risk. Explicit paths.
+  # exports.js: the jQuery/underscore/Bootstrap globals the administration
+  # backend needs. A .js entry among the .ts source, and DeepSource parses .js
+  # as a script and errors on `import` (JS-0833).
   "frontend/src/exports.js",
-  "frontend/src/index.js",
-  "frontend/src/lib/saito/backbone.initHelper.js",
-  "frontend/src/lib/saito/jquery.scrollIntoView.js",
-  "frontend/src/lib/saito/localStorageHelper.js",
-  "frontend/src/lib/saito/templateHelpers.js",
 ]
 
 test_patterns = [
@@ -75,7 +61,7 @@ name = "javascript"
 enabled = true
 
   [analyzers.meta]
-  # Browser SPA (jQuery / Backbone / Marionette).
+  # Browser code: the htmx/Alpine islands, plus the admin globals.
   environment = ["browser"]
   # Everything still analysed here is ES-module source (the script-style theme
   # and build files are excluded above). Declared for correctness — note that
