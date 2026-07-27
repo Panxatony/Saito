@@ -7,6 +7,18 @@
 
 ## [next] -
 
+## [8.0.11] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.10...8.0.11)
+
+### Changes
+
+- ＋ The front page can be filtered by several categories at once again, as the retired chooser allowed — a button showing the selection opens a list of checkboxes. Almost nothing had to be built: the query layer has always taken a list of categories and intersects it with what the member may read; only the controller read a single value.
+- ✓ Fix: sending a message from the contact overlay left the overlay standing with no confirmation. The mail went out and the flash message then turned up on whatever page the sender opened next. `_contact()` builds a response — an `HX-Redirect` for the overlay, a 302 otherwise — and all four call sites dropped it. The standalone contact page was affected too: it re-rendered its own empty form instead of redirecting.
+- ✓ Fix: on a phone, tapping a widget heading did nothing at all. The minimise-to-icon behaviour added in 8.0.10 disabled itself on narrow screens — correctly, an icon wins no width there — but took the folding away with it. The same tap now folds the content on a phone and shrinks to an icon on a wide screen.
+- ✓ Fix: the posting tool menu was cut off mid-list on a phone. Below the `md` breakpoint the theme gives the thread box `overflow-x: auto` so a deeply indented tree can be scrolled sideways, and CSS then forces `overflow-y` to `auto` as well — there is no way to scroll one axis and overflow the other. The menu now stands in the flow there instead of floating.
+- Δ The help overlay describes the category filter and the widget rail as they now behave.
+
 ## [8.0.10] - 2026-07-27
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.9...8.0.10)

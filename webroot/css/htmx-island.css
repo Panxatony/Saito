@@ -328,6 +328,28 @@
 }
 .htmx-island .js-thread-island .dropdown-menu.show { display: block; }
 
+/* Phones: the tool menu stands in the flow instead of floating over the
+   posting.
+   
+   Not a style preference — it cannot float here. Below the `md` breakpoint the
+   theme gives `.threadBox` `overflow-x: auto`, so a deeply indented thread tree
+   can be scrolled sideways instead of stretching the page. CSS then forces
+   `overflow-y` to `auto` as well: there is no way to scroll on one axis and
+   overflow on the other. The absolutely-positioned menu is therefore clipped at
+   the box's bottom edge, which is what a phone shows — the first two entries and
+   nothing after them.
+
+   In the flow it needs no positioning at all, the box simply grows, and full
+   width makes the targets easier to hit with a thumb than a floating panel. */
+@media (max-width: 767px) {
+    .htmx-island .js-thread-island .dropdown-menu.show {
+        position: static;
+        float: none;
+        width: 100%;
+        margin-top: 0.35rem;
+    }
+}
+
 /* Fixed diagonal "Beta" ribbon in the top-right corner (island installs only). */
 .htmx-island .island-ribbon {
     position: fixed;
@@ -684,15 +706,35 @@
 }
 .htmx-island .island-widget:not(.is-min) .island-widget-badge { display: none; }
 
-/* On narrow screens the rail reflows under the list, so minimising it there
-   would only hide content behind icons for no gain in width. */
+/* Narrow screens: the rail already reflows under the thread list, so shrinking
+   a widget to an icon would win no width — but folding its content away still
+   saves scrolling, which is exactly what this control did before. So the same
+   click means "fold" here and "shrink to an icon" on a wide screen; the widget
+   keeps its heading either way.
+
+   Note the one line that must NOT be here: restoring the body. An earlier
+   version did, which left the control marking the widget as minimised while
+   nothing visibly happened — a dead button on every phone. */
 @media (max-width: 1099px) {
-    .htmx-island .island-widget.is-min { width: auto; height: auto; margin-left: 0; }
-    .htmx-island .island-widget.is-min .island-widget-body { display: block; }
+    .htmx-island .island-widget.is-min {
+        width: auto;
+        height: auto;
+        margin-left: 0;
+    }
+    .htmx-island .island-widget.is-min .island-widget-head {
+        width: auto;
+        height: auto;
+        justify-content: flex-start;
+        padding: revert;
+    }
     .htmx-island .island-widget.is-min .island-widget-label { display: revert; }
     .htmx-island .island-widget.is-min .island-widget-icon { display: none; }
     .htmx-island .island-widget.is-min .island-widget-badge { display: none; }
 }
+
+/* The caret points down while the content is showing and up once it is folded
+   away, on both layouts — otherwise a folded widget looks like an empty one. */
+.htmx-island .island-widget.is-min .island-widget-caret { transform: rotate(180deg); }
 @media (max-width: 1099px) {
     .htmx-island .island-sidebar { order: 2; }
 }
@@ -914,4 +956,44 @@
     font-weight: 600;
     color: var(--nova-text-muted, #6b6560);
     margin: 0 0 0.5rem;
+}
+
+/* Category filter: a button plus a checkbox menu ---------------------------- */
+.htmx-island .island-catFilter {
+    position: relative;
+    display: inline-block;
+    margin-left: 0.5rem;
+}
+.htmx-island .island-catFilter-menu {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    min-width: 13rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.4rem;
+    border: 1px solid var(--isl-border-soft);
+    border-radius: 0.5rem;
+    background: var(--nova-surface, #fff);
+    color: var(--nova-text, inherit);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+.htmx-island .island-catFilter-menu[hidden] { display: none; }
+.htmx-island .island-catFilter-menu label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0.3rem 0.4rem;
+    border-radius: 0.35rem;
+    font-weight: normal;
+    cursor: pointer;
+}
+.htmx-island .island-catFilter-menu label:hover { background: var(--isl-hover, rgba(0, 0, 0, 0.05)); }
+.htmx-island .island-catFilter-all {
+    border-bottom: 1px solid var(--isl-border-soft);
+    margin-bottom: 0.25rem !important;
+    padding-bottom: 0.4rem !important;
+    border-radius: 0 !important;
 }
