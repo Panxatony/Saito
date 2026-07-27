@@ -11,17 +11,39 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: one migration
+### The database: two migrations
 
-Between 5.7.0 and 8.x there is **exactly one** schema change:
+Between 5.7.0 and 8.x there are **two** schema changes, and the second exists
+only to repair the first:
 
 | Migration | What it does |
 |---|---|
 | `20260604090000_ConvertLegacyTablesToUtf8mb4` | Converts `useronline` and the single column `users.user_category_custom` from utf8mb3 to utf8mb4 |
+| `20260727190000_RestoreUserCategoryCustomWidth` | Restores `users.user_category_custom` to its full 1024 characters |
 
 That is the whole schema delta. Older installations kept two stragglers on the
 3-byte character set, so they could not store 4-byte characters — emoji, mostly.
 Both hold short ASCII values today, which is what makes the conversion safe.
+
+**Upgrade to 8.0.12 or later — do not stop at an earlier 8.0.x.** Up to and
+including 8.0.11, the first migration also narrowed `user_category_custom` from
+1024 characters back to 512 as an unintended side effect of restating the
+column. That column holds a serialized list of the categories a member chose to
+see, roughly 14 characters per category: 512 runs out at about 40 categories,
+1024 at about 75. Outside MySQL's strict mode the value is cut silently, and a
+cut serialized list cannot be read back at all — the member's category
+selection is destroyed, not shortened. From 8.0.12 the migration keeps the
+column at 1024, so a forum upgrading now is never narrowed in the first place.
+
+If you already upgraded to 8.0.0–8.0.11, the second migration widens the column
+again on the next update; check whether any member lost their selection by
+looking for values at exactly 512 characters:
+
+```sql
+SELECT COUNT(*) FROM users WHERE CHAR_LENGTH(user_category_custom) = 512;
+```
+
+Zero means nothing was truncated.
 
 No table is added, dropped or restructured. **Your postings, users, categories
 and settings are untouched.**
@@ -170,7 +192,7 @@ rm -rf /path/to/forum/tmp/cache/models/* /path/to/forum/tmp/cache/persistent/*
 
 Open the forum in a browser. Saito compares the version in the database with the
 version of the code; because they now differ, it sends you to the updater
-instead of the front page. Confirm, and it applies the pending migration and
+instead of the front page. Confirm, and it applies the pending migrations and
 writes the new version.
 
 The updater refuses to run if the recorded database version is below 4.10.0 — a
@@ -181,6 +203,8 @@ The updater refuses to run if the recorded database version is below 4.10.0 — 
 - The front page loads and shows the new version in the footer.
 - A posting opens, and you can write a reply.
 - Log in and out.
+- `SELECT COUNT(*) FROM users WHERE CHAR_LENGTH(user_category_custom) = 512;`
+  returns 0 — see [the database section](#the-database-two-migrations).
 - Open the administration area.
 - An uploaded image still displays (thumbnails are served from
   `/api/v2/uploads/thumb/<id>`; if they 404, the web server is not passing
