@@ -7,6 +7,21 @@
 
 ## [next] -
 
+## [8.0.9] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.8...8.0.9)
+
+### Changes
+
+- ＋ Postings without a text are possible again: leave the field empty and the subject is shown with ` n/t` appended, as Saito has always rendered them. The model never required a text and neither did the new-thread form — only the island's reply form carried a `required`, which is why the "n/t" in older subjects had to be typed by hand. The placeholder now says the field may stay empty; without that the feature exists but nobody finds it.
+- ＋ A single posting has an island page again: `/entries/htmx-posting/<id>` shows the posting in full with the thread's tree below it — the counterpart to the SPA's `entries/view`, which was the one of the original three thread views without an island equivalent.
+- ✓ Fix: after replying inside a thread the new posting did not appear. The reply only swapped the form for a confirmation, so the author saw "saved" and then no posting — and reasonably assumed it was lost. The thread is now reloaded around the confirmation.
+- ✓ Fix: a too-long subject produced "Please check your entry." because the form discarded the validator's messages and only checked whether the list was empty. It now says what is actually wrong, and the field carries a `maxlength` taken from the *Subject length* admin setting, so the limit cannot be exceeded in the first place.
+- ✓ Fix: widget headings and their icons were near-black on a near-black card in the dark theme. The heading is a `<button>`, and a button does not inherit `color` — without an explicit one it falls back to the browser default, which ignores the page theme.
+- ✓ Fix: several links still led into the SPA on an island installation — a posting's subject, "show thread" after replying, and the redirects after deleting or merging.
+- Δ Privacy: exceptions no longer carry a full client IP into the log; the host part is masked as the `store_ip_anonymized` setting does for postings. Scanner probes (`/config/…`, `/wp-includes/…`) are no longer written to error.log at all but to `logs/probe.log` — told apart from a genuine routing bug by whether the referer points at this installation, so a dead link of our own is still logged as an error.
+- Δ `docs/deployment-debian.md` documents anonymised nginx access logs, and the shipped `saito.conf.example` carries the `map`/`log_format` for it.
+
 ## [8.0.8] - 2026-07-26
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.7...8.0.8)
