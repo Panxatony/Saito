@@ -7,6 +7,18 @@
 
 ## [next] -
 
+## [8.1.0-alpha.2] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha...8.1.0-alpha.2)
+
+### Changes
+
+- − The administration backend drops jQuery, DataTables and Bootstrap's JavaScript. Its four behaviours — a sortable and filterable member table, the confirmation overlay, and the navigation's two menus — are rebuilt on the Alpine the forum already ships. Bootstrap's stylesheet stays, so the backend looks unchanged; its bundle is 48 kB where the old one was 193 kB. Everything degrades: without script the tables are tables, the overlay a page section, the menus links.
+- ✓ Fix: `/login` threw a ReferenceError on every visit. Its template carried an inline script calling `SaitoApp` and jQuery, both of which went with the retired frontend, and its "back" link relied on a header subnav the island layout does not render. `login()` now serves the same page as `/users/htmx-login`.
+- ✓ Fix: the island login form had its own copy of the fields and had quietly dropped the `autocomplete` hints password managers rely on, `required`, and the tab order. Both logins use the shared form element again.
+- ✓ Fix: theme fonts were fetched twice, once from a path that 404s. Bota declared its @font-face rules relative to its own stylesheet — correct for Bota, wrong for every theme importing its partials, where they resolved under that theme's webroot. Now absolute, in one place.
+- Δ The member table's initial sort order is honoured. `AdminHelper::jqueryTable()` took a sort argument and never passed it to DataTables, so the order both call sites asked for had been decorative all along.
+
 ## [8.1.0-alpha] - 2026-07-27
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.11...8.1.0-alpha)
