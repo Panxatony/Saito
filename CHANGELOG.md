@@ -7,6 +7,26 @@
 
 ## [next] -
 
+## [8.1.0-alpha] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.11...8.1.0-alpha)
+
+**The Backbone/Marionette frontend is gone.** Pages are rendered on the server and enhanced with small htmx/Alpine islands. Nothing in the database changes and no content is touched — it is a different way of drawing the same forum. Pre-release: for a test installation, not for a live forum yet.
+
+### Changes
+
+- − Removes the single-page application: 28 controller actions, ~34 templates, the whole `frontend/src` tree apart from the islands, the webpack and karma builds, and 52 npm dependencies. 23,800 lines.
+- − Removes the `Saito.frontend` switch and `SAITO_FRONTEND`. There is one frontend, so there is nothing to choose.
+- ＋ Published URLs of the retired frontend redirect permanently to their island equivalents — `/entries/view/<id>`, `/users/view/<id>`, `/entries/mix/<tid>`, the two indexes and the registration form. Two decades of search-engine entries, bookmarks and links from other sites keep landing in the right place.
+- Δ `@name` mentions and `#123` tags in posting text now point at endpoints that survive. These are substituted into posting *text* at render time, so they decide where every mention in twenty years of content leads; a guard test parses each through the router and asserts the action exists.
+- ＋ Moderation the island frontend had left unreachable is back: role changes and account deletion in the administration backend, blocking on the member's profile page where moderators can reach it.
+- ✓ Fix: XML and RSS responses were being wrapped in the theme's HTML layout — wrong all along, and harmless only because nothing validated the output.
+- Δ The administration backend is unchanged and still loads its own jQuery/Bootstrap globals; it was never part of the SPA.
+
+### Upgrading
+
+Members with a page open across the upgrade should reload once — a tab keeps running the JavaScript it loaded. 8.0.x remains a working intermediate stop for anyone who would rather move the platform and the interface on different days; see `docs/upgrade.md`.
+
 ## [8.0.11] - 2026-07-27
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.10...8.0.11)
