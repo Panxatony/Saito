@@ -79,6 +79,7 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::htmxUsers' => 'member list in the island (read; same as index)',
         'App\\Controller\\UsersController::recentPosts' => 'a user\'s recent postings, category-filtered for the reader (read)',
         'App\\Controller\\UsersController::bookmarks' => 'renders the current user\'s own bookmarks (self-scoped)',
+        'App\\Controller\\UsersController::htmxWidgetState' => 'stores the current user\'s own widget-rail arrangement (self-scoped)',
         'App\\Controller\\UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
         'App\\Controller\\EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
         'App\\Controller\\EntriesController::htmxUploads' => 'lists the current user\'s own uploads (self-scoped)',

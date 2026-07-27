@@ -636,6 +636,62 @@
 @media (min-width: 1100px) {
     .htmx-island .island-cols { grid-template-columns: minmax(0, 1fr) 19rem; }
     .htmx-island .island-sidebar { position: sticky; top: 1rem; }
+
+    /* Every widget minimised → the rail is a strip of icons and the thread list
+       takes the width back. Anything less than "all of them" keeps the full
+       rail, because one open card needs it anyway. */
+    .htmx-island .island-cols.is-railMin { grid-template-columns: minmax(0, 1fr) 3.25rem; }
+}
+
+/* A minimised widget: a square icon button docked in the rail ---------------- */
+.htmx-island .island-widget.is-min {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: auto;          /* dock right, so the icons line up on the edge */
+    overflow: visible;          /* the badge sits slightly outside */
+    position: relative;
+}
+.htmx-island .island-widget.is-min .island-widget-body,
+.htmx-island .island-widget.is-min .island-widget-label {
+    display: none;
+}
+.htmx-island .island-widget.is-min .island-widget-head {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.htmx-island .island-widget-icon { display: none; font-size: 1.05rem; }
+.htmx-island .island-widget.is-min .island-widget-icon { display: block; }
+
+/* Unread-style count on the online icon. Signed-in members only — the guests
+   and bots shown inside the open widget are not what the number means. */
+.htmx-island .island-widget-badge {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    min-width: 1.15rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--nova-accent, #d9534f);
+    color: #fff;
+    font-size: 0.7rem;
+    line-height: 1.15rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.htmx-island .island-widget:not(.is-min) .island-widget-badge { display: none; }
+
+/* On narrow screens the rail reflows under the list, so minimising it there
+   would only hide content behind icons for no gain in width. */
+@media (max-width: 1099px) {
+    .htmx-island .island-widget.is-min { width: auto; height: auto; margin-left: 0; }
+    .htmx-island .island-widget.is-min .island-widget-body { display: block; }
+    .htmx-island .island-widget.is-min .island-widget-label { display: revert; }
+    .htmx-island .island-widget.is-min .island-widget-icon { display: none; }
+    .htmx-island .island-widget.is-min .island-widget-badge { display: none; }
 }
 @media (max-width: 1099px) {
     .htmx-island .island-sidebar { order: 2; }
