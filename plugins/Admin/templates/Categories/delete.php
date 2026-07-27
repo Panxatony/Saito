@@ -53,10 +53,14 @@
                 <?= h(__d('admin', 'cat.del.d.b')) ?>
             </a>
 
+<?php // Visibility rides on a class, not on x-show. Bootstrap's stylesheet sets
+      // .modal { display: none }, and x-show shows an element by clearing the
+      // inline display it set — which hands control straight back to that rule
+      // and leaves the dialog invisible. .modal.is-open outranks it. ?>
 <div id="deleteModal" class="modal" tabindex="-1" role="dialog"
-     x-show="isOpen" x-cloak
+     x-bind:class="{ 'is-open': isOpen }"
      x-on:keydown.escape.window="close()"
-     style="display: block; background: rgba(0,0,0,.5)">
+     style="background: rgba(0,0,0,.5)">
   <div class="modal-dialog" role="document" x-on:click.outside="close()">
     <div class="modal-content">
       <div class="modal-header bg-danger text-white">
