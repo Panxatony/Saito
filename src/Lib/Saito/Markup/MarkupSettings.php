@@ -21,8 +21,13 @@ class MarkupSettings
         'quote_symbol' => '>',
         'smilies' => false,
         //= computed values
+        // Base URLs for the @user and #posting tags in posting text. These are
+        // substituted at render time, so a change here rewrites the links in
+        // every existing posting at once — which is why they point at endpoints
+        // that are meant to stay: `users/name/` resolves a name to a profile and
+        // redirects, `entries/htmx-posting/` is the single-posting page.
         'atBaseUrl' => 'users/name/', // base-URL for @ tags
-        'hashBaseUrl' => 'entries/view/', // base-URL for # tags
+        'hashBaseUrl' => 'entries/htmx-posting/', // base-URL for # tags
     ];
 
     protected $_settings;

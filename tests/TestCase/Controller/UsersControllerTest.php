@@ -910,11 +910,30 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertResponseContains('&amp;&lt;Signature');
     }
 
+    /**
+     * `@name` mentions in posting text point here, so this redirect is written
+     * into decades of existing content and has to keep resolving.
+     *
+     * @return void
+     */
     public function testName()
     {
         $this->_loginUser(3);
         $this->get('/users/name/Mitch');
-        $this->assertRedirect('/users/view/2');
+        $this->assertRedirect('/users/htmx-profile/2');
+    }
+
+    /**
+     * An unknown name must not 500 or leak whether the account exists — it
+     * sends the visitor to the front page with a notice.
+     *
+     * @return void
+     */
+    public function testNameUnknownUser()
+    {
+        $this->_loginUser(3);
+        $this->get('/users/name/DoesNotExist');
+        $this->assertRedirect('/');
     }
 
     public function testEditViewUserDoesNotExist()

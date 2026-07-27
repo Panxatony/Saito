@@ -846,7 +846,12 @@ class UsersController extends AppController
     }
 
     /**
-     * Show user with profile $name
+     * Resolve a username to a profile and redirect there.
+     *
+     * Kept deliberately: this is the target of every `@name` mention in posting
+     * text (`MarkupSettings::atBaseUrl`), so it is written into decades of
+     * existing content. It has no view of its own — it only translates a name
+     * into an ID, which is why it survives the removal of the SPA.
      *
      * @param string $name username
      * @return void
@@ -862,7 +867,7 @@ class UsersController extends AppController
                 $this->redirect(
                     [
                         'controller' => 'users',
-                        'action' => 'view',
+                        'action' => 'htmxProfile',
                         $viewedUser->get('id'),
                     ]
                 );
