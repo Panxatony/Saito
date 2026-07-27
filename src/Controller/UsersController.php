@@ -38,12 +38,22 @@ use Stopwatch\Lib\Stopwatch;
 class UsersController extends AppController
 {
     /**
-     * Block durations offered on the profile page, in seconds.
+     * Bounds for a manual block, in seconds: 6 hours to 5 days, in 6-hour steps.
      *
-     * The retired SPA profile used a range slider from 6 hours to 5 days with
-     * JavaScript mirroring the value into a hidden field. A fixed list does the
-     * same job without a script and, because {@see lock()} validates against
-     * it, also bounds what can be submitted.
+     * Expressed as a rule rather than a list because two controls produce this
+     * value — the SPA profile's range slider (min 21600, max 432000, step
+     * 21600) and the island profile's select. A fixed list would accept the
+     * select's five values and reject fifteen of the slider's twenty.
+     */
+    public const LOCK_MIN = 21600;
+    public const LOCK_MAX = 432000;
+    public const LOCK_STEP = 21600;
+
+    /**
+     * Durations offered by the island profile's select, in seconds.
+     *
+     * A readable subset of what {@see LOCK_MIN}…{@see LOCK_MAX} allows — the
+     * validation bounds the value, this only decides what is offered.
      *
      * @var list<int>
      */
@@ -1354,14 +1364,23 @@ class UsersController extends AppController
             );
         }
 
-        // Bounded against the offered list rather than taken as sent: the field
-        // is a plain number in the request, so without this a crafted POST could
-        // set a block of any length it liked. Checked outside the try below,
-        // which swallows every exception into a generic flash message.
+        // Bounded rather than taken as sent: the field is a plain number in the
+        // request, so without this a crafted POST could set a block of any
+        // length it liked. Checked outside the try below, which swallows every
+        // exception into a generic flash message.
         $duration = (int)$this->request->getData('lockPeriod');
-        if (!in_array($duration, self::LOCK_DURATIONS, true)) {
+        // Zero (or an absent field) means an open-ended block — ManualBlocker
+        // writes no end date for a falsy duration. That is a real moderation
+        // outcome and long-standing behaviour, so it stays allowed; it is also
+        // an honest, visible state rather than a smuggled-in 37-year ban.
+        if (
+            $duration !== 0
+            && ($duration < self::LOCK_MIN
+                || $duration > self::LOCK_MAX
+                || $duration % self::LOCK_STEP !== 0)
+        ) {
             throw new BadRequestException(
-                sprintf('Lock duration "%d" is not one of the offered ones.', $duration)
+                sprintf('Lock duration "%d" is outside the allowed range.', $duration)
             );
         }
 

@@ -43,10 +43,12 @@ use Saito\Test\SaitoTestCase;
  * call somewhere in beforeFilter().
  *
  * KNOWN LIMIT — `inline` is pattern-based: it only proves the body *mentions* a
- * guard, not that the guard gates access. UsersController::index is the standing
- * example — its permission() call merely decides whether a sort column is shown,
- * so the action counts as `inline` although it is effectively member-open. Read
- * an `inline` verdict as "a human should have checked this", not as a guarantee.
+ * guard, not that the guard gates access. UsersController::index and
+ * ::htmxProfile are the standing examples — index's permission() call merely
+ * decides whether a sort column is shown, htmxProfile's whether the blocking
+ * controls are rendered, so both count as `inline` although each is effectively
+ * member-open. Read an `inline` verdict as "a human should have checked this",
+ * not as a guarantee.
  */
 class AuthorizationCoverageTest extends SaitoTestCase
 {
@@ -74,7 +76,6 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::uploads' => 'renders the current user\'s own uploads (self-scoped)',
         // htmx island counterparts of the above — same exposure as the classic
         // action each one replaces (verified self-scoped or plain read).
-        'App\\Controller\\UsersController::htmxProfile' => 'view a public user profile in the island (read; same as view)',
         'App\\Controller\\UsersController::htmxUsers' => 'member list in the island (read; same as index)',
         'App\\Controller\\UsersController::recentPosts' => 'a user\'s recent postings, category-filtered for the reader (read)',
         'App\\Controller\\UsersController::bookmarks' => 'renders the current user\'s own bookmarks (self-scoped)',

@@ -3,6 +3,7 @@
 namespace App\Test\TestCase\Controller;
 
 use Authentication\PasswordHasher\DefaultPasswordHasher;
+use App\Controller\UsersController;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
@@ -963,19 +964,44 @@ class UsersControllerTest extends IntegrationTestCase
     }
 
     /**
-     * The duration is a plain number in the request. Without bounding it against
-     * the offered list, a crafted POST could set a block of any length — a
-     * moderator handing out a hundred-year ban through a hand-made form.
+     * The duration is a plain number in the request. Without bounding it, a
+     * crafted POST could set a block of any length — a moderator handing out a
+     * hundred-year ban through a hand-made form.
      *
      * @return void
      */
-    public function testBlockDurationIsBoundedToTheOfferedList()
+    public function testBlockDurationIsBounded()
     {
         $this->mockSecurity();
         $this->_loginUser(2);
 
         $this->expectException(BadRequestException::class);
         $this->post('/users/lock', ['lockUserId' => 3, 'lockPeriod' => 3153600000]);
+    }
+
+    /**
+     * Both controls that produce this value must pass: the SPA profile's range
+     * slider (6h…5d in 6h steps, twenty values) and the island profile's
+     * five-entry select. A fixed list would have accepted the select and
+     * rejected fifteen of the slider's values.
+     *
+     * @return void
+     */
+    public function testBlockDurationAcceptsEverySliderStep()
+    {
+        $blocks = TableRegistry::getTableLocator()->get('UserBlocks');
+
+        foreach (range(UsersController::LOCK_MIN, UsersController::LOCK_MAX, UsersController::LOCK_STEP) as $seconds) {
+            $blocks->deleteAll(['user_id' => 3]);
+            $this->mockSecurity();
+            $this->_loginUser(2);
+            $this->post('/users/lock', ['lockUserId' => 3, 'lockPeriod' => $seconds]);
+
+            $this->assertNotEmpty(
+                $blocks->find()->where(['user_id' => 3, 'ended IS' => null])->first(),
+                sprintf('slider step %d was refused', $seconds)
+            );
+        }
     }
 
     public function testName()
