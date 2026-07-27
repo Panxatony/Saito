@@ -12,8 +12,11 @@ declare(strict_types=1);
 
 namespace App\Test\TestCase\Controller\Admin;
 
+use Cake\Core\Configure;
 use Cake\ORM\TableRegistry;
 use Saito\Test\IntegrationTestCase;
+use Saito\User\Permission\ResourceAI;
+use Saito\User\SaitoUser;
 
 /**
  * Class UsersControllerTest
@@ -170,6 +173,52 @@ class UsersControllerTest extends IntegrationTestCase
 
         $this->expectException(\Saito\Exception\SaitoForbiddenException::class);
         $this->post('/admin/users/delete/6', ['userdeleteconfirm' => 1]);
+    }
+
+    /**
+     * Moderators must not delete accounts. They are kept out twice over — the
+     * backend is admin-only, and the permission itself no longer grants it — so
+     * this stays true even if the action is ever reachable from elsewhere.
+     *
+     * @return void
+     */
+    public function testModeratorCannotDelete()
+    {
+        $this->assertFalse(
+            $this->mayDeleteAsRole('mod'),
+            'a moderator is allowed to delete an account'
+        );
+    }
+
+    /**
+     * The counterpart, so the test above cannot pass by simply being wrong
+     * about how the permission is asked.
+     *
+     * @return void
+     */
+    public function testAdminMayDelete()
+    {
+        $this->assertTrue(
+            $this->mayDeleteAsRole('admin'),
+            'an admin is not allowed to delete an account'
+        );
+    }
+
+    /**
+     * May somebody in $role delete a plain member's account?
+     *
+     * @param string $role the acting role
+     * @return bool
+     */
+    private function mayDeleteAsRole(string $role): bool
+    {
+        $identifier = (new ResourceAI())
+            ->asUser(new SaitoUser(['user_type' => $role]))
+            ->onRole('user');
+
+        return Configure::read('Saito.Permission.Resources')
+            ->get('saito.core.user.delete')
+            ->check($identifier);
     }
 
     /**

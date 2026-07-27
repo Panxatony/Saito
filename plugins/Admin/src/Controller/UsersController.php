@@ -153,12 +153,10 @@ class UsersController extends AdminAppController
     /**
      * Delete a user account, keeping their postings.
      *
-     * Moved here with `role()` for the same reason. Note that the permission
-     * `saito.core.user.delete` also grants this to moderators, but the
-     * administration backend itself requires `saito.core.admin.backend`, which
-     * is admin-only — so in practice this is now an admin action. The check
-     * below is left as it was rather than narrowed, so the restriction lives in
-     * exactly one place: who may enter the backend.
+     * Moved here with `role()` for the same reason. Admins and the owner only —
+     * `saito.core.user.delete` says so, rather than the restriction being an
+     * accident of who may open the backend. Moderators have every other tool
+     * for handling a member; this one has no lesser version to try first.
      *
      * @param string $id user-ID
      * @return \Cake\Http\Response|null
