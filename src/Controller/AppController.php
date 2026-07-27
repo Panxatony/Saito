@@ -192,6 +192,20 @@ class AppController extends Controller
             $this->viewBuilder()->disableAutoLayout();
         }
 
+        // One frontend, one shell. Actions that need something else — the admin
+        // backend, the installer — set their own; this only fills in for the ones
+        // that never did and used to land on the theme's SPA layout.
+        //
+        // XML and RSS get no layout at all: those templates emit a complete
+        // document, declaration included. They used to be wrapped in the theme's
+        // HTML layout, which was wrong and only harmless because nothing
+        // validated the output.
+        if ($ext !== null && in_array($ext, ['xml', 'rss'], true)) {
+            $this->viewBuilder()->disableAutoLayout();
+        } elseif ($this->viewBuilder()->getLayout() === null) {
+            $this->viewBuilder()->setLayout('htmx_island');
+        }
+
         $this->Themes->set($this->CurrentUser);
         $this->_setConfigurationFromGetParams();
         $this->_l10nRenderFile();
@@ -238,21 +252,6 @@ class AppController extends Controller
         if (!empty($lang)) {
             Configure::write('Saito.language', $lang);
         };
-    }
-
-    /**
-     * Whether this install runs the htmx/Alpine island frontend as its default.
-     *
-     * Gated by the `Saito.frontend` config value (set per install in app.php):
-     * 'island' opts a deployment (e.g. the beta) into the new frontend, while
-     * the live SPA installs leave it unset. Content controllers use this to pick
-     * the island layout for otherwise server-rendered pages (static pages, help).
-     *
-     * @return bool
-     */
-    protected function isIslandFrontend(): bool
-    {
-        return Configure::read('Saito.frontend') === 'island';
     }
 
     /**

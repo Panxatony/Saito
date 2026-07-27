@@ -110,10 +110,7 @@ class SaitoHelpsController extends AppController
     public function beforeRender(\Cake\Event\EventInterface $event)
     {
         parent::beforeRender($event);
-        // Match the island frontend on beta installs (help is static content).
-        if ($this->isIslandFrontend()) {
-            $this->viewBuilder()->setLayout('htmx_island');
-        }
+        $this->viewBuilder()->setLayout('htmx_island');
     }
 
     /**

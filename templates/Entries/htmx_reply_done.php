@@ -18,9 +18,7 @@
           // fuehren — er ist der haeufigste Weg dorthin, direkt nach dem
           // Antworten. htmxThread nimmt auch eine Beitrags-ID und leitet auf
           // den Thread um. ?>
-    <?php $threadUrl = \Cake\Core\Configure::read('Saito.frontend') === 'island'
-        ? '/entries/htmx-thread/' . $posting->get('id')
-        : '/entries/view/' . $posting->get('id'); ?>
+    <?php $threadUrl = '/entries/htmx-thread/' . $posting->get('id'); ?>
     <a href="<?= h($this->Url->build($threadUrl)) ?>">
         <?= h(__('forum_show_thread')) ?>
     </a>

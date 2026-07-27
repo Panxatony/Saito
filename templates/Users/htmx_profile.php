@@ -19,7 +19,7 @@ $csrfToken = $this->getRequest()->getAttribute('csrfToken');
 // reader into the SPA shell.
 $historyUrl = [
     'controller' => 'searches',
-    'action' => \Cake\Core\Configure::read('Saito.frontend') === 'island' ? 'htmxAdvanced' : 'advanced',
+    'action' => 'htmxAdvanced',
     '?' => ['name' => $user->get('username')],
 ];
 

@@ -77,9 +77,7 @@ class ThreadHtmlRenderer extends HtmlRendererAbstract
         $tid = $posting['tid'];
         $isNew = $node->isUnread() ? 'true' : 'false';
         // Wie im PostingHelper: die Insel deutet auf htmxPosting.
-        $postingAction = \Cake\Core\Configure::read('Saito.frontend') === 'island'
-            ? 'htmx-posting'
-            : 'view';
+        $postingAction = 'htmx-posting';
         $jsData = <<<EOF
 {"id":{$id},"new":{$isNew},"tid":{$tid}}
 EOF;

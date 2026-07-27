@@ -38,65 +38,6 @@ class JsDataHelper extends AppHelper
     protected $Notifications;
 
     /**
-     * get app js
-     *
-     * @param View $View view
-     * @param ForumsUserInterface $CurrentUser user
-     * @return string
-     */
-    public function getAppJs(View $View, ForumsUserInterface $CurrentUser)
-    {
-        $request = $View->getRequest();
-
-        $js = [
-            'app' => [
-                'settings' => [
-                    'autoPageReload' => $View->get('autoPageReload', 0),
-                    'editPeriod' => (int)Configure::read(
-                        'Saito.Settings.edit_period'
-                    ),
-                    'language' => Configure::read('Saito.language'),
-                    'notificationIcon' => $this->Url->assetUrl(
-                        'html5-notification-icon.png',
-                        [
-                            'pathPrefix' => Configure::read('App.imageBaseUrl'),
-                            'fullBase' => true,
-                        ]
-                    ),
-                    'theme' => $View->getTheme(),
-                    'apiroot' => $request->getAttribute('webroot') . 'api/v2/',
-                    'webroot' => $request->getAttribute('webroot'),
-                ],
-            ],
-            'assets' => [
-                'lang' => $this->Url->assetUrl('js/locale/' . Configure::read('Saito.language') . '.json'),
-            ],
-            'msg' => $this->notifications()->getAll(),
-            'request' => [
-                'action' => $request->getParam('action'),
-                'controller' => mb_strtolower($request->getParam('controller')),
-                'isMobile' => $request->is('mobile'),
-                'csrf' => $this->_getCsrf($View),
-            ],
-            'currentUser' => [
-                'id' => (int)$CurrentUser->get('id'),
-                'username' => $CurrentUser->get('username'),
-                'user_show_inline' => $CurrentUser->get('inline_view_on_click') ?: false,
-                'user_show_thread_collapsed' => $CurrentUser->get('user_show_thread_collapsed') ?: false,
-            ],
-            'callbacks' => [
-                'beforeAppInit' => [],
-                'afterAppInit' => [],
-                'afterViewInit' => [],
-            ],
-        ];
-        $out = 'var SaitoApp = ' . json_encode($js);
-        $out .= '; SaitoApp.timeAppStart = new Date().getTime();';
-
-        return $out;
-    }
-
-    /**
      * Get CSRF-config
      *
      * @param View $View View
