@@ -261,9 +261,14 @@ class EntriesController extends AppController
         $this->MarkAsRead->thread($postings);
 
         // The mix button expands a thread in place (see the island bundle), which
-        // needs the postings without the surrounding page.
+        // needs the postings without the surrounding page. `?view=tree` asks for
+        // the same thread as its subject lines instead — what the front page
+        // shows, and what a thread has to look like again after a reply.
         if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
-            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_thread_fragment');
+            $template = $this->getRequest()->getQuery('view') === 'tree'
+                ? 'htmx_thread_tree'
+                : 'htmx_thread_fragment';
+            $this->viewBuilder()->disableAutoLayout()->setTemplate($template);
         } else {
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_thread');
         }

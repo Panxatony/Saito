@@ -128,6 +128,43 @@ class EntriesControllerTest extends IntegrationTestCase
      *
      * @return void
      */
+    /**
+     * After a reply the island reloads the thread in place. Inside a thread box
+     * on the front page that has to come back as the tree of subject lines the
+     * reader had — the default fragment returns every posting in full, so
+     * answering silently unfolded the whole thread.
+     *
+     * @return void
+     */
+    public function testHtmxThreadTreeFragmentReturnsSubjectLinesOnly()
+    {
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/entries/htmx-thread/1?view=tree');
+
+        $this->assertResponseOk();
+        // Measured discriminator: the tree is subject links (6 of them for this
+        // thread), the full fragment has none because every posting is open.
+        $this->assertResponseContains('link_show_thread');
+    }
+
+    /**
+     * Without the parameter the same route keeps returning the full thread, so
+     * the mix button is unaffected.
+     *
+     * @return void
+     */
+    public function testHtmxThreadWithoutViewParamStillReturnsFullPostings()
+    {
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/entries/htmx-thread/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains(
+            'link_show_thread',
+            'the default fragment collapsed into subject lines'
+        );
+    }
+
     public function testHtmxThreadOffersReplyToMembers(): void
     {
         $this->_loginUser(1);

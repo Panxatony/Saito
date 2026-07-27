@@ -263,7 +263,14 @@ document.body.addEventListener('htmx:afterSwap', (event: Event) => {
         if (!container) {
             return;
         }
-        window.htmx.ajax('GET', `/entries/htmx-thread/${tid}`, {
+        // Inside a thread box on the front page the thread is a tree of subject
+        // lines, so ask for that. Without `view=tree` the reply came back with
+        // every posting in the thread opened in full — the reader had folded
+        // them away, and answering unfolded the lot.
+        const url = box
+            ? `/entries/htmx-thread/${tid}?view=tree`
+            : `/entries/htmx-thread/${tid}`;
+        window.htmx.ajax('GET', url, {
             target: container,
             swap: 'innerHTML',
         });
