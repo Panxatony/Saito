@@ -10280,10 +10280,16 @@ h3 {
   bottom: -8px;
 }
 
+/* Absolute, like the text faces in _fonts.scss and for the same reason: this
+   partial is Bota's, but Nova and Macnemo import it, and a relative URL is
+   resolved against *their* stylesheet. `../img/smilies/` therefore meant
+   /nova/img/smilies/ under the default theme, where nothing of the sort exists,
+   and every font smiley rendered as a missing glyph. The files live in Bota
+   and are served from there for every theme. */
 @font-face {
   font-family: "smilies";
-  src: url("../img/smilies/smilies.eot?6246308");
-  src: url("../img/smilies/smilies.eot?6246308#iefix") format("embedded-opentype"), url("../img/smilies/smilies.woff?6246308") format("woff"), url("../img/smilies/smilies.ttf?6246308") format("truetype"), url("../img/smilies/smilies.svg?6246308#smilies") format("svg");
+  src: url("/bota/img/smilies/smilies.eot?6246308");
+  src: url("/bota/img/smilies/smilies.eot?6246308#iefix") format("embedded-opentype"), url("/bota/img/smilies/smilies.woff?6246308") format("woff"), url("/bota/img/smilies/smilies.ttf?6246308") format("truetype"), url("/bota/img/smilies/smilies.svg?6246308#smilies") format("svg");
   font-weight: normal;
   font-style: normal;
 }
