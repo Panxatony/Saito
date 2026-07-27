@@ -154,7 +154,12 @@ jobs:
             --exclude='./build.xml' \
             --exclude='*/tests' \
             .
-          sha256sum "build/${RELEASE_NAME}.tar.gz" > "build/${RELEASE_NAME}.tar.gz.sha256"
+          # Record the checksum with a bare filename, not `build/…`: whoever
+          # downloads the two assets side by side has to be able to run
+          # `sha256sum -c <file>.sha256` in the directory they landed in. With
+          # the build path baked in, that fails with "No such file or
+          # directory" and reads like a corrupted download.
+          (cd build && sha256sum "${RELEASE_NAME}.tar.gz" > "${RELEASE_NAME}.tar.gz.sha256")
           ls -lh build/
 
       - name: Upload build artifact
