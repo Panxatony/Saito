@@ -144,6 +144,11 @@ module.exports = function (grunt) {
           // compiled from the same task and rebuilt whenever Bota changes.
           'plugins/Nova/webroot/css/night.css': 'plugins/Nova/webroot/css/src/night.scss',
           'plugins/Nova/webroot/css/theme.css': 'plugins/Nova/webroot/css/src/theme.scss',
+          // Macnemo imports Nova, which imports Bota's partials — but it was
+          // missing here, so every change to those partials stopped at Nova and
+          // the macnemo theme silently drifted away from its own source.
+          'plugins/Macnemo/webroot/css/night.css': 'plugins/Macnemo/webroot/css/src/night.scss',
+          'plugins/Macnemo/webroot/css/theme.css': 'plugins/Macnemo/webroot/css/src/theme.scss',
         }
       },
     },
@@ -153,7 +158,11 @@ module.exports = function (grunt) {
         tasks: ['dart-sass:static'],
       },
       sassTheme: {
-        files: ['plugins/Bota/webroot/css/src/**/*.scss', 'plugins/Nova/webroot/css/src/**/*.scss'],
+        files: [
+            'plugins/Bota/webroot/css/src/**/*.scss',
+            'plugins/Nova/webroot/css/src/**/*.scss',
+            'plugins/Macnemo/webroot/css/src/**/*.scss',
+          ],
         tasks: ['dart-sass:theme'],
       },
     },

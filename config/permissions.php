@@ -72,9 +72,11 @@ $config['Saito']['Permission']['Resources'] = (new Resources())
     // Contact a user no matter their contact settings
     ->add((new Resource('saito.core.user.contact'))
         ->allow((new ResourceAC())->asRole('admin')))
-    // Delete user
+    // Delete a user account. Deliberately not granted to moderators: removing
+    // an account is irreversible for everything except the postings, and it is
+    // the one moderation act with no lesser version to reach for first — a
+    // moderator who needs it can ask an admin.
     ->add((new Resource('saito.core.user.delete'))
-        ->allow((new ResourceAC())->asRole('mod')->onRole('user'))
         ->allow((new ResourceAC())->asRole('admin')->onRoles('mod', 'user'))
         ->allow((new ResourceAC())->asRole('owner')))
     // Edit a user's profile page

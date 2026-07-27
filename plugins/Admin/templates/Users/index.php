@@ -22,6 +22,7 @@ $this->Breadcrumbs->add(__('Users'), false);
             __('user_email'),
             __('registered'),
             __('user.set.lock.t'),
+            '',
         ];
         echo $this->Html->tableHeaders($tableHeaders);
         ?>
@@ -44,6 +45,18 @@ $this->Breadcrumbs->add(__('Users'), false);
                 ),
                 // without the &nbsp; the JS-sorting with the datatables plugin doesn't work
                 $this->User->banned($user->get('user_lock')) . '&nbsp;',
+                // Role and deletion used to hang off the forum's own profile
+                // page, which the island frontend replaced — leaving no way to
+                // appoint a moderator or remove an account. They live here now.
+                $this->Html->link(
+                    __('user.role.set.btn'),
+                    ['action' => 'role', $user->get('id')],
+                    ['class' => 'btn btn-sm btn-outline-secondary']
+                ) . ' ' . $this->Html->link(
+                    __('user.del.btn.t'),
+                    ['action' => 'delete', $user->get('id')],
+                    ['class' => 'btn btn-sm btn-outline-danger']
+                ),
             ];
             echo $this->Html->tableCells(
                 [$tableCells],

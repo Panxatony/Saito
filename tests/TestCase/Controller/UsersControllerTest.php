@@ -3,12 +3,14 @@
 namespace App\Test\TestCase\Controller;
 
 use Authentication\PasswordHasher\DefaultPasswordHasher;
+use App\Controller\UsersController;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\Http\Cookie\CookieCollection;
+use Cake\Http\Exception\BadRequestException;
 use Cake\Mailer\Message;
 use Cake\ORM\TableRegistry;
 use Laminas\Diactoros\UploadedFile;
@@ -910,11 +912,195 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertResponseContains('&amp;&lt;Signature');
     }
 
+    /**
+     * Blocking a member sits on the profile page, not in the admin backend:
+     * `saito.core.user.lock.set` grants it to moderators, and the backend is
+     * admin-only. The SPA profile had it; without it here, a forum on the
+     * island frontend cannot block anybody at all.
+     *
+     * @return void
+     */
+    public function testProfileOffersBlockingToAModerator()
+    {
+        $this->_loginUser(2); // Mitch, moderator
+        $this->get('/users/htmx-profile/3'); // Ulysses, plain member
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('lockUserId');
+        $this->assertResponseContains('lockPeriod');
+    }
+
+    /**
+     * ...and stays invisible to everybody else, so a member does not see
+     * controls they cannot use.
+     *
+     * @return void
+     */
+    public function testProfileHidesBlockingFromAPlainMember()
+    {
+        $this->_loginUser(3);
+        $this->get('/users/htmx-profile/9');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('lockUserId');
+    }
+
+    /**
+     * The happy path, through the form the profile page renders.
+     *
+     * @return void
+     */
+    public function testModeratorCanBlockAMember()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(2);
+        $this->post('/users/lock', ['lockUserId' => 3, 'lockPeriod' => 86400]);
+
+        $blocks = TableRegistry::getTableLocator()->get('UserBlocks');
+        $this->assertNotEmpty(
+            $blocks->find()->where(['user_id' => 3, 'ended IS' => null])->first(),
+            'the moderator could not block the member'
+        );
+    }
+
+    /**
+     * The duration is a plain number in the request. Without bounding it, a
+     * crafted POST could set a block of any length — a moderator handing out a
+     * hundred-year ban through a hand-made form.
+     *
+     * @return void
+     */
+    public function testBlockDurationIsBounded()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(2);
+
+        $this->expectException(BadRequestException::class);
+        $this->post('/users/lock', ['lockUserId' => 3, 'lockPeriod' => 3153600000]);
+    }
+
+    /**
+     * Both controls that produce this value must pass: the SPA profile's range
+     * slider (6h…5d in 6h steps, twenty values) and the island profile's
+     * five-entry select. A fixed list would have accepted the select and
+     * rejected fifteen of the slider's values.
+     *
+     * @return void
+     */
+    public function testBlockDurationAcceptsEverySliderStep()
+    {
+        $blocks = TableRegistry::getTableLocator()->get('UserBlocks');
+
+        foreach (range(UsersController::LOCK_MIN, UsersController::LOCK_MAX, UsersController::LOCK_STEP) as $seconds) {
+            $blocks->deleteAll(['user_id' => 3]);
+            $this->mockSecurity();
+            $this->_loginUser(2);
+            $this->post('/users/lock', ['lockUserId' => 3, 'lockPeriod' => $seconds]);
+
+            $this->assertNotEmpty(
+                $blocks->find()->where(['user_id' => 3, 'ended IS' => null])->first(),
+                sprintf('slider step %d was refused', $seconds)
+            );
+        }
+    }
+
+    /**
+     * `@name` mentions in posting text point here, so this redirect is written
+     * into decades of existing content and has to keep resolving — to whichever
+     * profile page the active frontend uses.
+     *
+     * @return void
+     */
+    /**
+     * The rail arrangement belongs to the member, not the browser, so it
+     * survives a different device. Stored in `users.slidetab_order` — the
+     * column the retired slidetabs used for exactly this — which keeps it a
+     * code change rather than a migration.
+     *
+     * @return void
+     */
+    public function testWidgetStateIsStoredOnTheAccount()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/users/htmx-widget-state', ['widgets' => ['online', 'mine']]);
+
+        $this->assertResponseOk();
+        $this->assertSame(
+            ['online', 'mine'],
+            \Saito\User\WidgetPreferences::read(
+                TableRegistry::getTableLocator()->get('Users')->get(3)->get('slidetab_order'),
+                \App\Controller\EntriesController::WIDGETS
+            )
+        );
+    }
+
+    /**
+     * A widget the interface does not offer must not reach the column — the
+     * request is the one place a name could be anything at all.
+     *
+     * @return void
+     */
+    public function testWidgetStateRejectsUnknownWidgets()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/users/htmx-widget-state', ['widgets' => ['online', 'not-a-widget']]);
+
+        $this->assertSame(
+            ['online'],
+            \Saito\User\WidgetPreferences::read(
+                TableRegistry::getTableLocator()->get('Users')->get(3)->get('slidetab_order'),
+                \App\Controller\EntriesController::WIDGETS
+            )
+        );
+    }
+
+    /**
+     * A GET must not write. Otherwise a prefetching browser could rearrange
+     * somebody's rail by following a link.
+     *
+     * @return void
+     */
+    public function testWidgetStateRefusesGet()
+    {
+        $this->_loginUser(3);
+
+        $this->expectException(BadRequestException::class);
+        $this->get('/users/htmx-widget-state');
+    }
+
     public function testName()
     {
         $this->_loginUser(3);
         $this->get('/users/name/Mitch');
         $this->assertRedirect('/users/view/2');
+    }
+
+    /**
+     * On an island install the SPA profile is the wrong destination: it renders
+     * the retired shell and drops the reader out of the interface they were in.
+     *
+     * @return void
+     */
+    public function testNameFollowsTheIslandFrontend()
+    {
+        Configure::write('Saito.frontend', 'island');
+        $this->_loginUser(3);
+        $this->get('/users/name/Mitch');
+        $this->assertRedirect('/users/htmx-profile/2');
+    }
+
+    /**
+     * An unknown name must not 500 or leak whether the account exists.
+     *
+     * @return void
+     */
+    public function testNameUnknownUser()
+    {
+        $this->_loginUser(3);
+        $this->get('/users/name/DoesNotExist');
+        $this->assertRedirect('/');
     }
 
     public function testEditViewUserDoesNotExist()

@@ -7,6 +7,22 @@
 
 ## [next] -
 
+## [8.0.10] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.9...8.0.10)
+
+### Changes
+
+- ＋ Moderation the island frontend had left unreachable is back. Changing a member's role and deleting an account moved into the administration backend; blocking a member sits on their profile page, where moderators can reach it — the backend is admin-only, and the permission has always granted blocking to moderators. Since the cutover none of the three had a door at all: they hung off the retired profile page, so nothing errored, the buttons were simply on a page nobody sees any more.
+- ＋ The front page's right-rail widgets can be minimised to icons docked at the right edge, as the old slidetabs were. With every widget minimised the rail narrows and the thread list takes the width back. The online icon carries the number of signed-in members; guests and bots stay inside the open widget. The arrangement is stored on the member's account, so it follows them to another device.
+- Δ Deleting an account is now admins and the owner only. Previously the permission also granted it to moderators while the backend did not let them in — two places disagreeing about who may do something is how a later refactor quietly hands the right back.
+- ✓ Fix: unblocking from the administration backend was broken. The link built `/admin/users/unlock/<id>`, an action that does not exist there — `'admin' => false` is a CakePHP 2/3 idiom that stopped resetting the route.
+- ✓ Fix: `@name` mentions and `#123` tags in posting text dropped the reader back into the retired interface on an island installation. Both now follow the active frontend.
+- ✓ Fix: the mix icon sat six pixels off-centre in its button. The toolbar tightening removed the button's left padding entirely; the padding is now split evenly, so the button keeps its width and the icon is centred.
+- ✓ Fix: replying inside a thread on the front page unfolded every posting in that thread. The refresh now returns the subject lines the reader had.
+- ✓ Fix: a block duration is validated against what the controls actually offer, instead of being taken as sent — a hand-made request could set a block of any length.
+- Δ Internal: the macnemo theme was missing from the Sass build, so changes to the shared partials stopped at Nova and never reached the theme macnemo.de runs.
+
 ## [8.0.9] - 2026-07-27
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.8...8.0.9)
