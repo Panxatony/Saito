@@ -84,6 +84,44 @@ $routes->scope('/', function (RouteBuilder $routes) {
         );
 
     /**
+     * Published URLs of the retired Backbone/Marionette frontend.
+     *
+     * These are not kept for the SPA's sake — the SPA is gone. They are kept
+     * because they were *published*: two decades of search-engine entries,
+     * bookmarks and links from other sites point at them. A forum that breaks
+     * its own archive discards the part of itself that other people built.
+     *
+     * 301 (RedirectRoute's default), so clients and crawlers learn the new
+     * address instead of asking forever; `persist` carries the trailing ID
+     * through to the island action. Registered above `fallbacks()` on purpose —
+     * the catch-all below would otherwise match `/entries/view/123` first and
+     * answer with a missing-action error.
+     *
+     * Only addresses worth linking to are listed: a posting, a thread, a
+     * profile, the two indexes and the registration form. Form and moderation
+     * endpoints (edit, merge, avatar, role, lock, …) were reachable from the
+     * old interface only and nobody links to them from outside.
+     */
+    $routes->redirect(
+        '/entries/view/*',
+        ['controller' => 'Entries', 'action' => 'htmxPosting'],
+        ['persist' => true]
+    );
+    $routes->redirect(
+        '/entries/mix/*',
+        ['controller' => 'Entries', 'action' => 'htmxThread'],
+        ['persist' => true]
+    );
+    $routes->redirect('/entries/index', ['controller' => 'Entries', 'action' => 'htmxIndex']);
+    $routes->redirect(
+        '/users/view/*',
+        ['controller' => 'Users', 'action' => 'htmxProfile'],
+        ['persist' => true]
+    );
+    $routes->redirect('/users/index', ['controller' => 'Users', 'action' => 'htmxUsers']);
+    $routes->redirect('/users/register', ['controller' => 'Users', 'action' => 'htmxRegister']);
+
+    /**
      * Connect catchall routes for all controllers.
      *
      * Using the argument `DashedRoute`, the `fallbacks` method is a shortcut for
