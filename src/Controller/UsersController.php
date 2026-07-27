@@ -893,10 +893,12 @@ class UsersController extends AppController
                 ->where(['username' => $name])
                 ->first();
             if (!empty($viewedUser)) {
+                // Follows the active frontend: on an island install the SPA
+                // profile page is the wrong destination for an @name mention.
                 $this->redirect(
                     [
                         'controller' => 'users',
-                        'action' => 'view',
+                        'action' => $this->isIslandFrontend() ? 'htmxProfile' : 'view',
                         $viewedUser->get('id'),
                     ]
                 );

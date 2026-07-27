@@ -1004,11 +1004,44 @@ class UsersControllerTest extends IntegrationTestCase
         }
     }
 
+    /**
+     * `@name` mentions in posting text point here, so this redirect is written
+     * into decades of existing content and has to keep resolving — to whichever
+     * profile page the active frontend uses.
+     *
+     * @return void
+     */
     public function testName()
     {
         $this->_loginUser(3);
         $this->get('/users/name/Mitch');
         $this->assertRedirect('/users/view/2');
+    }
+
+    /**
+     * On an island install the SPA profile is the wrong destination: it renders
+     * the retired shell and drops the reader out of the interface they were in.
+     *
+     * @return void
+     */
+    public function testNameFollowsTheIslandFrontend()
+    {
+        Configure::write('Saito.frontend', 'island');
+        $this->_loginUser(3);
+        $this->get('/users/name/Mitch');
+        $this->assertRedirect('/users/htmx-profile/2');
+    }
+
+    /**
+     * An unknown name must not 500 or leak whether the account exists.
+     *
+     * @return void
+     */
+    public function testNameUnknownUser()
+    {
+        $this->_loginUser(3);
+        $this->get('/users/name/DoesNotExist');
+        $this->assertRedirect('/');
     }
 
     public function testEditViewUserDoesNotExist()
