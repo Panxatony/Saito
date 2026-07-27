@@ -52,6 +52,34 @@ class UsersControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The block list offers "unblock" links, and they have to point at an
+     * action that exists. They did not: the template reset the route with
+     * `'admin' => false`, a CakePHP 2/3 prefix idiom that no longer resets
+     * anything, so from inside the Admin plugin the link built
+     * `/admin/users/unlock/<id>` — which this controller has never had.
+     * Unblocking from the backend was quietly broken.
+     *
+     * @return void
+     */
+    public function testUnblockLinksPointAtALiveAction()
+    {
+        $this->_loginUser(1);
+        $this->get('/admin/users/block');
+        $this->assertResponseOk();
+
+        preg_match_all('#action="([^"]*unlock[^"]*)"#', (string)$this->_response->getBody(), $matches);
+        $this->assertNotEmpty($matches[1], 'the block list offered no unblock link at all');
+
+        foreach ($matches[1] as $url) {
+            $this->assertStringStartsWith(
+                '/users/unlock/',
+                $url,
+                'unblock points into the Admin plugin, where the action does not exist'
+            );
+        }
+    }
+
+    /**
      * Role and account deletion moved here when the SPA was retired. They used
      * to hang off the forum's own profile page — the only way to reach them —
      * so the island frontend had left the forum with no way to appoint a
