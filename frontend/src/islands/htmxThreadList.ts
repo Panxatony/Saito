@@ -554,6 +554,10 @@ document.addEventListener('click', (event: MouseEvent) => {
     const tiles = Array.from(
         document.querySelectorAll<HTMLElement>('.js-uploadManageGrid .js-uploadTile.is-selected')
     );
+    // The native dialog on purpose: this deletes several uploads at once and
+    // cannot be undone. A themed overlay would fit the design better but can
+    // fail to render, and then the click would delete without ever asking.
+    // skipcq: JS-0052
     if (!tiles.length || !window.confirm(btn.getAttribute('data-confirm') ?? 'Delete?')) {
         return;
     }
