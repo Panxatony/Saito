@@ -250,10 +250,9 @@ class EntriesController extends AppController
         }
 
         $this->set('entries', $postings);
-        // view_posting needs the thread root + the answering flag (set by
-        // _showAnsweringPanel only for view/mix); provide them directly.
+        // view_posting needs the thread root and the answering flag.
         $this->_setRootEntry($postings);
-        $this->set('showAnsweringPanel', $this->CurrentUser->isLoggedIn());
+        $this->_showAnsweringPanel();
         $this->set('titleForLayout', $postings->get('subject'));
 
         // Same side effects as the SPA mix() view: bump the view counter and
@@ -1187,15 +1186,25 @@ class EntriesController extends AppController
         $showAnsweringPanel = false;
 
         if ($this->CurrentUser->isLoggedIn()) {
-            // Only logged in users see the answering buttons if they …
-            if (
-                // … directly on entries/view (full page or inline)
-                $this->request->getParam('action') === 'view'
-                // … directly in entries/mix
-                || $this->request->getParam('action') === 'mix'
-            ) {
-                $showAnsweringPanel = true;
-            }
+            // Only logged-in users see the answering buttons, and only where a
+            // posting is shown in full — not in a list of subject lines.
+            //
+            // Diese Liste ist die einzige Stelle mit dieser Regel. Sie stand
+            // frueher auch in htmxThread noch einmal, und als htmxPosting
+            // dazukam, wurde nur die eine Kopie gepflegt: der Antwort-Knopf
+            // verschwand aus der Inline-Ansicht, weil die Aktion hier fehlte.
+            $showAnsweringPanel = in_array(
+                $this->request->getParam('action'),
+                [
+                    // SPA: entries/view (ganze Seite oder inline) und entries/mix
+                    'view',
+                    'mix',
+                    // Insel: Einzelbeitrag (Seite und Inline-Fragment) und Thread
+                    'htmxPosting',
+                    'htmxThread',
+                ],
+                true
+            );
         }
         $this->set('showAnsweringPanel', $showAnsweringPanel);
     }
