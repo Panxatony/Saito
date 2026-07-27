@@ -87,26 +87,10 @@ module.exports = function (grunt) {
       releasePost: ['./webroot/release-tmp']
     },
     shell: {
-      locale: {
-        command: `
-          node dev/gettextExtractor.js;
-          msgmerge --update --backup=none frontend/src/locale/de.po frontend/src/locale/messages.pot;
-          msgmerge --update --backup=none frontend/src/locale/en.po frontend/src/locale/messages.pot;
-          rm frontend/src/locale/messages.pot;
-        `,
-        options: { stdout: true, stderr: true, failOnError: true, }
-      },
-      localeRelease: {
-        command: `
-        targetDir="./webroot/js/locale/"
-        mkdir -p "$targetDir";
-        for line in $(find './frontend/src/locale' -type f -name '*.po'); do
-          v=$(basename "$line" .po);
-          npx po2json --format=mf  frontend/src/locale/$v.po "$targetDir$v".json
-        done
-        `,
-        options: { stdout: true, stderr: true, failOnError: true, }
-      },
+      // The two locale tasks lived here. They turned frontend/src/locale/*.po
+      // into webroot/js/locale/*.json, which only the retired SPA read (via
+      // JsDataHelper::getAppJs, reached from the SPA layout). The island
+      // translates server-side through PHP's __(), out of src/Locale.
       bundle: {
         // JS bundle via Vite (replaces the legacy Webpack 4 build). Emits one
         // self-contained IIFE per entry into webroot/js; no NODE_OPTIONS
@@ -231,7 +215,6 @@ module.exports = function (grunt) {
     'copy:nonmin',
     'uglify:release',
     // l10n
-    'shell:localeRelease',
     // cleanup
     'clean:releasePost'
   ]);
