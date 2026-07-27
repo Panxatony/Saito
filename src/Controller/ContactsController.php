@@ -79,7 +79,7 @@ class ContactsController extends AppController
         } else {
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_user');
         }
-        $this->_contact(new ContactForm(), $recipient, $this->CurrentUser->getId());
+        return $this->_contact(new ContactForm(), $recipient, $this->CurrentUser->getId());
     }
 
     /**
@@ -122,7 +122,7 @@ class ContactsController extends AppController
         } else {
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_contact_owner');
         }
-        $this->_contact(new ContactFormOwner(), $recipient, $sender);
+        return $this->_contact(new ContactFormOwner(), $recipient, $sender);
     }
 
     /**
@@ -135,6 +135,11 @@ class ContactsController extends AppController
      */
     protected function _contact(Form $contact, $recipient, $sender)
     {
+        // NOTE for callers: this returns a Response on success — an HX-Redirect
+        // for the overlay, a 302 otherwise. Every call site must `return` it.
+        // Dropping it silently sends the mail and then re-renders the form: the
+        // overlay stays open, and the flash message sits in the session until
+        // the visitor happens to navigate somewhere else.
         if ($this->request->is('get')) {
             if ($this->request->getData('cc') === null) {
                 $this->request = $this->request->withData('cc', true);

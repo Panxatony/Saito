@@ -12,6 +12,8 @@
  * @var \App\View\AppView $this
  * @var array $entries
  * @var int $newestEntryId
+ * @var list<string>|null $minimisedWidgets
+ * @var list<string>|null $widgetCatalogue
  */
 
 $csrfToken = $this->getRequest()->getAttribute('csrfToken');
@@ -19,7 +21,14 @@ $webroot = $this->getRequest()->getAttribute('webroot');
 ?>
 <meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
-<div class="island-cols">
+<?php
+// The rail arrives asynchronously but decides the column width, so its state is
+// rendered here on first paint — otherwise the thread list is laid out wide,
+// then jumps when the widgets land.
+$railMinimised = !empty($widgetCatalogue)
+    && count($minimisedWidgets ?? []) === count($widgetCatalogue);
+?>
+<div class="island-cols<?= $railMinimised ? ' is-railMin' : '' ?>">
 <div class="island-main">
 
 <?php // Live poll: every 30s ask whether new postings arrived since page load. ?>
@@ -37,20 +46,36 @@ $webroot = $this->getRequest()->getAttribute('webroot');
            hx-get="<?= $webroot ?>entries/update" hx-swap="none">
             <?= $this->Layout->textWithIcon(h(__('mark_all_read')), 'check') ?>
         </a>
-        <?php // Category filter: setting it (204 + HX-Trigger) reloads the list. ?>
-        <?php if (!empty($categoryChooser)) : ?>
-            <select class="form-control js-categoryChooser" data-list-url="<?= $webroot ?>entries/htmx-index"
-                    style="width: auto; display: inline-block; margin-left: .5rem;"
-                    aria-label="<?= h(__('all_categories')) ?>">
-                <option value="all"<?= ($activeCategory === 'all') ? ' selected' : '' ?>>
-                    <?= h(__('all_categories')) ?>
-                </option>
-                <?php foreach ($categoryChooser as $cat) : ?>
-                    <option value="<?= (int)$cat['id'] ?>"<?= ((int)$activeCategory === (int)$cat['id']) ? ' selected' : '' ?>>
-                        <?= h($cat['title']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+        <?php
+        // Category filter. Several at once, as the retired chooser allowed: a
+        // button showing the current selection, opening a list of checkboxes.
+        if (!empty($categoryChooser)) :
+            $active = $activeCategories ?? [];
+            $summary = empty($active)
+                ? __('all_categories')
+                : __('{0} / {1}', count($active), count($categoryChooser));
+            ?>
+            <div class="island-catFilter js-catFilter" data-list-url="<?= $webroot ?>entries/htmx-index">
+                <button type="button" class="btn btn-outline-secondary js-catFilterToggle"
+                        aria-expanded="false" aria-haspopup="true">
+                    <i class="fa fa-filter" aria-hidden="true"></i>
+                    <span class="js-catFilterSummary"><?= h($summary) ?></span>
+                    <i class="fa fa-caret-down" aria-hidden="true"></i>
+                </button>
+                <div class="island-catFilter-menu" hidden>
+                    <label class="island-catFilter-all">
+                        <input type="checkbox" class="js-catFilterAll"<?= empty($active) ? ' checked' : '' ?>>
+                        <?= h(__('all_categories')) ?>
+                    </label>
+                    <?php foreach ($categoryChooser as $cat) : ?>
+                        <label>
+                            <input type="checkbox" class="js-catFilterOne" value="<?= (int)$cat['id'] ?>"
+                                   <?= in_array((int)$cat['id'], $active, true) ? ' checked' : '' ?>>
+                            <?= h($cat['title']) ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
         <?php endif; ?>
     </div>
     <div id="js-newEntrySlot"></div>

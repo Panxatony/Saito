@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Saito\Markup;
 
-use Cake\Core\Configure;
 
 class MarkupSettings
 {

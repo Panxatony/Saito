@@ -128,6 +128,144 @@ class EntriesControllerTest extends IntegrationTestCase
      *
      * @return void
      */
+    /**
+     * After a reply the island reloads the thread in place. Inside a thread box
+     * on the front page that has to come back as the tree of subject lines the
+     * reader had — the default fragment returns every posting in full, so
+     * answering silently unfolded the whole thread.
+     *
+     * @return void
+     */
+    /**
+     * The front page filter takes several categories at once, as the retired
+     * chooser allowed. The query layer has always accepted a list; only the
+     * controller read a single value.
+     *
+     * @return void
+     */
+    public function testCategoryFilterAcceptsSeveralCategories()
+    {
+        $this->_loginUser(1);
+        $this->get('/entries/htmx-index?category=2,4');
+
+        $this->assertResponseOk();
+        $this->assertSame([2, 4], $this->viewVariable('activeCategories'));
+    }
+
+    /**
+     * A single category still works — the common case must not regress.
+     *
+     * @return void
+     */
+    public function testCategoryFilterStillAcceptsOne()
+    {
+        $this->_loginUser(1);
+        $this->get('/entries/htmx-index?category=2');
+
+        $this->assertResponseOk();
+        $this->assertSame([2], $this->viewVariable('activeCategories'));
+    }
+
+    /**
+     * `all` and an absent parameter both mean "no filter".
+     *
+     * @return void
+     */
+    public function testCategoryFilterAllMeansUnfiltered()
+    {
+        $this->_loginUser(1);
+
+        $this->get('/entries/htmx-index?category=all');
+        $this->assertSame([], $this->viewVariable('activeCategories'));
+
+        $this->get('/entries/htmx-index');
+        $this->assertSame([], $this->viewVariable('activeCategories'));
+    }
+
+    /**
+     * Garbage in the parameter must not reach the query. Anything that is not a
+     * plain number drops out, and a parameter made only of junk falls back to
+     * showing everything rather than showing nothing.
+     *
+     * @return void
+     */
+    public function testCategoryFilterIgnoresJunk()
+    {
+        $this->_loginUser(1);
+
+        $this->get('/entries/htmx-index?category=2,%27;DROP,4');
+        $this->assertResponseOk();
+        $this->assertSame([2, 4], $this->viewVariable('activeCategories'));
+
+        $this->get('/entries/htmx-index?category=nonsense');
+        $this->assertResponseOk();
+        $this->assertSame([], $this->viewVariable('activeCategories'));
+    }
+
+    /**
+     * A category the member may not read must not become visible by asking for
+     * it in the URL. paginate() intersects the requested list with the readable
+     * set — this pins that the filter can only ever narrow, never widen.
+     *
+     * Category 1 ("Admin") has accession 2 in the fixture, so a plain member
+     * cannot read it; category 4 ("Offtopic") is accession 1 and *is* readable,
+     * which is what makes the pair worth testing together.
+     *
+     * @return void
+     */
+    public function testCategoryFilterCannotWidenAccess()
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-index?category=1');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('Third Thread First_Subject');
+    }
+
+    /**
+     * And the admin, for whom the same request is legitimate, does see it —
+     * otherwise the test above would pass even if the filter were broken.
+     *
+     * @return void
+     */
+    public function testCategoryFilterShowsRestrictedCategoryToAdmin()
+    {
+        $this->_loginUser(1);
+        $this->get('/entries/htmx-index?category=1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Third Thread First_Subject');
+    }
+
+    public function testHtmxThreadTreeFragmentReturnsSubjectLinesOnly()
+    {
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/entries/htmx-thread/1?view=tree');
+
+        $this->assertResponseOk();
+        // Measured discriminator: the tree is subject links (6 of them for this
+        // thread), the full fragment has none because every posting is open.
+        $this->assertResponseContains('link_show_thread');
+    }
+
+    /**
+     * Without the parameter the same route keeps returning the full thread, so
+     * the mix button is unaffected.
+     *
+     * @return void
+     */
+    public function testHtmxThreadWithoutViewParamStillReturnsFullPostings()
+    {
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/entries/htmx-thread/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains(
+            'link_show_thread',
+            'the default fragment collapsed into subject lines'
+        );
+    }
+
     public function testHtmxThreadOffersReplyToMembers(): void
     {
         $this->_loginUser(1);

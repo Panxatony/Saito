@@ -7,6 +7,34 @@
 
 ## [next] -
 
+## [8.0.11] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.10...8.0.11)
+
+### Changes
+
+- ＋ The front page can be filtered by several categories at once again, as the retired chooser allowed — a button showing the selection opens a list of checkboxes. Almost nothing had to be built: the query layer has always taken a list of categories and intersects it with what the member may read; only the controller read a single value.
+- ✓ Fix: sending a message from the contact overlay left the overlay standing with no confirmation. The mail went out and the flash message then turned up on whatever page the sender opened next. `_contact()` builds a response — an `HX-Redirect` for the overlay, a 302 otherwise — and all four call sites dropped it. The standalone contact page was affected too: it re-rendered its own empty form instead of redirecting.
+- ✓ Fix: on a phone, tapping a widget heading did nothing at all. The minimise-to-icon behaviour added in 8.0.10 disabled itself on narrow screens — correctly, an icon wins no width there — but took the folding away with it. The same tap now folds the content on a phone and shrinks to an icon on a wide screen.
+- ✓ Fix: the posting tool menu was cut off mid-list on a phone. Below the `md` breakpoint the theme gives the thread box `overflow-x: auto` so a deeply indented tree can be scrolled sideways, and CSS then forces `overflow-y` to `auto` as well — there is no way to scroll one axis and overflow the other. The menu now stands in the flow there instead of floating.
+- Δ The help overlay describes the category filter and the widget rail as they now behave.
+
+## [8.0.10] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.9...8.0.10)
+
+### Changes
+
+- ＋ Moderation the island frontend had left unreachable is back. Changing a member's role and deleting an account moved into the administration backend; blocking a member sits on their profile page, where moderators can reach it — the backend is admin-only, and the permission has always granted blocking to moderators. Since the cutover none of the three had a door at all: they hung off the retired profile page, so nothing errored, the buttons were simply on a page nobody sees any more.
+- ＋ The front page's right-rail widgets can be minimised to icons docked at the right edge, as the old slidetabs were. With every widget minimised the rail narrows and the thread list takes the width back. The online icon carries the number of signed-in members; guests and bots stay inside the open widget. The arrangement is stored on the member's account, so it follows them to another device.
+- Δ Deleting an account is now admins and the owner only. Previously the permission also granted it to moderators while the backend did not let them in — two places disagreeing about who may do something is how a later refactor quietly hands the right back.
+- ✓ Fix: unblocking from the administration backend was broken. The link built `/admin/users/unlock/<id>`, an action that does not exist there — `'admin' => false` is a CakePHP 2/3 idiom that stopped resetting the route.
+- ✓ Fix: `@name` mentions and `#123` tags in posting text dropped the reader back into the retired interface on an island installation. Both now follow the active frontend.
+- ✓ Fix: the mix icon sat six pixels off-centre in its button. The toolbar tightening removed the button's left padding entirely; the padding is now split evenly, so the button keeps its width and the icon is centred.
+- ✓ Fix: replying inside a thread on the front page unfolded every posting in that thread. The refresh now returns the subject lines the reader had.
+- ✓ Fix: a block duration is validated against what the controls actually offer, instead of being taken as sent — a hand-made request could set a block of any length.
+- Δ Internal: the macnemo theme was missing from the Sass build, so changes to the shared partials stopped at Nova and never reached the theme macnemo.de runs.
+
 ## [8.0.9] - 2026-07-27
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.8...8.0.9)

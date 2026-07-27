@@ -263,7 +263,14 @@ document.body.addEventListener('htmx:afterSwap', (event: Event) => {
         if (!container) {
             return;
         }
-        window.htmx.ajax('GET', `/entries/htmx-thread/${tid}`, {
+        // Inside a thread box on the front page the thread is a tree of subject
+        // lines, so ask for that. Without `view=tree` the reply came back with
+        // every posting in the thread opened in full — the reader had folded
+        // them away, and answering unfolded the lot.
+        const url = box
+            ? `/entries/htmx-thread/${tid}?view=tree`
+            : `/entries/htmx-thread/${tid}`;
+        window.htmx.ajax('GET', url, {
             target: container,
             swap: 'innerHTML',
         });
@@ -829,11 +836,66 @@ function collapsedWidgets(): string[] {
         return [];
     }
 }
+
+/**
+ * Is anybody signed in? Only then is there an account to store this on. The
+ * island layout already marks the body for signed-in members; reusing that
+ * beats inventing a second marker that could drift out of step with it.
+ */
+function isSignedIn(): boolean {
+    return document.body.classList.contains('is-member');
+}
+
+/**
+ * The rail only narrows when *every* widget is an icon — a single open card
+ * needs the full width anyway, so narrowing before that would just make that
+ * card unreadable.
+ */
+function syncRailWidth(): void {
+    const cols = document.querySelector<HTMLElement>('.island-cols');
+    const widgets = document.querySelectorAll<HTMLElement>('.island-widget');
+    if (!cols || !widgets.length) {
+        return;
+    }
+    const allMin = [...widgets].every((w) => w.classList.contains('is-min'));
+    cols.classList.toggle('is-railMin', allMin);
+}
+
 function applyWidgetCollapse(root?: HTMLElement): void {
-    const collapsed = collapsedWidgets();
-    (root ?? document).querySelectorAll<HTMLElement>('.island-widget').forEach((w) => {
-        const id = w.getAttribute('data-widget') ?? '';
-        w.classList.toggle('is-collapsed', collapsed.includes(id));
+    // A signed-in member gets their arrangement rendered by the server, so
+    // re-applying the browser's copy here would overrule the account.
+    if (!isSignedIn()) {
+        const collapsed = collapsedWidgets();
+        (root ?? document).querySelectorAll<HTMLElement>('.island-widget').forEach((w) => {
+            const id = w.getAttribute('data-widget') ?? '';
+            w.classList.toggle('is-min', collapsed.includes(id));
+        });
+    }
+    syncRailWidth();
+}
+
+/** Persist the arrangement: on the account when signed in, else in the browser. */
+function storeWidgetState(minimised: string[]): void {
+    if (!isSignedIn()) {
+        try {
+            localStorage.setItem(WIDGETS_STORAGE, JSON.stringify(minimised));
+        } catch {
+            /* localStorage unavailable */
+        }
+
+        return;
+    }
+    const body = new URLSearchParams();
+    minimised.forEach((id) => body.append('widgets[]', id));
+    void fetch('/users/htmx-widget-state', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-Token': csrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        credentials: 'same-origin',
+        body: body.toString(),
     });
 }
 document.addEventListener('click', (event: MouseEvent) => {
@@ -852,17 +914,14 @@ document.addEventListener('click', (event: MouseEvent) => {
     if (!widget) {
         return;
     }
-    const id = widget.getAttribute('data-widget') ?? '';
-    const nowCollapsed = widget.classList.toggle('is-collapsed');
-    const list = collapsedWidgets().filter((x) => x !== id);
-    if (nowCollapsed) {
-        list.push(id);
-    }
-    try {
-        localStorage.setItem(WIDGETS_STORAGE, JSON.stringify(list));
-    } catch {
-        /* localStorage unavailable */
-    }
+    widget.classList.toggle('is-min');
+    syncRailWidth();
+    // Read the arrangement back off the page rather than tracking it separately:
+    // one source of truth, and the request cannot drift from what is rendered.
+    const minimised = [...document.querySelectorAll<HTMLElement>('.island-widget.is-min')]
+        .map((w) => w.getAttribute('data-widget') ?? '')
+        .filter(Boolean);
+    storeWidgetState(minimised);
 });
 document.body.addEventListener('htmx:afterSwap', (event: Event) => {
     const target = (event as CustomEvent).detail?.target as HTMLElement | undefined;
@@ -978,22 +1037,83 @@ document.addEventListener('click', (event: MouseEvent) => {
 
 markActiveFontScale();
 
-// Category chooser: reload the thread list filtered to the chosen category
-// (htmx-index honours ?category and returns the filtered page-1 fragment).
-document.addEventListener('change', (event: Event) => {
-    const sel = (event.target as HTMLElement).closest<HTMLSelectElement>('.js-categoryChooser');
-    if (!sel) {
-        return;
-    }
+// Category filter: several categories at once, as the retired chooser allowed.
+// htmx-index takes a comma-separated ?category and returns the filtered page-1
+// fragment; an empty selection means "all".
+function catFilterApply(root: HTMLElement): void {
     const list = document.getElementById('js-threadList');
     if (!list) {
         return;
     }
-    const base = sel.getAttribute('data-list-url') ?? '/entries/htmx-index';
-    window.htmx.ajax('GET', `${base}?category=${encodeURIComponent(sel.value)}`, {
+    const chosen = [...root.querySelectorAll<HTMLInputElement>('.js-catFilterOne')]
+        .filter((box) => box.checked)
+        .map((box) => box.value);
+
+    // "All" is the absence of a filter, not a category of its own — so an empty
+    // selection and every box ticked mean the same thing, and both send `all`.
+    const every = chosen.length === root.querySelectorAll('.js-catFilterOne').length;
+    const param = chosen.length === 0 || every ? 'all' : chosen.join(',');
+
+    const all = root.querySelector<HTMLInputElement>('.js-catFilterAll');
+    if (all) {
+        all.checked = param === 'all';
+    }
+    const summary = root.querySelector<HTMLElement>('.js-catFilterSummary');
+    if (summary) {
+        summary.textContent = param === 'all'
+            ? (all?.parentElement?.textContent ?? '').trim()
+            : `${chosen.length} / ${root.querySelectorAll('.js-catFilterOne').length}`;
+    }
+
+    const base = root.getAttribute('data-list-url') ?? '/entries/htmx-index';
+    window.htmx.ajax('GET', `${base}?category=${encodeURIComponent(param)}`, {
         target: list,
         swap: 'innerHTML',
     });
+}
+
+document.addEventListener('change', (event: Event) => {
+    const target = event.target as HTMLElement;
+    const root = target.closest<HTMLElement>('.js-catFilter');
+    if (!root) {
+        return;
+    }
+    // Ticking "all" clears the individual boxes rather than adding to them.
+    if (target.classList.contains('js-catFilterAll')) {
+        const on = (target as HTMLInputElement).checked;
+        root.querySelectorAll<HTMLInputElement>('.js-catFilterOne').forEach((box) => {
+            box.checked = false;
+        });
+        if (!on) {
+            // Unticking "all" on its own would leave nothing selected, which is
+            // the same as "all" — so keep it ticked instead of doing nothing.
+            (target as HTMLInputElement).checked = true;
+
+            return;
+        }
+    }
+    catFilterApply(root);
+});
+
+// Open and close the filter menu.
+document.addEventListener('click', (event: MouseEvent) => {
+    const toggle = (event.target as HTMLElement).closest<HTMLElement>('.js-catFilterToggle');
+    const openMenu = document.querySelector<HTMLElement>('.island-catFilter-menu:not([hidden])');
+    if (toggle) {
+        const menu = toggle.parentElement?.querySelector<HTMLElement>('.island-catFilter-menu');
+        if (menu) {
+            const show = menu.hasAttribute('hidden');
+            menu.toggleAttribute('hidden', !show);
+            toggle.setAttribute('aria-expanded', show ? 'true' : 'false');
+        }
+
+        return;
+    }
+    // A click inside the menu is a checkbox, not a dismissal.
+    if (openMenu && !(event.target as HTMLElement).closest('.island-catFilter-menu')) {
+        openMenu.setAttribute('hidden', '');
+        document.querySelector('.js-catFilterToggle')?.setAttribute('aria-expanded', 'false');
+    }
 });
 
 // Login modal: the header "Anmelden" link opens an overlay and loads the login

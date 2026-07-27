@@ -29,6 +29,7 @@ use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Basic\BasicPostingInterface;
 use Saito\User\CurrentUser\CurrentUserInterface;
 use Saito\User\Permission\ResourceAI;
+use Saito\User\WidgetPreferences;
 use Stopwatch\Lib\Stopwatch;
 
 /**
@@ -43,6 +44,18 @@ use Stopwatch\Lib\Stopwatch;
  */
 class EntriesController extends AppController
 {
+    /**
+     * The front page's right-rail widgets, in the order they are rendered.
+     *
+     * The single list of what exists: the template renders from it, and the
+     * stored per-member preference is filtered against it, so a widget that is
+     * removed here simply stops being minimisable instead of lingering in
+     * everybody's saved state.
+     *
+     * @var list<string>
+     */
+    public const WIDGETS = ['online', 'recent', 'mine'];
+
     /**
      * {@inheritDoc}
      */
@@ -73,12 +86,19 @@ class EntriesController extends AppController
         $sortKey = $this->CurrentUser->get('user_sort_last_answer') ? 'last_answer' : 'time';
         $order = ['fixed' => 'DESC', $sortKey => 'DESC'];
 
-        // Island category filter (?category=<id>): restrict the list to one
-        // readable category; 'all'/absent shows everything.
+        // Island category filter (?category=3,7): restrict the list to the
+        // chosen readable categories; 'all'/absent shows everything. Several at
+        // once, as the retired chooser allowed — paginate() has always taken a
+        // list and intersects it with what the member may read, so an unknown or
+        // unreadable id simply drops out.
         $onlyCategories = null;
-        $catParam = $this->getRequest()->getQuery('category');
-        if ($catParam !== null && $catParam !== 'all' && ctype_digit((string)$catParam)) {
-            $onlyCategories = [(int)$catParam];
+        $catParam = (string)($this->getRequest()->getQuery('category') ?? '');
+        if ($catParam !== '' && $catParam !== 'all') {
+            $ids = array_values(array_unique(array_filter(
+                array_map('trim', explode(',', $catParam)),
+                'ctype_digit'
+            )));
+            $onlyCategories = $ids === [] ? null : array_map('intval', $ids);
         }
         $this->set('entries', $this->Threads->paginate($order, $this->CurrentUser, $onlyCategories));
 
@@ -103,7 +123,8 @@ class EntriesController extends AppController
             );
             if (count($catList) > 1) {
                 $this->set('categoryChooser', $catList);
-                $this->set('activeCategory', $onlyCategories !== null ? (int)$catParam : 'all');
+                // A list, not a single id: the chooser ticks every active box.
+                $this->set('activeCategories', $onlyCategories ?? []);
             }
         }
 
@@ -114,6 +135,11 @@ class EntriesController extends AppController
                 ->disableAutoLayout()
                 ->setTemplate('htmx_index_threads');
         } else {
+            // The rail loads asynchronously, but its width decides the layout —
+            // so the page has to know on first paint whether it is a full rail
+            // or a strip of icons, or the thread list visibly jumps.
+            $this->set('minimisedWidgets', $this->minimisedWidgets());
+            $this->set('widgetCatalogue', self::WIDGETS);
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_index');
         }
     }
@@ -170,7 +196,31 @@ class EntriesController extends AppController
                 ['user_id' => $this->CurrentUser->getId(), 'limit' => 5]
             ));
         }
+        // Rendered server-side rather than applied by script afterwards: the
+        // rail would otherwise flash open on every load before collapsing.
+        $this->set('minimisedWidgets', $this->minimisedWidgets());
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_widgets');
+    }
+
+    /**
+     * Which rail widgets the current member keeps minimised.
+     *
+     * Signed-in members have this on their account (see WidgetPreferences);
+     * for everyone else the island falls back to the browser's own storage,
+     * so the preference still survives a reload without an account.
+     *
+     * @return list<string>
+     */
+    protected function minimisedWidgets(): array
+    {
+        if (!$this->CurrentUser->isLoggedIn()) {
+            return [];
+        }
+
+        return WidgetPreferences::read(
+            $this->CurrentUser->get('slidetab_order'),
+            self::WIDGETS
+        );
     }
 
     /**
@@ -215,9 +265,14 @@ class EntriesController extends AppController
         $this->MarkAsRead->thread($postings);
 
         // The mix button expands a thread in place (see the island bundle), which
-        // needs the postings without the surrounding page.
+        // needs the postings without the surrounding page. `?view=tree` asks for
+        // the same thread as its subject lines instead — what the front page
+        // shows, and what a thread has to look like again after a reply.
         if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
-            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_thread_fragment');
+            $template = $this->getRequest()->getQuery('view') === 'tree'
+                ? 'htmx_thread_tree'
+                : 'htmx_thread_fragment';
+            $this->viewBuilder()->disableAutoLayout()->setTemplate($template);
         } else {
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_thread');
         }

@@ -65,6 +65,8 @@
             <strong>Kategorien filtern</strong>
             Nur an einem Thema interessiert? Über die Kategorie-Auswahl oben blendest du
             den Rest aus – digitaler Scheuklappen-Modus, ganz ohne schlechtes Gewissen.
+            Es dürfen auch mehrere sein: Der Knopf klappt eine Liste zum Ankreuzen auf,
+            und „Alle Kategorien“ setzt die Auswahl wieder zurück.
             Dauerhaft geht es auch: In den Einstellungen hakst du unter
             <em>„Angezeigte Kategorien“</em> an, was dich überhaupt interessiert. Die
             Auswahl oben bietet dann nur noch genau das an.
@@ -99,8 +101,14 @@
             online ist und was zuletzt geschrieben wurde. Das Wort <em>„Benutzer“</em>
             in der Überschrift führt zur vollständigen Mitgliederliste – die lädt
             in Hundertergruppen nach, das Forum hat mehr Leute, als auf eine Seite
-            passen. Zu neugierig? Kopf antippen und das Widget klappt diskret
-            zusammen (auf den Link natürlich nicht, der will woanders hin).
+            passen. Zu neugierig? Kopf antippen, und das Kästchen macht sich klein
+            (auf den Link natürlich nicht, der will woanders hin). Am breiten Bildschirm
+            schrumpft es dabei auf sein Symbol am rechten Rand – sind alle eingeklappt,
+            nimmt sich die Threadliste den frei gewordenen Platz. Am Handy klappt
+            einfach der Inhalt weg, da wäre mit Symbolen nichts gewonnen. Auf dem
+            Online-Symbol steht, wie viele Mitglieder gerade da sind; Gäste und
+            Suchmaschinen zählen nicht mit. Die Anordnung merkt sich dein Konto – am
+            nächsten Gerät sieht es also genauso aus.
         </div>
     </div>
 
