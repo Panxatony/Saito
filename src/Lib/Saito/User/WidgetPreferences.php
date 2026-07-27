@@ -48,7 +48,20 @@ class WidgetPreferences
 
         // `unserialize` on user-influenced input: restrict to plain values, so a
         // crafted payload cannot instantiate anything.
-        $value = @unserialize($stored, ['allowed_classes' => false]);
+        //
+        // Malformed input makes it emit a warning and return false. We want the
+        // false and not the warning — the column still holds values written by
+        // Saito 5, and a member whose stored widget list predates a rename would
+        // otherwise fill the log on every page view. Silenced with a handler
+        // scoped to this one call rather than `@`, which would also hide
+        // anything else that went wrong inside it.
+        set_error_handler(static fn (): bool => true);
+        try {
+            $value = unserialize($stored, ['allowed_classes' => false]);
+        } finally {
+            restore_error_handler();
+        }
+
         if (!is_array($value)) {
             return [];
         }
