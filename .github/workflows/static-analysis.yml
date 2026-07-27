@@ -11,7 +11,7 @@ permissions:
 jobs:
   phpstan:
     runs-on: ubuntu-latest
-    container: php:8.4-cli
+    container: php:8.4-cli-trixie
     # PHPStan bootstraps tests/bootstrap.php, which runs the migrations against
     # the `test` connection, so a database is required just like for PHPUnit.
     services:

@@ -13,7 +13,6 @@
  * @var mixed $solved
  */
 
-$csrfToken = $this->getRequest()->getAttribute('csrfToken');
 
 // Island install: use the island's advanced search, so the link doesn't drop the
 // reader into the SPA shell.
@@ -62,8 +61,6 @@ if ($user->get('signature')) {
     $rows[] = [__('user_signature'), $this->Parser->parse($user->get('signature'), ['embed' => false])];
 }
 ?>
-<meta name="csrf-token" content="<?= h($csrfToken) ?>">
-
 <div class="users view">
     <?= $this->element('layout/htmx_back') ?>
     <div class="card mb-3">

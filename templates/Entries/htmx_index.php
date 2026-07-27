@@ -16,11 +16,8 @@
  * @var list<string>|null $widgetCatalogue
  */
 
-$csrfToken = $this->getRequest()->getAttribute('csrfToken');
 $webroot = $this->getRequest()->getAttribute('webroot');
 ?>
-<meta name="csrf-token" content="<?= h($csrfToken) ?>">
-
 <?php
 // The rail arrives asynchronously but decides the column width, so its state is
 // rendered here on first paint — otherwise the thread list is laid out wide,
