@@ -1815,3 +1815,6 @@ msgstr "The forum has a new interface — same content, fresh paint. Looks a bit
 
 msgid "notice.help.btn"
 msgstr "Open the help"
+
+msgid "entry.text.ph.nt"
+msgstr "Text — leave empty for n/t"

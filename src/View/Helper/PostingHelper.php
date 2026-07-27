@@ -76,7 +76,12 @@ class PostingHelper extends AppHelper
         $options += ['class' => ''];
         $id = $posting->get('id');
         $webroot = $this->getView()->getRequest()->getAttribute('webroot');
-        $url = "{$webroot}entries/view/{$id}";
+        // Auf einer Insel-Installation zeigt der Betreff auf htmxPosting: die
+        // Seite ist der Ersatz fuer entries/view (Beitrag plus Threadbaum) und
+        // liefert bei HX-Request dasselbe Fragment, das die Insel zum
+        // Aufklappen holt. Eine URL fuer beides, wie beim Original.
+        $action = Configure::read('Saito.frontend') === 'island' ? 'htmx-posting' : 'view';
+        $url = "{$webroot}entries/{$action}/{$id}";
         $link = "<a href=\"{$url}\" class=\"{$options['class']}\">" . $this->getSubject($posting) . '</a>';
 
         return $link;

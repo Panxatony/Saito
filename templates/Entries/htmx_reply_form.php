@@ -34,7 +34,8 @@ $text = $submitted['text'] ?? '';
         <div class="alert alert-error"><?= h(__('Please check your entry.')) ?></div>
     <?php endif; ?>
     <div class="form-group">
-        <input type="text" name="subject" class="form-control"
+        <?php $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100); ?>
+        <input type="text" name="subject" class="form-control" maxlength="<?= $subjectMax ?>"
                placeholder="<?= h(__('subject')) ?>" value="<?= h($subject) ?>">
     </div>
     <?= $this->element('entry/htmx_editor_toolbar') ?>
@@ -45,7 +46,7 @@ $text = $submitted['text'] ?? '';
               // an den Betreff. Nur dieses Formular verlangte Text und
               // verhinderte damit eine Funktion, die es laengst gibt. ?>
         <textarea name="text" class="form-control" rows="4"
-                  placeholder="<?= h(__('text')) ?>"><?= h($text) ?></textarea>
+                  placeholder="<?= h(__('entry.text.ph.nt')) ?>"><?= h($text) ?></textarea>
     </div>
     <button type="submit" class="btn btn-primary">
         <?= h(__('forum_answer_linkname')) ?>

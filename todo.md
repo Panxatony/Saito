@@ -12,49 +12,38 @@ never part of the SPA and stays as it is.
 
 ---
 
-## 1. Decouple `/entries/view/<id>` (variant B)
+## 1. Decouple `/entries/view/<id>` (variant B) — **erledigt**
 
-The one remaining structural tie to the SPA. This URL does double duty: it is
-both the link target of a thread line **and** the AJAX endpoint the island posts
-to for opening a posting inline (`toggleInlinePosting` reads the `href` and
-posts to it). As long as that holds, the SPA's `EntriesController::view()`
-cannot be deleted.
+Umgesetzt am 2026-07-26, ausgerollt auf Test und Beta (prod bewusst noch nicht).
 
-**Emitters to switch to island URLs** (all gated on `Saito.frontend`, the same
-pattern already used for edit/merge/mix):
+`entries/view` tat zweierlei: Ziel des Betreff-Links **und** AJAX-Endpunkt fürs
+Aufklappen. Beides hängt jetzt an `EntriesController::htmxPosting()`, dem
+Insel-Gegenstück zur alten Einzelbeitrags-Ansicht: Beitrag vollständig oben,
+Threadbaum darunter — und bei `HX-Request` nur das Beitragsfragment. Eine URL
+für beides, genau wie beim Original.
 
-| Where | What |
+Umgestellte Erzeuger:
+
+| Stelle | jetzt |
 |---|---|
-| `PostingHelper::getFastLink()` | thread-line subject link — the main one |
-| `ThreadHtmlRenderer:91` | same link in the fast renderer (raw HTML string) |
-| `templates/element/entry/view_content.php:13` | link inside a rendered posting |
-| `templates/Entries/htmx_reply_done.php:13` | "reply posted" confirmation |
-| `EntriesController:873, 1003` | redirects after edit and merge |
-| `MarkupSettings::hashBaseUrl` | `#123` tags **inside members' posting text** |
+| `PostingHelper::getFastLink()` | `/entries/htmx-posting/<id>` |
+| `ThreadHtmlRenderer` | dito |
+| `templates/element/entry/view_content.php` | `/entries/htmx-thread/<tid>` |
+| `templates/Entries/htmx_reply_done.php` | `/entries/htmx-thread/<tid>` |
+| `EntriesController` (nach Löschen/Zusammenführen) | `/entries/htmx-thread/…` |
 
-**Decoupling the endpoint.** Cheaper than it looks: the thread leaf already
-carries `data-id` and a `data-leaf` JSON blob containing the `tid`. So the
-island can read the id from the element instead of the href (~5 lines), and
-navigation can go straight to `/entries/htmx-thread/<tid>` instead of relying on
-the 301 hop that today's code leans on.
+Das Bundle schreibt keine URLs mehr um — der `href` stimmt bereits, das hat
+Code entfernt statt hinzugefügt. Im Browser nachgeklickt: Aufklappen über das
+Icon lädt `POST /entries/htmx-posting/…`, Klick auf den Betreff öffnet inline,
+zweiter Klick führt auf die neue Seite mit Beitrag **und** Threadbaum.
 
-Variant B proper adds a dedicated island action, e.g.
-`EntriesController::htmxPosting($id)` (~15 lines) rendering the same
-`element/entry/view_posting`, so nothing points at an SPA action any more.
+**Noch offen an dieser Front:** `MarkupSettings::hashBaseUrl` (die `#123`-Tags
+im Beitragstext der Nutzer) und das schema.org-`url` in `view_content.php`.
+Beides betrifft nicht die Navigation, sondern die Darstellung bestehender
+Inhalte bzw. Metadaten für Suchmaschinen — das gehört mit Bedacht gemacht und
+an einem Beitrag mit so einem Tag geprüft.
 
-**Effort:** ~1–2 h for the emitters plus the JS decoupling, ~1 h more for the
-dedicated action.
-
-**Checked, so it does not surprise anyone later:**
-- No caching involved. Despite its name `thread_cached_init.php` caches
-  nothing, and parsed posting text is not cached either — no stale URLs.
-- 20 test references across 5 files, three of them hard expectations in
-  `PostingHelperTest`. Because the change is config-gated they stay green; add
-  island cases rather than rewriting them.
-- The real risk is `hashBaseUrl`: it decides how `#123` tags in **existing**
-  postings render. Render-time only and revertible, but verify it against a
-  posting that actually contains such a tag.
-
+## 2. Remove the SPA entry points
 ## 2. Remove the SPA entry points
 
 Delete the SPA actions and their templates — **not** the shared logic behind
@@ -111,6 +100,62 @@ island (a beta safety net that must not survive into a single-frontend world).
 - README and `docs/`: the Marionette mentions in the development section.
 
 ---
+
+## Scanner-Sonden im Fehlerprotokoll — Rest: skipLog
+
+Gefunden und zu zwei Dritteln behoben am 2026-07-26. **Kein Cutover-Schaden**,
+das lief seit Jahren so.
+
+**Der Befund war:** Jede Anfrage auf einen nicht existierenden Pfad landete bei
+CakePHP und schrieb dort eine `MissingControllerException` samt vollem Stack
+Trace. Ausgezählt über alle Protokolle: `Config` 2.975×, `Api` 1.835×, `Core`
+848×, `WpIncludes` 252× — ganz überwiegend Schwachstellenscanner. Daher wuchs
+`error.log` binnen zehn Tagen auf 10 MB, und jede Sonde belegte kurz einen
+PHP-Prozess.
+
+### Erledigt
+
+**Schritt 1 — Plugin-Assets sind echte Dateien.** `bin/cake plugin assets
+symlink` auf allen drei Installationen; neun Symlinks (`macnemo`, `nova`,
+`bota`, `admin`, `saito_help`, `saito_search`, `spectrum_colorpicker`,
+`stopwatch`, `bootstrap_u_i`). Vorher lieferte CakePHPs `AssetMiddleware` die
+Theme-Dateien über PHP aus — gemessen 240 Anfragen auf `/macnemo/…`, 75 auf
+`/bota/…`. **Genau deshalb musste dieser Schritt zuerst kommen:** Ohne die
+Symlinks hätte Schritt 2 das Theme abgeschaltet.
+
+**Schritt 2 — nginx beantwortet fehlende Dateien selbst.** Im Block für
+statische Endungen `try_files $uri =404;` statt des Durchfalls auf `index.php`.
+Gemessen: `/gibtesnicht.png`, `/wp-content/uploads/x.png` und `/assets/style.css`
+liefern 404 mit **null** neuen Protokolleinträgen.
+
+Vorher abgesichert, dass nichts anderes statische Endungen erzeugt: Avatare
+liegen unter `/useruploads/` (eigener Block, längst `=404`), Identicons sind
+data:-URIs ohne HTTP-Anfrage.
+
+*Falle für später:* `add_header` in einem verschachtelten `location` **ersetzt**
+geerbte Header, statt sie zu ergänzen. Beim Nachziehen der Beta hätte der neue
+Block deren `X-Robots-Tag: noindex` entfernt; die Zeile steht dort deshalb
+erneut drin.
+
+### Offen: Schritt 3
+
+Sonden **ohne** Dateiendung (`/config/database`, `/api/…`) laufen weiterhin über
+`location /` bei der Anwendung auf und schreiben je einen Stack Trace — nach
+Schritt 2 nachgemessen: ein neuer Eintrag pro Sonde.
+
+Dagegen hilft `Error.skipLog` in `config/app.php`, ergänzt um
+`MissingControllerException` und `MissingRouteException`.
+
+**Die Abwägung, weshalb das offen ist:** Damit würde auch ein *echter* fehlender
+Controller im eigenen Code stillschweigend nicht mehr protokolliert. Bei
+getesteten Routen ist das Risiko gering, aber es ist eine Entscheidung darüber,
+was auf dem Server protokolliert wird — keine reine Technikfrage. Wer sie
+trifft, sollte wissen, dass sie beide Fälle betrifft.
+
+*Erledigt nebenbei:* `/apple-touch-icon-precomposed.png` fehlte (327 Sonden) und
+ist jetzt ein Symlink; ein Übergangs-Symlink `local` → `Macnemo/webroot` fängt
+Browser mit zwischengespeichertem HTML von vor der Theme-Umbenennung ab
+(165 Anfragen).
 
 ## Zeitzonen: die Datenbank hält Lokalzeit, das Framework glaubt an UTC
 

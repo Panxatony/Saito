@@ -250,10 +250,9 @@ class EntriesController extends AppController
         }
 
         $this->set('entries', $postings);
-        // view_posting needs the thread root + the answering flag (set by
-        // _showAnsweringPanel only for view/mix); provide them directly.
+        // view_posting needs the thread root and the answering flag.
         $this->_setRootEntry($postings);
-        $this->set('showAnsweringPanel', $this->CurrentUser->isLoggedIn());
+        $this->_showAnsweringPanel();
         $this->set('titleForLayout', $postings->get('subject'));
 
         // Same side effects as the SPA mix() view: bump the view counter and
@@ -268,6 +267,59 @@ class EntriesController extends AppController
         } else {
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_thread');
         }
+    }
+
+    /**
+     * A single posting with the thread it belongs to, as an htmx island page.
+     *
+     * The counterpart to the SPA's {@see view()}: the posting in full at the
+     * top, the thread's tree of subject lines below it, so one can read a
+     * posting and still see where it sits in the conversation. That combination
+     * had no island equivalent — the front page opens postings inline, and
+     * htmxThread shows the whole thread flattened, but neither serves a
+     * deep-link to one posting.
+     *
+     * An `HX-Request` returns just the posting fragment, which is what the
+     * island uses to open a posting inline.
+     *
+     * @param string $id posting-ID
+     * @return \Cake\Http\Response|void
+     */
+    public function htmxPosting(string $id)
+    {
+        $id = (int)$id;
+        if ($id <= 0) {
+            throw new BadRequestException();
+        }
+
+        $entry = $this->Entries->get($id);
+        $posting = $entry->toPosting()->withCurrentUser($this->CurrentUser);
+
+        if (!$this->CurrentUser->getCategories()->permission('read', $posting->get('category'))) {
+            return $this->_requireAuth();
+        }
+
+        $this->set('entry', $posting);
+        $this->Threads->incrementViewsForPosting($posting, $this->CurrentUser);
+        // view_posting needs the thread root and the answering flag.
+        $this->_setRootEntry($posting);
+        $this->_showAnsweringPanel();
+        $this->MarkAsRead->posting($posting);
+
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            // Ohne dies käme das Element im vollen Layout zurück — die SPA kam
+            // damit durch, weil sie den ajax-Layout-Umschalter benutzte.
+            $this->viewBuilder()->disableAutoLayout();
+
+            return $this->render('/element/entry/view_posting');
+        }
+
+        $this->set(
+            'tree',
+            $this->Entries->postingsForThread($posting->get('tid'), false, $this->CurrentUser)
+        );
+        $this->set('titleForLayout', $posting->get('subject'));
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_posting');
     }
 
     /**
@@ -870,7 +922,8 @@ class EntriesController extends AppController
                 $redirect = '/';
             } else {
                 $message = __('delete_subtree_success');
-                $redirect = '/entries/view/' . $posting->get('pid');
+                $redirect = ($this->isIslandFrontend() ? '/entries/htmx-thread/' : '/entries/view/')
+                    . $posting->get('pid');
             }
         } else {
             $flashType = 'error';
@@ -1000,7 +1053,9 @@ class EntriesController extends AppController
         $targetId = (int)$this->request->getData('targetId');
         if (!empty($targetId)) {
             if ($this->Entries->threadMerge($sourceId, $targetId)) {
-                $this->redirect('/entries/view/' . $sourceId);
+                $this->redirect(
+                    ($this->isIslandFrontend() ? '/entries/htmx-thread/' : '/entries/view/') . $sourceId
+                );
 
                 return;
             } else {
@@ -1060,10 +1115,10 @@ class EntriesController extends AppController
             // htmxReply/htmxAdd/htmxPreview/htmxUpload rely on CSRF (island header
             // / FormHelper token) instead of a FormProtection token, like the REST
             // posting endpoints.
-            ['solve', 'view', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
+            ['solve', 'view', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
                 'htmxEdit', 'htmxMerge', 'htmxUploadDelete']
         );
-        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxWidgets']);
+        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxPosting', 'htmxWidgets']);
 
         $this->AuthUser->authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock');
         $this->AuthUser->authorizeAction('merge', 'saito.core.posting.merge');
@@ -1131,15 +1186,25 @@ class EntriesController extends AppController
         $showAnsweringPanel = false;
 
         if ($this->CurrentUser->isLoggedIn()) {
-            // Only logged in users see the answering buttons if they …
-            if (
-                // … directly on entries/view (full page or inline)
-                $this->request->getParam('action') === 'view'
-                // … directly in entries/mix
-                || $this->request->getParam('action') === 'mix'
-            ) {
-                $showAnsweringPanel = true;
-            }
+            // Only logged-in users see the answering buttons, and only where a
+            // posting is shown in full — not in a list of subject lines.
+            //
+            // Diese Liste ist die einzige Stelle mit dieser Regel. Sie stand
+            // frueher auch in htmxThread noch einmal, und als htmxPosting
+            // dazukam, wurde nur die eine Kopie gepflegt: der Antwort-Knopf
+            // verschwand aus der Inline-Ansicht, weil die Aktion hier fehlte.
+            $showAnsweringPanel = in_array(
+                $this->request->getParam('action'),
+                [
+                    // SPA: entries/view (ganze Seite oder inline) und entries/mix
+                    'view',
+                    'mix',
+                    // Insel: Einzelbeitrag (Seite und Inline-Fragment) und Thread
+                    'htmxPosting',
+                    'htmxThread',
+                ],
+                true
+            );
         }
         $this->set('showAnsweringPanel', $showAnsweringPanel);
     }

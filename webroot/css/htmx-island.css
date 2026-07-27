@@ -843,3 +843,19 @@
 .htmx-island .island-notice-help-line {
     margin: 0;
 }
+
+/* Single posting + its thread (the counterpart to the SPA's entries/view):
+   the tree below needs a little air and a quiet heading so it reads as
+   context, not as a second article. */
+.htmx-island .viewEntry-thread {
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--isl-border-soft);
+}
+
+.htmx-island .viewEntry-threadHeading {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--nova-text-muted, #6b6560);
+    margin: 0 0 0.5rem;
+}

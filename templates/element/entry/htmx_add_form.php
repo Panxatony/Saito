@@ -25,17 +25,36 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
     ]);
 
     if (!empty($errors)) {
-        echo '<div class="alert alert-error">' . h(__('Please check your entry.')) . '</div>';
+        // Bisher stand hier nur "Bitte überprüfe deine Eingabe" — die konkreten
+        // Meldungen des Validators wurden verworfen. Wer einen zu langen Betreff
+        // eintippte, erfuhr nicht, was zu lang war, und suchte den Fehler beim
+        // Text. Jetzt steht dort, was der Validator tatsächlich bemängelt.
+        echo '<div class="alert alert-error"><ul style="margin:0; padding-left:1.2em;">';
+        foreach ($errors as $messages) {
+            foreach ((array)$messages as $message) {
+                echo '<li>' . h($message) . '</li>';
+            }
+        }
+        echo '</ul></div>';
     }
 
     echo $this->Form->control('category_id', [
         'class' => 'form-control', 'type' => 'select', 'options' => $categories,
         'empty' => false, 'label' => __('Category'),
     ]);
-    echo $this->Form->control('subject', ['class' => 'form-control', 'label' => __('subject')]);
+    // maxlength aus der Admin-Einstellung "Betrefflänge": so laesst sich die
+    // Grenze gar nicht erst ueberschreiten, statt sie erst beim Absenden zu
+    // erfahren.
+    $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100);
+    echo $this->Form->control('subject', [
+        'class' => 'form-control', 'label' => __('subject'), 'maxlength' => $subjectMax,
+    ]);
     echo $this->element('entry/htmx_editor_toolbar');
+    // Der Platzhalter ist der einzige Hinweis darauf, dass das Feld leer bleiben
+    // darf — ohne ihn ist "n/t" zwar moeglich, aber unauffindbar.
     echo $this->Form->control('text', [
         'class' => 'form-control', 'type' => 'textarea', 'rows' => 6, 'label' => __('text'),
+        'placeholder' => __('entry.text.ph.nt'),
     ]);
 
     if ($inline) {

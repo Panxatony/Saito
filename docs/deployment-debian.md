@@ -167,6 +167,38 @@ shipped yet), and any analytics or external host you embed must be added to
 `script-src`/`connect-src`. Enable it only after widening it for your setup and
 checking the browser console for violations.
 
+### Access logs without full IP addresses
+
+nginx's default `combined` format starts with `$remote_addr`, so every request
+writes a full visitor address to disk — personal data from the moment it is
+written, and typically kept for as long as the log is. The shipped
+`saito.conf.example` carries a commented-out `map` and `log_format` that drop
+the host part (last octet for IPv4, everything past the fourth block for IPv6).
+
+Both directives belong in the **http** context, not in the vhost — put them in
+`/etc/nginx/nginx.conf` (or a file included from there), then reference the
+format in the vhost:
+
+```nginx
+access_log /var/log/nginx/saito.access.log anonymised;
+```
+
+Without the map in the http context nginx refuses to start with *"unknown log
+format"*, so add both halves together.
+
+Two things worth knowing before you switch it on:
+
+- **It narrows abuse analysis.** If fail2ban or a similar tool reads the access
+  log, either keep an unmasked log for it or match against the error log.
+- **Do it on every layer that sees the real address.** Behind a proxy, the
+  backend resolves the client IP again via `real_ip_header` and logs it in full
+  — masking only at the edge leaves the same addresses in the backend's log.
+  Check both.
+
+Saito itself also logs the client IP with every exception (CakePHP appends
+`Client IP:` with no setting to turn it off); the application ships a logger
+that masks it the same way, so nothing further is needed there.
+
 > **HSTS is a one-way commitment.** The example ships
 > `Strict-Transport-Security: max-age=31536000; includeSubDomains`. Only keep it
 > once HTTPS works reliably for the domain **and all its subdomains** — while it

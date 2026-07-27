@@ -19,9 +19,16 @@ $schemaMeta = [];
                 $this->request->getParam('action') !== 'preview' &&
                 ($this->request->is('ajax') || $this->request->getParam('action') === 'mix')
             ) {
+                // Dieser Link traegt die Klasse "et", nicht "link_show_thread" —
+                // der Klick-Abfaenger der Insel greift hier also nicht, und ohne
+                // die Weiche landet man auf der SPA-Seite. Das schema.org-URL
+                // oben bleibt bewusst unveraendert, das ist Metadatenfrage.
+                $subjectUrl = \Cake\Core\Configure::read('Saito.frontend') === 'island'
+                    ? $this->Url->build('/entries/htmx-thread/' . $entry->get('id'))
+                    : $url;
                 $subject = $this->Html->link(
                     $subject,
-                    $url,
+                    $subjectUrl,
                     ['escape' => false, 'class' => 'et']
                 );
             }

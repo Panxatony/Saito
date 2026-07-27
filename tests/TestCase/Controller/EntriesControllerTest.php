@@ -8,6 +8,7 @@ use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Database\Schema\Table;
 use Cake\Datasource\Exception\RecordNotFoundException;
+use Cake\Http\Exception\BadRequestException;
 use Cake\Controller\Exception\InvalidParameterException;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
@@ -67,6 +68,139 @@ class EntriesControllerTest extends IntegrationTestCase
     {
         parent::tearDown();
         unset($this->Table);
+    }
+
+    /**
+     * The island's single-posting page: posting plus the tree of its thread.
+     *
+     * @return void
+     */
+    public function testHtmxPostingShowsPostingAndThread(): void
+    {
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseOk();
+        $this->assertNotEmpty($this->viewVariable('entry'), 'the posting itself');
+        $this->assertNotEmpty($this->viewVariable('tree'), 'the thread it belongs to');
+    }
+
+    /**
+     * An HX-Request gets the bare posting fragment — that is what the island
+     * fetches to open a posting inline. Without disabling the layout the whole
+     * page would be swapped into the thread line.
+     *
+     * @return void
+     */
+    public function testHtmxPostingReturnsFragmentForHtmx(): void
+    {
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('<html');
+        // The tree is only needed by the full page.
+        $this->assertNull($this->viewVariable('tree'));
+    }
+
+    /**
+     * Regression guard. The answering panel is switched on by action name, and
+     * the list knew only view/mix — so when the inline open moved to this
+     * action, the reply button silently disappeared from every expanded
+     * posting. It took a user to notice.
+     *
+     * @return void
+     */
+    public function testHtmxPostingOffersReplyToMembers(): void
+    {
+        $this->_loginUser(1);
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseOk();
+        $this->assertTrue(
+            $this->viewVariable('showAnsweringPanel'),
+            'a logged-in member must be offered the reply button'
+        );
+    }
+
+    /**
+     * The same guard for the thread view, which shares the rule.
+     *
+     * @return void
+     */
+    public function testHtmxThreadOffersReplyToMembers(): void
+    {
+        $this->_loginUser(1);
+        $this->get('/entries/htmx-thread/1');
+
+        $this->assertResponseOk();
+        $this->assertTrue($this->viewVariable('showAnsweringPanel'));
+    }
+
+    /**
+     * Guests get no reply button — they cannot post.
+     *
+     * @return void
+     */
+    public function testHtmxPostingHidesReplyFromGuests(): void
+    {
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseOk();
+        $this->assertFalse($this->viewVariable('showAnsweringPanel'));
+    }
+
+    /**
+     * view_posting reads the thread's root to decide who may mark an answer as
+     * helpful. Without it the button vanishes — the same class of bug as the
+     * reply button above.
+     *
+     * @return void
+     */
+    public function testHtmxPostingProvidesRootEntry(): void
+    {
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseOk();
+        $this->assertNotEmpty($this->viewVariable('rootEntry'));
+    }
+
+    /**
+     * A category the reader may not read stays closed, exactly as on the SPA
+     * route it replaces.
+     *
+     * @return void
+     */
+    public function testHtmxPostingNoAuthorization(): void
+    {
+        $url = '/entries/htmx-posting/4';
+        $this->get($url);
+
+        $this->assertRedirectLogin($url);
+    }
+
+    /**
+     * A nonsensical id must not reach the database layer.
+     *
+     * @return void
+     */
+    public function testHtmxPostingRejectsBadId(): void
+    {
+        // Wie die uebrigen Tests dieser Datei: die Ausnahme wird durchgereicht,
+        // nicht als Antwort gerendert.
+        $this->expectException(BadRequestException::class);
+        $this->get('/entries/htmx-posting/0');
+    }
+
+    /**
+     * A posting that does not exist behaves like the SPA route it replaces.
+     *
+     * @return void
+     */
+    public function testHtmxPostingNotFound(): void
+    {
+        $this->expectException(RecordNotFoundException::class);
+        $this->get('/entries/htmx-posting/9999');
     }
 
     public function testMixSuccess()
