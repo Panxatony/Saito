@@ -87,7 +87,15 @@ class UsersController extends AppController
         // below (throttle, logging, AuthUser->login) is shared and untouched.
         $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
         if ($isHx) {
+            // In the overlay: just the form fragment (plus flash).
             $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_login_form');
+        } else {
+            // Standalone: the same page /users/htmx-login serves. There used to
+            // be a second, SPA-era template here whose inline script called
+            // SaitoApp and jQuery — it threw on every visit once those were
+            // gone, and its "back" link relied on a header subnav the island
+            // layout does not render.
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_login');
         }
 
         $data = $this->request->getData();

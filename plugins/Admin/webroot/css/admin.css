@@ -23,3 +23,43 @@ form .error-message {
   background: red;
   margin-bottom: 1em;
 }
+
+/* Table controls -----------------------------------------------------------
+   Sorting and filtering are Alpine now, not DataTables. These few rules are
+   what DataTables' stylesheet used to provide: a search box above the table and
+   an arrow on the sorted column. */
+.admin-tableFilter {
+    display: block;
+    max-width: 22rem;
+    margin: 0 0 0.75rem;
+}
+.table th.is-sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.table th.is-sortable:hover { text-decoration: underline; }
+.table th.is-sortable::after {
+    content: '';
+    display: inline-block;
+    width: 0.7em;
+    opacity: 0.35;
+}
+.table th.is-sortable:not(.is-sorted-asc):not(.is-sorted-desc)::after { content: ' ⇅'; }
+.table th.is-sorted-asc::after  { content: ' ↑'; opacity: 1; }
+.table th.is-sorted-desc::after { content: ' ↓'; opacity: 1; }
+
+/* Alpine sets x-cloak until it has taken over, so a closed overlay never
+   flashes open on a slow connection. */
+[x-cloak] { display: none !important; }
+
+/* Screen-reader-only label for the filter input. */
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

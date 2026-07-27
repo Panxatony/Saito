@@ -45,23 +45,19 @@
         <p>
             <?= h(__d('admin', 'cat.del.d.exp')) ?>
         </p>
-        <?php
-        echo $this->Html->link(
-            __d('admin', 'cat.del.d.b'),
-            '#deleteModal',
-            [
-                'class' => 'btn btn-danger',
-                'data-toggle' => 'modal',
-            ]
-        );
-        ?>
-    </div>
-</div>
-</div>
+        <?php // Alpine rather than Bootstrap's JavaScript; the backend no longer
+              // carries jQuery. Without script the button is a plain link to the
+              // section below, which is still readable and submittable. ?>
+        <div x-data="adminModal">
+            <a href="#deleteModal" class="btn btn-danger" x-on:click.prevent="open()">
+                <?= h(__d('admin', 'cat.del.d.b')) ?>
+            </a>
 
-
-<div id="deleteModal" class="modal fade" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
+<div id="deleteModal" class="modal" tabindex="-1" role="dialog"
+     x-show="isOpen" x-cloak
+     x-on:keydown.escape.window="close()"
+     style="display: block; background: rgba(0,0,0,.5)">
+  <div class="modal-dialog" role="document" x-on:click.outside="close()">
     <div class="modal-content">
       <div class="modal-header bg-danger text-white">
         <h5 class="modal-title">
@@ -82,12 +78,12 @@
         echo $this->Form->hidden('mode', ['value' => 'delete']);
         echo $this->Form->button(
             __d('admin', 'cancel'),
-            ['class' => 'btn', 'data-dismiss' => 'modal']
+            ['class' => 'btn', 'x-on:click.prevent' => 'close()']
         );
         echo ' ';
         echo $this->Form->button(
             __d('admin', 'cat.del.d.b'),
-            ['type' => 'submit', 'class' => 'btn btn-danger']
+            ['type' => 'submit', 'class' => 'btn btn-danger', 'data-autofocus' => true]
         );
         echo $this->Form->end();
         ?>
@@ -95,4 +91,6 @@
     </div>
   </div>
 </div>
-
+        </div><?php // /x-data ?>
+    </div>
+</div>
