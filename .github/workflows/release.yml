@@ -21,7 +21,7 @@ jobs:
   # --------------------------------------------------------------------
   test:
     runs-on: ubuntu-latest
-    container: php:8.4-cli
+    container: php:8.4-cli-trixie
     services:
       mariadb:
         image: mariadb:11
@@ -66,7 +66,7 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    container: php:8.4-cli
+    container: php:8.4-cli-trixie
     env:
       COMPOSER_ALLOW_SUPERUSER: "1"
     steps:
@@ -107,8 +107,13 @@ jobs:
 
       - name: Build frontend assets (Node 20 + yarn + grunt)
         run: |
-          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-          apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs
+          # Node from Debian, not from NodeSource. The container is Debian 13,
+          # for which NodeSource publishes nothing, so its script configured a
+          # repository with no candidate and apt quietly fell back to Debian's
+          # own package — which does not bundle npm, and the build died on
+          # `npm: not found`. Debian ships both, so ask for both and drop the
+          # remote install script (and with it piping a URL into bash as root).
+          apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs npm
           npm install -g --silent yarn grunt-cli
           yarn install --frozen-lockfile --non-interactive
           # `grunt release` still orchestrates CSS, locale JSON and asset copy;
