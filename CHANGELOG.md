@@ -7,7 +7,20 @@
 
 ## [next] -
 
+## [8.2.1] - 2026-07-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.0...8.2.1)
+
+Fixes only; no migration and no new configuration. Upgrading from 8.2.0 is a code deploy.
+
+### Changes
+
+- ✓ Fix: **Command-click on a posting stopped opening a new tab.** It had not worked since the island frontend arrived: the thread list intercepted every click and navigated by hand, doing what the browser does anyway while removing everything else it can do with a link. Ctrl-, Shift-, Alt- and middle-click were lost the same way. The mix button had the same flaw.
+- ✓ Fix: **the editor preview appeared between the toolbar and the text box** instead of above the form, and showed only the body. It is now a panel of its own above the editor, shaped like the posting it previews — heading, then category, author (linked to their profile), place, time and views, then the text. A subject with no text previews as "… n/t", which is what the forum will render.
+- ✓ Fix: **the text box no longer stays small.** Four rows is right for a one-line answer and wrong from the first paragraph on; it grows with what is written, capped so the buttons underneath stay reachable.
 - ✓ Fix: the CHANGELOG lost the 8.0.12 and 8.0.13 sections when the release line branched off, so 8.1.0's "go to 8.0.12 first — [8.0.13](#8013---2026-07-27) explains why" pointed at an anchor that did not exist. The fixes themselves had all arrived; only their record was missing.
+- ✓ Fix: `htmxWidgets()` documented itself as returning nothing while returning a response, which the static analysis caught only once it reached the mainline.
+- Δ Static analysis: two dead test helpers and an unused import removed, and a deliberately un-awaited request now catches its own rejection instead of leaving one for the console.
 
 ## [8.2.0] - 2026-07-28
 
