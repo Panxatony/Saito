@@ -129,7 +129,7 @@ already installed and the frontend assets already built — no Composer, no Node
 no build step on your server.
 
 ```bash
-V=8.0.9
+V=8.2.0
 curl -LO "https://github.com/Panxatony/Saito/releases/download/$V/saito-$V.tar.gz"
 curl -LO "https://github.com/Panxatony/Saito/releases/download/$V/saito-$V.tar.gz.sha256"
 
@@ -157,7 +157,7 @@ rsync -a --delete \
   --exclude 'logs/' \
   --exclude 'tmp/' \
   --exclude 'webroot/useruploads/' \
-  saito-8.0.9/ /path/to/forum/
+  saito-8.2.0/ /path/to/forum/
 ```
 
 > **Careful with `config/`.** The tarball contains a placeholder `app.php`.
@@ -173,8 +173,8 @@ Both files are commented; nothing here is required for the forum to start, but
 it is the moment where you would notice a new option.
 
 ```bash
-diff -u /path/to/forum/config/saito_config.php saito-8.0.9/config/saito_config.php
-diff -u /path/to/forum/config/app.php          saito-8.0.9/config/app.php
+diff -u /path/to/forum/config/saito_config.php saito-8.2.0/config/saito_config.php
+diff -u /path/to/forum/config/app.php          saito-8.2.0/config/app.php
 ```
 
 Do **not** replace the files — read the diff and copy individual keys.

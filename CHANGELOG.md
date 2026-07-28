@@ -7,7 +7,21 @@
 
 ## [next] -
 
+## [8.2.0] - 2026-07-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0...8.2.0)
+
+Nothing in the database changes and no migration runs; upgrading from 8.1.0 is a code deploy. Three new keys appear in `config/saito_config.php` — all optional, and leaving them out keeps 8.1.0's behaviour. See [docs/customizing.md](docs/customizing.md).
+
+### Changes
+
 - ＋ The widget rail can be arranged again: drag a widget by the handle beside its heading, or move it with the arrow keys once the handle has focus. Saito 5 could do this and the island frontend could not. The order goes back into `users.slidetab_order` — the column that held it all along — so nothing in the database changes.
+- ＋ `Saito.bannerHtml` places operator-supplied markup between the header bar and the page, in a `div.ads_top` — the slot forums have traditionally used for a banner. Empty renders no container at all.
+- ＋ `Saito.widgetsForGuests` makes the widget rail a members-only feature. Enforced in the controller, not only in the markup: with it off the fragment endpoint answers a guest with nothing, so the online list cannot be read by requesting it directly.
+- ＋ `Saito.notice` switches off the "modernised frontend" bar, which earns its place in the weeks around a switch and not for ever after.
+- ✓ Fix: the header hard-coded `forum_logo.svg`, so a theme whose wordmark existed only as a bitmap got a broken image and no explanation. It now takes whichever of `svg`, `png`, `webp` or `jpg` the theme ships, preferring the vector.
+- ✓ Fix: `docs/customizing.md` told theme authors to register their plugin in `src/Application.php`. Nothing there has to know about a theme — setting `Saito.themes.default` is enough. The help overlay also promised "a coloured bar marks unread", which a theme is free to leave out; it now leads with the colour, which always holds.
+- Δ TypeScript's standard library followed `target: es6`, so `Array.prototype.includes` type-checked as an error in island code that has always shipped. The build never noticed — esbuild strips types without checking them.
 
 ## [8.1.0] - 2026-07-28
 

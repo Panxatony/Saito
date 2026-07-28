@@ -51,8 +51,8 @@ theme whose wordmark only exists as a bitmap needs no conversion. The image is
 shown at about 2.5rem high; supply it at twice that for high-resolution screens.
 
 If the header bar has a colour of its own, remember that the logo sits on *that*
-and not on the page background — `plugins/Macfix` is a worked example of a
-coloured bar with a light wordmark.
+and not on the page background, so a wordmark drawn for a white page will need a
+light counterpart.
 
 Theming resources:
 
