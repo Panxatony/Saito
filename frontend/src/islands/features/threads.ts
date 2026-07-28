@@ -11,7 +11,7 @@
  * and collapsing a thread's answers.
  */
 import { htmx } from '../runtime';
-import { onReady } from '../lib/dom';
+import { isModifiedClick, onReady } from '../lib/dom';
 
 /**
  * Reflect the open/closed state in the round thread icon: a close (times) glyph
@@ -134,6 +134,14 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
 
+    // Command-, Ctrl-, Shift- or middle-click belongs to the browser: a new tab,
+    // a new window, a saved page. This is what the old forum allowed on a
+    // posting already opened inline, and what intercepting every click took
+    // away.
+    if (isModifiedClick(event)) {
+        return;
+    }
+
     const inlineOnClick = document.body.dataset.inlineOnClick === '1';
     const leaf = link.closest<HTMLElement>('.threadLeaf');
     if (inlineOnClick && leaf && !leaf.classList.contains('is-inline-open')) {
@@ -144,11 +152,10 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
 
-    // Setting off, or already open (second click): follow the link. No rewriting
-    // any more — the href already points at the island page, which shows the
-    // posting *and* the thread it belongs to.
-    event.preventDefault();
-    window.location.href = href;
+    // Setting off, or already open (second click): let the anchor do its own
+    // work. The href already points at the island page, so calling
+    // `preventDefault()` and assigning `location.href` only reproduced what the
+    // browser does — while removing everything else it can do with a link.
 });
 
 // Mix button on a thread box.
@@ -169,6 +176,10 @@ document.addEventListener('click', (event: MouseEvent) => {
     // page that was rendered before this change.
     const match = (link.getAttribute('href') ?? '').match(/\/entries\/(?:mix|htmx-thread)\/(\d+)/);
     if (!match) {
+        return;
+    }
+    // Same rule as the posting link: a modified click is the browser's.
+    if (isModifiedClick(event)) {
         return;
     }
     event.preventDefault();

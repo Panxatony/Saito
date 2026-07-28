@@ -7,6 +7,21 @@
 
 ## [next] -
 
+## [8.2.1] - 2026-07-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.0...8.2.1)
+
+Fixes only; no migration and no new configuration. Upgrading from 8.2.0 is a code deploy.
+
+### Changes
+
+- ✓ Fix: **Command-click on a posting stopped opening a new tab.** It had not worked since the island frontend arrived: the thread list intercepted every click and navigated by hand, doing what the browser does anyway while removing everything else it can do with a link. Ctrl-, Shift-, Alt- and middle-click were lost the same way. The mix button had the same flaw.
+- ✓ Fix: **the editor preview appeared between the toolbar and the text box** instead of above the form, and showed only the body. It is now a panel of its own above the editor, shaped like the posting it previews — heading, then category, author (linked to their profile), place, time and views, then the text. A subject with no text previews as "… n/t", which is what the forum will render.
+- ✓ Fix: **the text box no longer stays small.** Four rows is right for a one-line answer and wrong from the first paragraph on; it grows with what is written, capped so the buttons underneath stay reachable.
+- ✓ Fix: the CHANGELOG lost the 8.0.12 and 8.0.13 sections when the release line branched off, so 8.1.0's "go to 8.0.12 first — [8.0.13](#8013---2026-07-27) explains why" pointed at an anchor that did not exist. The fixes themselves had all arrived; only their record was missing.
+- ✓ Fix: `htmxWidgets()` documented itself as returning nothing while returning a response, which the static analysis caught only once it reached the mainline.
+- Δ Static analysis: two dead test helpers and an unused import removed, and a deliberately un-awaited request now catches its own rejection instead of leaving one for the console.
+
 ## [8.2.0] - 2026-07-28
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0...8.2.0)
@@ -107,6 +122,30 @@ Two controls in the backend that the previous release left dead. Neither raised 
 ### Upgrading
 
 Members with a page open across the upgrade should reload once — a tab keeps running the JavaScript it loaded. 8.0.x remains a working intermediate stop for anyone who would rather move the platform and the interface on different days; see `docs/upgrade.md`.
+
+## [8.0.13] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.12...8.0.13)
+
+Three things that failed quietly: broken smiley images on the default theme, and two ways a page could silently lose its ability to send anything.
+
+### Changes
+
+- ✓ Fix: image smilies were broken on Nova, the default theme. The forum emits `/img/smilies/<name>.svg`, which CakePHP resolves against the active theme and then falls back to the application webroot — but that directory did not exist, and Nova carries no images of its own. Members saw broken images. The 23 pictures now ship in `webroot/img/smilies/` as the base every theme falls back to. A theme keeps its own copy only if it wants different ones; Macnemo's is identical, so nothing changes visually there.
+- ✓ Fix: the CSRF meta tag was rendered by nine templates individually, and the ones written later did not have it. On those pages every scripted write request was answered with 403 — the editor preview, uploads and the widget state, each failing without a word. It is emitted by the island layout now, where a new page cannot forget it.
+- ✓ Fix: reading a member's minimised widgets suppressed errors with `@`, which hides more than the one warning it meant to. Narrowed to a handler scoped to that single call.
+- Δ `docs/upgrade.md` names both migrations and says plainly to upgrade to 8.0.12 or later, with the query that shows whether an earlier 8.0.x truncated anything.
+
+## [8.0.12] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.11...8.0.12)
+
+**Recommended for anyone still to upgrade from Saito 5.x.** A migration shipped since 8.0.0 narrowed a column instead of only converting its character set, which can destroy data on forums with many categories.
+
+### Changes
+
+- ✓ Fix: the utf8mb4 migration restated `users.user_category_custom` as `VARCHAR(512)`, undoing the widening to 1024 that Saito 5.0.0 made — while its description promised a character-set conversion and nothing else. The column holds a serialized map of the categories a member chose to see: 512 characters run out at roughly 40 categories, 1024 at roughly 75. Outside MySQL's strict mode the value is cut silently, and a cut serialized array cannot be read back at all.
+- ✓ Fix: a second migration widens the column again on installations that already ran the narrowing version — Migrations never replays a recorded version, so they cannot be repaired any other way. Widening never truncates and is safe to run at any current width.
 
 ## [8.0.11] - 2026-07-27
 

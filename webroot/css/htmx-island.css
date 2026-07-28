@@ -1092,3 +1092,40 @@
 .htmx-island .island-help-topics li { margin-bottom: .25rem; }
 
 .htmx-island .island-help-back { padding-left: 0; margin-bottom: .5rem; }
+
+/* Editor preview -----------------------------------------------------------
+   The panel above the form, shaped like the posting it is previewing. Its body
+   carries `.postingBody`, so the theme styles the heading, the info line and
+   the parsed text exactly as it would once the posting exists — which is the
+   point of a preview. */
+.htmx-island .htmx-editor-previewPanel {
+    margin: 0 0 0.75rem;
+}
+.htmx-island .htmx-editor-previewPanel[hidden] { display: none; }
+.htmx-island .htmx-editor-previewPanel-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    margin: -1rem -1rem 0.75rem;   /* out of .panel's own padding */
+}
+.htmx-island .htmx-editor-previewPanel-title {
+    flex: 1 1 auto;
+    text-align: center;
+    font-weight: 700;
+}
+.htmx-island .js-editorPreviewClose {
+    padding: 0 0.35rem;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--nova-text-muted, #777);
+}
+.htmx-island .js-editorPreviewClose:hover { color: var(--nova-text, #000); }
+
+/* The text box grows with its content (see editor.ts); no drag handle, because
+   the height is no longer the writer's problem to solve. */
+.htmx-island textarea[name="text"] {
+    resize: vertical;
+    min-height: 6rem;
+    overflow-y: hidden;
+}
