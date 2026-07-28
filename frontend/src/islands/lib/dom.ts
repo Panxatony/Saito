@@ -47,3 +47,20 @@ export function onReady(fn: () => void): void {
         fn();
     }
 }
+
+/**
+ * Is this click one the browser should handle itself?
+ *
+ * Command or Ctrl opens a link in a new tab, Shift in a new window, Alt saves
+ * the target, and the middle button opens a background tab. A handler that
+ * calls `preventDefault()` on those takes all of it away — which is exactly how
+ * the thread list lost "open in a new tab": it intercepted every click and then
+ * navigated by hand, doing what the browser would have done anyway, only worse.
+ *
+ * The old Backbone view got this right by accident rather than by checking: it
+ * only ever intercepted the click it actually needed, and let the anchor do its
+ * own work otherwise.
+ */
+export function isModifiedClick(event: MouseEvent): boolean {
+    return event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0;
+}

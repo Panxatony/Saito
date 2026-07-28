@@ -701,6 +701,170 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The preview shows the posting, not just its body: a writer checking their
+     * work wants to see the heading they typed above the text it belongs to.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewRendersSubjectAndText(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Ein Betreff', 'text' => 'Der Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Ein Betreff');
+        $this->assertResponseContains('Der Text');
+        $this->assertResponseContains('postingBody-heading');
+    }
+
+    /**
+     * A subject with no text is a posting Saito has always allowed, and renders
+     * with " n/t" appended. The preview has to say the same, or it promises a
+     * shape the posting will not have.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewMarksATextlessPostingAsNt(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Nur Betreff', 'text' => '']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Nur Betreff n/t');
+    }
+
+    /**
+     * The info line carries the category, the author, the time and the view
+     * count — the same four the posting itself shows. Category and views come
+     * from the form, because a reply inherits its parent's category and an edit
+     * keeps the count the posting already has.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewShowsCategoryAndViews(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $categories = \Cake\ORM\TableRegistry::getTableLocator()->get('Categories');
+        $readable = $categories->find()->where(['accession' => 0])->first();
+        $this->post('/entries/htmx-preview', [
+            'subject' => 'Betreff', 'text' => 'Text',
+            'categoryId' => $readable->get('id'), 'views' => 42,
+        ]);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains((string)$readable->get('category'));
+        $this->assertResponseContains('42');
+        $this->assertResponseContains('c-category');
+    }
+
+    /**
+     * The author's name links to their profile, as it does on a real posting —
+     * drawn by the same helper, so the markup and the target cannot drift
+     * apart.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewLinksTheAuthorToTheirProfile(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('/users/htmx-profile/3');
+        $this->assertResponseContains('c-username');
+    }
+
+    /**
+     * The member's place sits between their name and the time, when they have
+     * set one — the last piece that separated the preview's info line from the
+     * posting's.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewShowsTheAuthorsPlace(): void
+    {
+        $users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+        $user = $users->get(3);
+        $users->patchEntity($user, ['user_place' => 'Buxtehude']);
+        $users->saveOrFail($user);
+
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Buxtehude');
+    }
+
+    /**
+     * A member without a place gets no stray comma — the posting views leave it
+     * out entirely, and so must this.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewOmitsAnEmptyPlace(): void
+    {
+        $users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+        $user = $users->get(3);
+        $users->patchEntity($user, ['user_place' => '']);
+        $users->saveOrFail($user);
+
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $body = preg_replace('/\s+/', ' ', (string)$this->_response->getBody());
+        $this->assertStringNotContainsString('</span>, , ', $body);
+    }
+
+    /**
+     * Nothing written yet means an empty fragment, so the island can keep the
+     * panel shut instead of opening an empty frame above every reply box.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewIsEmptyWhenNothingWasWritten(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => '', 'text' => '  ']);
+
+        $this->assertResponseOk();
+        $this->assertSame('', trim((string)$this->_response->getBody()));
+    }
+
+    /**
+     * The category shown in the preview comes from the form, so it is a value
+     * the member controls. It must be checked against what they may read, or
+     * the preview becomes a way to look up the name of a hidden category.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewRefusesACategoryTheMemberCannotRead(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $categories = \Cake\ORM\TableRegistry::getTableLocator()->get('Categories');
+        $unreadable = $categories->find()
+            ->where(['accession >' => 1])
+            ->first();
+        $this->post('/entries/htmx-preview', [
+            'subject' => 'Betreff', 'text' => 'Text',
+            'categoryId' => $unreadable ? $unreadable->get('id') : 9999,
+        ]);
+
+        $this->assertResponseOk();
+        if ($unreadable !== null) {
+            $this->assertResponseNotContains((string)$unreadable->get('category'));
+        }
+    }
+
+    /**
      * The order the widgets appear in, as rendered.
      *
      * @return list<string>

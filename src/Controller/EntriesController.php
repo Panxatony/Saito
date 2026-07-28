@@ -61,7 +61,9 @@ class EntriesController extends AppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->viewBuilder()->addHelpers(['Posting', 'Text']);
+        // `User` draws the author's profile link — used by the posting views and
+        // by the editor preview, which reproduces the same info line.
+        $this->viewBuilder()->addHelpers(['Posting', 'Text', 'User']);
 
         $this->loadComponent('Posting');
         $this->loadComponent('MarkAsRead');
@@ -561,7 +563,42 @@ class EntriesController extends AppController
      */
     public function htmxPreview()
     {
-        $this->set('previewText', (string)$this->getRequest()->getData('text'));
+        $request = $this->getRequest();
+        $this->set('previewText', (string)$request->getData('text'));
+        $this->set('previewSubject', (string)$request->getData('subject'));
+
+        // The preview shows the posting the way the forum will: heading, the
+        // author/category line, then the text. Author and time are the ones it
+        // would actually get, so what is shown is not a mock-up of the layout
+        // but the posting itself, one step early.
+        //
+        // The whole user entity, not just the name: the info line links the
+        // author to their profile exactly as a real posting does, and the
+        // helper that draws that link needs the record, not a string.
+        $this->set('previewAuthor', $this->fetchTable('Users')->get((int)$this->CurrentUser->getId()));
+
+        // The category is whatever the form knows — the parent's for a reply,
+        // the chooser's for a new thread. Absent is fine: the line simply drops
+        // that part rather than inventing one.
+        $categoryId = (int)$request->getData('categoryId');
+        $category = null;
+        if ($categoryId > 0) {
+            $found = $this->Entries->Categories->find()
+                ->where(['id' => $categoryId])
+                ->first();
+            // Only categories the member may read — the preview must not become
+            // a way to learn the name of a category they cannot see.
+            $readable = $this->CurrentUser->getCategories()->getAll('read');
+            if ($found !== null && in_array($categoryId, $readable, true)) {
+                $category = $found;
+            }
+        }
+        // Views: nought for a posting that does not exist yet, the real count
+        // when an existing one is being edited. The form says which.
+        $this->set('previewViews', (int)$request->getData('views'));
+
+        $this->set('previewCategory', $category);
+
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_preview');
     }
 
@@ -703,6 +740,9 @@ class EntriesController extends AppController
 
         $this->viewBuilder()->disableAutoLayout();
         $this->set('parentId', $parent->get('id'));
+        // For the preview: a reply inherits its parent's category, and there is
+        // no chooser in this form to read it from.
+        $this->set('parentCategoryId', (int)$parent->get('category_id'));
 
         if ($parentPosting->isAnsweringForbidden()) {
             $this->set('forbidden', true);

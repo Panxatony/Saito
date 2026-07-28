@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const SRC = path.resolve(__dirname, 'frontend/src');
