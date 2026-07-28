@@ -27,7 +27,10 @@ $subject = $submitted['subject'] ?? '';
 $text = $submitted['text'] ?? '';
 ?>
 <?= $this->element('entry/htmx_editor_preview') ?>
+<?php // Datenattribute für die Vorschau: eine Antwort erbt die Kategorie des
+      // Elternbeitrags, und ein neuer Beitrag hat naturgemäß null Aufrufe. ?>
 <form class="htmx-reply-form" style="margin-top: 0.75em;"
+      data-preview-category="<?= (int)($parentCategoryId ?? 0) ?>" data-preview-views="0"
       hx-post="<?= h($actionUrl) ?>"
       hx-target="closest .js-replySlot"
       hx-swap="innerHTML">

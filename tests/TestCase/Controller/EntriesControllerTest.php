@@ -736,6 +736,31 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The info line carries the category, the author, the time and the view
+     * count — the same four the posting itself shows. Category and views come
+     * from the form, because a reply inherits its parent's category and an edit
+     * keeps the count the posting already has.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewShowsCategoryAndViews(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $categories = \Cake\ORM\TableRegistry::getTableLocator()->get('Categories');
+        $readable = $categories->find()->where(['accession' => 0])->first();
+        $this->post('/entries/htmx-preview', [
+            'subject' => 'Betreff', 'text' => 'Text',
+            'categoryId' => $readable->get('id'), 'views' => 42,
+        ]);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains((string)$readable->get('category'));
+        $this->assertResponseContains('42');
+        $this->assertResponseContains('c-category');
+    }
+
+    /**
      * Nothing written yet means an empty fragment, so the island can keep the
      * panel shut instead of opening an empty frame above every reply box.
      *

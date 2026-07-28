@@ -12,6 +12,7 @@
  * @var string $previewSubject
  * @var string $previewAuthor
  * @var \Cake\Datasource\EntityInterface|null $previewCategory
+ * @var int $previewViews
  */
 
 // Nothing written yet — return an empty fragment; the island hides the panel
@@ -43,7 +44,8 @@ if ($subject !== '' && trim($previewText) === '') {
             –
         <?php endif; ?>
         <span class="c-username"><?= h($previewAuthor) ?></span>,
-        <?= $this->TimeH->formatTime(new \Cake\I18n\DateTime()) ?>
+        <?= $this->TimeH->formatTime(new \Cake\I18n\DateTime()) ?>,
+        <?= h(__('views_headline')) ?>: <?= (int)$previewViews ?>
     </aside>
     <?php if (trim($previewText) !== '') : ?>
         <?= $this->Parser->parse($previewText) ?>

@@ -37,7 +37,13 @@ $backUrl = $this->request->getAttribute('webroot') . 'entries/htmx-thread/' . (i
                 <div class="alert alert-error"><?= h(__('Please check your entry.')) ?></div>
             <?php endif; ?>
             <?php
-            echo $this->Form->create(null, ['url' => ['action' => 'htmxEdit', $id], 'type' => 'post']);
+            // Datenattribute für die Vorschau: beim Bearbeiten sind Kategorie und
+            // Aufrufzahl die des vorhandenen Beitrags, nicht die eines neuen.
+            echo $this->Form->create(null, [
+                'url' => ['action' => 'htmxEdit', $id], 'type' => 'post',
+                'data-preview-category' => (int)$posting->get('category_id'),
+                'data-preview-views' => (int)$posting->get('views'),
+            ]);
 
             if (!empty($isRoot)) {
                 echo $this->Form->control('category_id', [

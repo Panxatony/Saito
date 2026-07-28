@@ -107,10 +107,18 @@ document.addEventListener('click', (event: MouseEvent) => {
     if (subject) {
         body.append('subject', subject);
     }
-    const category = form.querySelector<HTMLSelectElement>('[name="category_id"]')?.value;
-    if (category) {
+    // The category comes from the chooser when the form has one (a new thread,
+    // or editing a thread starter). A reply has no chooser — it inherits the
+    // parent's — and neither does editing an answer, so those forms carry it as
+    // a data attribute instead.
+    const category = form.querySelector<HTMLSelectElement>('[name="category_id"]')?.value
+        || form.dataset.previewCategory;
+    if (category && category !== '0') {
         body.append('categoryId', category);
     }
+    // Views: nought for a posting that does not exist yet, the real count when
+    // an existing one is being edited.
+    body.append('views', form.dataset.previewViews ?? '0');
 
     const url = btn.getAttribute('data-preview-url') ?? '/entries/htmx-preview';
     fetch(url, {

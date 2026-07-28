@@ -587,6 +587,10 @@ class EntriesController extends AppController
                 $category = $found;
             }
         }
+        // Views: nought for a posting that does not exist yet, the real count
+        // when an existing one is being edited. The form says which.
+        $this->set('previewViews', (int)$request->getData('views'));
+
         $this->set('previewCategory', $category);
 
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_preview');
@@ -730,6 +734,9 @@ class EntriesController extends AppController
 
         $this->viewBuilder()->disableAutoLayout();
         $this->set('parentId', $parent->get('id'));
+        // For the preview: a reply inherits its parent's category, and there is
+        // no chooser in this form to read it from.
+        $this->set('parentCategoryId', (int)$parent->get('category_id'));
 
         if ($parentPosting->isAnsweringForbidden()) {
             $this->set('forbidden', true);
