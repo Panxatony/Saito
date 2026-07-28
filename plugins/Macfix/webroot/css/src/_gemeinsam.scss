@@ -13,6 +13,17 @@
 /// after the import.
 body.htmx-island {
   line-height: 1.5;
+
+  /// Nova asks macOS for `antialiased` smoothing, which renders text visibly
+  /// lighter than the platform default — thin enough that the forum did not
+  /// look like itself beside the real one. macfix has always taken the default.
+  ///
+  /// Worth knowing when checking this: the property does nothing on Linux, so a
+  /// screenshot taken there cannot show the difference at all. This one was
+  /// caught by a reader on a Mac, and only then measured.
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: auto;
 }
 
 /// The header bar: one row, edge to edge, logo hard left and the controls hard

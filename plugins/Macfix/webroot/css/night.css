@@ -11577,6 +11577,9 @@ time {
  ******************************************************************************/
 body.htmx-island {
   line-height: 1.5;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: auto;
 }
 
 body.htmx-island #header.htmx-island-header {
