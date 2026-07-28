@@ -71,11 +71,11 @@ echo $this->Setting->table(
     $Settings
 );
 
-echo $this->Setting->table(
-    __('Debug'),
-    ['stopwatch_get'],
-    $Settings
-);
+// The "Debug" section held one switch, stopwatch_get, which turned on the
+// profiler chart in the page footer. That chart was rendered by StopwatchHelper
+// through jQuery and has been unreachable since the SPA went; the helper is
+// gone now, so the switch controls nothing. Its settings row is left in the
+// database — inert, and not worth a migration.
 $this->end('settings');
 ?>
 <div id="settings_index" class="settings index">

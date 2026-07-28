@@ -71,7 +71,6 @@ class AppController extends Controller
         'Layout',
         'Permissions',
         'SaitoHelp.SaitoHelp',
-        'Stopwatch.Stopwatch',
         'TimeH',
         'Url',
         'User',
@@ -82,9 +81,7 @@ class AppController extends Controller
      *
      * @var array default configuration
      */
-    protected array $_defaultConfig = [
-        'showStopwatch' => false,
-    ];
+    protected array $_defaultConfig = [];
 
     /**
      * The current user, set by the AuthUserComponent
@@ -101,8 +98,6 @@ class AppController extends Controller
         Stopwatch::start('------------------- Controller -------------------');
 
         parent::initialize();
-
-        $this->setConfig('showStopwatch', Configure::read('debug'));
 
         // Cake 4 dropped requestAction sub-requests, so the previous
         // is('requested') guard is no longer needed.
@@ -212,7 +207,6 @@ class AppController extends Controller
 
         $this->set('SaitoSettings', new SettingsImmutable(Configure::read('Saito.Settings')));
         $this->set('SaitoEventManager', SaitoEventManager::getInstance());
-        $this->set('showStopwatch', $this->getConfig('showStopwatch'));
 
         Stopwatch::stop('App->beforeRender()');
         Stopwatch::start('------------------- Rendering --------------------');
@@ -239,13 +233,6 @@ class AppController extends Controller
             $this->Themes->set($this->CurrentUser, $theme);
         }
 
-        //= activate stopwatch
-        $stopwatch = $this->request->getQuery('stopwatch');
-        if (
-            $stopwatch && Configure::read('Saito.Settings.stopwatch_get')
-        ) {
-            $this->setConfig('showStopwatch', true);
-        };
 
         //= change language
         $lang = $this->request->getQuery('lang');

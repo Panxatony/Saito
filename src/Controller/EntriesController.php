@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Controller\Component\AutoReloadComponent;
 use App\Controller\Component\MarkAsReadComponent;
 use App\Controller\Component\PostingComponent;
 use App\Controller\Component\RefererComponent;
