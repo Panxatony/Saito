@@ -16,6 +16,7 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
 ?>
 <div class="js-addForm-wrap">
     <?php
+    echo $this->element('entry/htmx_editor_preview');
     echo $this->Form->create(null, [
         'url' => ['action' => 'htmxAdd'],
         'type' => 'post',

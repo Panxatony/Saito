@@ -26,6 +26,7 @@ $actionUrl = $this->Url->build(
 $subject = $submitted['subject'] ?? '';
 $text = $submitted['text'] ?? '';
 ?>
+<?= $this->element('entry/htmx_editor_preview') ?>
 <form class="htmx-reply-form" style="margin-top: 0.75em;"
       hx-post="<?= h($actionUrl) ?>"
       hx-target="closest .js-replySlot"

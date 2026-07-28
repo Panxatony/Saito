@@ -113,5 +113,4 @@ $buttons = [
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
-    <div class="js-editor-preview"></div>
 </div>

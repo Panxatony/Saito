@@ -701,6 +701,83 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The preview shows the posting, not just its body: a writer checking their
+     * work wants to see the heading they typed above the text it belongs to.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewRendersSubjectAndText(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Ein Betreff', 'text' => 'Der Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Ein Betreff');
+        $this->assertResponseContains('Der Text');
+        $this->assertResponseContains('postingBody-heading');
+    }
+
+    /**
+     * A subject with no text is a posting Saito has always allowed, and renders
+     * with " n/t" appended. The preview has to say the same, or it promises a
+     * shape the posting will not have.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewMarksATextlessPostingAsNt(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Nur Betreff', 'text' => '']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Nur Betreff n/t');
+    }
+
+    /**
+     * Nothing written yet means an empty fragment, so the island can keep the
+     * panel shut instead of opening an empty frame above every reply box.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewIsEmptyWhenNothingWasWritten(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => '', 'text' => '  ']);
+
+        $this->assertResponseOk();
+        $this->assertSame('', trim((string)$this->_response->getBody()));
+    }
+
+    /**
+     * The category shown in the preview comes from the form, so it is a value
+     * the member controls. It must be checked against what they may read, or
+     * the preview becomes a way to look up the name of a hidden category.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewRefusesACategoryTheMemberCannotRead(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $categories = \Cake\ORM\TableRegistry::getTableLocator()->get('Categories');
+        $unreadable = $categories->find()
+            ->where(['accession >' => 1])
+            ->first();
+        $this->post('/entries/htmx-preview', [
+            'subject' => 'Betreff', 'text' => 'Text',
+            'categoryId' => $unreadable ? $unreadable->get('id') : 9999,
+        ]);
+
+        $this->assertResponseOk();
+        if ($unreadable !== null) {
+            $this->assertResponseNotContains((string)$unreadable->get('category'));
+        }
+    }
+
+    /**
      * The order the widgets appear in, as rendered.
      *
      * @return list<string>

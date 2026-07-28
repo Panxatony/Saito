@@ -561,7 +561,34 @@ class EntriesController extends AppController
      */
     public function htmxPreview()
     {
-        $this->set('previewText', (string)$this->getRequest()->getData('text'));
+        $request = $this->getRequest();
+        $this->set('previewText', (string)$request->getData('text'));
+        $this->set('previewSubject', (string)$request->getData('subject'));
+
+        // The preview shows the posting the way the forum will: heading, the
+        // author/category line, then the text. Author and time are the ones it
+        // would actually get, so what is shown is not a mock-up of the layout
+        // but the posting itself, one step early.
+        $this->set('previewAuthor', (string)$this->CurrentUser->get('username'));
+
+        // The category is whatever the form knows — the parent's for a reply,
+        // the chooser's for a new thread. Absent is fine: the line simply drops
+        // that part rather than inventing one.
+        $categoryId = (int)$request->getData('categoryId');
+        $category = null;
+        if ($categoryId > 0) {
+            $found = $this->Entries->Categories->find()
+                ->where(['id' => $categoryId])
+                ->first();
+            // Only categories the member may read — the preview must not become
+            // a way to learn the name of a category they cannot see.
+            $readable = $this->CurrentUser->getCategories()->getAll('read');
+            if ($found !== null && in_array($categoryId, $readable, true)) {
+                $category = $found;
+            }
+        }
+        $this->set('previewCategory', $category);
+
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_preview');
     }
 

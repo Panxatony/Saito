@@ -26,6 +26,7 @@ $backUrl = $this->request->getAttribute('webroot') . 'entries/htmx-thread/' . (i
             <?= $this->Layout->textWithIcon(h(__('Back')), 'arrow-left') ?>
         </a>
     </p>
+    <?= $this->element('entry/htmx_editor_preview') ?>
     <div class="panel panel-form panel-center">
         <?= $this->Layout->panelHeading(__('edit_linkname')) ?>
         <div class="panel-content">

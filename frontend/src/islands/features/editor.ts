@@ -58,8 +58,32 @@ document.addEventListener('click', (event: MouseEvent) => {
     }
 });
 
-// Editor preview: render the current textarea through htmxPreview and show the
-// result in the toolbar's preview box. Wired explicitly (not via htmx's fragile
+/**
+ * The preview panel belonging to a form.
+ *
+ * It sits *before* the form rather than inside it, so it cannot be found by
+ * searching the form's own subtree — `previousElementSibling` walks back to it.
+ * The edit view wraps its form in a panel, so the lookup climbs one level when
+ * the panel is not a direct sibling.
+ */
+function previewPanelFor(form: HTMLElement): HTMLElement | null {
+    let node: Element | null = form;
+    while (node) {
+        const sibling = node.previousElementSibling;
+        if (sibling?.classList.contains('js-editorPreviewPanel')) {
+            return sibling as HTMLElement;
+        }
+        node = node.parentElement;
+        if (node === document.body) {
+            break;
+        }
+    }
+
+    return null;
+}
+
+// Editor preview: render what the writer has so far through htmxPreview and
+// show it in the panel above the form. Wired explicitly (not via htmx's fragile
 // `next` target inside the hx-post form) so it works in the inline editor too.
 document.addEventListener('click', (event: MouseEvent) => {
     const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-bb-preview');
@@ -67,14 +91,28 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
     event.preventDefault();
-    const toolbar = btn.closest('.js-editor-toolbar');
-    const textarea = btn.closest('form')?.querySelector<HTMLTextAreaElement>('textarea[name="text"]');
-    const box = toolbar?.querySelector<HTMLElement>('.js-editor-preview');
-    if (!textarea || !box) {
+    const form = btn.closest<HTMLElement>('form');
+    const textarea = form?.querySelector<HTMLTextAreaElement>('textarea[name="text"]');
+    const panel = form ? previewPanelFor(form) : null;
+    const box = panel?.querySelector<HTMLElement>('.js-editor-preview');
+    if (!form || !textarea || !panel || !box) {
         return;
     }
-    const url = btn.getAttribute('data-preview-url') ?? '/entries/htmx-preview';
+
+    // Subject and category travel with the text, so the preview can show the
+    // posting's heading and info line and not just its body. Both are optional:
+    // a reply has no category chooser, and a posting may have no subject yet.
     const body = new URLSearchParams({ text: textarea.value });
+    const subject = form.querySelector<HTMLInputElement>('input[name="subject"]')?.value;
+    if (subject) {
+        body.append('subject', subject);
+    }
+    const category = form.querySelector<HTMLSelectElement>('[name="category_id"]')?.value;
+    if (category) {
+        body.append('categoryId', category);
+    }
+
+    const url = btn.getAttribute('data-preview-url') ?? '/entries/htmx-preview';
     fetch(url, {
         method: 'POST',
         headers: {
@@ -88,6 +126,62 @@ document.addEventListener('click', (event: MouseEvent) => {
         .then((r) => r.text())
         .then((html) => {
             box.innerHTML = html;
+            // An empty response means there was nothing worth previewing; keep
+            // the panel shut rather than opening an empty frame.
+            panel.hidden = html.trim() === '';
+            if (!panel.hidden) {
+                panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
         })
         .catch(() => undefined);
+});
+
+// Closing the preview is a plain hide — the next press of "Preview" refills it.
+document.addEventListener('click', (event: MouseEvent) => {
+    const close = (event.target as HTMLElement).closest<HTMLElement>('.js-editorPreviewClose');
+    const panel = close?.closest<HTMLElement>('.js-editorPreviewPanel');
+    if (panel) {
+        event.preventDefault();
+        panel.hidden = true;
+    }
+});
+
+/**
+ * Let a text box grow with what is written in it.
+ *
+ * The editor starts at a few rows, which is right for a one-line answer and
+ * wrong the moment somebody writes a paragraph: the text scrolls inside a small
+ * window and the writer loses sight of what they said. Height is reset before
+ * measuring, or `scrollHeight` keeps reporting the previous, larger box and the
+ * field can only ever grow.
+ *
+ * Capped at 80vh so a long posting still leaves the buttons below it reachable
+ * without scrolling the page to the bottom first.
+ */
+function autoGrow(textarea: HTMLTextAreaElement): void {
+    textarea.style.height = 'auto';
+    const max = Math.round(window.innerHeight * 0.8);
+    textarea.style.height = `${Math.min(textarea.scrollHeight, max)}px`;
+    textarea.style.overflowY = textarea.scrollHeight > max ? 'auto' : 'hidden';
+}
+
+document.addEventListener('input', (event: Event) => {
+    const el = event.target as HTMLElement;
+    if (el instanceof HTMLTextAreaElement && el.name === 'text') {
+        autoGrow(el);
+    }
+});
+
+// Also on arrival: an edit form opens with the existing posting already in it,
+// and htmx swaps these forms in after page load, so a one-off pass at startup
+// would miss them.
+function growExisting(root: ParentNode): void {
+    root.querySelectorAll<HTMLTextAreaElement>('textarea[name="text"]').forEach(autoGrow);
+}
+document.addEventListener('DOMContentLoaded', () => growExisting(document));
+document.body.addEventListener('htmx:afterSwap', (event: Event) => {
+    const target = (event as CustomEvent).detail?.target as HTMLElement | undefined;
+    if (target) {
+        growExisting(target);
+    }
 });
