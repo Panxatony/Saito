@@ -88,6 +88,26 @@ enabled = true
 # Setting `module_system` / `dialect` above did not change the verdict, so the
 # rule flags top-level declarations regardless of module scope.
 #
+# JS-0067 count re-checked on 2026-07-28 after the island bundle was split into
+# one module per feature: it grew from 23 to 38 occurrences across 11 files, for
+# the same reason. Re-verified independently rather than trusting the older note:
+#
+#   1. 14 of the 16 files under frontend/src carry `import`/`export`, so their
+#      top level is module scope.
+#   2. vite.config.ts still builds `formats: ['iife']`, and the emitted bundle
+#      begins `(function(){"use strict";` — nothing declared inside can reach the
+#      global object.
+#   3. The built bundle assigns exactly three names to `window`: `htmx`,
+#      `Alpine` and `onpopstate`. All three are deliberate.
+#
+# JS-R1005 ("cyclomatic complexity higher than threshold") — 20 occurrences, all
+# rated "medium risk" at complexity 6 to 10, spread over the island event
+# handlers. Not treated as defects. The worst of them
+# (smartInsert.ts, the paste handler) is eighteen lines of guard clauses that
+# return early; its score comes from counting those guards and one four-way
+# `||`. Splitting such a function to satisfy a threshold buys a number and costs
+# a reader. Revisit if something crosses into "high risk" or grows past ~15.
+
 # JS-0052 ("alert/confirm/prompt") is *not* a false positive and is therefore
 # not ignored here: it is suppressed with a `skipcq` comment at the one call
 # site, where the reason for accepting it can be read next to the code.
