@@ -46,8 +46,16 @@ if ($subject !== '' && trim($previewText) === '') {
         <?php // Derselbe Helfer wie im echten Beitrag, damit Markup und Ziel
               // identisch sind — der Name führt aufs Profil. ?>
         <span class="c-username"><?= $this->User->linkToUserProfile($previewAuthor, $CurrentUser) ?></span>,
-        <?= $this->TimeH->formatTime(new \Cake\I18n\DateTime()) ?>,
-        <?= h(__('views_headline')) ?>: <?= (int)$previewViews ?>
+        <?php // Same wrapper and same order as a real posting: place, time,
+              // views. The place is only shown when the member has set one,
+              // exactly as the posting views do it. ?>
+        <span class="meta">
+            <?php if ($previewAuthor->get('user_place')) : ?>
+                <?= h((string)$previewAuthor->get('user_place')) ?>,
+            <?php endif; ?>
+            <?= $this->TimeH->formatTime(new \Cake\I18n\DateTime()) ?>,
+            <?= h(__('views_headline')) ?>: <?= (int)$previewViews ?>
+        </span>
     </aside>
     <?php if (trim($previewText) !== '') : ?>
         <?= $this->Parser->parse($previewText) ?>

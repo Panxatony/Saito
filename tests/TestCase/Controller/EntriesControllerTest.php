@@ -779,6 +779,50 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The member's place sits between their name and the time, when they have
+     * set one — the last piece that separated the preview's info line from the
+     * posting's.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewShowsTheAuthorsPlace(): void
+    {
+        $users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+        $user = $users->get(3);
+        $users->patchEntity($user, ['user_place' => 'Buxtehude']);
+        $users->saveOrFail($user);
+
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Buxtehude');
+    }
+
+    /**
+     * A member without a place gets no stray comma — the posting views leave it
+     * out entirely, and so must this.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewOmitsAnEmptyPlace(): void
+    {
+        $users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+        $user = $users->get(3);
+        $users->patchEntity($user, ['user_place' => '']);
+        $users->saveOrFail($user);
+
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $body = preg_replace('/\s+/', ' ', (string)$this->_response->getBody());
+        $this->assertStringNotContainsString('</span>, , ', $body);
+    }
+
+    /**
      * Nothing written yet means an empty fragment, so the island can keep the
      * panel shut instead of opening an empty frame above every reply box.
      *
