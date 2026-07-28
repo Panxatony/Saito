@@ -129,6 +129,17 @@ jobs:
           # "Preserve committed config/app.php" step above).
           cp /tmp/app.php.committed config/app.php
           mkdir -p build
+          # docs/help is content the application reads at runtime (the help
+          # overlay and /help), so it ships; the developer documentation beside
+          # it does not. tar lets `*` cross slashes by default, which would take
+          # docs/help/*/*.md with it — so that is switched off for that one
+          # pattern and straight back on, because `*/tests` further down relies
+          # on the default.
+          #
+          # These comments live here rather than between the arguments: a `#`
+          # line following a trailing backslash comments out the remainder of the
+          # command. That swallowed the `.` operand and tar refused to build an
+          # empty archive — which is how the first 8.1.0 build died.
           tar czf "build/${RELEASE_NAME}.tar.gz" \
             --transform "s,^,${RELEASE_NAME}/," \
             --exclude='./.git' \
@@ -138,12 +149,6 @@ jobs:
             --exclude='./.phpunit.result.cache' \
             --exclude='./build' \
             --exclude='./dev' \
-            # docs/help is content the application reads at runtime (the help
-            # overlay and /help), so it has to ship; the developer
-            # documentation beside it does not. tar lets `*` cross slashes by
-            # default, which would take docs/help/*/*.md with it — so turn
-            # that off for this one pattern and immediately back on, because
-            # `*/tests` below depends on the default behaviour.
             --no-wildcards-match-slash \
             --exclude='./docs/*.md' \
             --wildcards-match-slash \
