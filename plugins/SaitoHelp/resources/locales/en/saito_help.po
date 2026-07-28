@@ -17,3 +17,11 @@ msgstr ""
 #: Template/SaitoHelps/view.ctp:10
 msgid "improve"
 msgstr "Improve this help-page"
+
+#: plugins/SaitoHelp/templates/SaitoHelps/tour.php
+msgid "overlay.topics"
+msgstr "More topics"
+
+#: plugins/SaitoHelp/templates/SaitoHelps/tour.php
+msgid "overlay.back"
+msgstr "Back to the overview"

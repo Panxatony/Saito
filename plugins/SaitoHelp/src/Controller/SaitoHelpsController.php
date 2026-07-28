@@ -46,7 +46,26 @@ class SaitoHelpsController extends AppController
         $lang = (string)Configure::read('Saito.language');
         $isAdmin = (bool)$this->CurrentUser->permission('saito.core.admin.backend');
         $this->set('topics', $this->findAll($lang, $isAdmin));
+        $this->set('lang', $lang);
         $this->set('titleForPage', __('Help'));
+    }
+
+    /**
+     * The help overlay's content: the guided tour and the list of topics.
+     *
+     * Loaded on demand rather than rendered into every page — the overlay is
+     * opened rarely and its markup is not small.
+     *
+     * @return void
+     */
+    public function tour()
+    {
+        $lang = (string)Configure::read('Saito.language');
+        $isAdmin = (bool)$this->CurrentUser->permission('saito.core.admin.backend');
+        // Only whether there is anywhere to go — the topics themselves belong on
+        // /help, not repeated in the overlay.
+        $this->set('hasTopics', $this->findAll($lang, $isAdmin) !== []);
+        $this->viewBuilder()->disableAutoLayout();
     }
 
     /**
@@ -90,6 +109,13 @@ class SaitoHelpsController extends AppController
 
         $this->set('titleForPage', __('Help'));
 
+        // Opened from the help overlay: return the topic alone, so it can be
+        // swapped in beside the tour instead of navigating away from whatever
+        // the reader was doing.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_view');
+        }
+
         // Render the help page; explicit null so all paths return (the
         // redirect paths above return a Response).
         return null;
@@ -101,7 +127,7 @@ class SaitoHelpsController extends AppController
     public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
-        $this->Authentication->allowUnauthenticated(['languageRedirect', 'view', 'index']);
+        $this->Authentication->allowUnauthenticated(['languageRedirect', 'view', 'index', 'tour']);
     }
 
     /**
@@ -186,6 +212,12 @@ class SaitoHelpsController extends AppController
 
             $topics = [];
             foreach (array_diff(scandir($folderPath), ['.', '..']) as $file) {
+                // overlay.md is the guided tour shown in the help overlay, not a
+                // topic of its own — listing it here would offer the same text
+                // twice under two different names.
+                if ($file === 'overlay.md') {
+                    continue;
+                }
                 if (!preg_match('/^(?<id>[^-.]+)(-.*?)?\.md$/', $file, $m)) {
                     continue;
                 }

@@ -997,3 +997,22 @@
     padding-bottom: 0.4rem !important;
     border-radius: 0 !important;
 }
+
+/* Help overlay: the topic list under the tour, and a topic opened in its place.
+   The Markdown now supplies paragraphs where the old hand-written markup had
+   bare text, so the first one sits tight against its heading. */
+.htmx-island .island-help-item p { margin: 0 0 .5rem; }
+.htmx-island .island-help-item p:last-child { margin-bottom: 0; }
+.htmx-island .island-help-lead p:last-child,
+.htmx-island .island-help-outro p:last-child { margin-bottom: 0; }
+
+.htmx-island .island-help-topics {
+    margin: 1.5rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--nova-border, #ddd);
+}
+.htmx-island .island-help-topics h4 { margin: 0 0 .5rem; font-size: 1rem; }
+.htmx-island .island-help-topics ul { margin: 0; padding-left: 1.2rem; }
+.htmx-island .island-help-topics li { margin-bottom: .25rem; }
+
+.htmx-island .island-help-back { padding-left: 0; margin-bottom: .5rem; }

@@ -42,3 +42,46 @@ pre code, pre tt {
     background-color: transparent;
     border: none;
 }
+/* The help page as an accordion: heading opens the text beneath it. */
+.saito-help-index { margin-top: 1rem; }
+.saito-help-topic { border-top: 1px solid rgba(128, 128, 128, .25); }
+.saito-help-topic:last-child { border-bottom: 1px solid rgba(128, 128, 128, .25); }
+.saito-help-index .saito-help-topic-head {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.4;
+    border: 0;
+}
+.saito-help-index .saito-help-topic-head a {
+    display: block;
+    padding: .7rem .2rem;
+    text-decoration: none;
+    color: inherit;
+}
+.saito-help-index .saito-help-topic-head a:hover { text-decoration: underline; }
+.saito-help-caret {
+    display: inline-block;
+    width: 1em;
+    margin-right: .35em;
+    opacity: .6;
+    transition: transform .15s ease;
+}
+.saito-help-caret.is-open { transform: rotate(90deg); }
+.saito-help-topic-body { padding: 0 .2rem 1rem 1.55em; }
+
+/* Alpine removes x-cloak once it has taken over. Without this rule every panel
+   would be visible for the moment before that — the whole page at once. */
+[x-cloak] { display: none !important; }
+
+/* Inside an opened topic the remaining headings are sub-sections of it, so they
+   sit below the accordion heading in weight rather than towering over it. */
+.saito-help-index .saito-help-body h1,
+.saito-help-index .saito-help-body h2,
+.saito-help-index .saito-help-body h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1rem 0 .35rem;
+    border: 0;
+}
+.saito-help-index .saito-help-body > *:first-child { margin-top: 0; }

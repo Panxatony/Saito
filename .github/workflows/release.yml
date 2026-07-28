@@ -138,7 +138,16 @@ jobs:
             --exclude='./.phpunit.result.cache' \
             --exclude='./build' \
             --exclude='./dev' \
-            --exclude='./docs' \
+            # docs/help is content the application reads at runtime (the help
+            # overlay and /help), so it has to ship; the developer
+            # documentation beside it does not. tar lets `*` cross slashes by
+            # default, which would take docs/help/*/*.md with it — so turn
+            # that off for this one pattern and immediately back on, because
+            # `*/tests` below depends on the default behaviour.
+            --no-wildcards-match-slash \
+            --exclude='./docs/*.md' \
+            --wildcards-match-slash \
+            --exclude='./docs/local' \
             --exclude='./frontend' \
             --exclude='./node_modules' \
             --exclude='./logs' \

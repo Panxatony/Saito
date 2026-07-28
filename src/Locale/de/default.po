@@ -2654,3 +2654,7 @@ msgstr "Zur Hilfe"
 
 msgid "entry.text.ph.nt"
 msgstr "Text – leer lassen für n/t"
+
+#: templates/element/layout/htmx_help.php
+msgid "help.overlay.missing"
+msgstr "Für dieses Forum ist kein Hilfetext hinterlegt."

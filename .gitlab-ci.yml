@@ -183,7 +183,10 @@ build:
       --exclude='./.phpunit.result.cache'
       --exclude='./build'
       --exclude='./dev'
-      --exclude='./docs'
+      --no-wildcards-match-slash
+      --exclude='./docs/*.md'
+      --wildcards-match-slash
+      --exclude='./docs/local'
       --exclude='./frontend'
       --exclude='./node_modules'
       --exclude='./logs'

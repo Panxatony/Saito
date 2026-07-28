@@ -10,7 +10,7 @@ Viewing a single entry marks the entry as read. Opening a thread in mix-view mar
 
 ## Manual Mark as Read (mMAR) ##
 
-The double-arrow button on top of the homepage marks all current entries as read.
+Signed-in readers mark everything read with the tick button *"mark all read"* in the action bar above the thread list.
 
 ## Intelligent Mark as Read (iMAR) ##
 

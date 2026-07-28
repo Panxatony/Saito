@@ -116,6 +116,7 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'SaitoHelp\\Controller\\SaitoHelpsController::index' => 'help pages',
         'SaitoHelp\\Controller\\SaitoHelpsController::view' => 'help page',
         'SaitoHelp\\Controller\\SaitoHelpsController::languageRedirect' => 'redirects to the help page in the visitor\'s language',
+        'SaitoHelp\\Controller\\SaitoHelpsController::tour' => 'the help overlay\'s content: the tour and the topic list',
     ];
 
     /**

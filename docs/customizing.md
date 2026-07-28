@@ -3,13 +3,13 @@
 
 ## Themes ##
 
-The default theme *Bota* is implemented as a [CakePHP theme plugin](https://book.cakephp.org/5/en/views/themes.html) and lives in `plugins/Bota`. The UI is implemented as [Bootstrap 4](https://getbootstrap.com/docs/4.3/getting-started/introduction/) theme.
+The default theme is *Nova*, a [CakePHP theme plugin](https://book.cakephp.org/5/en/views/themes.html) in `plugins/Nova`. It builds on the SCSS partials of *Bota* (`plugins/Bota`), the older theme, which also hosts the shared assets — the web fonts and the smiley icon font are served from `/bota/` for every theme. The UI is [Bootstrap 4](https://getbootstrap.com/docs/4.3/getting-started/introduction/) based.
 
 To start your own theme I recommend using SASS and referencing the default theme.
 
 A theme is an ordinary [CakePHP plugin](https://book.cakephp.org/5/en/plugins.html#manually-autoloading-plugin-classes); `plugins/Macnemo` (the macnemo identity, built on Nova) is a worked example to read. The steps below use *MyTheme* as a placeholder — substitute your own name.
 
-1. Create `plugins/MyTheme` and copy the theme resources (default template, webroot content) from `plugins/Bota` into it.
+1. Create `plugins/MyTheme` and copy the theme resources (default template, webroot content) from `plugins/Nova` into it.
 
 2. Register the plugin (`composer.json` autoload + `addPlugin()` in *src/Application.php*) and activate *MyTheme* as default theme in *config/saito_config.php*.
 
@@ -54,3 +54,21 @@ To recognize additional agents on your installation, add snippets via the `Saito
 ```
 
 A client is treated as a bot when its `User-Agent` contains any of the snippets (case-insensitive substring match).
+
+## The help overlay
+
+The guided tour in the help overlay is Markdown, and a forum can supply its own.
+The first file found wins:
+
+1. `config/help/<lang>/overlay.md` — this installation's own. `config/` is
+   excluded from every deploy, so it survives updates.
+2. `plugins/<YourTheme>/docs/help/<lang>/overlay.md` — shipped with your theme,
+   and therefore in version control. `plugins/Macnemo` does this.
+3. `docs/help/<lang>/overlay.md` — what Saito ships.
+
+Languages are tried in turn: the configured one, its base (`de_DE` → `de`), then
+English.
+
+The format is Markdown with two conventions: an `<!-- icon: name -->` line above
+a `###` heading picks the Font Awesome glyph beside it, and anything after
+`<!-- outro -->` closes the tour. Text before the first heading introduces it.

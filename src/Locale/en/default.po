@@ -1818,3 +1818,7 @@ msgstr "Open the help"
 
 msgid "entry.text.ph.nt"
 msgstr "Text — leave empty for n/t"
+
+#: templates/element/layout/htmx_help.php
+msgid "help.overlay.missing"
+msgstr "No help text is configured for this forum."

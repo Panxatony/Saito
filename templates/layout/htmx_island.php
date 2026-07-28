@@ -180,7 +180,9 @@
         </div>
     </div>
 
-    <?php // Help overlay: static, humorous tour of the forum's features. ?>
+    <?php // Help overlay. The content — the tour plus the other topics — is
+          // fetched from /help/tour when it is first opened, rather than
+          // rendered into every page for the rare visit that reads it. ?>
     <div id="js-helpModal" class="island-modal" hidden>
         <div class="island-modal-backdrop js-modal-close"></div>
         <div class="island-modal-dialog island-help-dialog" role="dialog" aria-modal="true"
@@ -189,7 +191,7 @@
             <h3 style="margin: 0 0 .75rem; font-size: 1.2rem;">
                 <i class="fa fa-question-circle"></i>&nbsp;<?= h(__('Help')) ?>
             </h3>
-            <?= $this->element('layout/htmx_help') ?>
+            <div id="js-helpModalBody"></div>
         </div>
     </div>
 

@@ -38,7 +38,7 @@ interface ModalSpec {
 const MODALS: ModalSpec[] = [
     // Login and register share one overlay; the trigger picks the form.
     { trigger: '.js-authModalOpen', modal: 'js-loginModal', body: 'js-loginModalBody', url: '/login' },
-    { trigger: '.js-helpOpen', modal: 'js-helpModal' },
+    { trigger: '.js-helpOpen', modal: 'js-helpModal', body: 'js-helpModalBody', url: '/help/tour' },
     { trigger: '.js-rssOpen', modal: 'js-rssModal' },
     {
         trigger: '.js-contactModalOpen',
