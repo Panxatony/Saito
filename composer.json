@@ -91,6 +91,7 @@
       "Installer\\Test\\": "plugins/Installer/tests",
       "Macnemo\\": "./plugins/Macnemo/src/",
       "Macnemo\\Test\\": "./plugins/Macnemo/tests/",
+      "Macfix\\": "./plugins/Macfix/src/",
       "SaitoHelp\\": "./plugins/SaitoHelp/src",
       "SaitoSearch\\": "./plugins/SaitoSearch/src",
       "Sitemap\\": "./plugins/Sitemap/src",

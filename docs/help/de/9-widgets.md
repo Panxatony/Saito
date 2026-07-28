@@ -1,6 +1,6 @@
 ## Die Widgets
 
-Neben der Threadliste stehen drei kleine Kästchen — auf breiten Bildschirmen
+Neben der Threadliste stehen bis zu drei kleine Kästchen — auf breiten Bildschirmen
 rechts daneben, auf schmalen unterhalb der Liste.
 
 - **Online** zeigt, wer gerade da ist. Angemeldete Mitglieder stehen mit Namen

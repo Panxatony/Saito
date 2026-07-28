@@ -3,9 +3,10 @@ A tour of the forum: where things are and how they work.
 <!-- icon: list -->
 ### The thread list
 
-The front page lists threads, most recently answered first. A coloured bar on
-the left marks unread postings and disappears once they have been opened. *Load
-more* fetches older threads.
+The front page lists threads, most recently answered first. Unread postings are
+set in a different colour from ones you have read, and some designs add a bar
+down the left as well. Either way the marking goes once the posting has been
+opened. *Load more* fetches older threads.
 
 The arrow next to a thread folds its answers away until only the opening posting
 remains — the settings can make that the default for every thread. The *mix

@@ -11,7 +11,16 @@ A theme is an ordinary [CakePHP plugin](https://book.cakephp.org/5/en/plugins.ht
 
 1. Create `plugins/MyTheme` and copy the theme resources (default template, webroot content) from `plugins/Nova` into it.
 
-2. Register the plugin (`composer.json` autoload + `addPlugin()` in *src/Application.php*) and activate *MyTheme* as default theme in *config/saito_config.php*.
+2. Activate *MyTheme* as the default theme in *config/saito_config.php*
+   (`Saito.themes.default`). That is enough to load it: Saito loads the
+   configured default theme's plugin itself, and CakePHP finds a plugin by its
+   directory name even when no class of its own is autoloadable.
+
+   Add `"MyTheme\\": "./plugins/MyTheme/src/"` to `composer.json`'s autoload
+   map only if the theme ships a plugin class you want CakePHP to *use* —
+   without the entry it silently falls back to a generic `BasePlugin`, which is
+   all a pure theme needs. Do not edit *src/Application.php*; nothing there has
+   to know about your theme.
 
 3. Replace everything in *plugins/MyTheme/webroot/css/theme.scss* with:
 
@@ -34,12 +43,55 @@ body {...}
 ...
 ```
 
+### The forum logo
+
+The header shows `webroot/img/forum_logo.*` from the active theme. Any of `svg`,
+`png`, `webp` or `jpg` works and the vector is preferred when several exist, so a
+theme whose wordmark only exists as a bitmap needs no conversion. The image is
+shown at about 2.5rem high; supply it at twice that for high-resolution screens.
+
+If the header bar has a colour of its own, remember that the logo sits on *that*
+and not on the page background — `plugins/Macfix` is a worked example of a
+coloured bar with a light wordmark.
+
 Theming resources:
 
 - [Bootstrap theming](https://getbootstrap.com/docs/4.3/getting-started/theming/)
 - [Boostrap variables](https://github.com/twbs/bootstrap/blob/v4.3.0/scss/_variables.scss)
 - [SASS documentation](https://sass-lang.com/documentation)
 - [Simple GUI crossplatform SASS processor](https://scout-app.io/)
+
+## The front page ##
+
+Three keys in `config/saito_config.php` decide what the front page carries
+besides the thread list. All three are optional, and leaving a key out keeps
+Saito behaving as it always has.
+
+```
+'Saito' => [
+    'bannerHtml' => '',
+    'notice' => true,
+    'widgetsForGuests' => true,
+],
+```
+
+`bannerHtml` is markup placed between the header bar and the page, inside a
+`div.ads_top` — the slot forums have traditionally used for a banner or a
+donation notice. It is rendered unescaped, so it is operator-controlled
+configuration and never user input. Empty means the container is not rendered at
+all, so a forum without a banner gets no stray markup.
+
+`notice` shows the bar explaining the modernised frontend (or, on a beta
+installation, that this is a throwaway copy). It earns its place in the weeks
+around a switch, when people arrive with a stale cache and an interface they
+have never seen; set it to `false` once that has passed.
+
+`widgetsForGuests` decides whether visitors who are not signed in get the widget
+rail — who is online, and the most recent postings. `false` makes it a
+members-only feature: the rail is not rendered for a guest, and the fragment
+endpoint answers them with nothing, so the online list cannot be read by
+requesting it directly either. "Your postings" has always required an account
+and is unaffected.
 
 ## Bot detection ##
 

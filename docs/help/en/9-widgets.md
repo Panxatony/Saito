@@ -1,6 +1,6 @@
 ## The widgets
 
-Three small panels sit beside the thread list — to its right on wide screens,
+Up to three small panels sit beside the thread list — to its right on wide screens,
 below it on narrow ones.
 
 - **Online** shows who is currently present. Signed-in members appear by name,

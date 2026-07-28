@@ -3,9 +3,10 @@ Ein Rundgang durch das Forum: wo was steht und wie es bedient wird.
 <!-- icon: list -->
 ### Die Threadliste
 
-Die Startseite zeigt die Threads, zuletzt beantwortete zuerst. Ein farbiger
-Strich links markiert ungelesene Beiträge; er verschwindet, sobald der Beitrag
-geöffnet wurde. *Mehr laden* holt ältere Threads nach.
+Die Startseite zeigt die Threads, zuletzt beantwortete zuerst. Ungelesene
+Beiträge stehen in einer anderen Farbe als bereits gelesene; manche Designs
+setzen zusätzlich einen Strich an den linken Rand. Beides verschwindet, sobald
+der Beitrag geöffnet wurde. *Mehr laden* holt ältere Threads nach.
 
 Der Pfeil neben einem Thread faltet dessen Antworten zusammen, bis nur das
 Eröffnungsposting sichtbar bleibt — in den Einstellungen lässt sich das für alle
