@@ -22,7 +22,7 @@ msgstr ""
 
 #: plugins/Admin/src/Controller/AdminsController.php:52
 msgid "Caches cleared."
-msgstr "vld"
+msgstr "Zwischenspeicher geleert."
 
 #: plugins/Admin/src/Controller/CategoriesController.php:68
 #: plugins/Admin/src/Controller/CategoriesController.php:113
@@ -853,6 +853,9 @@ msgstr "Neuestes Mitglied ist {0}."
 #, fuzzy
 msgid "Recent entries"
 msgstr "Letzte Einträge"
+
+msgid "Move widget"
+msgstr "Widget verschieben"
 
 #: src/Template/Cell/SlidetabUserlist/display.ctp:18
 msgid "user_area_linkname"
@@ -2654,3 +2657,15 @@ msgstr "Zur Hilfe"
 
 msgid "entry.text.ph.nt"
 msgstr "Text – leer lassen für n/t"
+
+#: templates/element/layout/htmx_help.php
+msgid "help.overlay.missing"
+msgstr "Für dieses Forum ist kein Hilfetext hinterlegt."
+
+#: templates/Users/htmx_profile.php
+msgid "user.ignored.by.t"
+msgstr "Wird ignoriert von"
+
+#: templates/Users/htmx_profile.php
+msgid "user.ignoring.t"
+msgstr "Von dir ignoriert"

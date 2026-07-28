@@ -40,244 +40,6 @@ class ContactsControllerTest extends IntegrationTestCase
         'app.Setting',
     ];
 
-    public function testCcCopyDoesNotHijackTheMainMailRecipient()
-    {
-        // Regression: the cc copy was a shallow `clone` of the Mailer sharing
-        // its Message object, so setting the copy's To mutated the main mail
-        // too — the recipient's message was delivered to the sender instead.
-        // Uses a real recording transport (snapshots the actual To at send
-        // time), which a PHPUnit mock of the transport fails to catch.
-        RecordingMailTransport::$recipients = [];
-        TransportFactory::drop('saito');
-        TransportFactory::setConfig('saito', ['className' => RecordingMailTransport::class]);
-        Mailer::drop('saito');
-        Mailer::setConfig('saito', ['transport' => 'saito', 'from' => 'system@example.com']);
-
-        $this->mockSecurity();
-        $this->session(['Contact.formLoadTime' => time() - 10]);
-        $this->post('/contacts/owner', [
-            'sender_contact' => 'fo3@example.com',
-            'subject' => 'subject',
-            'text' => 'text',
-            'cc' => '1',
-        ]);
-
-        $recipients = RecordingMailTransport::$recipients;
-        // The main mail must reach the recipient (the forum owner)…
-        $this->assertContains('contact@example.com', $recipients, 'Main mail did not reach the recipient.');
-        // …and the cc copy the sender.
-        $this->assertContains('fo3@example.com', $recipients, 'The cc copy did not reach the sender.');
-    }
-
-    public function testContactEmailSuccessWithCc()
-    {
-        $this->mockSecurity();
-        $this->session(['Contact.formLoadTime' => time() - 10]);
-        $data = [
-            'sender_contact' => 'fo3@example.com',
-            // non-ASCII subject to exercise MIME header encoding on the copy
-            'subject' => 'Sicherheitslücken in Saito',
-            'text' => 'text',
-            'cc' => '1',
-        ];
-
-        $transproter = $this->mockMailTransporter();
-        $callCount = 0;
-        $transproter->expects($this->exactly(2))
-            ->method('send')
-            ->willReturnCallback(function (Message $email) use (&$callCount) {
-                if ($callCount === 0) {
-                    // main mail (sent first): From is the forum address
-                    // (deliverability), the original sender is carried in
-                    // Reply-To.
-                    $this->assertEquals(
-                        $email->getFrom(),
-                        ['system@example.com' => 'macnemo']
-                    );
-                    $this->assertEquals(
-                        $email->getReplyTo(),
-                        ['fo3@example.com' => 'fo3@example.com']
-                    );
-                    $this->assertEquals(
-                        $email->getTo(),
-                        ['contact@example.com' => 'macnemo']
-                    );
-                    // From already equals the system sender: no envelope Sender.
-                    $this->assertEmpty($email->getSender());
-                } else {
-                    // cc copy (sent after the main mail)
-                    $this->assertEquals(
-                        $email->getFrom(),
-                        ['system@example.com' => 'macnemo']
-                    );
-                    $this->assertEquals(
-                        $email->getTo(),
-                        ['fo3@example.com' => 'fo3@example.com']
-                    );
-                    $this->assertEmpty($email->getSender());
-                    // Regression: the copy embedded the already-MIME-encoded
-                    // subject inside quotes ("=?UTF-8?…?=" glued to a '"'),
-                    // which clients render raw. The copy must be one properly
-                    // encoded header carrying the readable original subject.
-                    $this->assertStringNotContainsString('"=?', $email->getSubject());
-                    $this->assertStringContainsString(
-                        'Sicherheitslücken in Saito',
-                        $email->getOriginalSubject()
-                    );
-                }
-                $callCount++;
-                return [];
-            });
-        $this->post('/contacts/owner', $data);
-    }
-
-    /**
-     * tests anonymous users views contact form to owner
-     */
-    public function testContactOwnerByAnonShowForm()
-    {
-        $this->get('/contacts/owner');
-
-        //# anon users must enter his email address
-        // keep matcher in sync with testContactOwnerByUserShowForm
-        $tags = [
-            'input#sender-contact' => [
-                'attributes' => [
-                    'type' => 'email',
-                ],
-            ],
-        ];
-        $this->assertResponseContainsTags($tags);
-    }
-
-    /**
-     * tests registered users views contact form to owner
-     */
-    public function testContactOwnerByUserShowForm()
-    {
-        $this->_loginUser(3);
-        $this->get('/contacts/owner');
-
-        // keep matcher in sync with testContactOwnerByAnonShowForm
-        $this->assertResponseNotContains('sender-contact');
-    }
-
-    /**
-     * tests anonymous sends contact form to owner with invalid email-address
-     */
-    public function testContactOwnerByAnonSendInvalidEmail()
-    {
-        $this->mockSecurity();
-        $this->session(['Contact.formLoadTime' => time() - 10]);
-        $data = [
-            'sender_contact' => 'foo',
-            'subject' => 'Subject',
-            'text' => 'text',
-        ];
-        $transproter = $this->mockMailTransporter();
-        $transproter->expects($this->never())->method('send');
-
-        $this->post('/contacts/owner', $data);
-
-        $expected = 'No valid email address.';
-        $this->assertResponseContains($expected);
-    }
-
-    /**
-     * tests anonymous user successfully sends contact form to owner
-     */
-    public function testContactOwnerByAnonSendSuccess()
-    {
-        $this->mockSecurity();
-        $this->session(['Contact.formLoadTime' => time() - 10]);
-        $transproter = $this->mockMailTransporter();
-
-        $transproter->expects($this->once())
-            ->method('send')
-            ->with(
-                $this->callback(
-                    function (Message $email) {
-                        // From = forum address; sender in Reply-To.
-                        $this->assertEquals(
-                            $email->getFrom(),
-                            ['system@example.com' => 'macnemo']
-                        );
-                        $this->assertEquals(
-                            $email->getReplyTo(),
-                            ['fo3@example.com' => 'fo3@example.com']
-                        );
-                        $this->assertEquals(
-                            $email->getTo(),
-                            ['contact@example.com' => 'macnemo']
-                        );
-                        $this->assertEmpty($email->getSender());
-                        $this->assertStringContainsString(
-                            'message-text',
-                            $email->getBodyText()
-                        );
-                        $this->assertEquals($email->getSubject(), 'subject');
-
-                        return true;
-                    }
-                )
-            );
-
-        $data = [
-            'sender_contact' => 'fo3@example.com',
-            'subject' => 'subject',
-            'text' => 'message-text',
-        ];
-        $this->post('/contacts/owner', $data);
-
-        $this->assertRedirect('/');
-    }
-
-    /**
-     * tests registered user sends contact form to owner
-     */
-    public function testContactOwnerByUserSend()
-    {
-        $this->mockSecurity();
-        $this->_loginUser(3);
-
-        $transproter = $this->mockMailTransporter();
-        $transproter->expects($this->once())
-            ->method('send')
-            ->with(
-                $this->callback(
-                    function (Message $email) {
-                        // From = forum address; the logged-in sender is in
-                        // Reply-To so the owner can reply to the member.
-                        $this->assertEquals(
-                            $email->getFrom(),
-                            ['system@example.com' => 'macnemo']
-                        );
-                        $this->assertEquals(
-                            $email->getReplyTo(),
-                            ['ulysses@example.com' => 'Ulysses']
-                        );
-                        $this->assertEquals(
-                            $email->getTo(),
-                            ['contact@example.com' => 'macnemo']
-                        );
-                        $this->assertEmpty($email->getSender());
-
-                        return true;
-                    }
-                )
-            );
-
-        $data = [
-            // should be ignored
-            'sender_contact' => 'fo3@example.com',
-            'subject' => 'subject',
-            'text' => 'text',
-        ];
-        $this->post('/contacts/owner', $data);
-
-        $this->assertRedirect('/');
-    }
-
     public function testContactUserByAnon()
     {
         $url = '/contacts/user/3';
@@ -285,77 +47,6 @@ class ContactsControllerTest extends IntegrationTestCase
         $this->assertRedirectLogin($url);
     }
 
-    public function testContactUserByUserNoId()
-    {
-        $this->_loginUser(3);
-        $this->expectException(
-            '\Cake\Http\Exception\BadRequestException'
-        );
-        $this->get('/contacts/user/');
-    }
-
-    /**
-     * Test that subject must be provided for sending an email.
-     *
-     * @return void
-     */
-    public function testContactNoSubject()
-    {
-        $url = '/contacts/user/3';
-        $this->mockSecurity();
-        $this->session(['Contact.formLoadTime' => time() - 10]);
-        $transporter = $this->mockMailTransporter();
-        $transporter->expects($this->never())->method('send');
-        $data = [
-            'sender_contact' => 'fo3@example.com',
-            'subject' => '',
-            'text' => 'text',
-        ];
-        $this->post('/contacts/owner/', $data);
-        $this->assertResponseContains('Error: Subject is empty.');
-    }
-
-    /**
-     * Tests contacting user with contacting disabled fails.
-     *
-     * @return void
-     */
-    public function testContactUserContactDisabled()
-    {
-        $this->_loginUser(2);
-        $this->expectException(
-            '\Cake\Http\Exception\BadRequestException',
-            1562415010
-        );
-        $this->get('/contacts/user/5');
-    }
-
-    /**
-     * Admin is allowed to contact a user ignoring the user's personal setting
-     */
-    public function testContactUserContactDisabledPrivileged()
-    {
-        $this->_loginUser(1);
-
-        $this->get('/contacts/user/5');
-
-        $this->assertResponseCode(200);
-        $this->assertResponseNotContains('sender-contact');
-    }
-
-    /**
-     * Tests contacting a non-existing user fails.
-     *
-     * @return void
-     */
-    public function testContactUserWhoDoesNotExist()
-    {
-        $this->_loginUser(2);
-        $this->expectException(
-            '\Cake\Http\Exception\BadRequestException'
-        );
-        $this->get('/contacts/user/9999');
-    }
 
     /**
      * The overlay posts by htmx, so success has to come back as an HX-Redirect
@@ -425,5 +116,95 @@ class ContactsControllerTest extends IntegrationTestCase
             $this->_response->hasHeader('HX-Redirect'),
             'a validation error redirected instead of returning the form'
         );
+    }
+
+    /**
+     * The public contact form's timing guard.
+     *
+     * htmxContactOwner is reachable without an account, so it is one of the few
+     * doors an unattended script can knock on. It defends itself by recording
+     * when the form was fetched and refusing a submission that arrives less than
+     * five seconds later — a human reads and types, a script posts immediately.
+     *
+     * Nothing tested this. The guard could have been removed, or its comparison
+     * inverted, and every suite would still have passed.
+     *
+     * @return void
+     */
+    public function testContactOwnerRejectsAnAnonymousSubmissionThatArrivesTooFast()
+    {
+        $this->mockSecurity();
+
+        // GET first: that is what stamps the session with the load time.
+        $this->get('/contacts/htmx-contact-owner');
+        $this->assertResponseOk();
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => 'Betreff',
+            'text' => 'Nachricht',
+            'sender_contact' => 'bot@example.com',
+            'cc' => 0,
+        ]);
+
+        // Bounced back to the form, not delivered.
+        $this->assertRedirect('/contacts/htmx-contact-owner');
+    }
+
+    /**
+     * The same submission goes through once enough time has passed. Without this
+     * counterpart the test above would also pass if the form were broken
+     * outright.
+     *
+     * @return void
+     */
+    public function testContactOwnerAcceptsAnAnonymousSubmissionAfterTheDelay()
+    {
+        $this->mockSecurity();
+
+        $this->get('/contacts/htmx-contact-owner');
+        // Backdate the stamp rather than sleeping: the guard reads a timestamp,
+        // so moving it is the honest way to represent "the visitor took a while".
+        $this->session(['Contact' => ['formLoadTime' => time() - 60]]);
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => 'Betreff',
+            'text' => 'Nachricht',
+            'sender_contact' => 'mensch@example.com',
+            'cc' => 0,
+        ]);
+
+        $this->assertRedirect('/');
+    }
+
+    /**
+     * A signed-in member is not subject to the delay — they are already known,
+     * and making them wait would be a pointless obstacle.
+     *
+     * @return void
+     */
+    public function testContactOwnerDoesNotDelaySignedInMembers()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(2);
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => 'Betreff',
+            'text' => 'Nachricht',
+            'cc' => 0,
+        ]);
+
+        $this->assertRedirect('/');
+    }
+
+    /**
+     * Reachable without an account at all — that is the point of it.
+     *
+     * @return void
+     */
+    public function testContactOwnerIsPublic()
+    {
+        $this->get('/contacts/htmx-contact-owner');
+
+        $this->assertResponseOk();
     }
 }

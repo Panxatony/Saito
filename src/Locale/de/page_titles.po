@@ -65,3 +65,42 @@ msgstr "Lesezeichen bearbeiten"
 #
 msgid "users/changepassword"
 msgstr "Passwort ändern"
+
+msgid "entries/htmxIndex"
+msgstr "Forum"
+
+msgid "entries/htmxAdd"
+msgstr "Neuer Beitrag"
+
+msgid "entries/htmxEdit"
+msgstr "Beitrag bearbeiten"
+
+msgid "users/htmxRegister"
+msgstr "Registrieren"
+
+msgid "users/htmxUsers"
+msgstr "Benutzerübersicht"
+
+msgid "users/htmxProfile"
+msgstr "Benutzer"
+
+msgid "users/htmxChangePassword"
+msgstr "Passwort ändern"
+
+msgid "users/htmxEdit"
+msgstr "Profil bearbeiten"
+
+msgid "users/htmxLogin"
+msgstr "Anmelden"
+
+msgid "users/bookmarks"
+msgstr "Lesezeichen"
+
+msgid "contacts/htmxContactOwner"
+msgstr "Kontaktiere Betreiber"
+
+msgid "searches/htmxSimple"
+msgstr "Suche"
+
+msgid "searches/htmxAdvanced"
+msgstr "Erweiterte Suche"

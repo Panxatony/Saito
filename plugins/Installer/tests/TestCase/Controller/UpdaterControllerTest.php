@@ -47,6 +47,69 @@ class UpdaterControllerTest extends IntegrationTestCase
         parent::tearDown();
     }
 
+    /**
+     * Put the schema back the way the suite expects to find it.
+     *
+     * Not because of the `DROP TABLE phinxlog` three of these tests perform —
+     * those are deliberate, and the installer they exercise rebuilds the log.
+     * It is the `plugin.Installer.Phinxlog` fixture: the fixture manager
+     * truncates it when the test finishes, which is exactly its job, and an
+     * empty migration log beside a full schema is the one state phinx cannot
+     * work with.
+     *
+     * tests/bootstrap.php then took its recovery path on the next run — drop
+     * every table, migrate from scratch. That path is meant for a crash, and it
+     * was running every single time.
+     *
+     * Once per class, not per test: rebuilding between tests refills `settings`
+     * from the migrations, and the next test's fixture then collides with those
+     * rows. The state only has to be right for whatever comes after this class.
+     *
+     * Measured before this: 11 recorded migrations going in, 0 coming out.
+     *
+     * @return void
+     */
+    public static function tearDownAfterClass(): void
+    {
+        $connection = ConnectionManager::get('test');
+        $vorhanden = $connection->getSchemaCollection()->listTables();
+        $leer = !in_array('phinxlog', $vorhanden, true);
+        if (!$leer) {
+            $leer = (int)$connection
+                ->execute('SELECT COUNT(*) FROM `phinxlog`')
+                ->fetch()[0] === 0;
+        }
+        if (!$leer) {
+            return;
+        }
+
+        // Drop what the partial migration left behind, then build it up again —
+        // the same thing the bootstrap would otherwise do later, but here, where
+        // the test that caused it can pay for it.
+        foreach (
+            [
+                'bookmarks', 'categories', 'drafts', 'entries', 'phinxlog', 'settings',
+                'smiley_codes', 'smilies', 'uploads', 'user_blocks', 'user_ignores',
+                'user_reads', 'useronline', 'users',
+                'esevents', 'esnotifications', 'shouts',
+            ] as $table
+        ) {
+            $connection->execute(sprintf('DROP TABLE IF EXISTS `%s`', $table));
+        }
+        (new Migrations())->migrate(['connection' => 'test']);
+
+        // Migrating also writes the default rows some migrations insert, and the
+        // next test class inserts its own fixtures on top of them — a primary
+        // key collision. Only the migration log is worth keeping here; empty
+        // everything else, which is the state the bootstrap leaves behind too.
+        foreach ($connection->getSchemaCollection()->listTables() as $table) {
+            if ($table === 'phinxlog') {
+                continue;
+            }
+            $connection->execute(sprintf('TRUNCATE TABLE `%s`', $table));
+        }
+    }
+
     public function testUpdaterShowFailureAfterAbortedUpdated()
     {
         file_put_contents($this->tokenPath, '');

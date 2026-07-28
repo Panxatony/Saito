@@ -23,6 +23,16 @@ $routes->connect(
     ]
 );
 
+// Declared before /help/{id}: the overlay's own fragment, not a topic.
+$routes->connect(
+    '/help/tour',
+    [
+        'plugin' => 'SaitoHelp',
+        'controller' => 'SaitoHelps',
+        'action' => 'tour',
+    ]
+);
+
 $routes->connect(
     '/help/{id}',
     [

@@ -75,3 +75,9 @@ msgid "tooShort"
 msgstr ""
 "Die folgenden Wörter sind zu kurz und wurden ignoriert: {0}. Die "
 "Mindestzeichenzahl pro Wort beträgt: {1}."
+
+msgid "search.toAdvanced"
+msgstr "Erweiterte Suche: nach Betreff, Verfasser, Kategorie und Zeitraum"
+
+msgid "search.toSimple"
+msgstr "Zurück zur einfachen Volltextsuche"

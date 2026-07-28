@@ -79,61 +79,19 @@ Data:
 - subject: User
 - table: Table
 
-## saito.core.user.edit.render.request ##
-
-Inserts content into user edit page.
-
-Data:
-
-- user
-- View
-
-Returns: HTML
-
-## saito.core.user.profile.render.request ##
-
-Trigger: before user profile is rendered (users/view)
-
-Data:
-
-- user - user data as array
-- View
-
-Returns: Additional user profile data  as array with mandatory keys:
-
-- 'title'
-- 'content'
-
-## saito.plugin.admin.plugins.request ##
-
-Trigger: Request for additional plugins to add to admin area.
-
-Returns: array
-- 'title' title
-- 'url' URL to plugin page, should be under '/admin/plugin'
-
+> **Withdrawn.** `saito.core.user.edit.render.request` and
+> `saito.core.user.profile.render.request` used to let a plugin add content to
+> the settings and profile pages. Nothing dispatches them since those pages were
+> rebuilt as islands, so a listener would simply never be called.
 
 # JS #
 
+The `SaitoApp.callbacks.*` hooks and the `Vent.*` events documented here until
+Saito 8.1 belonged to the Backbone/Marionette application and went with it.
+There is no JavaScript plugin interface in their place.
 
-## External Injection Hooks ##
-
-```
-SaitoApp.callbacks.beforeAppInit.push(function() {
-	…
-});
-
-SaitoApp.callbacks.afterAppInit.push(function() {
-	…
-});
-
-SaitoApp.callbacks.afterViewInit.push(function() {
-	…
-});
-```
-
-## Internal Events ##
-
-### Vent.Posting.View.afterRender ###
-
-Trigger: after a single posting view is rendered and initialized
+The frontend is now server-rendered HTML enhanced by htmx and Alpine. A plugin
+that needs behaviour in the browser writes it into its own template — Alpine
+components are declared in the markup with `x-data`, and htmx attributes drive
+requests. Both libraries are published as `window.Alpine` and `window.htmx` by
+the island bundle, so an inline `<script>` in a plugin template can reach them.

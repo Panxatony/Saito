@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Controller\Component\AutoReloadComponent;
 use App\Controller\Component\MarkAsReadComponent;
 use App\Controller\Component\PostingComponent;
 use App\Controller\Component\RefererComponent;
@@ -68,52 +67,6 @@ class EntriesController extends AppController
         $this->loadComponent('MarkAsRead');
         $this->loadComponent('Referer');
         $this->loadComponent('Threads', ['table' => $this->Entries]);
-    }
-
-    /**
-     * posting index
-     *
-     * @return void|\Cake\Http\Response
-     */
-    public function index()
-    {
-        Stopwatch::start('Entries->index()');
-
-        //= determine user sort order
-        $sortKey = 'last_answer';
-        if (!$this->CurrentUser->get('user_sort_last_answer')) {
-            $sortKey = 'time';
-        }
-        $order = ['fixed' => 'DESC', $sortKey => 'DESC'];
-
-        //= get threads
-        $threads = $this->Threads->paginate($order, $this->CurrentUser);
-        $this->set('entries', $threads);
-
-        $currentPage = (int)$this->request->getQuery('page') ?: 1;
-        if ($currentPage > 1) {
-            $this->set('titleForLayout', __('page') . ' ' . $currentPage);
-        }
-        if ($currentPage === 1) {
-            if ($this->MarkAsRead->refresh()) {
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->MarkAsRead->next();
-        }
-
-        // @bogus
-        $this->request->getSession()->write('paginator.lastPage', $currentPage);
-        $this->set('showDisclaimer', true);
-        $this->set('showBottomNavigation', true);
-        $this->Slidetabs->show();
-
-        $this->_setupCategoryChooser($this->CurrentUser);
-
-        /** @var AutoReloadComponent */
-        $autoReload = $this->loadComponent('AutoReload');
-        $autoReload->after($this->CurrentUser);
-
-        Stopwatch::stop('Entries->index()');
     }
 
     /**
@@ -184,8 +137,9 @@ class EntriesController extends AppController
             // The rail loads asynchronously, but its width decides the layout —
             // so the page has to know on first paint whether it is a full rail
             // or a strip of icons, or the thread list visibly jumps.
-            $this->set('minimisedWidgets', $this->minimisedWidgets());
+            $this->set('minimisedWidgets', $this->railArrangement()['minimised']);
             $this->set('widgetCatalogue', self::WIDGETS);
+            $this->set('railVisible', $this->railVisible());
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_index');
         }
     }
@@ -228,6 +182,16 @@ class EntriesController extends AppController
      */
     public function htmxWidgets()
     {
+        // A forum can keep the rail for members only. Enforced here and not just
+        // by leaving the markup out: this endpoint answers on its own URL, so
+        // hiding the rail while still serving the fragment would let anyone read
+        // who is online by asking for it directly.
+        if (!$this->railVisible()) {
+            $this->viewBuilder()->disableAutoLayout();
+
+            return $this->getResponse()->withStringBody('');
+        }
+
         // Registry::get() always returns an object (it throws on a missing key),
         // so no null check is needed here.
         $stats = \Saito\App\Registry::get('AppStats');
@@ -243,24 +207,42 @@ class EntriesController extends AppController
             ));
         }
         // Rendered server-side rather than applied by script afterwards: the
-        // rail would otherwise flash open on every load before collapsing.
-        $this->set('minimisedWidgets', $this->minimisedWidgets());
+        // rail would otherwise flash open on every load, and in the member's
+        // default order, before a script folded and reshuffled it.
+        $arrangement = $this->railArrangement();
+        $this->set('minimisedWidgets', $arrangement['minimised']);
+        $this->set('widgetOrder', $arrangement['order']);
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_widgets');
     }
 
     /**
-     * Which rail widgets the current member keeps minimised.
+     * Whether the widget rail is shown to the current viewer.
+     *
+     * Members always see it. Guests see it unless the installation has turned
+     * `Saito.widgetsForGuests` off — absent configuration means "show", so an
+     * installation that predates the setting is unaffected.
+     *
+     * @return bool
+     */
+    protected function railVisible(): bool
+    {
+        return $this->CurrentUser->isLoggedIn()
+            || Configure::read('Saito.widgetsForGuests') !== false;
+    }
+
+    /**
+     * How the current member arranged the rail: order, and what is minimised.
      *
      * Signed-in members have this on their account (see WidgetPreferences);
      * for everyone else the island falls back to the browser's own storage,
-     * so the preference still survives a reload without an account.
+     * so the arrangement still survives a reload without an account.
      *
-     * @return list<string>
+     * @return array{order: list<string>, minimised: list<string>}
      */
-    protected function minimisedWidgets(): array
+    protected function railArrangement(): array
     {
         if (!$this->CurrentUser->isLoggedIn()) {
-            return [];
+            return ['order' => self::WIDGETS, 'minimised' => []];
         }
 
         return WidgetPreferences::read(
@@ -373,7 +355,10 @@ class EntriesController extends AppController
             'tree',
             $this->Entries->postingsForThread($posting->get('tid'), false, $this->CurrentUser)
         );
-        $this->set('titleForLayout', $posting->get('subject'));
+        // Subject *and* category, the way the retired single-posting page did
+        // it: the title is what a browser tab and a search result show, and
+        // "Re: that thing" without its category says very little.
+        $this->Title->setFromPosting($posting);
         $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_posting');
     }
 
@@ -753,47 +738,6 @@ class EntriesController extends AppController
     }
 
     /**
-     * Mix view
-     *
-     * @param string $tid thread-ID
-     * @return void|Response
-     * @throws NotFoundException
-     */
-    public function mix($tid)
-    {
-        $tid = (int)$tid;
-        if ($tid <= 0) {
-            throw new BadRequestException();
-        }
-
-        try {
-            $postings = $this->Entries->postingsForThread($tid, true, $this->CurrentUser);
-        } catch (RecordNotFoundException $e) {
-            /// redirect sub-posting to mix view of thread
-            $actualTid = $this->Entries->getThreadId($tid);
-
-            return $this->redirect([$actualTid, '#' => $tid], 301);
-        }
-
-        // check if anonymous tries to access internal categories
-        $root = $postings;
-        if (!$this->CurrentUser->getCategories()->permission('read', $root->get('category'))) {
-            return $this->_requireAuth();
-        }
-
-        $this->_setRootEntry($root);
-        $this->Title->setFromPosting($root, __('view.type.mix'));
-
-        $this->set('showBottomNavigation', true);
-        $this->set('entries', $postings);
-
-        $this->_showAnsweringPanel();
-
-        $this->Threads->incrementViewsForThread($root, $this->CurrentUser);
-        $this->MarkAsRead->thread($postings);
-    }
-
-    /**
      * load front page force all entries mark-as-read
      *
      * @return \Cake\Http\Response|void an empty 204 for the island, else redirect
@@ -810,129 +754,6 @@ class EntriesController extends AppController
         }
 
         $this->redirect('/entries/index');
-    }
-
-    /**
-     * Outputs raw markup of an posting $id
-     *
-     * @param string $id posting-ID
-     * @return void
-     */
-    public function source($id = null)
-    {
-        $this->viewBuilder()->enableAutoLayout(false);
-        $this->view($id);
-    }
-
-    /**
-     * View posting.
-     *
-     * @param string $id posting-ID
-     * @return \Cake\Http\Response|void
-     */
-    public function view(string $id)
-    {
-        $id = (int)$id;
-        Stopwatch::start('Entries->view()');
-
-        $entry = $this->Entries->get($id);
-        $posting = $entry->toPosting()->withCurrentUser($this->CurrentUser);
-
-        if (!$this->CurrentUser->getCategories()->permission('read', $posting->get('category'))) {
-            return $this->_requireAuth();
-        }
-
-        $this->set('entry', $posting);
-        $this->Threads->incrementViewsForPosting($posting, $this->CurrentUser);
-        $this->_setRootEntry($posting);
-        $this->_showAnsweringPanel();
-
-        $this->MarkAsRead->posting($posting);
-
-        // inline open
-        if ($this->request->is('ajax')) {
-            return $this->render('/element/entry/view_posting');
-        }
-
-        // full page request
-        $this->set(
-            'tree',
-            $this->Entries->postingsForThread($posting->get('tid'), false, $this->CurrentUser)
-        );
-        $this->Title->setFromPosting($posting);
-
-        Stopwatch::stop('Entries->view()');
-    }
-
-    /**
-     * Add new posting.
-     *
-     * @return void|\Cake\Http\Response
-     */
-    public function add()
-    {
-        $titleForPage = __('Write a New Posting');
-        $this->set(compact('titleForPage'));
-    }
-
-    /**
-     * Edit posting
-     *
-     * @param string $id posting-ID
-     * @return void|\Cake\Http\Response
-     * @throws NotFoundException
-     * @throws BadRequestException
-     */
-    public function edit(string $id)
-    {
-        $id = (int)$id;
-        $entry = $this->Entries->get($id);
-        $posting = $entry->toPosting()->withCurrentUser($this->CurrentUser);
-
-        if (!$posting->isEditingAllowed()) {
-            throw new SaitoForbiddenException(
-                'Access to posting in EntriesController:edit() forbidden.',
-                ['CurrentUser' => $this->CurrentUser]
-            );
-        }
-
-        // show editing form
-        if (!$posting->isEditingAsUserAllowed()) {
-            $this->Flash->set(
-                __('notice_you_are_editing_as_mod'),
-                ['element' => 'warning']
-            );
-        }
-
-        $this->set(compact('posting'));
-
-        // set headers
-        $this->set(
-            'headerSubnavLeftTitle',
-            __('back_to_posting_from_linkname', $posting->get('name'))
-        );
-        $this->set('headerSubnavLeftUrl', ['action' => 'view', $id]);
-        $this->set('form_title', __('edit_linkname'));
-        $this->render('/Entries/add');
-    }
-
-    /**
-     * Get thread-line to insert after an inline-answer
-     *
-     * @param string $id posting-ID
-     * @return void|\Cake\Http\Response
-     */
-    public function threadLine($id = null)
-    {
-        $posting = $this->Entries->get($id)->toPosting()->withCurrentUser($this->CurrentUser);
-        if (!$this->CurrentUser->getCategories()->permission('read', $posting->get('category'))) {
-            return $this->_requireAuth();
-        }
-
-        $this->set('entrySub', $posting);
-        // ajax requests so far are always answers
-        $this->response = $this->response->withType('json');
-        $this->set('level', '1');
     }
 
     /**
@@ -977,8 +798,7 @@ class EntriesController extends AppController
                 $redirect = '/';
             } else {
                 $message = __('delete_subtree_success');
-                $redirect = ($this->isIslandFrontend() ? '/entries/htmx-thread/' : '/entries/view/')
-                    . $posting->get('pid');
+                $redirect = '/entries/htmx-thread/' . $posting->get('pid');
             }
         } else {
             $flashType = 'error';
@@ -987,17 +807,6 @@ class EntriesController extends AppController
         }
         $this->Flash->set($message, ['element' => $flashType]);
         $this->redirect($redirect);
-    }
-
-    /**
-     * Empty function for benchmarking
-     *
-     * @return void
-     */
-    public function e()
-    {
-        Stopwatch::start('Entries->e()');
-        Stopwatch::stop('Entries->e()');
     }
 
     /**
@@ -1083,46 +892,6 @@ class EntriesController extends AppController
     }
 
     /**
-     * Merge threads.
-     *
-     * @param string $sourceId posting-ID of thread to be merged
-     * @return void
-     * @throws NotFoundException
-     * @td put into admin entries controller
-     */
-    public function merge(?string $sourceId = null)
-    {
-        $sourceId = (int)$sourceId;
-        if (empty($sourceId)) {
-            throw new NotFoundException();
-        }
-
-        /** @var \App\Model\Entity\Entry|null $entry */
-        $entry = $this->Entries->findById($sourceId)->first();
-
-        if (!$entry || !$entry->isRoot()) {
-            throw new NotFoundException();
-        }
-
-        // perform move operation
-        $targetId = (int)$this->request->getData('targetId');
-        if (!empty($targetId)) {
-            if ($this->Entries->threadMerge($sourceId, $targetId)) {
-                $this->redirect(
-                    ($this->isIslandFrontend() ? '/entries/htmx-thread/' : '/entries/view/') . $sourceId
-                );
-
-                return;
-            } else {
-                $this->Flash->set(__('Error'), ['element' => 'error']);
-            }
-        }
-
-        $this->viewBuilder()->setLayout('Admin.admin');
-        $this->set('posting', $entry);
-    }
-
-    /**
      * Toggle posting property via ajax request.
      *
      * @param string $id posting-ID
@@ -1170,65 +939,18 @@ class EntriesController extends AppController
             // htmxReply/htmxAdd/htmxPreview/htmxUpload rely on CSRF (island header
             // / FormHelper token) instead of a FormProtection token, like the REST
             // posting endpoints.
-            ['solve', 'view', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
+            ['solve', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
                 'htmxEdit', 'htmxMerge', 'htmxUploadDelete']
         );
-        $this->Authentication->allowUnauthenticated(['index', 'view', 'mix', 'update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxPosting', 'htmxWidgets']);
+        $this->Authentication->allowUnauthenticated(
+            ['update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxPosting', 'htmxWidgets']
+        );
 
         $this->AuthUser->authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock');
-        $this->AuthUser->authorizeAction('merge', 'saito.core.posting.merge');
         $this->AuthUser->authorizeAction('htmxMerge', 'saito.core.posting.merge');
         $this->AuthUser->authorizeAction('delete', 'saito.core.posting.delete');
 
         Stopwatch::stop('Entries->beforeFilter()');
-    }
-
-    /**
-     * set view vars for category chooser
-     *
-     * @param CurrentUserInterface $User CurrentUser
-     * @return void
-     */
-    protected function _setupCategoryChooser(CurrentUserInterface $User)
-    {
-        if (!$User->isLoggedIn()) {
-            return;
-        }
-        $globalActivation = Configure::read(
-            'Saito.Settings.category_chooser_global'
-        );
-        if (!$globalActivation) {
-            if (
-                !Configure::read(
-                    'Saito.Settings.category_chooser_user_override'
-                )
-            ) {
-                return;
-            }
-            if (!$User->get('user_category_override')) {
-                return;
-            }
-        }
-
-        $this->set(
-            'categoryChooserChecked',
-            $User->getCategories()->getCustom('read')
-        );
-        switch ($User->getCategories()->getType()) {
-            case 'single':
-                $title = $User->get('user_category_active');
-                break;
-            case 'custom':
-                $title = __('Custom');
-                break;
-            default:
-                $title = __('All Categories');
-        }
-        $this->set('categoryChooserTitleId', $title);
-        $this->set(
-            'categoryChooser',
-            $User->getCategories()->getAll('read', 'select')
-        );
     }
 
     /**
@@ -1244,20 +966,13 @@ class EntriesController extends AppController
             // Only logged-in users see the answering buttons, and only where a
             // posting is shown in full — not in a list of subject lines.
             //
-            // Diese Liste ist die einzige Stelle mit dieser Regel. Sie stand
-            // frueher auch in htmxThread noch einmal, und als htmxPosting
-            // dazukam, wurde nur die eine Kopie gepflegt: der Antwort-Knopf
-            // verschwand aus der Inline-Ansicht, weil die Aktion hier fehlte.
+            // This list is the only place carrying the rule. It used to exist
+            // twice — htmxThread set the flag itself — and when htmxPosting was
+            // added only one copy was updated, so the reply button vanished
+            // from the inline view.
             $showAnsweringPanel = in_array(
                 $this->request->getParam('action'),
-                [
-                    // SPA: entries/view (ganze Seite oder inline) und entries/mix
-                    'view',
-                    'mix',
-                    // Insel: Einzelbeitrag (Seite und Inline-Fragment) und Thread
-                    'htmxPosting',
-                    'htmxThread',
-                ],
+                ['htmxPosting', 'htmxThread'],
                 true
             );
         }

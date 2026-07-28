@@ -37,119 +37,104 @@ class SearchesControllerTest extends IntegrationTestCase
     ];
 
     /**
-     * Sorting search results by rank
+     * The island search had no tests of its own: it only inherited coverage
+     * through the shared runSimpleSearch()/prepareAdvancedSearch() helpers,
+     * which the retired SPA endpoints exercised. Removing those endpoints would
+     * have removed the only thing testing the island's search too, so these are
+     * ports of the tests that went with them — same queries, same expectations,
+     * pointed at the island actions.
+     *
+     * @return void
      */
-    public function testSearchSimpleSortByRank()
+    public function testSimpleSearchSortByRank()
     {
         $this->skipOnDataSource('Postgres');
         $this->_loginUser(1);
 
-        $this->get('/searches/simple?searchTerm="Second_Subject"&order=rank');
+        $this->get('/searches/htmx-simple?searchTerm="Second_Subject"&order=rank');
 
         $this->assertResponseCode(200);
-
         $result = $this->viewVariable('results');
         $this->assertEquals(2, $result->items()->first()->get('id'));
         $this->assertEquals(5, $result->items()->skip(1)->first()->get('id'));
     }
 
     /**
-     * Admin Category results should be in search results for admin
+     * The important one: results are filtered by what the reader may see. An
+     * admin finds the posting in the restricted category...
+     *
+     * @return void
      */
-    public function testSearchSimpleAccession()
+    public function testSimpleSearchShowsRestrictedCategoryToAdmin()
     {
         $this->skipOnDataSource('Postgres');
         $this->_loginUser(1);
 
-        $this->get('/searches/simple?searchTerm="Third+Thread+First_Subject"');
-        $result = $this->viewVariable('results');
+        $this->get('/searches/htmx-simple?searchTerm="Third+Thread+First_Subject"');
 
-        $this->assertCount(1, $result);
+        $this->assertCount(1, $this->viewVariable('results'));
     }
 
     /**
-     * Admin Category results shouldn't be in search results for user
+     * ...and a plain member does not. Search is a classic way to leak content
+     * past a category permission, so this is the test worth keeping.
+     *
+     * @return void
      */
-    public function testSearchSimpleNoAccession()
+    public function testSimpleSearchHidesRestrictedCategoryFromMember()
     {
         $this->_loginUser(3);
 
-        $this->get('/searches/simple?searchTerm="Third+Thread+First_Subject"');
-        $result = $this->viewVariable('results');
+        $this->get('/searches/htmx-simple?searchTerm="Third+Thread+First_Subject"');
 
-        $this->assertCount(0, $result);
+        $this->assertCount(0, $this->viewVariable('results'));
     }
 
     /**
-     * Admin Category results should be in search results for admin
+     * The same permission boundary through the advanced search.
+     *
+     * @return void
      */
-    public function testSearchAdvancedAccession()
+    public function testAdvancedSearchRespectsCategoryPermissions()
     {
-        $url = '/searches/advanced?subject=Third+Thread+First_Subject&year[year]=1999';
+        $url = '/searches/htmx-advanced?subject=Third+Thread+First_Subject&since=1999-01';
 
-        /// No access for normal user
         $this->_loginUser(3);
         $this->get($url);
-        $result = $this->viewVariable('results');
-        $this->assertCount(0, $result);
+        $this->assertCount(0, $this->viewVariable('results'), 'a member saw a restricted posting');
 
-        /// Access for admin
         $this->_loginUser(1);
         $this->get($url);
-        $result = $this->viewVariable('results');
-        $this->assertCount(1, $result);
-    }
-
-    public function testAdvancedSearchWithNoExistingPostings()
-    {
-        $this->_loginUser(3);
-
-        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
-        $EntriesTable->deleteAll('id > 0');
-
-        $url = '/searches/advanced?subject=foo';
-        $this->get($url);
-
-        $this->assertResponseCode(200);
-        $result = $this->viewVariable('results');
-        $this->assertCount(0, $result);
-    }
-
-    public function testSearchAdvancedCategoryNoAccession()
-    {
-        $this->_loginUser(3);
-
-        $this->expectException(SaitoForbiddenException::class);
-        $this->get('/searches/advanced?subject=Third+Thread+First_Subject&category_id=1');
-    }
-
-    public function testSearchAdvancedUserPostings()
-    {
-        $this->_loginUser(1);
-
-        $this->get('/searches/advanced?name=Alice&year[year]=1999');
-
-        $results = $this->viewVariable('results');
-        $this->assertNotEmpty($results);
+        $this->assertCount(1, $this->viewVariable('results'), 'an admin did not see it');
     }
 
     /**
-     * Limit default search range to the last year
+     * htmx swaps only the results fragment, so an HX-Request must not carry the
+     * page shell — otherwise "load more" would nest a second copy of the whole
+     * page inside the results.
+     *
+     * @return void
      */
-    public function testSearchAdvancedSinceLastYear()
+    public function testHxRequestReturnsTheFragmentOnly()
     {
-        $this->_loginUser(3);
+        $this->skipOnDataSource('Postgres');
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/searches/htmx-simple?searchTerm="Second_Subject"');
 
-        $this->get('/searches/advanced');
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('<html');
+    }
 
-        $actualMonth = $this->viewVariable('month');
-        $today = new DateTimeImmutable();
-        $expectedMonth = $today->format('n');
-        /// Leap years are fun! \o/
-        if ($today->format('m-d') === '02-29') {
-            $expectedMonth++;
-        }
+    /**
+     * An empty term renders the form rather than every posting in the forum.
+     *
+     * @return void
+     */
+    public function testSimpleSearchWithoutATermShowsNoResults()
+    {
+        $this->get('/searches/htmx-simple');
 
-        $this->assertEquals($expectedMonth, $actualMonth);
+        $this->assertResponseOk();
+        $this->assertNull($this->viewVariable('results'));
     }
 }

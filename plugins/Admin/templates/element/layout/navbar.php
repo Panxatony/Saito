@@ -1,9 +1,16 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<?php // Alpine rather than Bootstrap's JavaScript — the backend no longer loads
+      // jQuery. Every entry is a real link, so without script the menus render
+      // open and the navigation still works. ?>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark" x-data="adminNav"
+     x-on:click.outside="openMenu = ''">
     <?= $this->Html->link(__('Forum'), '/', ['class' => 'navbar-brand']); ?>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-toggle">
-<span class="navbar-toggler-icon"></span>
-</button>
-    <div class="collapse navbar-collapse" id="navbar-toggle">
+    <button class="navbar-toggler" type="button" x-on:click="toggle()"
+            x-bind:aria-expanded="expanded ? 'true' : 'false'"
+            aria-controls="navbar-toggle" aria-label="<?= h(__('Menu')) ?>">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbar-toggle"
+         x-bind:class="expanded ? 'show' : ''">
         <ul class="navbar-nav">
             <li class="nav-item <?= preg_match('/\/admin$/', $this->request->getRequestTarget()) ? 'active' : '' ?>">
                 <?= $this->Html->link(__('Overview'), '/admin/', ['class' => 'nav-link']) ?>
@@ -18,7 +25,9 @@
                     '/admin/users/index',
                     [
                         'class' => 'nav-link dropdown-toggle',
-                        'data-toggle' => 'dropdown',
+                        'x-on:click.prevent' => "menu('users')",
+                        'x-bind:aria-expanded' => "isOpen('users') ? 'true' : 'false'",
+                        'aria-haspopup' => 'true',
                     ]
                 );
                 echo $this->Html->nestedList(
@@ -34,7 +43,7 @@
                             ['class' => 'dropdown-item']
                         ),
                     ],
-                    ['class' => 'dropdown-menu']
+                    ['class' => 'dropdown-menu', 'x-bind:class' => "isOpen('users') ? 'show' : ''"]
                 );
                 ?>
             </li>
@@ -53,7 +62,9 @@
                     '#',
                     [
                         'class' => 'nav-link dropdown-toggle',
-                        'data-toggle' => 'dropdown',
+                        'x-on:click.prevent' => "menu('plugins')",
+                        'x-bind:aria-expanded' => "isOpen('plugins') ? 'true' : 'false'",
+                        'aria-haspopup' => 'true',
                     ]
                 );
 
@@ -71,7 +82,10 @@
                         ['class' => 'dropdown-item']
                     );
                 }
-                $dropdown .= $this->Html->nestedList($plugins, ['class' => 'dropdown-menu']);
+                $dropdown .= $this->Html->nestedList(
+                    $plugins,
+                    ['class' => 'dropdown-menu', 'x-bind:class' => "isOpen('plugins') ? 'show' : ''"]
+                );
 
                 $active = stristr($this->request->getRequestTarget(), 'plugin') ? ' active' : '';
                 $dropdown = $this->Html->tag('li', $dropdown, ['class' => 'dropdown' . $active]);

@@ -15,7 +15,6 @@ namespace App\Controller;
 use App\Controller\Component\AuthUserComponent;
 use App\Controller\Component\RefererComponent;
 use App\Controller\Component\SaitoEmailComponent;
-use App\Controller\Component\SlidetabsComponent;
 use App\Controller\Component\ThemesComponent;
 use App\Controller\Component\TitleComponent;
 use App\Model\Table\UsersTable;
@@ -41,7 +40,6 @@ use Stopwatch\Lib\Stopwatch;
  * @property AuthenticationComponent $Authentication
  * @property RefererComponent $Referer
  * @property SaitoEmailComponent $SaitoEmail
- * @property SlidetabsComponent $Slidetabs
  * @property ThemesComponent $Themes
  * @property TitleComponent $Title
  * @property UsersTable $Users
@@ -73,7 +71,6 @@ class AppController extends Controller
         'Layout',
         'Permissions',
         'SaitoHelp.SaitoHelp',
-        'Stopwatch.Stopwatch',
         'TimeH',
         'Url',
         'User',
@@ -84,9 +81,7 @@ class AppController extends Controller
      *
      * @var array default configuration
      */
-    protected array $_defaultConfig = [
-        'showStopwatch' => false,
-    ];
+    protected array $_defaultConfig = [];
 
     /**
      * The current user, set by the AuthUserComponent
@@ -103,8 +98,6 @@ class AppController extends Controller
         Stopwatch::start('------------------- Controller -------------------');
 
         parent::initialize();
-
-        $this->setConfig('showStopwatch', Configure::read('debug'));
 
         // Cake 4 dropped requestAction sub-requests, so the previous
         // is('requested') guard is no longer needed.
@@ -129,7 +122,6 @@ class AppController extends Controller
         $this->loadComponent('AuthUser');
         $this->loadComponent('Parser');
         $this->loadComponent('SaitoEmail');
-        $this->loadComponent('Slidetabs');
         $this->loadComponent('Themes', Configure::read('Saito.themes'));
         $this->loadComponent('Flash');
         $this->loadComponent('Title');
@@ -195,13 +187,26 @@ class AppController extends Controller
             $this->viewBuilder()->disableAutoLayout();
         }
 
+        // One frontend, one shell. Actions that need something else — the admin
+        // backend, the installer — set their own; this only fills in for the ones
+        // that never did and used to land on the theme's SPA layout.
+        //
+        // XML and RSS get no layout at all: those templates emit a complete
+        // document, declaration included. They used to be wrapped in the theme's
+        // HTML layout, which was wrong and only harmless because nothing
+        // validated the output.
+        if ($ext !== null && in_array($ext, ['xml', 'rss'], true)) {
+            $this->viewBuilder()->disableAutoLayout();
+        } elseif ($this->viewBuilder()->getLayout() === null) {
+            $this->viewBuilder()->setLayout('htmx_island');
+        }
+
         $this->Themes->set($this->CurrentUser);
         $this->_setConfigurationFromGetParams();
         $this->_l10nRenderFile();
 
         $this->set('SaitoSettings', new SettingsImmutable(Configure::read('Saito.Settings')));
         $this->set('SaitoEventManager', SaitoEventManager::getInstance());
-        $this->set('showStopwatch', $this->getConfig('showStopwatch'));
 
         Stopwatch::stop('App->beforeRender()');
         Stopwatch::start('------------------- Rendering --------------------');
@@ -228,34 +233,12 @@ class AppController extends Controller
             $this->Themes->set($this->CurrentUser, $theme);
         }
 
-        //= activate stopwatch
-        $stopwatch = $this->request->getQuery('stopwatch');
-        if (
-            $stopwatch && Configure::read('Saito.Settings.stopwatch_get')
-        ) {
-            $this->setConfig('showStopwatch', true);
-        };
 
         //= change language
         $lang = $this->request->getQuery('lang');
         if (!empty($lang)) {
             Configure::write('Saito.language', $lang);
         };
-    }
-
-    /**
-     * Whether this install runs the htmx/Alpine island frontend as its default.
-     *
-     * Gated by the `Saito.frontend` config value (set per install in app.php):
-     * 'island' opts a deployment (e.g. the beta) into the new frontend, while
-     * the live SPA installs leave it unset. Content controllers use this to pick
-     * the island layout for otherwise server-rendered pages (static pages, help).
-     *
-     * @return bool
-     */
-    protected function isIslandFrontend(): bool
-    {
-        return Configure::read('Saito.frontend') === 'island';
     }
 
     /**

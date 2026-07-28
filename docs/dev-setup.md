@@ -50,7 +50,7 @@ bin/cake migrations migrate
 
 ## 3. Frontend Assets
 
-The TypeScript SPA and the theme stylesheets are built with Grunt (webpack +
+The island bundles and the theme stylesheets are built with Grunt (Vite +
 dart-sass under the hood). Install the Node dependencies — `yarn.lock` pins the
 exact, reproducible versions — and build the development assets:
 
@@ -65,9 +65,10 @@ For production (minified, purged) assets:
 grunt release
 ```
 
-Each active theme compiles its own stylesheets (and purges unused CSS) via its
-`sass.sh`, e.g. `plugins/Macnemo/sass.sh` (dart-sass + PurgeCSS); `grunt release`
-runs this as part of the build.
+Every theme is compiled by one task, `grunt dart-sass:theme` — Bota, Nova and
+Macnemo together, because Nova imports Bota's partials and Macnemo imports
+Nova's. Change a partial and rebuild all of them, or the themes drift apart.
+`grunt release` runs that task and then minifies the results.
 
 ## 4. Run the App
 
@@ -89,7 +90,9 @@ composer phpunit
 composer coverage        # writes an HTML coverage report to docs/local/
 ```
 
-The frontend specs run with Karma / Jasmine (see the `Gruntfile`).
+There are no frontend tests. Karma and Jasmine went with the SPA and nothing
+replaced them, so the TypeScript under `frontend/src` is covered by ESLint
+(`yarn lint`) and by nothing else. Worth knowing before you change it.
 
 ## 6. Static Analysis & Code Style
 

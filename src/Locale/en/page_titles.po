@@ -64,3 +64,42 @@ msgstr "Edit Bookmark"
 #
 msgid "users/changepassword"
 msgstr "Change Password"
+
+msgid "entries/htmxIndex"
+msgstr "Forum"
+
+msgid "entries/htmxAdd"
+msgstr "New Posting"
+
+msgid "entries/htmxEdit"
+msgstr "Edit Entry"
+
+msgid "users/htmxRegister"
+msgstr "Register"
+
+msgid "users/htmxUsers"
+msgstr "User Index"
+
+msgid "users/htmxProfile"
+msgstr "User"
+
+msgid "users/htmxChangePassword"
+msgstr "Change Password"
+
+msgid "users/htmxEdit"
+msgstr "Edit Profile"
+
+msgid "users/htmxLogin"
+msgstr "Login"
+
+msgid "users/bookmarks"
+msgstr "Bookmarks"
+
+msgid "contacts/htmxContactOwner"
+msgstr "Contact Owner"
+
+msgid "searches/htmxSimple"
+msgstr "Search"
+
+msgid "searches/htmxAdvanced"
+msgstr "Advanced Search"

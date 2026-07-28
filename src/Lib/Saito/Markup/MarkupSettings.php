@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Saito\Markup;
 
-use Cake\Core\Configure;
 
 class MarkupSettings
 {
@@ -23,16 +22,11 @@ class MarkupSettings
         //= computed values
         // Base URLs for the @user and #posting tags in posting text. These are
         // substituted at render time, so a change here rewrites the links in
-        // every existing posting at once.
-        //
-        // `hashBaseUrl` follows the active frontend: on an island install
-        // `entries/view` renders the retired SPA shell, so a #123 tag dropped
-        // the reader out of the island and into the old interface.
-        // `users/name/` needs no branch — it has no view of its own, it
-        // resolves a name to an ID and redirects to whichever profile the
-        // frontend uses.
+        // every existing posting at once — which is why they point at endpoints
+        // that are meant to stay: `users/name/` resolves a name to a profile and
+        // redirects, `entries/htmx-posting/` is the single-posting page.
         'atBaseUrl' => 'users/name/', // base-URL for @ tags
-        'hashBaseUrl' => null, // base-URL for # tags, see below
+        'hashBaseUrl' => 'entries/htmx-posting/', // base-URL for # tags
     ];
 
     protected $_settings;
@@ -44,9 +38,6 @@ class MarkupSettings
      */
     public function __construct(array $settings = [])
     {
-        $this->_defaults['hashBaseUrl'] = Configure::read('Saito.frontend') === 'island'
-            ? 'entries/htmx-posting/'
-            : 'entries/view/';
         $this->set($settings);
     }
 

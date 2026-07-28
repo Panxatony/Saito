@@ -10,11 +10,11 @@ $schemaMeta = [];
             <?php
             $subject = $this->Posting->getSubject($entry);
             $url = $this->Url->build(
-                '/entries/view/' . $entry->get('id'),
+                '/entries/htmx-posting/' . $entry->get('id'),
                 ['fullBase' => true]
             );
             $schemaMeta['url'] = $url;
-            // only make subject a link if it is not in entries/view
+            // only make subject a link if it is not already the single-posting page
             if (
                 $this->request->getParam('action') !== 'preview' &&
                 ($this->request->is('ajax') || $this->request->getParam('action') === 'mix')
@@ -23,9 +23,7 @@ $schemaMeta = [];
                 // der Klick-Abfaenger der Insel greift hier also nicht, und ohne
                 // die Weiche landet man auf der SPA-Seite. Das schema.org-URL
                 // oben bleibt bewusst unveraendert, das ist Metadatenfrage.
-                $subjectUrl = \Cake\Core\Configure::read('Saito.frontend') === 'island'
-                    ? $this->Url->build('/entries/htmx-thread/' . $entry->get('id'))
-                    : $url;
+                $subjectUrl = $this->Url->build('/entries/htmx-thread/' . $entry->get('id'));
                 $subject = $this->Html->link(
                     $subject,
                     $subjectUrl,

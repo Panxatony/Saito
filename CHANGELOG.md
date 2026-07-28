@@ -7,29 +7,106 @@
 
 ## [next] -
 
-## [8.0.13] - 2026-07-27
+## [8.2.0] - 2026-07-28
 
-- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.12...8.0.13)
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0...8.2.0)
 
-Three things that failed quietly: broken smiley images on the default theme, and two ways a page could silently lose its ability to send anything.
-
-### Changes
-
-- ✓ Fix: image smilies were broken on Nova, the default theme. The forum emits `/img/smilies/<name>.svg`, which CakePHP resolves against the active theme and then falls back to the application webroot — but that directory did not exist, and Nova carries no images of its own. Members saw broken images. The 23 pictures now ship in `webroot/img/smilies/` as the base every theme falls back to. A theme keeps its own copy only if it wants different ones; Macnemo's is identical, so nothing changes visually there.
-- ✓ Fix: the CSRF meta tag was rendered by nine templates individually, and the ones written later did not have it. On those pages every scripted write request was answered with 403 — the editor preview, uploads and the widget state, each failing without a word. It is emitted by the island layout now, where a new page cannot forget it.
-- ✓ Fix: reading a member's minimised widgets suppressed errors with `@`, which hides more than the one warning it meant to. Narrowed to a handler scoped to that single call.
-- Δ `docs/upgrade.md` names both migrations and says plainly to upgrade to 8.0.12 or later, with the query that shows whether an earlier 8.0.x truncated anything.
-
-## [8.0.12] - 2026-07-27
-
-- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.11...8.0.12)
-
-**Recommended for anyone still to upgrade from Saito 5.x.** A migration shipped since 8.0.0 narrowed a column instead of only converting its character set, which can destroy data on forums with many categories.
+Nothing in the database changes and no migration runs; upgrading from 8.1.0 is a code deploy. Three new keys appear in `config/saito_config.php` — all optional, and leaving them out keeps 8.1.0's behaviour. See [docs/customizing.md](docs/customizing.md).
 
 ### Changes
 
-- ✓ Fix: the utf8mb4 migration restated `users.user_category_custom` as `VARCHAR(512)`, undoing the widening to 1024 that Saito 5.0.0 made — while its description promised a character-set conversion and nothing else. The column holds a serialized map of the categories a member chose to see: 512 characters run out at roughly 40 categories, 1024 at roughly 75. Outside MySQL's strict mode the value is cut silently, and a cut serialized array cannot be read back at all.
-- ✓ Fix: a second migration widens the column again on installations that already ran the narrowing version — Migrations never replays a recorded version, so they cannot be repaired any other way. Widening never truncates and is safe to run at any current width.
+- ＋ The widget rail can be arranged again: drag a widget by the handle beside its heading, or move it with the arrow keys once the handle has focus. Saito 5 could do this and the island frontend could not. The order goes back into `users.slidetab_order` — the column that held it all along — so nothing in the database changes.
+- ＋ `Saito.bannerHtml` places operator-supplied markup between the header bar and the page, in a `div.ads_top` — the slot forums have traditionally used for a banner. Empty renders no container at all.
+- ＋ `Saito.widgetsForGuests` makes the widget rail a members-only feature. Enforced in the controller, not only in the markup: with it off the fragment endpoint answers a guest with nothing, so the online list cannot be read by requesting it directly.
+- ＋ `Saito.notice` switches off the "modernised frontend" bar, which earns its place in the weeks around a switch and not for ever after.
+- ✓ Fix: the header hard-coded `forum_logo.svg`, so a theme whose wordmark existed only as a bitmap got a broken image and no explanation. It now takes whichever of `svg`, `png`, `webp` or `jpg` the theme ships, preferring the vector.
+- ✓ Fix: `docs/customizing.md` told theme authors to register their plugin in `src/Application.php`. Nothing there has to know about a theme — setting `Saito.themes.default` is enough. The help overlay also promised "a coloured bar marks unread", which a theme is free to leave out; it now leads with the colour, which always holds.
+- Δ TypeScript's standard library followed `target: es6`, so `Array.prototype.includes` type-checked as an error in island code that has always shipped. The build never noticed — esbuild strips types without checking them.
+
+## [8.1.0] - 2026-07-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.13...8.1.0)
+
+**The Backbone/Marionette frontend is gone.** Pages are rendered by the server and enhanced with small htmx/Alpine islands. Nothing in the database changes and no content is touched — it is a different way of drawing the same forum. The administration area came along: it no longer loads jQuery, DataTables or Bootstrap's JavaScript, and looks the same.
+
+Upgrading from 5.7 or from 8.0.x: see [docs/upgrade.md](docs/upgrade.md). Go to 8.0.12 or later first if you are on an earlier 8.0.x — [8.0.13](#8013---2026-07-27) explains why.
+
+### Changes
+
+- − Removes the single-page application: 28 controller actions, ~34 templates, the whole `frontend/src` tree apart from the islands, the webpack and karma builds, and 52 npm dependencies.
+- − Removes what the retired frontend left behind: jQuery UI's stylesheet, which was still served on every page; per-theme Marionette scripts no layout loaded; the Stopwatch chart, whose only method emitted jQuery; four classes with no callers; and templates nothing rendered. 47 files, 47,000 lines.
+- ＋ The help overlay's tour is Markdown now, in German and English, and a forum can supply its own — from `config/help/` (which survives updates) or from its theme. `docs/help` finally ships: it was excluded from the release tarball, so `/help` said "no help pages are available" on every installation.
+- ＋ Four new help topics — uploads, bookmarks, widgets and RSS feeds — and the BBCode reference is listed at last; it existed for years in the BbcodeParser plugin, where nothing ever looked.
+- Δ `/help` opens a topic under its heading instead of navigating away, and the overlay fetches its content when first opened rather than being rendered into every page.
+- ✓ Fix: the administration area discarded every message it produced. The flash elements only fill a store the retired frontend read, and the backend layout never emptied it — all 35 of them went unseen.
+- ✓ Fix: image smilies and the smiley icon font were broken under Nova, the default theme.
+- ✓ Fix: the CSRF meta tag was rendered by nine templates individually and missing from the ones written later, so on those pages every scripted write was answered with 403 — the editor preview, uploads and the widget state, each failing silently.
+- ✓ Fix: the profile shows again who you ignore and how many members ignore you. The help had described both for years; the island profile stopped rendering them.
+- ✓ Fix: the advanced search was reachable only from a profile or a posting list. All three search views link to it now.
+- ✓ Fix: the category delete overlay in the backend could not be opened, and the settings sidebar stopped marking the section in view — both left behind by dropping Bootstrap's JavaScript.
+- Δ `composer test-all` works and no longer rewrites the source tree while testing it. PHPUnit reports no deprecations.
+- Δ Five public actions have functional tests for the first time, and the authorization tripwire now has a meta-test — it silently stopped guarding once before.
+
+## [8.1.0-alpha.4] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha.3...8.1.0-alpha.4)
+
+Carries everything from 8.0.12 and 8.0.13, plus the island bundle rearranged into one file per feature.
+
+### Changes
+
+- ✓ Fix: the utf8mb4 migration restated `users.user_category_custom` as `VARCHAR(512)`, undoing the widening to 1024 that Saito 5.0.0 made. The column holds a serialized list of chosen categories — 512 characters run out at roughly 40 of them, and outside MySQL's strict mode the value is cut silently, which does not shorten such a list but destroys it. A second migration widens the column again where the narrowing version already ran.
+- ✓ Fix: image smilies were broken on Nova, the default theme. `/img/smilies/<name>.svg` resolves against the active theme and then falls back to the application webroot, but that directory did not exist and Nova carries no images of its own. The 23 pictures now ship there as the base every theme falls back to.
+- ✓ Fix: the CSRF meta tag was rendered by nine templates individually and missing from the ones written later, so on those pages every scripted write was answered with 403 — the editor preview, uploads and the widget state, each failing silently. The island layout emits it now.
+- ✓ Fix: the category delete overlay in the backend could not be opened at all. `x-show` reveals an element by clearing the inline display it set, which handed the dialog back to Bootstrap's `.modal { display: none }`.
+- ✓ Fix: the settings sidebar stopped marking the section in view — it configured Bootstrap's ScrollSpy, which left with Bootstrap's JavaScript.
+- Δ The island bundle is one file per feature instead of one file of 1360 lines: threads, postings, editor, uploads, smartInsert, widgets, categoryFilter, headerActions, modals, flash, appearance. `runtime` publishes htmx and Alpine, `lib/dom` holds what several features share.
+- Δ The five overlays are described as a table rather than five near-identical branches of one click handler.
+- Δ CI takes Node from Debian and pins the container image, after an unpinned `php:8.4-cli` moved to Debian 13 mid-release and NodeSource — which publishes nothing for it — left the build without npm.
+
+## [8.1.0-alpha.3] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha.2...8.1.0-alpha.3)
+
+Two controls in the backend that the previous release left dead. Neither raised an error — they simply stopped doing anything.
+
+### Changes
+
+- ✓ Fix: the category delete overlay could not be opened at all. `x-show` reveals an element by clearing the inline `display` it set, which handed the dialog back to Bootstrap's `.modal { display: none }` — the stylesheet we deliberately kept. Visibility now rides on a bound class.
+- ✓ Fix: the settings sidebar stopped highlighting the section in view. It configured Bootstrap's ScrollSpy, which left with Bootstrap's JavaScript; a small scroll handler took over.
+- ✓ Fix: the delete overlay's close button still carried Bootstrap's `data-dismiss`. Escape, the backdrop and Cancel had always gone through Alpine; only the X was affected.
+
+## [8.1.0-alpha.2] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha...8.1.0-alpha.2)
+
+### Changes
+
+- − The administration backend drops jQuery, DataTables and Bootstrap's JavaScript. Its four behaviours — a sortable and filterable member table, the confirmation overlay, and the navigation's two menus — are rebuilt on the Alpine the forum already ships. Bootstrap's stylesheet stays, so the backend looks unchanged; its bundle is 48 kB where the old one was 193 kB. Everything degrades: without script the tables are tables, the overlay a page section, the menus links.
+- ✓ Fix: `/login` threw a ReferenceError on every visit. Its template carried an inline script calling `SaitoApp` and jQuery, both of which went with the retired frontend, and its "back" link relied on a header subnav the island layout does not render. `login()` now serves the same page as `/users/htmx-login`.
+- ✓ Fix: the island login form had its own copy of the fields and had quietly dropped the `autocomplete` hints password managers rely on, `required`, and the tab order. Both logins use the shared form element again.
+- ✓ Fix: theme fonts were fetched twice, once from a path that 404s. Bota declared its @font-face rules relative to its own stylesheet — correct for Bota, wrong for every theme importing its partials, where they resolved under that theme's webroot. Now absolute, in one place.
+- Δ The member table's initial sort order is honoured. `AdminHelper::jqueryTable()` took a sort argument and never passed it to DataTables, so the order both call sites asked for had been decorative all along.
+
+## [8.1.0-alpha] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.11...8.1.0-alpha)
+
+**The Backbone/Marionette frontend is gone.** Pages are rendered on the server and enhanced with small htmx/Alpine islands. Nothing in the database changes and no content is touched — it is a different way of drawing the same forum. Pre-release: for a test installation, not for a live forum yet.
+
+### Changes
+
+- − Removes the single-page application: 28 controller actions, ~34 templates, the whole `frontend/src` tree apart from the islands, the webpack and karma builds, and 52 npm dependencies. 23,800 lines.
+- − Removes the `Saito.frontend` switch and `SAITO_FRONTEND`. There is one frontend, so there is nothing to choose.
+- ＋ Published URLs of the retired frontend redirect permanently to their island equivalents — `/entries/view/<id>`, `/users/view/<id>`, `/entries/mix/<tid>`, the two indexes and the registration form. Two decades of search-engine entries, bookmarks and links from other sites keep landing in the right place.
+- Δ `@name` mentions and `#123` tags in posting text now point at endpoints that survive. These are substituted into posting *text* at render time, so they decide where every mention in twenty years of content leads; a guard test parses each through the router and asserts the action exists.
+- ＋ Moderation the island frontend had left unreachable is back: role changes and account deletion in the administration backend, blocking on the member's profile page where moderators can reach it.
+- ✓ Fix: XML and RSS responses were being wrapped in the theme's HTML layout — wrong all along, and harmless only because nothing validated the output.
+- Δ The administration backend is unchanged and still loads its own jQuery/Bootstrap globals; it was never part of the SPA.
+
+### Upgrading
+
+Members with a page open across the upgrade should reload once — a tab keeps running the JavaScript it loaded. 8.0.x remains a working intermediate stop for anyone who would rather move the platform and the interface on different days; see `docs/upgrade.md`.
 
 ## [8.0.11] - 2026-07-27
 

@@ -17,17 +17,28 @@ The main address can be overwritten by the:
 
 ## Advanced Configuration ##
 
-It's possible to define an [advanced configuration][cakephp-email-config]. To do so create a `$saito` configuration.
+Beyond the addresses above, delivery is configured in `config/app.php`. Saito
+sends through the `saito` mail profile, so a `from` address set there is used as
+the *sender* for everything the forum posts:
 
-If you define a `from` field:
+    'EmailTransport' => [
+        'saito' => [
+            'className' => 'Smtp',
+            'host' => 'smtp.example.com',
+            'port' => 587,
+            'username' => '…',
+            'password' => '…',
+        ],
+    ],
 
-    class EmailConfig {
+    'Email' => [
+        'saito' => [
+            'transport' => 'saito',
+            'from' => 'contact@example.com',
+        ],
+    ],
 
-	  public $saito = array(
-		'transport' => 'Mail',
-		'from' => 'contact@example.com',
-	  )
+The values can also come from the environment — see `config/.env.default` for
+the `EMAIL_*` variables the shipped configuration reads.
 
-this `from` is used as *sender* by the forum.
-
-[cakephp-email-config]: http://book.cakephp.org/2.0/en/core-utility-libraries/email.html#configuration
+[cakephp-email-config]: https://book.cakephp.org/5/en/core-libraries/email.html

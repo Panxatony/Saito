@@ -18,26 +18,10 @@ $webroot = $this->request->getAttribute('webroot');
         </div>
         <div class="card-body">
             <?php
-            echo $this->Form->create(null, ['url' => $webroot . 'login', 'type' => 'post']);
-            echo $this->Form->control('username', [
-                'class' => 'form-control',
-                'label' => __('username_marking'),
-                'autofocus' => true,
-            ]);
-            echo $this->Form->control('password', [
-                'class' => 'form-control',
-                'type' => 'password',
-                'label' => __('Password'),
-            ]);
-            echo $this->Form->control('remember_me', [
-                'type' => 'checkbox',
-                'label' => __('user.rememberMe.t'),
-            ]);
-            echo $this->Form->button(__('login_btn'), [
-                'type' => 'submit',
-                'class' => 'btn btn-primary',
-            ]);
-            echo $this->Form->end();
+            // The shared element, not a second hand-rolled form. It carries the
+            // autocomplete hints password managers rely on, `required`, and the
+            // tab order — all of which the island copy had quietly dropped.
+            echo $this->element('users/login_form');
             ?>
             <p style="margin-top: 1rem; font-size: .9rem;">
                 <a href="<?= $webroot ?>users/htmx-register"><?= h(__('register_linkname')) ?></a>

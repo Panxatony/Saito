@@ -53,12 +53,25 @@ class AppStatusCellTest extends SaitoTestCase
     }
 
     /**
-     * Test display method
+     * The cell hands the footer two things: the current user and the forum's
+     * statistics. That is all it does, so that is what is checked.
+     *
+     * This test used to be `assertTrue(true)` after a full setUp — it loaded four
+     * fixtures and built the cell, then asserted nothing about it. Anything could
+     * have broken here and it would still have passed.
      *
      * @return void
      */
-    public function testDisplay()
+    public function testDisplayProvidesTheCurrentUserAndTheStatistics()
     {
-        $this->assertTrue(true);
+        $CurrentUser = \Saito\User\CurrentUser\CurrentUserFactory::createDummy();
+
+        $this->AppStatus->display($CurrentUser);
+
+        $variablen = $this->AppStatus->viewBuilder()->getVars();
+        $this->assertArrayHasKey('CurrentUser', $variablen);
+        $this->assertArrayHasKey('Stats', $variablen);
+        $this->assertSame($CurrentUser, $variablen['CurrentUser']);
+        $this->assertNotNull($variablen['Stats'], 'the statistics the footer prints');
     }
 }

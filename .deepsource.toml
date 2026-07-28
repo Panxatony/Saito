@@ -5,9 +5,8 @@ exclude_patterns = [
   "vendor/**",
   "webroot/**",
   # Per-plugin webroot: served JS/CSS assets and install-specific theme code
-  # (e.g. the Macnemo/Bota themes, the SaitoSearch form init), not the core SPA
-  # source under frontend/src. These are non-module scripts that use globals
-  # ($, _, Backbone, Marionette, SaitoApp) loaded via <script> tags, so a
+  # (e.g. the Macnemo/Bota themes, the SaitoSearch form init). These are
+  # non-module scripts that use globals ($, _) loaded via <script> tags, so a
   # module analysis flags them (JS-0125 undeclared vars, JS-R1002, ...).
   # DeepSource's glob does not honour a mid-pattern wildcard, so the leading
   # `**/webroot/**` form is used, plus explicit per-plugin paths (no wildcard
@@ -34,31 +33,18 @@ exclude_patterns = [
   "templates/**",
   "**/templates/**",
   # Frontend: analyse our own TypeScript source under frontend/src, but skip
-  # dependencies, build output and vendored/minified third-party libraries.
+  # dependencies and minified third-party libraries.
   "frontend/node_modules/**",
   "frontend/**/*.min.js",
-  "frontend/src/lib/jquery-ui/**",
-  "frontend/src/lib/jquery.i18n/**",
-  # Karma/Jasmine test specs: .js ES modules using webpack-alias imports and
-  # test globals (describe/it/expect) — low analysis value and noisy.
-  "frontend/test/**",
-  # Root build-tooling config (Node/CommonJS), not SPA app source — analysing
-  # them as ES-module app code produces false positives (e.g. JS-0118 flags the
-  # `'use strict'` that is actually correct in a CommonJS module). Explicit
-  # filenames because the glob `**` does not match direct root files.
+  # Root build-tooling config (Node/CommonJS), not application source —
+  # analysing it as ES-module code produces false positives (e.g. JS-0118 flags
+  # the `'use strict'` that is correct in a CommonJS module). Named explicitly
+  # because the glob `**` does not match direct root files.
   "Gruntfile.js",
-  "karma.conf.js",
-  "webpack.config.js",
-  # Legacy ES-module .js among the .ts source (entry wiring + old prototype/
-  # jQuery-plugin helpers). DeepSource parses .js as a script and errors on
-  # `import` (JS-0833); they carry near-zero analysis value and converting the
-  # prototype/plugin code to strict .ts is not worth the risk. Explicit paths.
+  # exports.js: the jQuery/underscore/Bootstrap globals the administration
+  # backend needs. A .js entry among the .ts source, and DeepSource parses .js
+  # as a script and errors on `import` (JS-0833).
   "frontend/src/exports.js",
-  "frontend/src/index.js",
-  "frontend/src/lib/saito/backbone.initHelper.js",
-  "frontend/src/lib/saito/jquery.scrollIntoView.js",
-  "frontend/src/lib/saito/localStorageHelper.js",
-  "frontend/src/lib/saito/templateHelpers.js",
 ]
 
 test_patterns = [
@@ -75,7 +61,7 @@ name = "javascript"
 enabled = true
 
   [analyzers.meta]
-  # Browser SPA (jQuery / Backbone / Marionette).
+  # Browser code: the htmx/Alpine islands, plus the admin globals.
   environment = ["browser"]
   # Everything still analysed here is ES-module source (the script-style theme
   # and build files are excluded above). Declared for correctness — note that
@@ -84,22 +70,24 @@ enabled = true
   module_system = "es-modules"
   dialect = "typescript"
 
-# Two JavaScript reports for the htmx island source are knowingly accepted.
-# DeepSource cannot switch a rule off from this file, so they have to be ignored
-# in the dashboard (Issue -> Ignore -> for repository); the reasoning is kept
-# here so it stays with the code and is not lost in the UI:
+# JS-0067 "Prefer not to declare variables in global scope" (22x in
+# frontend/src/islands/htmxThreadList.ts, 1x in vite.config.ts) — a false
+# positive, ignored repository-wide in the dashboard. DeepSource cannot switch a
+# rule off from this file, so the evidence is kept here rather than in the UI.
+# Checked on 2026-07-27, three ways:
 #
-#   JS-0067 "Prefer not to declare variables in global scope" (22x in
-#   frontend/src/islands/htmxThreadList.ts, 1x in vite.config.ts) — false
-#   positive. Both files are ES modules (they carry `import` statements), so
-#   their top level is module scope, and Vite emits every entry as an IIFE
-#   (build.lib formats = ['iife'], the bundle starts with `(function(){...`).
-#   Nothing there reaches the global object. Setting `module_system` /
-#   `dialect` above did not change the verdict, so the rule appears to flag
-#   top-level declarations regardless of module scope — it has to be ignored in
-#   the dashboard.
+#   1. Both files carry `import` statements, so they are ES modules and their
+#      top level is module scope, not global.
+#   2. Vite emits the entry as an IIFE (build.lib formats = ['iife']); the built
+#      bundle starts with `(function(){"use strict";`. A declaration inside an
+#      IIFE cannot reach the global object.
+#   3. Measured on a running page: of the 27 top-level names, none exists on
+#      `window`. The bundle sets exactly three globals, all deliberately —
+#      `htmx`, `Alpine` and `onpopstate`.
 #
-#   JS-0052 "Detected the use of `alert`, `confirm` and `prompt`" (1x, same
-#   file) — deliberate. It guards the bulk deletion of uploads. A custom
-#   overlay would be stylistically consistent but can fail to render; the
-#   native dialog cannot, and this is a destructive action.
+# Setting `module_system` / `dialect` above did not change the verdict, so the
+# rule flags top-level declarations regardless of module scope.
+#
+# JS-0052 ("alert/confirm/prompt") is *not* a false positive and is therefore
+# not ignored here: it is suppressed with a `skipcq` comment at the one call
+# site, where the reason for accepting it can be read next to the code.

@@ -1,0 +1,131 @@
+Willkommen! Dieses Forum ist wie eine Kneipe, nur mit weniger verschütteten
+Getränken und einem *Ungelesen-Strich*. Hier ein kurzer Rundgang – keine Sorge,
+es gibt keine Prüfung am Ende. Wahrscheinlich.
+
+<!-- icon: list -->
+### Die Threadliste
+
+Alles Wichtige steht vorne. Ein oranger Strich links heißt „hier ist was Neues“ –
+sobald du reinschaust, verduftet er beleidigt. Über *„Mehr laden“* holst du dir
+Nachschub aus dem Archiv.
+
+Wuchert ein Thread mit hundert Antworten? Der kleine Klapp-Pfeil links daneben
+faltet ihn zusammen, bis nur das Eröffnungsposting übrig ist – und in den
+Einstellungen lässt sich das gleich für alle Threads voreinstellen. Daneben sitzt
+die *Mix-Ansicht*: sie legt alle Beiträge des Threads am Stück untereinander.
+Hast du in den Einstellungen *„Posting aufklappen“* an, passiert das direkt an
+Ort und Stelle, ohne Seitenwechsel – noch ein Klick, und der Baum ist zurück.
+
+<!-- icon: pencil -->
+### Beiträge schreiben
+
+Klick auf *„Neuer Beitrag“* und der Editor klappt gleich an Ort und Stelle auf –
+kein Seitenwechsel, kein Ladebalken-Kino. Die Knöpfchen oben machen **fett**,
+*kursiv* und allerlei Formatierung, das Smiley-Gesicht öffnet die Sammlung zum
+Anklicken. Die Vorschau zeigt dir vorher, ob’s hübsch aussieht. Und wenn sich
+doch ein Tippfehler eingeschlichen hat: *„Bearbeiten“* am eigenen Beitrag
+richtet das – der Beitrag trägt danach einen dezenten Hinweis, dass er angefasst
+wurde.
+
+<!-- icon: image -->
+### Bilder & Medien
+
+Über *„Medien einfügen“* wirfst du eine URL rein – das Forum erkennt von selbst,
+ob es ein Bild, ein Video oder ein YouTube-Clip ist. Noch fauler? Einfach einen
+Link ins Editor-Feld *einfügen* (Strg/Cmd + V), der Rest passiert automatisch.
+Der Upload-Manager zeigt dein Bilderarchiv – aussuchen, „Auswahl einfügen“,
+fertig. Aufräumen geht in deinem Profil: dort liegen alle Uploads, und was weg
+soll, darf weg.
+
+<!-- icon: filter -->
+### Kategorien filtern
+
+Nur an einem Thema interessiert? Über die Kategorie-Auswahl oben blendest du den
+Rest aus – digitaler Scheuklappen-Modus, ganz ohne schlechtes Gewissen. Es dürfen
+auch mehrere sein: Der Knopf klappt eine Liste zum Ankreuzen auf, und „Alle
+Kategorien“ setzt die Auswahl wieder zurück.
+
+Dauerhaft geht es auch: In den Einstellungen hakst du unter *„Angezeigte
+Kategorien“* an, was dich überhaupt interessiert. Die Auswahl oben bietet dann
+nur noch genau das an.
+
+<!-- icon: bookmark -->
+### Lesezeichen & „hilfreich“
+
+Ein Beitrag zu schade zum Vergessen? Setz ein *Lesezeichen* und finde ihn später
+über das Lesezeichen-Symbol im Kopf wieder. Und hat dir eine Antwort
+weitergeholfen, darfst du sie per Haken als *hilfreich* auszeichnen – ein kleines
+Dankeschön an den Verfasser.
+
+<!-- icon: check -->
+### Gelesen-Markierung
+
+Zu viele orange Striche? Der *„Alles gelesen“*-Knopf macht mit einem Klick reinen
+Tisch – der Reset-Knopf für dein schlechtes Gewissen.
+
+<!-- icon: columns -->
+### Die Widgets rechts
+
+Rechts (am Handy weiter unten) plaudern kleine Kästchen darüber, wer gerade
+online ist und was zuletzt geschrieben wurde. Das Wort *„Benutzer“* in der
+Überschrift führt zur vollständigen Mitgliederliste – die lädt in
+Hundertergruppen nach, das Forum hat mehr Leute, als auf eine Seite passen.
+
+Zu neugierig? Kopf antippen, und das Kästchen macht sich klein (auf den Link
+natürlich nicht, der will woanders hin). Am breiten Bildschirm schrumpft es dabei
+auf sein Symbol am rechten Rand – sind alle eingeklappt, nimmt sich die
+Threadliste den frei gewordenen Platz. Am Handy klappt einfach der Inhalt weg, da
+wäre mit Symbolen nichts gewonnen. Auf dem Online-Symbol steht, wie viele
+Mitglieder gerade da sind; Gäste und Suchmaschinen zählen nicht mit. Die
+Anordnung merkt sich dein Konto – am nächsten Gerät sieht es also genauso aus.
+
+<!-- icon: search -->
+### Suche
+
+Die Lupe im Kopf durchwühlt das Forum nach Stichworten – schneller, als du „Wo
+war das nochmal?“ tippen kannst. In der erweiterten Suche schränkst du zusätzlich
+auf Betreff, Verfasser, Kategorie und einen Monat ein, ab dem gesucht wird.
+Findet sie mehr, als auf eine Seite passt, holst du dir den Rest unten über
+*„Mehr laden“* – so lange, bis nichts mehr kommt.
+
+<!-- icon: adjust -->
+### Tag & Nacht
+
+Der Halbmond-/Kontrast-Knopf schaltet zwischen hell und dunkel um. Für die frühen
+Vögel und die späten Eulen gleichermaßen.
+
+<!-- icon: user -->
+### Profil & Einstellungen
+
+Hinter *„Profil“* im Kopf wohnt alles Persönliche: dein *Avatar*, Signatur,
+Farben, Sortierung – und die *Schriftgröße*, falls die Buchstaben mal Fangen
+spielen. Bei den Farben gibt es neben dem Farbtopf jeweils ein *„Standard“*-Häkchen,
+falls dir dein eigener Geschmack doch zu bunt wurde. Das Passwort änderst du dort
+ebenfalls – es klappt als Overlay auf, ohne dass du die Seite verlässt.
+
+Auf der Profilseite selbst findest du außerdem deine Lesezeichen, deine Uploads
+und deine persönlichen RSS-Adressen, die auch die Bereiche mitliefern, die nur
+angemeldet sichtbar sind.
+
+<!-- icon: envelope -->
+### Miteinander reden – oder eben nicht
+
+Etwas, das nicht alle lesen müssen? Auf dem Profil eines Mitglieds steht
+*„Kontakt“* und öffnet ein Fenster, das eine E-Mail schickt, ohne dass Adressen
+herumgereicht werden. Ein Postfach im Forum gibt es nicht – was hier rausgeht,
+landet im Mailprogramm. Und wenn jemand dauerhaft an deinen Nerven sägt:
+*„Ignorieren“* auf demselben Profil, dann ist Ruhe. Den Betreiber erreichst du
+über *„Kontakt“* unten im Fuß der Seite.
+
+<!-- icon: wrench -->
+### Das Werkzeug-Menü
+
+Wenn du Moderationsrechte hast, sitzt an Beiträgen ein Schraubenschlüssel.
+Dahinter liegt das schwere Gerät: *anpinnen* (Thread bleibt oben), *sperren*
+(keine neuen Antworten), *zusammenführen* (hängt einen ganzen Thread als Antwort
+unter einen anderen – praktisch bei Doppelposts) und *löschen*. Mit Bedacht, das
+meiste davon merkt man.
+
+<!-- outro -->
+Das war’s im Groben. Jetzt aber los – die Threads schreiben sich nicht von
+selbst.

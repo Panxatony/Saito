@@ -47,6 +47,14 @@ class PagesControllerTest extends IntegrationTestCase
         $this->assertResponseOk();
         // The personal, signed feed URL for the logged-in user.
         $this->assertResponseContains('/feeds/f/3-');
-        $this->assertResponseNotContains('"/feeds/postings/new.rss"');
+
+        // …and the page itself must not offer the un-tokenized one. Scoped to
+        // the page's own card: the island layout carries an RSS overlay that
+        // lists the public feeds for everybody, which is layout furniture and
+        // not an offer made to this reader.
+        $body = (string)$this->_response->getBody();
+        $card = substr($body, (int)strpos($body, 'card-body panel-content'));
+        $card = substr($card, 0, (int)strpos($card, '</div>'));
+        $this->assertStringNotContainsString('"/feeds/postings/new.rss"', $card);
     }
 }

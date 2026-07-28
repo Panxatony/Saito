@@ -54,9 +54,9 @@ class SitemapsControllerTest extends IntegrationTestCase
     {
         $this->get('/sitemap/file/sitemap-entries-1-20000.xml');
         $baseUrl = Router::fullBaseUrl();
-        $this->assertResponseContains("{$baseUrl}/entries/view/1</loc>");
-        $this->assertResponseNotContains("{$baseUrl}/entries/view/4</loc>");
-        $this->assertResponseNotContains("{$baseUrl}/entries/view/6</loc>");
+        $this->assertResponseContains("{$baseUrl}/entries/htmx-posting/1</loc>");
+        $this->assertResponseNotContains("{$baseUrl}/entries/htmx-posting/4</loc>");
+        $this->assertResponseNotContains("{$baseUrl}/entries/htmx-posting/6</loc>");
     }
 
     public function setUp(): void

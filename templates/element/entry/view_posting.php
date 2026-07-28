@@ -3,12 +3,10 @@
 use Saito\User\Permission\ResourceAI;
 
 // setup
-// On an island install the classic edit/merge routes render the SPA, so emit the
-// island equivalents here rather than rewriting them in JavaScript afterwards —
-// that also keeps "open in new tab" and the no-JS case correct.
-$isIsland = \Cake\Core\Configure::read('Saito.frontend') === 'island';
-$editUrlPrefix = $isIsland ? '/entries/htmx-edit/' : '/entries/edit/';
-$mergeUrlPrefix = $isIsland ? '/entries/htmx-merge/' : '/entries/merge/';
+// Emitted server-side rather than rewritten in JavaScript afterwards, so
+// "open in new tab" and the no-JS case stay correct.
+$editUrlPrefix = '/entries/htmx-edit/';
+$mergeUrlPrefix = '/entries/htmx-merge/';
 $level = $level ?? 0;
 $editLinkIsShown = false;
 $showSignature = false;
