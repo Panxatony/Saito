@@ -204,11 +204,15 @@ class SaitoHelpsController extends AppController
      */
     private function findAll(string $lang, bool $isAdmin): array
     {
-        $collect = function (string $lang): array {
-            $folderPath = ROOT . DS . 'docs' . DS . 'help' . DS . $lang;
+        $collect = function (string $lang, ?string $plugin = null): array {
+            $folderPath = ($plugin === null ? ROOT . DS : Plugin::path($plugin))
+                . 'docs' . DS . 'help' . DS . $lang;
             if (!is_dir($folderPath)) {
                 return [];
             }
+            // A plugin's topics are addressed as `<Plugin>.<id>`, which is what
+            // find() already understands.
+            $prefix = $plugin === null ? '' : $plugin . '.';
 
             $topics = [];
             foreach (array_diff(scandir($folderPath), ['.', '..']) as $file) {
@@ -222,8 +226,8 @@ class SaitoHelpsController extends AppController
                     continue;
                 }
                 $text = (string)file_get_contents($folderPath . DS . $file);
-                $topics[$m['id']] = [
-                    'id' => $m['id'],
+                $topics[$prefix . $m['id']] = [
+                    'id' => $prefix . $m['id'],
                     'title' => $this->extractTitle($text),
                     'admin' => str_contains($text, '<!-- admin -->'),
                 ];
@@ -236,6 +240,17 @@ class SaitoHelpsController extends AppController
         $topics = $collect('en');
         if ($lang !== 'en') {
             $topics = array_replace($topics, $collect($lang));
+        }
+
+        // Plugins carry help of their own — the BBCode reference is the one that
+        // matters most to a reader, and it was written years ago but has never
+        // been listed anywhere, because this only ever looked in the core.
+        foreach (Plugin::loaded() as $plugin) {
+            $fromPlugin = $collect('en', $plugin);
+            if ($lang !== 'en') {
+                $fromPlugin = array_replace($fromPlugin, $collect($lang, $plugin));
+            }
+            $topics += $fromPlugin;
         }
 
         if (!$isAdmin) {

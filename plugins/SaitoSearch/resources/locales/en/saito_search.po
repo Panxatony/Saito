@@ -75,3 +75,9 @@ msgid "tooShort"
 msgstr ""
 "The following words are to short and were omitted: {0}. Minimum number of "
 "characters is: {1}."
+
+msgid "search.toAdvanced"
+msgstr "Advanced search: by subject, author, category and period"
+
+msgid "search.toSimple"
+msgstr "Back to the simple full-text search"

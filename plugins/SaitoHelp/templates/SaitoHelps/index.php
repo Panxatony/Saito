@@ -24,19 +24,26 @@
         <?php else : ?>
             <div class="saito-help-index" x-data="{ open: null }">
                 <?php foreach ($topics as $topic) : ?>
-                    <?php $id = h($topic['id']); ?>
+                    <?php
+                    $id = h($topic['id']);
+                    // A plugin topic is `BbcodeParser.1`, and a dot in a DOM id makes
+                    // the `#id` selector htmx resolves read it as a class — an invalid
+                    // selector that throws and leaves the panel empty. Keep the id for
+                    // the URL, sanitise it for the DOM.
+                    $domId = preg_replace('/[^A-Za-z0-9_-]/', '-', $topic['id']);
+                    ?>
                     <section class="saito-help-topic">
                         <h2 class="saito-help-topic-head">
                             <a href="<?= $this->Url->build('/help/' . rawurlencode($topic['id'])) ?>"
                                hx-get="<?= $this->Url->build(
                                    '/help/' . rawurlencode($lang) . '/' . rawurlencode($topic['id'])
                                ) ?>"
-                               hx-target="#saito-help-body-<?= $id ?>"
+                               hx-target="#saito-help-body-<?= $domId ?>"
                                hx-swap="innerHTML"
                                hx-trigger="click once"
                                x-on:click.prevent="open = (open === '<?= $id ?>' ? null : '<?= $id ?>')"
                                x-bind:aria-expanded="open === '<?= $id ?>' ? 'true' : 'false'"
-                               aria-controls="saito-help-body-<?= $id ?>">
+                               aria-controls="saito-help-body-<?= $domId ?>">
                                 <i class="fa fa-chevron-right saito-help-caret" aria-hidden="true"
                                    x-bind:class="open === '<?= $id ?>' && 'is-open'"></i>
                                 <?= h($topic['title']) ?>
@@ -46,7 +53,7 @@
                             </a>
                         </h2>
                         <div class="saito-help-topic-body"
-                             id="saito-help-body-<?= $id ?>"
+                             id="saito-help-body-<?= $domId ?>"
                              x-show="open === '<?= $id ?>'"
                              x-cloak></div>
                     </section>

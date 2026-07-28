@@ -22,10 +22,8 @@ $searchUrl = $this->Url->build([
     'controller' => 'Searches',
     'action' => 'htmxAdvanced',
 ]);
-$csrfToken = $this->getRequest()->getAttribute('csrfToken');
 echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
 ?>
-<meta name="csrf-token" content="<?= h($csrfToken) ?>">
 
 <div class="container search advanced">
     <?= $this->element('layout/htmx_back') ?>
@@ -69,6 +67,17 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
                 'class' => 'btn btn-primary',
             ]);
             echo $this->Form->end();
+
+            // The two searches had no way between them: the advanced one was
+            // only reachable from a profile or a posting list, so anyone who
+            // opened the search from the header never learnt it existed.
+            echo $this->Html->div(
+                'search-switch',
+                $this->Html->link(
+                    __d('saito_search', 'search.toSimple'),
+                    ['plugin' => 'SaitoSearch', 'controller' => 'Searches', 'action' => 'htmxSimple']
+                )
+            );
             ?>
         </div>
     </div>
