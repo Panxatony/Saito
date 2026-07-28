@@ -25,7 +25,7 @@ $webroot = $this->getRequest()->getAttribute('webroot');
 $railMinimised = !empty($widgetCatalogue)
     && count($minimisedWidgets ?? []) === count($widgetCatalogue);
 ?>
-<div class="island-cols<?= $railMinimised ? ' is-railMin' : '' ?>">
+<div class="island-cols<?= $railMinimised ? ' is-railMin' : '' ?><?= ($railVisible ?? true) ? '' : ' is-noRail' ?>">
 <div class="island-main">
 
 <?php // Live poll: every 30s ask whether new postings arrived since page load. ?>
@@ -99,9 +99,15 @@ $railMinimised = !empty($widgetCatalogue)
 </div><?php // /.island-main ?>
 
 <?php // Right rail: who's online / recent posts / my posts. Loads on page load,
-      // refreshes every 60s and after new posts (refresh-recent). ?>
-<aside class="island-sidebar"
-       hx-get="<?= $webroot ?>entries/htmx-widgets"
-       hx-trigger="load, every 60s, refresh-recent from:body"
-       hx-swap="innerHTML"></aside>
+      // refreshes every 60s and after new posts (refresh-recent).
+      //
+      // Left out entirely when the viewer does not get it, rather than hidden:
+      // an empty <aside> would still fire its request every 60 seconds, and the
+      // grid would keep reserving the column it sits in. ?>
+<?php if ($railVisible ?? true) : ?>
+    <aside class="island-sidebar"
+           hx-get="<?= $webroot ?>entries/htmx-widgets"
+           hx-trigger="load, every 60s, refresh-recent from:body"
+           hx-swap="innerHTML"></aside>
+<?php endif; ?>
 </div><?php // /.island-cols ?>

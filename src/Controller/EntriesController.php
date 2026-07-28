@@ -139,6 +139,7 @@ class EntriesController extends AppController
             // or a strip of icons, or the thread list visibly jumps.
             $this->set('minimisedWidgets', $this->railArrangement()['minimised']);
             $this->set('widgetCatalogue', self::WIDGETS);
+            $this->set('railVisible', $this->railVisible());
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_index');
         }
     }
@@ -181,6 +182,16 @@ class EntriesController extends AppController
      */
     public function htmxWidgets()
     {
+        // A forum can keep the rail for members only. Enforced here and not just
+        // by leaving the markup out: this endpoint answers on its own URL, so
+        // hiding the rail while still serving the fragment would let anyone read
+        // who is online by asking for it directly.
+        if (!$this->railVisible()) {
+            $this->viewBuilder()->disableAutoLayout();
+
+            return $this->getResponse()->withStringBody('');
+        }
+
         // Registry::get() always returns an object (it throws on a missing key),
         // so no null check is needed here.
         $stats = \Saito\App\Registry::get('AppStats');
@@ -202,6 +213,21 @@ class EntriesController extends AppController
         $this->set('minimisedWidgets', $arrangement['minimised']);
         $this->set('widgetOrder', $arrangement['order']);
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_widgets');
+    }
+
+    /**
+     * Whether the widget rail is shown to the current viewer.
+     *
+     * Members always see it. Guests see it unless the installation has turned
+     * `Saito.widgetsForGuests` off — absent configuration means "show", so an
+     * installation that predates the setting is unaffected.
+     *
+     * @return bool
+     */
+    protected function railVisible(): bool
+    {
+        return $this->CurrentUser->isLoggedIn()
+            || Configure::read('Saito.widgetsForGuests') !== false;
     }
 
     /**

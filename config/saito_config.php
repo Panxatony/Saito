@@ -117,6 +117,18 @@ $config = [
          */
         'notice' => true,
 
+        /**
+         * Show the front page's widget rail — who is online, recent postings —
+         * to visitors who are not signed in.
+         *
+         * True keeps what the island frontend has always done. False makes the
+         * rail a members-only feature: the rail is not rendered for a guest and
+         * the fragment endpoint answers them with nothing, so who is online
+         * cannot be read by fetching it directly either. "Your postings" is
+         * unaffected — it has always needed an account.
+         */
+        'widgetsForGuests' => true,
+
         'Settings' => [
             /**
              * Sets the markup parser

@@ -663,6 +663,11 @@
        takes the width back. Anything less than "all of them" keeps the full
        rail, because one open card needs it anyway. */
     .htmx-island .island-cols.is-railMin { grid-template-columns: minmax(0, 1fr) 3.25rem; }
+
+    /* No rail at all — the installation keeps it for members and this viewer is
+       not one. The thread list takes the whole width; without this the grid
+       goes on reserving a 19rem column for an element that is not there. */
+    .htmx-island .island-cols.is-noRail { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* A minimised widget: a square icon button docked in the rail ---------------- */

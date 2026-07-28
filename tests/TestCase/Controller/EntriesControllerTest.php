@@ -653,6 +653,54 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * A forum can keep the rail for members. The fragment has its own URL, so
+     * hiding the markup is not enough — asking for it directly must return
+     * nothing, or who is online stays readable by anyone who knows the path.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsAreWithheldFromGuestsWhenConfigured(): void
+    {
+        Configure::write('Saito.widgetsForGuests', false);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertSame('', (string)$this->_response->getBody());
+        $this->assertNull($this->viewVariable('online'), 'who is online must not even be looked up');
+    }
+
+    /**
+     * The same setting must not take the rail away from members.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsStayForMembersWhenGuestsAreExcluded(): void
+    {
+        Configure::write('Saito.widgetsForGuests', false);
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertNotNull($this->viewVariable('recentEntries'));
+        $this->assertNotNull($this->viewVariable('myPosts'));
+    }
+
+    /**
+     * An installation that predates the setting has no such key, and must keep
+     * behaving as it always did.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsStayPublicWithoutTheSetting(): void
+    {
+        Configure::delete('Saito.widgetsForGuests');
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertNotNull($this->viewVariable('recentEntries'));
+    }
+
+    /**
      * The order the widgets appear in, as rendered.
      *
      * @return list<string>
