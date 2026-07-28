@@ -90,6 +90,33 @@ $config = [
          */
         'headHtml' => '',
 
+        /**
+         * Custom HTML placed between the header bar and the page content, in a
+         * `div.ads_top` — the banner slot. Meant for an ad tag, a donation
+         * banner or a notice an installation wants above everything else.
+         *
+         * Trusted, operator-controlled, and rendered unescaped: set it per
+         * installation, never from user input. Empty by default, and the
+         * container is omitted entirely when it is empty, so an installation
+         * that wants no banner gets no stray markup.
+         *
+         * The class name is `ads_top` because that is what installations
+         * carrying a banner already use; keeping it means existing ad code and
+         * any CSS written against it continues to work.
+         */
+        'bannerHtml' => '',
+
+        /**
+         * Show the notice above the page explaining the modernised frontend
+         * (or, on a beta installation, that this is a throwaway copy).
+         *
+         * It is meant for the weeks around a switch, when people arrive with a
+         * stale cache and a frontend they have never seen. Once that has passed
+         * — or on an installation using the beta to try something unrelated,
+         * where the notice is just in the way — set this to false.
+         */
+        'notice' => true,
+
         'Settings' => [
             /**
              * Sets the markup parser

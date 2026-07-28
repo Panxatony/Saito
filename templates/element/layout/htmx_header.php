@@ -15,14 +15,30 @@ $webroot = $this->request->getAttribute('webroot');
 $theme = $this->getTheme();
 $themeCss = $theme ? $this->Url->assetUrl($theme . '.css/theme.css') : '';
 $nightCss = $theme ? $this->Url->assetUrl($theme . '.css/night.css') : '';
+
+// The active theme's logo. The filename used to be hard-coded as
+// `forum_logo.svg`, which quietly required every theme to draw its wordmark as
+// a vector — a theme whose logo exists only as a bitmap got a broken image and
+// no explanation. So ask the theme's webroot what it actually ships, preferring
+// the vector when there is one.
+$logoFile = 'forum_logo.svg';
+if ($theme) {
+    foreach (['svg', 'png', 'webp', 'jpg'] as $extension) {
+        $candidate = 'forum_logo.' . $extension;
+        if (is_file(\Cake\Core\Plugin::path($theme) . 'webroot/img/' . $candidate)) {
+            $logoFile = $candidate;
+            break;
+        }
+    }
+}
 ?>
 <header id="header" class="htmx-island-header">
     <div id="header-hero">
         <a href="<?= $webroot ?>entries/htmx-index" id="btn_header_logo" class="btn btn-link">
-            <?php // The active theme's logo (e.g. plugins/Macnemo/webroot/img/forum_logo.svg);
-                  // Html->image resolves it from the theme's webroot. alt = forum name so
+            <?php // Html->image resolves the file from the theme's webroot; see the
+                  // lookup above for how the name is chosen. alt = forum name so
                   // there's a text fallback if the image is missing. ?>
-            <div id="hero-homeLink"><?= $this->Html->image('forum_logo.svg', ['alt' => $forumName]) ?></div>
+            <div id="hero-homeLink"><?= $this->Html->image($logoFile, ['alt' => $forumName]) ?></div>
         </a>
     </div>
     <?php

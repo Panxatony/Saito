@@ -91,7 +91,12 @@
             <div class="island-ribbon" aria-hidden="true"><span>Beta</span></div>
         <?php endif; ?>
         <?php // The notice stays on a live install too: after the switch people
-              // arrive with a stale cache and a frontend they have never seen. ?>
+              // arrive with a stale cache and a frontend they have never seen.
+              // It can be switched off once that has passed — or on a beta being
+              // used to try something else, where it is only in the way. Absent
+              // configuration means "show", so installations that predate the
+              // setting are unaffected. ?>
+        <?php if (\Cake\Core\Configure::read('Saito.notice') !== false) : ?>
         <div class="island-notice" role="status">
             <p class="island-notice-lead">
                 <i class="fa fa-<?= $isBeta ? 'flask' : 'refresh' ?>" aria-hidden="true"></i>
@@ -104,7 +109,19 @@
                 </button>
             </p>
         </div>
+        <?php endif; ?>
         <?= $this->element('layout/htmx_header') ?>
+        <?php
+        // The banner slot: operator-supplied markup between the header bar and
+        // the page, in the `div.ads_top` installations already carry a banner
+        // in. Trusted configuration, so it is rendered unescaped — and the
+        // container is skipped entirely when nothing is configured, rather than
+        // leaving an empty div on every page of every other installation.
+        $bannerHtml = (string)\Cake\Core\Configure::read('Saito.bannerHtml');
+        ?>
+        <?php if (trim($bannerHtml) !== '') : ?>
+            <div class="ads_top"><?= $bannerHtml ?></div>
+        <?php endif; ?>
         <?php // Filled on demand by the header "new entry" / "search" links. ?>
         <div id="js-headerActions"></div>
         <div id="content">

@@ -123,6 +123,10 @@ module.exports = function (grunt) {
           // the macnemo theme silently drifted away from its own source.
           'plugins/Macnemo/webroot/css/night.css': 'plugins/Macnemo/webroot/css/src/night.scss',
           'plugins/Macnemo/webroot/css/theme.css': 'plugins/Macnemo/webroot/css/src/theme.scss',
+          // Macfix imports Nova as well, so it is compiled from the same task
+          // and rebuilt whenever Nova or Bota's partials change.
+          'plugins/Macfix/webroot/css/night.css': 'plugins/Macfix/webroot/css/src/night.scss',
+          'plugins/Macfix/webroot/css/theme.css': 'plugins/Macfix/webroot/css/src/theme.scss',
         }
       },
     },
