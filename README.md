@@ -14,7 +14,8 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 [Test it here][SaitoSupport] (login: test/test).
 
 [cake]: http://cakephp.org/
-[marionette]: https://marionettejs.com/
+[htmx]: https://htmx.org/
+[alpine]: https://alpinejs.dev/
 [SaitoHomepage]: https://saito.siezi.com/
 [SaitoSupport]: https://saito-forum.de/
 [ConversationThreading]: https://en.wikipedia.org/wiki/Conversation_threading
@@ -26,7 +27,7 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 
 ## Get Started
 
-A ready-to-use ZIP containing all necessary files is available on the [release page](https://github.com/Panxatony/Saito/releases). Unzip it, upload it to your server, open it in a browser, and follow the instructions on the screen.
+A ready-to-use tarball containing all necessary files is available on the [release page](https://github.com/Panxatony/Saito/releases), next to its SHA-256 checksum. Unpack it, upload it to your server, open it in a browser, and follow the instructions on the screen.
 
 ## Deployment
 
@@ -57,7 +58,7 @@ cannot override the value, and the override fails silently.
 You need a more or less generic environement providing:
 
 -  PHP with `composer` for the server-backend (mainly build on [CakePHP][cake])
--  node with `yarn` and `grunt-cli` for the browser-frontend (mainly build on [Marionette][marionette])
+-  node with `yarn` and `grunt-cli` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts)
 -  a database
 
 ### Install Files
@@ -81,7 +82,15 @@ Run all test cases:
 composer test-all
 ```
 
-See the `Gruntfile`, `packages.json` and `composer.json` for additional devleopment-commands.
+`composer test-all` runs PHPUnit, PHPStan and ESLint. Code style is checked
+separately with `composer cs-check`, and is not part of `test-all`: the code
+base is some 270 violations away from its own PHPCS standard, so wiring it in
+would mean a command that can only ever fail. `composer cs-fix` applies what
+PHPCBF can fix — it rewrites source files, so run it deliberately and never as
+part of a test.
+
+See the `Gruntfile`, `package.json` and `composer.json` for further development
+commands.
 
 ### Create Production Files
 
@@ -91,12 +100,13 @@ To generate all the minimized assets for production:
 grunt release
 ```
 
-### Create A Release Zip
+### Create A Release
 
-To generate a zip-package as found on the release page for distribution:
+Push a version tag. CI runs the test suite, builds the tarball from a clean
+checkout and publishes it on the release page with its checksum:
 
 ```shell
-vendor/bin/phing
+git tag 8.0.13 && git push github 8.0.13
 ```
 
 ## Credits

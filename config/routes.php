@@ -18,7 +18,6 @@
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
-use Cake\Core\Configure;
 use Cake\Routing\RouteBuilder;
 use Cake\Routing\Route\DashedRoute;
 
@@ -49,16 +48,11 @@ $routes->setRouteClass(DashedRoute::class);
 
 $routes->scope('/', function (RouteBuilder $routes) {
     /**
-     * Root URL. On an island-frontend install (Saito.frontend = 'island', e.g.
-     * the beta) '/' serves the standalone island front page; the SPA installs
-     * keep the classic Entries::index. Note: routes are cached (_cake_routes_),
-     * so flip the flag then clear that cache for the change to take effect.
+     * Root URL. There is one frontend now, so there is nothing to branch on —
+     * `Entries::index`, the Backbone/Marionette shell this used to fall back to,
+     * no longer exists.
      */
-    if (Configure::read('Saito.frontend') === 'island') {
-        $routes->connect('/', ['controller' => 'Entries', 'action' => 'htmxIndex']);
-    } else {
-        $routes->connect('/', ['controller' => 'Entries', 'action' => 'index']);
-    }
+    $routes->connect('/', ['controller' => 'Entries', 'action' => 'htmxIndex']);
 
     /**
      * ...and connect the rest of 'Pages' controller's URLs.
@@ -84,6 +78,44 @@ $routes->scope('/', function (RouteBuilder $routes) {
         );
 
     /**
+     * Published URLs of the retired Backbone/Marionette frontend.
+     *
+     * These are not kept for the SPA's sake — the SPA is gone. They are kept
+     * because they were *published*: two decades of search-engine entries,
+     * bookmarks and links from other sites point at them. A forum that breaks
+     * its own archive discards the part of itself that other people built.
+     *
+     * 301 (RedirectRoute's default), so clients and crawlers learn the new
+     * address instead of asking forever; `persist` carries the trailing ID
+     * through to the island action. Registered above `fallbacks()` on purpose —
+     * the catch-all below would otherwise match `/entries/view/123` first and
+     * answer with a missing-action error.
+     *
+     * Only addresses worth linking to are listed: a posting, a thread, a
+     * profile, the two indexes and the registration form. Form and moderation
+     * endpoints (edit, merge, avatar, role, lock, …) were reachable from the
+     * old interface only and nobody links to them from outside.
+     */
+    $routes->redirect(
+        '/entries/view/*',
+        ['controller' => 'Entries', 'action' => 'htmxPosting'],
+        ['persist' => true]
+    );
+    $routes->redirect(
+        '/entries/mix/*',
+        ['controller' => 'Entries', 'action' => 'htmxThread'],
+        ['persist' => true]
+    );
+    $routes->redirect('/entries/index', ['controller' => 'Entries', 'action' => 'htmxIndex']);
+    $routes->redirect(
+        '/users/view/*',
+        ['controller' => 'Users', 'action' => 'htmxProfile'],
+        ['persist' => true]
+    );
+    $routes->redirect('/users/index', ['controller' => 'Users', 'action' => 'htmxUsers']);
+    $routes->redirect('/users/register', ['controller' => 'Users', 'action' => 'htmxRegister']);
+
+    /**
      * Connect catchall routes for all controllers.
      *
      * Using the argument `DashedRoute`, the `fallbacks` method is a shortcut for
@@ -100,47 +132,4 @@ $routes->scope('/', function (RouteBuilder $routes) {
      * routes you want in your application.
      */
     $routes->fallbacks(DashedRoute::class);
-});
-
-$routes->scope('/entries', function ($routes) {
-    $routes->setExtensions(['json']);
-    $routes->connect(
-        '/threadLine/*',
-        ['controller' => 'Entries', 'action' => 'threadLine']
-    );
-    // The frontend (models/threadline.ts) requests the lowercase URL
-    // `entries/threadline/<id>`. CakePHP 5 resolves the action name to the
-    // method case-sensitively, so without this explicit lowercase route the
-    // request would hit a MissingActionException for `threadline` (the method
-    // is `threadLine`) — breaking the live append of a new posting after reply.
-    $routes->connect(
-        '/threadline/*',
-        ['controller' => 'Entries', 'action' => 'threadLine']
-    );
-});
-
-$routes->scope('/api/v2/', function ($routes) {
-    $routes->setExtensions(['json']);
-    $routes->resources('Postings');
-});
-
-$routes->scope('/api/v2/postingmeta', function ($routes) {
-    $routes->setExtensions(['json']);
-    $routes->connect(
-        '/*',
-        ['controller' => 'Postings', 'action' => 'meta']
-    );
-});
-
-$routes->scope('/api/v2/', function ($routes) {
-    $routes->setExtensions(['json']);
-    $routes->resources('Drafts');
-});
-
-$routes->scope('/api/v2/preview', function ($routes) {
-    $routes->setExtensions(['json']);
-    $routes->connect(
-        '/preview/*',
-        ['controller' => 'Preview', 'action' => 'preview']
-    );
 });

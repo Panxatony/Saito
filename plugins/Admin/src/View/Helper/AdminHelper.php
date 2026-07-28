@@ -91,34 +91,4 @@ class AdminHelper extends AppHelper
         );
     }
 
-    /**
-     * jquery table
-     *
-     * @param string $selector selector
-     * @param string $sort sort
-     *
-     * @return void
-     */
-    public function jqueryTable($selector, $sort)
-    {
-        $this->Html->css(
-            '../js/datatables/datatables.net-bs4/css/dataTables.bootstrap4.css',
-            ['block' => 'script']
-        );
-        $this->Html->script(
-            [
-                '../js/datatables/datatables.net/js/jquery.dataTables.js',
-                '../js/datatables/datatables.net-bs4/js/dataTables.bootstrap4.js',
-            ],
-            ['block' => 'script']
-        );
-
-        $script = <<<EOF
-$(function() {
-    var userTable = $('{$selector}').DataTable();
-});
-EOF;
-
-        $this->Html->scriptBlock($script, ['block' => 'script']);
-    }
 }

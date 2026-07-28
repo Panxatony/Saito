@@ -82,11 +82,11 @@ return [
      * - cookieAuthName - name of the encrypted authentication cookie
      */
     'Security' => [
-        'salt' => env('SECURITY_SALT', '__SALT__'),
-        'cookieSalt' => env('SECURITY_COOKIE_SALT', '__SALT__'),
+        'salt' => env('SECURITY_SALT', '22bb0314d18b1ae3f65deda384e3721cfdc47972e1bb221c4c4f9ae952b2bd4e'),
+        'cookieSalt' => env('SECURITY_COOKIE_SALT', '22bb0314d18b1ae3f65deda384e3721cfdc47972e1bb221c4c4f9ae952b2bd4e'),
         // Dedicated key for API tokens, so ops can invalidate every issued token
         // without also logging everyone out. Falls back to `salt` when unset.
-        'jwtSalt' => env('SECURITY_JWT_SALT', '__SALT__'),
+        'jwtSalt' => env('SECURITY_JWT_SALT', '22bb0314d18b1ae3f65deda384e3721cfdc47972e1bb221c4c4f9ae952b2bd4e'),
         'cookieAuthName' => 'Saito-AU',
     ],
 
@@ -301,9 +301,9 @@ return [
              * the following line and set the port accordingly
              */
             //'port' => 'non_standard_port_number',
-            'username' => 'my_app',
-            'password' => 'secret',
-            'database' => 'my_app',
+            'username' => 'saito',
+            'password' => 'saito',
+            'database' => 'saito_prodtest',
             /*
              * You do not need to set this flag to use full utf-8 encoding (internal default since CakePHP 3.6).
              */
@@ -344,9 +344,9 @@ return [
             'persistent' => false,
             'host' => 'localhost',
             //'port' => 'non_standard_port_number',
-            'username' => 'my_app',
-            'password' => 'secret',
-            'database' => 'test_myapp',
+            'username' => 'saito',
+            'password' => 'saito',
+            'database' => 'saito_test',
             //'encoding' => 'utf8mb4',
             'timezone' => 'UTC',
             'cacheMetadata' => true,

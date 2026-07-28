@@ -183,7 +183,10 @@ build:
       --exclude='./.phpunit.result.cache'
       --exclude='./build'
       --exclude='./dev'
-      --exclude='./docs'
+      --no-wildcards-match-slash
+      --exclude='./docs/*.md'
+      --wildcards-match-slash
+      --exclude='./docs/local'
       --exclude='./frontend'
       --exclude='./node_modules'
       --exclude='./logs'
@@ -191,16 +194,13 @@ build:
       --exclude='./tests'
       --exclude='./pipeline-failed.log'
       --exclude='./Gruntfile.js'
-      --exclude='./karma.conf.js'
       --exclude='./package.json'
       --exclude='./phpcs.xml.dist'
       --exclude='./phpstan.neon'
       --exclude='./phpunit.xml.dist'
       --exclude='./tsconfig.json'
       --exclude='./.eslintrc.json'
-      --exclude='./webpack.config.js'
       --exclude='./yarn.lock'
-      --exclude='./build.xml'
       --exclude='*/tests'
       .
     - sha256sum "build/${RELEASE_NAME}.tar.gz" > "build/${RELEASE_NAME}.tar.gz.sha256"

@@ -2,9 +2,9 @@
 
 Registrierte Mitglieder können andere Nutzer in deren Nutzerprofil ignorieren. Die Beiträge ignorierter Nutzer werden dann soweit wie möglich nicht mehr angezeigt.
 
-Im Nutzerprofil werden zwei Informationen angezeigt (falls anwendbar): 
+Im Profil stehen dazu zwei Angaben, sofern zutreffend:
 
-- Im eigenen Profil und nur für dessen Besitzer einsehbar die von ihm ignorierten Nutzer (nicht öffentlich)
-- Die Anzahl der Nutzer, welche den Besitzer des Profils ignorieren (öffentlich)
+- *Von dir ignoriert* — die eigene Liste, ausschließlich im eigenen Profil und nur für dich sichtbar
+- *Wird ignoriert von* — wie viele Mitglieder den Profilinhaber ignorieren; diese Zahl ist für alle sichtbar, die Namen dahinter nicht
 
-Nach drei Monaten wird das Ignorieren eines Nutzers automatisch wieder aufgehoben.
+Nach drei Monaten wird das Ignorieren automatisch wieder aufgehoben.

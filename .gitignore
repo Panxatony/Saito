@@ -28,8 +28,20 @@ schema-dump-*.lock
 /webroot/useruploads/*
 
 ### Assets ###
+# Compiled theme CSS is a build product, not source: `grunt dart-sass:theme`
+# makes all three from the .scss under css/src/. Bota was already ignored while
+# Nova and Macnemo were tracked, so every rebuild dirtied the tree and the two
+# could drift from their sources unnoticed. Same rule for all three now.
+#
+# Consequence worth knowing: a deploy that copies files straight out of the
+# working tree has to build first. The release tarball is unaffected — CI runs
+# the build before packaging.
 plugins/Bota/webroot/css/*
 !plugins/Bota/webroot/css/src/
+plugins/Nova/webroot/css/*
+!plugins/Nova/webroot/css/src/
+plugins/Macnemo/webroot/css/*
+!plugins/Macnemo/webroot/css/src/
 
 plugins/Bota/webroot/fonts/*.woff*
 
@@ -44,3 +56,6 @@ plugins/*/webroot/css/*.css.map
 
 # Stray CI/pipeline logs
 *.log
+
+# PHPUnit writes this on every run; it is per-machine state, not source.
+.phpunit.result.cache

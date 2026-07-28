@@ -22,6 +22,15 @@ $searchUrl = $this->Url->build(
                    placeholder="<?= h(__('Search')) ?>&hellip;">
             <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
         </form>
+        <?php // This box is where most people start searching, so it is the place
+              // the advanced search has to be reachable from — it was only linked
+              // from a profile or a posting list before. ?>
+        <div class="search-switch">
+            <?= $this->Html->link(
+                __d('saito_search', 'search.toAdvanced'),
+                ['plugin' => 'SaitoSearch', 'controller' => 'Searches', 'action' => 'htmxAdvanced']
+            ) ?>
+        </div>
         <div id="js-widgetResults" class="js-thread-island" style="margin-top: 1rem;"></div>
     </div>
 </div>

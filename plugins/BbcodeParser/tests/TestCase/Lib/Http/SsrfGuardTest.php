@@ -22,9 +22,7 @@ use Saito\Test\SaitoTestCase;
  */
 class SsrfGuardTest extends SaitoTestCase
 {
-    /**
-     * @dataProvider ipProvider
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('ipProvider')]
     public function testIsPublicIp(string $ip, bool $expected): void
     {
         $this->assertSame($expected, SsrfGuard::isPublicIp($ip));

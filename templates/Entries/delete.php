@@ -27,7 +27,7 @@ $isRoot = $posting->isRoot();
                 ) ?>
                 <?= $this->Html->link(
                     __('delete_confirm.cancel'),
-                    ['controller' => 'Entries', 'action' => 'view', $posting->get('tid')],
+                    ['controller' => 'Entries', 'action' => 'htmxThread', $posting->get('tid')],
                     ['class' => 'btn btn-secondary']
                 ) ?>
                 <?= $this->Form->end() ?>

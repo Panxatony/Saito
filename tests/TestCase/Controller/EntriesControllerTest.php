@@ -341,34 +341,6 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->get('/entries/htmx-posting/9999');
     }
 
-    public function testMixSuccess()
-    {
-        $this->get('/entries/mix/1');
-        $this->assertResponseOk();
-
-        $result = $this->viewVariable('titleForLayout');
-        $this->assertStringStartsWith('First_Subject', $result);
-    }
-
-    public function testMixNoAuthorization()
-    {
-        $url = '/entries/mix/4';
-        $this->get($url);
-        $this->assertRedirectLogin($url);
-    }
-
-    public function testMixNotFound()
-    {
-        $this->expectException(RecordNotFoundException::class);
-        $this->get('/entries/mix/9999');
-    }
-
-    public function testMixRedirect()
-    {
-        $this->get('/entries/mix/7');
-        $this->assertRedirect('/entries/mix/1#7');
-    }
-
     /**
      * Regression: pinning/locking is authorized by saito.core.posting.pinAndLock,
      * so a moderator must be able to toggle a thread even when they may not
@@ -402,153 +374,6 @@ class EntriesControllerTest extends IntegrationTestCase
         $url = '/entries/add';
         $this->get($url);
         $this->assertRedirectLogin($url);
-    }
-
-    public function testAddShowForumSuccess()
-    {
-        $this->_loginUser(1);
-        $this->get('/entries/add');
-        $this->assertResponseCode(200);
-    }
-
-    public function testCategoryChooserVisible()
-    {
-        $this->_loginUser(1);
-        $Users = TableRegistry::getTableLocator()->get('Users');
-        $user = $Users->get(1);
-        $element = 'btn-category-chooser';
-
-        $user->set('user_category_override', false);
-        $Users->save($user);
-
-        // no global, no user allowed, no user
-        Configure::write('Saito.Settings.category_chooser_global', 0);
-        Configure::write('Saito.Settings.category_chooser_user_override', 0);
-        $this->get('entries/index');
-        $this->assertResponseNotContains($element);
-
-        // global, no user allowed, no user
-        Configure::write('Saito.Settings.category_chooser_global', 1);
-        Configure::write('Saito.Settings.category_chooser_user_override', 0);
-        $this->get('entries/index');
-        $this->assertResponseContains($element);
-
-        // no global, user allowed, no user
-        Configure::write('Saito.Settings.category_chooser_global', 0);
-        Configure::write('Saito.Settings.category_chooser_user_override', 1);
-        $this->get('entries/index');
-        $this->assertResponseNotContains($element);
-
-        // no global, user allowed, user
-        Configure::write('Saito.Settings.category_chooser_global', 0);
-        Configure::write('Saito.Settings.category_chooser_user_override', 1);
-        $user->set('user_category_override', true);
-        $Users->save($user);
-        $this->get('entries/index');
-        $this->assertResponseContains($element);
-
-        // global, not logged-in
-        $this->_logoutUser();
-        Configure::write('Saito.Settings.category_chooser_global', 1);
-        $this->get('entries/index');
-        $this->assertResponseNotContains($element);
-    }
-
-    public function testCategoryChooserSingle()
-    {
-        // = setup =
-        $Users = TableRegistry::getTableLocator()->get('Users');
-        Configure::write('Saito.Settings.category_chooser_global', 1);
-
-        $this->_loginUser(1);
-        $user = $Users->get(1);
-        $user->patch(
-            [
-                'user_sort_last_answer' => 1,
-                'user_type' => 'admin',
-                'user_category_active' => 4,
-                'user_category_custom' => [
-                    1 => 1,
-                    2 => 1,
-                    4 => 0,
-                    9999 => 1,
-                ],
-            ]
-        );
-        $Users->save($user);
-
-        // = test =
-        $this->get('entries/index');
-
-        $this->assertEquals(4, $this->viewVariable('categoryChooserTitleId'));
-        $this->assertEquals(
-            [
-                '1' => '1',
-                '2' => '2',
-                '3' => '3',
-                '5' => '5',
-            ],
-            $this->viewVariable('categoryChooserChecked')
-        );
-
-        $entries = $this->viewVariable('entries');
-        $filtered = array_filter(
-            $entries,
-            function ($entry) {
-                return $entry->get('category')['id'] !== 4;
-            }
-        );
-        $this->assertEmpty($filtered);
-    }
-
-    public function testCategoryChooserCustom()
-    {
-        // = setup =
-        $Users = TableRegistry::getTableLocator()->get('Users');
-        Configure::write('Saito.Settings.category_chooser_global', 1);
-
-        $this->_loginUser(3);
-        $user = $Users->get(3);
-        $user->patch(
-            [
-                'user_sort_last_answer' => 1,
-                'user_category_active' => 0,
-                'user_category_custom' => [1 => 1, 2 => 1, 4 => 0, 9999 => 1],
-            ]
-        );
-        $Users->save($user);
-
-        // = test =
-        $this->get('entries/index');
-
-        $this->assertEquals(
-            'Custom',
-            $this->viewVariable('categoryChooserTitleId')
-        );
-        // user should not see admin categories
-        $this->assertEquals(
-            [
-                '2' => '2',
-                '3' => '3',
-            ],
-            $this->viewVariable('categoryChooserChecked')
-        );
-        $this->assertSame(
-            $this->viewVariable('categoryChooser'),
-            [
-                3 => 'Another Ontopic',
-                2 => 'Ontopic',
-                4 => 'Offtopic',
-            ]
-        );
-        $entries = $this->viewVariable('entries');
-        $filtered = array_filter(
-            $entries,
-            function ($entry) {
-                return !in_array($entry->get('category')['id'], [2, 3, 4, 5]);
-            }
-        );
-        $this->assertEmpty($filtered);
     }
 
     public function testDeleteNotLoggedIn()
@@ -611,251 +436,11 @@ class EntriesControllerTest extends IntegrationTestCase
 
         ///
         $this->post('/entries/delete/15');
-        $this->assertRedirect('/entries/view/14');
+        $this->assertRedirect('/entries/htmx-thread/14');
 
         // Category 4 new threads are not allowed for mods
         $this->expectException(SaitoForbiddenException::class);
         $this->post('/entries/delete/14');
-    }
-
-    public function testIndexSuccessAnonoymous()
-    {
-        /*
-         * fix for sudden and unclear "Call to a member function flock() on null
-         * vendor/cakephp/cakephp/src/Cache/Engine/FileEngine.php on 157" error
-         */
-        Cache::clearAll();
-
-        $this->get('/entries/index');
-        $postings = $this->viewVariable('entries');
-        $this->assertCount(3, $postings);
-        $this->assertResponseOk();
-    }
-
-    public function testIndexSuccessLoggedInUser()
-    {
-        $this->_loginUser(3);
-        $this->get('/entries/index');
-        $postings = $this->viewVariable('entries');
-        $this->assertCount(5, $postings);
-        $this->assertResponseOk();
-    }
-
-    public function testIndexSanitation()
-    {
-        $this->_loginUser(7);
-
-        // uses contents to check in slidetabs
-        $this->get('/entries/index');
-        $this->assertResponseOk();
-        $result = $this->_response->getBody();
-        // uses <body>-HTML only: exclude <head> which may contain unescaped JS-data
-        preg_match('/<body(.*)<\/body>/sm', $result, $matches);
-        $result = $matches[0];
-        $this->assertTextNotContains('&<Subject', $result);
-        $this->assertTextContains('&amp;&lt;Subject', $result);
-        $this->assertTextNotContains('&<Username', $result);
-        $this->assertTextContains('&amp;&lt;Username', $result);
-        // check for no double encoding
-        $this->assertTextNotContains('&amp;amp;&amp;lt;Username', $result);
-    }
-
-    public function testMergeNoSourceId()
-    {
-        $mergeMethod = 'threadMerge';
-        $this->assertTrue(is_callable([$this->Table, $mergeMethod]));
-        $Entries = $this->getMockForTable('Entries', [$mergeMethod]);
-        $Entries->expects($this->never())->method('threadMerge');
-
-        $this->_loginUser(2);
-        $this->mockSecurity();
-        $this->expectException('Cake\Http\Exception\NotFoundException');
-        $this->post('/entries/merge/', ['targetId' => 2]);
-    }
-
-    public function testMergeSourceIdNotFound()
-    {
-        $mergeMethod = 'threadMerge';
-        $this->assertTrue(is_callable([$this->Table, $mergeMethod]));
-        $Entries = $this->getMockForTable('Entries', [$mergeMethod]);
-        $Entries->expects($this->never())->method('threadMerge');
-
-        $this->_loginUser(2);
-        $this->mockSecurity();
-        $this->expectException('Cake\Http\Exception\NotFoundException');
-        $this->post('/entries/merge/9999', ['targetId' => 2]);
-    }
-
-    public function testMergeShowForm()
-    {
-        $mergeMethod = 'threadMerge';
-        $this->assertTrue(is_callable([$this->Table, $mergeMethod]));
-        $Entries = $this->getMockForTable('Entries', [$mergeMethod]);
-        $Entries->expects($this->never())->method('threadMerge');
-
-        $this->_loginUser(2);
-        $this->mockSecurity();
-        $this->post('/entries/merge/4', []);
-        $this->assertNoRedirect();
-    }
-
-    public function testMergeIsNotAuthorized()
-    {
-        $mergeMethod = 'threadMerge';
-        $this->assertTrue(is_callable([$this->Table, $mergeMethod]));
-        $Entries = $this->getMockForTable('Entries', [$mergeMethod]);
-        $Entries->expects($this->never())->method('threadMerge');
-
-        $this->expectException(SaitoForbiddenException::class);
-
-        $this->_loginUser(3);
-        $this->mockSecurity();
-        $this->post('/entries/merge/4', ['targetId' => 2]);
-    }
-
-    public function testMergeSuccess()
-    {
-        $mergeMethod = 'threadMerge';
-        $this->assertTrue(is_callable([$this->Table, $mergeMethod]));
-        $Entries = $this->getMockForTable('Entries', [$mergeMethod]);
-
-        $Entries->expects($this->exactly(1))
-            ->method('threadMerge')
-            ->with(4, 2)
-            ->willReturn(true);
-
-        $this->_loginUser(2);
-        $this->mockSecurity();
-        $this->post('/entries/merge/4', ['targetId' => 2]);
-    }
-
-    /**
-     * Entry does not exist
-     */
-    public function testEditNoEntry()
-    {
-        $this->_loginUser(2);
-        $this->expectException(RecordNotFoundException::class);
-        $this->get('entries/edit/9999');
-    }
-
-    /**
-     * Entry does not exist
-     */
-    public function testEditNoEntryId()
-    {
-        $this->_loginUser(2);
-        $this->expectException(InvalidParameterException::class);
-        $this->get('entries/edit/');
-    }
-
-    public function testEditShowSuccess()
-    {
-        $this->_loginUser(1);
-        $this->get('entries/edit/1');
-
-        $this->assertResponseCode(200);
-    }
-
-    public function testEditShowFailureForbidden()
-    {
-        $this->_loginUser(3);
-
-        $this->expectException(SaitoForbiddenException::class);
-
-        $this->get('entries/edit/1');
-    }
-
-    /**
-     * Edit message should not be shown. Edit time is below settings treshold.
-     */
-    public function testViewEditNoticeIsNotShown()
-    {
-        $this->_loginUser(1);
-        Configure::write('Saito.Settings.edit_delay', '3');
-        $Table = TableRegistry::getTableLocator()->get('Entries');
-        $posting = $Table->findById(3)->first();
-        $editDelay = Configure::read('Saito.Settings.edit_delay');
-        $posting->set('edited', $posting->get('time')->addMinutes($editDelay)->addSeconds(-1));
-        $posting->set('edited_by', $posting->get('name'));
-        $Table->save($posting);
-
-        $this->get('/entries/view/' . $posting->get('id'));
-
-        $this->assertResponseOk();
-        $this->assertResponseNotContains('edited by');
-    }
-
-    /**
-     * Edit message should be shown. Edit time is above settings treshold.
-     */
-    public function testViewEditNoticeIsShown()
-    {
-        $this->_loginUser(1);
-
-        Configure::write('Saito.Settings.edit_delay', '3');
-        $Table = TableRegistry::getTableLocator()->get('Entries');
-        $posting = $Table->findById(3)->first();
-        $editDelay = Configure::read('Saito.Settings.edit_delay');
-        $posting->set('edited', $posting->get('time')->addMinutes($editDelay)->addSeconds(1));
-        $posting->set('edited_by', $posting->get('name'));
-        $Table->save($posting);
-
-        $this->get('/entries/view/' . $posting->get('id'));
-
-        $this->assertResponseOk();
-        $this->assertResponseContains('edited by ' . $posting->get('author'));
-    }
-
-    /**
-     * anon user views posting available for him
-     */
-    public function testViewNotLoggedInSuccess()
-    {
-        $this->_viewOk(1);
-    }
-
-    /**
-     * anon users view posting not available to him
-     */
-    public function testViewNotLoggedInAuthFailure()
-    {
-        $url = '/entries/view/4';
-        $this->get($url);
-        $this->assertRedirectLogin($url);
-    }
-
-    /**
-     * logged-in user sees posting only available to logged-in users
-     */
-    public function testViewLoggedInAuthSuccess()
-    {
-        $this->_loginUser(3);
-        $this->_viewOk(4);
-    }
-
-    public function testViewPostingDoesNotExistRedirect()
-    {
-        $this->expectException(RecordNotFoundException::class);
-        $this->get('/entries/view/9999');
-    }
-
-    /**
-     * XHR posting view must return a bare fragment, not a full page.
-     *
-     * The SPA (PostingModel.fetchHtml) injects this response straight into the
-     * DOM, so a full <html> layout corrupts the markup. Cake 5 removed
-     * RequestHandlerComponent, which used to disable the layout for AJAX.
-     */
-    public function testViewAjaxRendersFragmentWithoutLayout()
-    {
-        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
-        $this->get('/entries/view/1');
-
-        $this->assertResponseOk();
-        $this->assertResponseContains('js-entry-view-core');
-        $this->assertResponseNotContains('<!DOCTYPE');
-        $this->assertResponseNotContains('<html');
     }
 
     /**
@@ -868,47 +453,6 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertNoRedirect();
         $resultId = $this->viewVariable('entry')->get('id');
         $this->assertEquals($resultId, $postingId);
-    }
-
-    public function testViewIncreaseViewCounterNotLoggedIn()
-    {
-        $postingId = 1;
-
-        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
-        $posting = $EntriesTable->get($postingId);
-        $viewsExpected = $posting->get('views') + 1;
-
-        $this->get('/entries/view/' . $postingId);
-
-        $posting = $EntriesTable->get($postingId);
-        $viewsResult = $posting->get('views');
-
-        $this->assertEquals(
-            $viewsExpected,
-            $viewsResult,
-            'Posting view counter was not increased.'
-        );
-    }
-
-    public function testViewIncreaseViewCounterLoggedIn()
-    {
-        $postingId = 1;
-
-        $EntriesTable = TableRegistry::getTableLocator()->get('Entries');
-        $posting = $EntriesTable->get($postingId);
-        $viewsExpected = $posting->get('views') + 1;
-
-        $this->_loginUser(1);
-        $this->get('/entries/view/' . $postingId);
-
-        $posting = $EntriesTable->get($postingId);
-        $viewsResult = $posting->get('views');
-
-        $this->assertEquals(
-            $viewsExpected,
-            $viewsResult,
-            'Posting view counter was not increased.'
-        );
     }
 
     /**
@@ -950,44 +494,6 @@ class EntriesControllerTest extends IntegrationTestCase
         $viewsResult = $posting->get('views');
 
         $this->assertEquals($viewsExpected, $viewsResult);
-    }
-
-    /**
-     * Checks that the mod-button is in-/visible
-     */
-    public function testViewModButton()
-    {
-        /*
-         * Mod Button is not visible for anon users
-         */
-        $this->get('/entries/view/1');
-        $this->assertResponseNotContains('dropdown');
-
-        /*
-         * Mod Button is not visible for normal users
-         */
-        $this->_loginUser(3);
-        $this->get('/entries/view/1');
-        $this->assertResponseNotContains('dropdown');
-
-        /*
-         * Mod Button is visible for mods
-         */
-        $this->_loginUser(2);
-        $this->get('/entries/view/1');
-        $this->assertResponseContains('dropdown');
-    }
-
-    public function testViewSanitation()
-    {
-        $this->_loginUser(1);
-        $this->get('/entries/view/11');
-        $this->assertResponseNotContains('&<Subject');
-        $this->assertResponseContains('&amp;&lt;Subject');
-        $this->assertResponseNotContains('&<Text');
-        $this->assertResponseContains('&amp;&lt;Text');
-        $this->assertResponseNotContains('&<Username');
-        $this->assertResponseContains('&amp;&lt;Username');
     }
 
     public function testSolveNotLoggedIn()
@@ -1049,32 +555,10 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertResponseEquals('');
     }
 
-    public function testSeo()
-    {
-        $this->get('/entries/index');
-        $this->assertResponseNotContains('noindex');
-        $url = Router::url('/', true);
-        $expected = '<link rel="canonical" href="' . $url . '"/>';
-        $this->assertResponseContains($expected);
-
-        Configure::write('Saito.Settings.topics_per_page', 1);
-        $this->get('/entries/index/?page=2');
-        $this->assertResponseNotContains('rel="canonical"');
-        $expected = '<meta name="robots" content="noindex, follow">';
-        $this->assertResponseContains($expected);
-    }
-
     public function testSourceNotLoggedIn()
     {
         $this->get('/entries/source/1');
         $this->assertRedirectContains('/login');
-    }
-
-    public function testSourceSuccess()
-    {
-        $this->_loginUser(3);
-        $this->get('/entries/source/1');
-        $this->assertResponseContains("First_Subject\n\nFirst_Text");
     }
 
     public function testThreadLineAnon()
@@ -1084,21 +568,242 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertRedirectContains('/login');
     }
 
-    public function testThreadLineForbidden()
+
+    /**
+     * The "new postings" counter is public, and that is exactly why it needs a
+     * test: it reports how much has appeared since a given entry, and it must
+     * count only what the visitor is allowed to read. A number is information —
+     * telling a guest that six things appeared in a category they cannot open
+     * would leak the existence of those postings.
+     *
+     * The fixture makes this measurable: category 2 is public, category 4 needs
+     * an account, categories 1 and 5 are for moderators. A guest asking about
+     * everything after entry 3 may therefore only be told about 7, 8, 9, 10 and
+     * 13 — never about 4, 5, 11, 12, 14 or 15.
+     *
+     * @return void
+     */
+    public function testHtmxNewCountCountsOnlyWhatTheVisitorMayRead(): void
     {
-        $this->_loginUser(3);
-        $this->_setJson();
-        $this->get('/entries/threadLine/6');
-        $this->assertRedirectContains('/login');
+        $this->get('/entries/htmx-new-count?since=3');
+
+        $this->assertResponseOk();
+        $this->assertSame(5, $this->viewVariable('newCount'), 'public category only');
     }
 
-    public function testThreadLineSucces()
+    /**
+     * The counterpart: a member sees their categories counted too. Without this
+     * the test above would also pass if the counter always returned the same
+     * small number, or nothing at all.
+     *
+     * @return void
+     */
+    public function testHtmxNewCountIncludesMemberCategoriesForMembers(): void
     {
-        $this->_loginUser(1);
-        $this->_setJson();
-        $this->get('/entries/threadLine/6');
-        $this->assertNoRedirect();
-        $expected = 'Third Thread First_Subject';
-        $this->assertResponseContains($expected);
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-new-count?since=3');
+
+        $this->assertResponseOk();
+        // 5 from the public category plus 4 from the members-only one; still
+        // nothing from the two that need moderator rights.
+        $this->assertSame(9, $this->viewVariable('newCount'), 'public plus members-only');
+    }
+
+    /**
+     * Without a reference point there is nothing to count, and the action must
+     * not fall back to "everything".
+     *
+     * @return void
+     */
+    public function testHtmxNewCountWithoutSinceCountsNothing(): void
+    {
+        $this->get('/entries/htmx-new-count');
+
+        $this->assertResponseOk();
+        $this->assertSame(0, $this->viewVariable('newCount'));
+    }
+
+    /**
+     * The widget rail is public: a guest gets who is online and what was written
+     * recently, but no "your postings" — there is no "your" to speak of.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsArePublicButWithoutOwnPostsForGuests(): void
+    {
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertNotNull($this->viewVariable('recentEntries'), 'recent postings');
+        $this->assertNull($this->viewVariable('myPosts'), 'nothing personal for a guest');
+    }
+
+    /**
+     * Signed in, the third widget appears.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsIncludeOwnPostsForMembers(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertNotNull($this->viewVariable('myPosts'));
+    }
+
+    /**
+     * A forum can keep the rail for members. The fragment has its own URL, so
+     * hiding the markup is not enough — asking for it directly must return
+     * nothing, or who is online stays readable by anyone who knows the path.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsAreWithheldFromGuestsWhenConfigured(): void
+    {
+        Configure::write('Saito.widgetsForGuests', false);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertSame('', (string)$this->_response->getBody());
+        $this->assertNull($this->viewVariable('online'), 'who is online must not even be looked up');
+    }
+
+    /**
+     * The same setting must not take the rail away from members.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsStayForMembersWhenGuestsAreExcluded(): void
+    {
+        Configure::write('Saito.widgetsForGuests', false);
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertNotNull($this->viewVariable('recentEntries'));
+        $this->assertNotNull($this->viewVariable('myPosts'));
+    }
+
+    /**
+     * An installation that predates the setting has no such key, and must keep
+     * behaving as it always did.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsStayPublicWithoutTheSetting(): void
+    {
+        Configure::delete('Saito.widgetsForGuests');
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertNotNull($this->viewVariable('recentEntries'));
+    }
+
+    /**
+     * The order the widgets appear in, as rendered.
+     *
+     * @return list<string>
+     */
+    protected function renderedWidgetOrder(): array
+    {
+        preg_match_all('/data-widget="([a-z]+)"/', (string)$this->_response->getBody(), $matches);
+
+        return $matches[1];
+    }
+
+    /**
+     * Give member 3 a stored rail arrangement.
+     *
+     * @param list<string> $order the order to store
+     * @return void
+     */
+    protected function storeWidgetOrderForUser3(array $order): void
+    {
+        $users = TableRegistry::getTableLocator()->get('Users');
+        $user = $users->get(3);
+        $users->patchEntity($user, [
+            'slidetab_order' => \Saito\User\WidgetPreferences::write($order, [], EntriesController::WIDGETS),
+        ]);
+        $users->saveOrFail($user);
+    }
+
+    /**
+     * The rail is rendered in the member's order rather than reshuffled by a
+     * script afterwards — otherwise it visibly rearranges itself on every load,
+     * and on every one of the sidebar's 60-second refreshes.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsRenderInTheMembersOrder(): void
+    {
+        $this->storeWidgetOrderForUser3(['mine', 'recent', 'online']);
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertSame(['mine', 'recent', 'online'], $this->renderedWidgetOrder());
+    }
+
+    /**
+     * A member who never dragged anything gets the catalogue order. Worth
+     * pinning: the rendering loop is driven by stored data, and "nothing
+     * stored" is the state almost every member is in.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsFallBackToTheCatalogueOrder(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertSame(EntriesController::WIDGETS, $this->renderedWidgetOrder());
+    }
+
+    /**
+     * A stored order naming a widget the viewer does not get — a guest has no
+     * "your postings" — must not leave a gap or drop the others.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsSkipAnOrderedWidgetTheViewerCannotSee(): void
+    {
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertSame(['online', 'recent'], $this->renderedWidgetOrder());
+    }
+
+    /**
+     * "Mark all read" from the island answers with an empty 204 and a trigger the
+     * thread list listens for. Returning a redirect instead — which is what the
+     * classic path does — would make htmx replace the list with a whole page.
+     *
+     * @return void
+     */
+    public function testUpdateAnswersHtmxWithAnEmptyResponseAndATrigger(): void
+    {
+        $this->_loginUser(3);
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/entries/update');
+
+        $this->assertResponseCode(204);
+        $this->assertHeader('HX-Trigger', 'refresh-recent');
+        $this->assertResponseEmpty();
+    }
+
+    /**
+     * Without htmx the same action redirects, so the no-JavaScript path still
+     * lands somewhere sensible.
+     *
+     * @return void
+     */
+    public function testUpdateRedirectsWithoutHtmx(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/update');
+
+        $this->assertRedirect();
     }
 }

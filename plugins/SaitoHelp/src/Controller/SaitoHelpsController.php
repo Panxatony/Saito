@@ -46,7 +46,26 @@ class SaitoHelpsController extends AppController
         $lang = (string)Configure::read('Saito.language');
         $isAdmin = (bool)$this->CurrentUser->permission('saito.core.admin.backend');
         $this->set('topics', $this->findAll($lang, $isAdmin));
+        $this->set('lang', $lang);
         $this->set('titleForPage', __('Help'));
+    }
+
+    /**
+     * The help overlay's content: the guided tour and the list of topics.
+     *
+     * Loaded on demand rather than rendered into every page — the overlay is
+     * opened rarely and its markup is not small.
+     *
+     * @return void
+     */
+    public function tour()
+    {
+        $lang = (string)Configure::read('Saito.language');
+        $isAdmin = (bool)$this->CurrentUser->permission('saito.core.admin.backend');
+        // Only whether there is anywhere to go — the topics themselves belong on
+        // /help, not repeated in the overlay.
+        $this->set('hasTopics', $this->findAll($lang, $isAdmin) !== []);
+        $this->viewBuilder()->disableAutoLayout();
     }
 
     /**
@@ -90,6 +109,13 @@ class SaitoHelpsController extends AppController
 
         $this->set('titleForPage', __('Help'));
 
+        // Opened from the help overlay: return the topic alone, so it can be
+        // swapped in beside the tour instead of navigating away from whatever
+        // the reader was doing.
+        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_view');
+        }
+
         // Render the help page; explicit null so all paths return (the
         // redirect paths above return a Response).
         return null;
@@ -101,7 +127,7 @@ class SaitoHelpsController extends AppController
     public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
-        $this->Authentication->allowUnauthenticated(['languageRedirect', 'view', 'index']);
+        $this->Authentication->allowUnauthenticated(['languageRedirect', 'view', 'index', 'tour']);
     }
 
     /**
@@ -110,10 +136,7 @@ class SaitoHelpsController extends AppController
     public function beforeRender(\Cake\Event\EventInterface $event)
     {
         parent::beforeRender($event);
-        // Match the island frontend on beta installs (help is static content).
-        if ($this->isIslandFrontend()) {
-            $this->viewBuilder()->setLayout('htmx_island');
-        }
+        $this->viewBuilder()->setLayout('htmx_island');
     }
 
     /**
@@ -181,20 +204,30 @@ class SaitoHelpsController extends AppController
      */
     private function findAll(string $lang, bool $isAdmin): array
     {
-        $collect = function (string $lang): array {
-            $folderPath = ROOT . DS . 'docs' . DS . 'help' . DS . $lang;
+        $collect = function (string $lang, ?string $plugin = null): array {
+            $folderPath = ($plugin === null ? ROOT . DS : Plugin::path($plugin))
+                . 'docs' . DS . 'help' . DS . $lang;
             if (!is_dir($folderPath)) {
                 return [];
             }
+            // A plugin's topics are addressed as `<Plugin>.<id>`, which is what
+            // find() already understands.
+            $prefix = $plugin === null ? '' : $plugin . '.';
 
             $topics = [];
             foreach (array_diff(scandir($folderPath), ['.', '..']) as $file) {
+                // overlay.md is the guided tour shown in the help overlay, not a
+                // topic of its own — listing it here would offer the same text
+                // twice under two different names.
+                if ($file === 'overlay.md') {
+                    continue;
+                }
                 if (!preg_match('/^(?<id>[^-.]+)(-.*?)?\.md$/', $file, $m)) {
                     continue;
                 }
                 $text = (string)file_get_contents($folderPath . DS . $file);
-                $topics[$m['id']] = [
-                    'id' => $m['id'],
+                $topics[$prefix . $m['id']] = [
+                    'id' => $prefix . $m['id'],
                     'title' => $this->extractTitle($text),
                     'admin' => str_contains($text, '<!-- admin -->'),
                 ];
@@ -207,6 +240,17 @@ class SaitoHelpsController extends AppController
         $topics = $collect('en');
         if ($lang !== 'en') {
             $topics = array_replace($topics, $collect($lang));
+        }
+
+        // Plugins carry help of their own — the BBCode reference is the one that
+        // matters most to a reader, and it was written years ago but has never
+        // been listed anywhere, because this only ever looked in the core.
+        foreach (Plugin::loaded() as $plugin) {
+            $fromPlugin = $collect('en', $plugin);
+            if ($lang !== 'en') {
+                $fromPlugin = array_replace($fromPlugin, $collect($lang, $plugin));
+            }
+            $topics += $fromPlugin;
         }
 
         if (!$isAdmin) {

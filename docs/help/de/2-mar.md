@@ -10,7 +10,7 @@ Das Öffnen eines einzelnen Beitrages markiert dieses als gelesen. Das Öffnen e
 
 ## Alle Beiträge gelesen markieren (mMAR)
 
-Alle Beiträge können durch den Doppelpfeil-Button im Kopf der Homepage als gelesen markiert werden.
+Angemeldete Nutzer markieren alle Beiträge über den Haken-Knopf *„Alles gelesen“* in der Aktionsleiste über der Threadliste.
 
 ## Intelligentes gelesen markieren (iMAR - intelligent MAR)
 

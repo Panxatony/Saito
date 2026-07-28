@@ -73,7 +73,8 @@ class RefererComponent extends Component
      */
     public function wasController(string $controller): bool
     {
-        return !empty($this->last['controller']) && ($this->last['controller'] === $controller);
+        return !empty($this->last['controller'])
+            && strcasecmp($this->last['controller'], $controller) === 0;
     }
 
     /**
@@ -84,6 +85,13 @@ class RefererComponent extends Component
      */
     public function wasAction(string $action): bool
     {
-        return !empty($this->last['action']) && ($this->last['action'] === $action);
+        // Case-insensitive, because beforeFilter() stores the parsed action
+        // lower-cased while callers naturally pass the method name. With the
+        // retired frontend every action was lower-case anyway ('index', 'view')
+        // so an exact comparison happened to work; every island action is
+        // camelCase, and this would have silently answered false for all of
+        // them.
+        return !empty($this->last['action'])
+            && strcasecmp($this->last['action'], $action) === 0;
     }
 }

@@ -41,13 +41,13 @@ class SearchesController extends AppController
         $this->Entries = $this->fetchTable('Entries');
 
 
-        if (in_array($this->getRequest()->getParam('action'), ['simple', 'htmxSimple'], true)) {
+        if ($this->getRequest()->getParam('action') === 'htmxSimple') {
             $this->Entries->addBehavior('SaitoSearch.SaitoSearch');
         } else {
             $this->Entries->addBehavior('Search.Search');
             // friendsofcake/search v6: Search component replaces PrgComponent
             $this->loadComponent('Search.Search');
-            $this->Search->setConfig('actions', ['advanced', 'htmxAdvanced']);
+            $this->Search->setConfig('actions', ['htmxAdvanced']);
             $this->Search->setConfig('queryStringWhitelist', []);
         }
     }
@@ -58,41 +58,7 @@ class SearchesController extends AppController
     public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         parent::beforeFilter($event);
-        $this->Authentication->allowUnauthenticated(['simple', 'htmxSimple']);
-    }
-
-    /**
-     * Simple search
-     *
-     * @return void|Response
-     */
-    public function simple()
-    {
-        $this->set('titleForPage', __d('saito_search', 'simple.t'));
-
-        $defaults = [
-            'searchTerm' => '',
-            'order' => 'time',
-        ];
-
-        // @td pgsql
-        $connection = $this->Entries->getConnection();
-        if (!($connection->getDriver() instanceof Mysql)) {
-            return $this->redirect(['action' => 'advanced']);
-        }
-
-        $query = $this->request->getQueryParams();
-        $query = array_intersect_key($query, array_flip(['searchTerm', 'order']));
-        $query += $defaults;
-        $this->set('searchDefaults', $query);
-
-        $showEmptyForm = empty($query['searchTerm']);
-        if ($showEmptyForm) {
-            return;
-        }
-
-        $this->runSimpleSearch($query);
-        $this->set('showBottomNavigation', true);
+        $this->Authentication->allowUnauthenticated(['htmxSimple']);
     }
 
     /**
@@ -141,7 +107,7 @@ class SearchesController extends AppController
 
         // @td pgsql — the fulltext finder is MySQL-only, like simple().
         if (!($this->Entries->getConnection()->getDriver() instanceof Mysql)) {
-            return $this->redirect(['action' => 'advanced']);
+            return $this->redirect(['action' => 'htmxAdvanced']);
         }
 
         $query = $this->request->getQueryParams();
@@ -169,16 +135,6 @@ class SearchesController extends AppController
         } else {
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_simple');
         }
-    }
-
-    /**
-     * Advanced Search
-     *
-     * @return void
-     */
-    public function advanced()
-    {
-        $this->prepareAdvancedSearch();
     }
 
     /**

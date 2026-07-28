@@ -1,28 +1,64 @@
 <?php
 /**
+ * The help page: every topic as a heading that opens its text underneath.
+ *
+ * One topic is open at a time — opening another closes the one before, and
+ * clicking the open one closes it again. The text is fetched the first time a
+ * topic is opened (`hx-trigger="click once"`) and stays in the page afterwards,
+ * so opening it again costs no request.
+ *
+ * Without JavaScript every heading is still a plain link to the topic's own
+ * page, which renders in full.
+ *
  * @var \App\View\AppView $this
- * @var array<array{id: string, title: string}> $topics
+ * @var array<array{id: string, title: string, admin: bool}> $topics
+ * @var string $lang
  */
 ?>
+<?= $this->Html->css('SaitoHelp.saitohelp') ?>
 <div class="card panel-center">
     <div class="card-body richtext">
         <h1><?= h(__('Help')) ?></h1>
         <?php if (empty($topics)) : ?>
             <p><?= h(__('Currently no help pages are available.')) ?></p>
         <?php else : ?>
-            <ul class="saito-help-index">
+            <div class="saito-help-index" x-data="{ open: null }">
                 <?php foreach ($topics as $topic) : ?>
-                    <li>
-                        <?= $this->Html->link(
-                            $topic['title'],
-                            '/help/' . rawurlencode($topic['id'])
-                        ) ?>
-                        <?php if (!empty($topic['admin'])) : ?>
-                            <small>(<?= h(__('Admin')) ?>)</small>
-                        <?php endif; ?>
-                    </li>
+                    <?php
+                    $id = h($topic['id']);
+                    // A plugin topic is `BbcodeParser.1`, and a dot in a DOM id makes
+                    // the `#id` selector htmx resolves read it as a class — an invalid
+                    // selector that throws and leaves the panel empty. Keep the id for
+                    // the URL, sanitise it for the DOM.
+                    $domId = preg_replace('/[^A-Za-z0-9_-]/', '-', $topic['id']);
+                    ?>
+                    <section class="saito-help-topic">
+                        <h2 class="saito-help-topic-head">
+                            <a href="<?= $this->Url->build('/help/' . rawurlencode($topic['id'])) ?>"
+                               hx-get="<?= $this->Url->build(
+                                   '/help/' . rawurlencode($lang) . '/' . rawurlencode($topic['id'])
+                               ) ?>"
+                               hx-target="#saito-help-body-<?= $domId ?>"
+                               hx-swap="innerHTML"
+                               hx-trigger="click once"
+                               x-on:click.prevent="open = (open === '<?= $id ?>' ? null : '<?= $id ?>')"
+                               x-bind:aria-expanded="open === '<?= $id ?>' ? 'true' : 'false'"
+                               aria-controls="saito-help-body-<?= $domId ?>">
+                                <i class="fa fa-chevron-right saito-help-caret" aria-hidden="true"
+                                   x-bind:class="open === '<?= $id ?>' && 'is-open'"></i>
+                                <?= h($topic['title']) ?>
+                                <?php if (!empty($topic['admin'])) : ?>
+                                    <small>(<?= h(__('Admin')) ?>)</small>
+                                <?php endif; ?>
+                            </a>
+                        </h2>
+                        <div class="saito-help-topic-body"
+                             id="saito-help-body-<?= $domId ?>"
+                             x-show="open === '<?= $id ?>'"
+                             x-cloak></div>
+                    </section>
                 <?php endforeach; ?>
-            </ul>
+            </div>
         <?php endif; ?>
     </div>
 </div>

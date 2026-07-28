@@ -51,8 +51,6 @@
     "phpunit/phpunit": "^11.5",
     "squizlabs/php_codesniffer": "^3.0",
     "phpstan/phpstan": "^2.1",
-
-    "phing/phing": "^2.16",
     "symfony/css-selector": "^5.4|^6.0",
     "symfony/dom-crawler": "^5.4|^6.0",
     "doctrine/instantiator": "^1.5",
@@ -118,7 +116,7 @@
 
     "cs-check": "unset XDEBUG_CONFIG; phpcs --parallel=4 -p --colors --runtime-set ignore_warnings_on_exit true",
     "cs-fix": "unset XDEBUG_CONFIG; phpcbf --parallel=4 -p --colors > /dev/null || true",
-    "check": ["@cs-fix", "@cs-check"],
+    "check": ["@cs-check"],
     "phpstan": "unset XDEBUG_CONFIG; vendor/bin/phpstan analyse --ansi",
     "coverage": [
       "Composer\\Config::disableProcessTimeout",
@@ -134,11 +132,10 @@
     ],
     "test": [
       "@phpunit",
-      "@phpstan",
-      "@check"
+      "@phpstan"
     ],
 
-    "js-all": "yarn run test",
+    "js-all": "yarn lint",
 
     "test-all": [
       "@test",

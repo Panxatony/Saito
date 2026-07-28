@@ -13,7 +13,17 @@ $this->Breadcrumbs->add(__('Users'), false);
     )
 ?>
     <hr/>
-    <table id="usertable" class="table table-striped">
+    <?php // Sorting and filtering happen in the browser: 821 members is a small
+          // table, and a round trip per keystroke would be worse than the work
+          // it saves. Without JavaScript this is still a complete, readable
+          // table — only the convenience is missing. ?>
+    <div x-data="adminTable" data-sort="3:desc" x-id="['userfilter']">
+        <label class="admin-tableFilter">
+            <span class="sr-only"><?= h(__('Search')) ?></span>
+            <input type="search" class="form-control" x-model="query" x-on:input="apply()"
+                   placeholder="<?= h(__('Search')) ?>" autocomplete="off">
+        </label>
+        <table id="usertable" class="table table-striped">
         <thead>
         <?php
         $tableHeaders = [
@@ -66,6 +76,6 @@ $this->Breadcrumbs->add(__('Users'), false);
         }
         ?>
         </tbody>
-    </table>
+        </table>
+    </div>
 </div>
-<?php $this->Admin->jqueryTable('#usertable', "[[3, 'desc'], [0, 'asc']]"); ?>

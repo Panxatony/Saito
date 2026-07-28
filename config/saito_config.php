@@ -30,17 +30,6 @@ $config = [
         'language' => env('SAITO_LANGUAGE', 'en'),
 
         /**
-         * Frontend flavour (strangler-fig migration).
-         *
-         * - 'spa'    the classic Backbone/Marionette single-page app (default).
-         * - 'island' the htmx/Alpine "island" frontend: '/' serves the island
-         *            front page and server-rendered pages (static pages, help)
-         *            use the island shell. Opt a deployment in — e.g. the beta —
-         *            by setting SAITO_FRONTEND=island; live installs stay 'spa'.
-         */
-        'frontend' => env('SAITO_FRONTEND', 'spa'),
-
-        /**
          * Marks a test/beta deployment.
          *
          * Deliberately separate from `frontend`: the beta ribbon and the
@@ -100,6 +89,45 @@ $config = [
          * installation. Empty by default (nothing injected).
          */
         'headHtml' => '',
+
+        /**
+         * Custom HTML placed between the header bar and the page content, in a
+         * `div.ads_top` — the banner slot. Meant for an ad tag, a donation
+         * banner or a notice an installation wants above everything else.
+         *
+         * Trusted, operator-controlled, and rendered unescaped: set it per
+         * installation, never from user input. Empty by default, and the
+         * container is omitted entirely when it is empty, so an installation
+         * that wants no banner gets no stray markup.
+         *
+         * The class name is `ads_top` because that is what installations
+         * carrying a banner already use; keeping it means existing ad code and
+         * any CSS written against it continues to work.
+         */
+        'bannerHtml' => '',
+
+        /**
+         * Show the notice above the page explaining the modernised frontend
+         * (or, on a beta installation, that this is a throwaway copy).
+         *
+         * It is meant for the weeks around a switch, when people arrive with a
+         * stale cache and a frontend they have never seen. Once that has passed
+         * — or on an installation using the beta to try something unrelated,
+         * where the notice is just in the way — set this to false.
+         */
+        'notice' => true,
+
+        /**
+         * Show the front page's widget rail — who is online, recent postings —
+         * to visitors who are not signed in.
+         *
+         * True keeps what the island frontend has always done. False makes the
+         * rail a members-only feature: the rail is not rendered for a guest and
+         * the fragment endpoint answers them with nothing, so who is online
+         * cannot be read by fetching it directly either. "Your postings" is
+         * unaffected — it has always needed an account.
+         */
+        'widgetsForGuests' => true,
 
         'Settings' => [
             /**

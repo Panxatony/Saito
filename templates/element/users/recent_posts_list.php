@@ -16,7 +16,7 @@
 // shell, which would drop the reader out of the island mid-journey.
 $urlToHistory = [
     'controller' => 'searches',
-    'action' => \Cake\Core\Configure::read('Saito.frontend') === 'island' ? 'htmxAdvanced' : 'advanced',
+    'action' => 'htmxAdvanced',
     '?' => ['name' => $user->get('username')],
 ];
 ?>

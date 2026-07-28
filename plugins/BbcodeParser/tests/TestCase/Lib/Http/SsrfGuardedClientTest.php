@@ -24,9 +24,7 @@ use Saito\Test\SaitoTestCase;
  */
 class SsrfGuardedClientTest extends SaitoTestCase
 {
-    /**
-     * @dataProvider blockedUrlProvider
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('blockedUrlProvider')]
     public function testInternalTargetsAreBlockedWithoutFetching(string $url): void
     {
         $client = new SsrfGuardedClient();

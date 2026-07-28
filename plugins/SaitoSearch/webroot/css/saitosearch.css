@@ -1,1 +1,14 @@
 .searchForm{width:100%;vertical-align:middle}.searchForm .search_main{display:flex;align-items:center}.searchForm .search_main :first-child{flex:auto}.searchForm #search_fulltext_textfield{height:38px}.searchForm .sort-menu{text-align:center}.searchForm .sort-menu label{margin:0 0.5em}.searchForm .btn_search_submit{white-space:nowrap;margin-left:1em;height:38px}@media only screen and (max-width: 768px){.searchForm-wrapper{margin:0;width:auto}}
+
+/* The way between the two searches. */
+.search-switch { margin-top: .75rem; font-size: .9rem; }
+
+/* "Sort by" and its two options on one line, with the label not glued to the
+   first radio. The wrappers come from the form template; this only spaces them. */
+.search-sort { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem .75rem; }
+/* `.htmx-island .form-check` sets a 0.5rem margin and has the same specificity
+   as `.search-sort .form-check`, and the island stylesheet is loaded after this
+   one — so a two-class selector loses on source order, not on weight. With
+   align-items:center that bottom margin is part of the centred box, which
+   pushed "Zeit" and "Rang" 7px above "Sortieren nach:". */
+.htmx-island .search-sort .form-check { margin: 0; }

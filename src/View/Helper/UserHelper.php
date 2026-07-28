@@ -136,7 +136,7 @@ class UserHelper extends AppHelper
             // Every username in the forum runs through here — postings, the
             // online widget, moderation reports. On an island install they must
             // land on the island profile, not the SPA page.
-            $action = Configure::read('Saito.frontend') === 'island' ? 'htmx-profile' : 'view';
+            $action = 'htmx-profile';
 
             return $this->Html->link($name, '/users/' . $action . '/' . $id, $options);
         } else {

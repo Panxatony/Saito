@@ -43,12 +43,11 @@ use Saito\Test\SaitoTestCase;
  * call somewhere in beforeFilter().
  *
  * KNOWN LIMIT — `inline` is pattern-based: it only proves the body *mentions* a
- * guard, not that the guard gates access. UsersController::index and
- * ::htmxProfile are the standing examples — index's permission() call merely
- * decides whether a sort column is shown, htmxProfile's whether the blocking
- * controls are rendered, so both count as `inline` although each is effectively
- * member-open. Read an `inline` verdict as "a human should have checked this",
- * not as a guarantee.
+ * guard, not that the guard gates access. UsersController::htmxProfile is the
+ * standing example — its permission() call merely decides whether the blocking
+ * controls are rendered, so the action counts as `inline` although the profile
+ * itself is a plain member-open read. Read an `inline` verdict as "a human
+ * should have checked this", not as a guarantee.
  */
 class AuthorizationCoverageTest extends SaitoTestCase
 {
@@ -63,17 +62,10 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @var array<string, string>
      */
     private const MEMBER_OPEN = [
-        'App\\Controller\\EntriesController::add' => 'renders the new-posting form; the create itself is category-permission checked in PostingComponent',
-        'App\\Controller\\EntriesController::e' => 'renders the inline edit-marker fragment',
-        'App\\Controller\\EntriesController::source' => 'shows a posting the member may already read',
         'App\\Controller\\StatusController::status' => 'read-only forum status for a logged-in member',
         'App\\Controller\\UsersController::name' => 'view a public user profile by name (read)',
-        'App\\Controller\\UsersController::view' => 'view a public user profile (read)',
         'App\\Controller\\UsersController::ignore' => 'adds to the current user\'s own ignore list (self-scoped)',
         'App\\Controller\\UsersController::unignore' => 'removes from the current user\'s own ignore list (self-scoped)',
-        'App\\Controller\\UsersController::setcategory' => 'stores the current user\'s own category preference (self-scoped)',
-        'App\\Controller\\UsersController::slidetabOrder' => 'stores the current user\'s own slidetab order (self-scoped)',
-        'App\\Controller\\UsersController::uploads' => 'renders the current user\'s own uploads (self-scoped)',
         // htmx island counterparts of the above — same exposure as the classic
         // action each one replaces (verified self-scoped or plain read).
         'App\\Controller\\UsersController::htmxUsers' => 'member list in the island (read; same as index)',
@@ -100,9 +92,6 @@ class AuthorizationCoverageTest extends SaitoTestCase
     private const PUBLIC_OPEN = [
         // Reading the forum: content itself is filtered by the reader's
         // category read-permission (guests see public categories only).
-        'App\\Controller\\EntriesController::index' => 'forum front page (read; category-filtered)',
-        'App\\Controller\\EntriesController::view' => 'read a single posting (read; category-filtered)',
-        'App\\Controller\\EntriesController::mix' => 'read a whole thread (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxIndex' => 'island front page (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxThread' => 'island thread view (read; category-filtered)',
         'App\\Controller\\EntriesController::htmxPosting' => 'island single posting + its thread (read; category-filtered)',
@@ -112,14 +101,11 @@ class AuthorizationCoverageTest extends SaitoTestCase
         // Authentication / registration flows must be reachable before login.
         'App\\Controller\\UsersController::login' => 'login form + submit',
         'App\\Controller\\UsersController::logout' => 'logout',
-        'App\\Controller\\UsersController::register' => 'registration (additionally gated by saito.core.user.register)',
         'App\\Controller\\UsersController::rs' => 'account activation via the emailed code',
         'App\\Controller\\UsersController::htmxLogin' => 'island login form',
         'App\\Controller\\UsersController::htmxRegister' => 'island registration form',
         // Public search + contact + static content.
-        'SaitoSearch\\Controller\\SearchesController::simple' => 'public fulltext search (results category-filtered)',
         'SaitoSearch\\Controller\\SearchesController::htmxSimple' => 'island fulltext search (results category-filtered)',
-        'App\\Controller\\ContactsController::owner' => 'contact the operator (honeypot + timing guard)',
         'App\\Controller\\ContactsController::htmxContactOwner' => 'island contact the operator (honeypot + timing guard)',
         'App\\Controller\\PagesController::display' => 'static pages (imprint, help …)',
         // Feeds / sitemap are public by design.
@@ -130,6 +116,7 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'SaitoHelp\\Controller\\SaitoHelpsController::index' => 'help pages',
         'SaitoHelp\\Controller\\SaitoHelpsController::view' => 'help page',
         'SaitoHelp\\Controller\\SaitoHelpsController::languageRedirect' => 'redirects to the help page in the visitor\'s language',
+        'SaitoHelp\\Controller\\SaitoHelpsController::tour' => 'the help overlay\'s content: the tour and the topic list',
     ];
 
     /**
@@ -328,6 +315,18 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @param string $file controller file path
      * @return string one of admin|api|public|authorizeAction|inline|member-open
      */
+    /**
+     * How an `allowUnauthenticated([...])` call is recognised.
+     *
+     * A constant rather than a literal inside classify(), so that
+     * {@see testThePatternSurvivesReformatting} exercises the very same
+     * expression. A meta-test with its own copy would happily keep passing while
+     * the real one rotted.
+     *
+     * @var string
+     */
+    private const ALLOW_UNAUTH = '/allowUnauthenticated\(\s*\[([^\]]*)\]/s';
+
     private function classify(string $class, string $action, string $file): string
     {
         // admin plugin, or an `admin` route prefix (…\Controller\Admin\…)
@@ -344,7 +343,14 @@ class AuthorizationCoverageTest extends SaitoTestCase
         $src = file_get_contents($file);
 
         // allowUnauthenticated([...])
-        preg_match_all('/allowUnauthenticated\(\[([^\]]*)\]/s', $src, $ua);
+        //
+        // `\s*` between the paren and the bracket on purpose: without it a call
+        // whose array is wrapped onto its own line stops matching, and every
+        // action in it silently drops out of the `public` class — the test then
+        // reports them as unclassified, or worse, as stale allowlist entries.
+        // A tripwire that switches itself off when someone reformats the code
+        // it watches is worse than no tripwire.
+        preg_match_all(self::ALLOW_UNAUTH, $src, $ua);
         foreach ($ua[1] as $block) {
             if (preg_match("/'" . preg_quote($action, '/') . "'/", $block)) {
                 return 'public';
@@ -402,6 +408,79 @@ class AuthorizationCoverageTest extends SaitoTestCase
         return implode(
             '',
             array_slice($lines, $ref->getStartLine() - 1, $ref->getEndLine() - $ref->getStartLine() + 1),
+        );
+    }
+
+    /**
+     * The tripwire watching itself.
+     *
+     * This test exists because the guard silently stopped guarding once: the
+     * pattern matched `allowUnauthenticated([` literally, and when a call was
+     * reformatted so that its array moved onto the next line, six public actions
+     * quietly dropped out of the `public` class. Nothing failed. The `\s*` that
+     * fixes it looks like a detail, and a later "tidy-up" could remove it again
+     * with the whole suite still green.
+     *
+     * So: both formattings must be recognised. The pattern under test is the
+     * constant the classifier itself uses, not a copy — a copy would drift.
+     *
+     * @return void
+     */
+    public function testThePatternSurvivesReformatting(): void
+    {
+        $einzeilig = "\$this->Authentication->allowUnauthenticated(['index', 'view']);";
+        $mehrzeilig = "\$this->Authentication->allowUnauthenticated(\n"
+            . "    ['index', 'view']\n"
+            . ");";
+
+        foreach (['on one line' => $einzeilig, 'wrapped' => $mehrzeilig] as $wie => $quelle) {
+            $treffer = preg_match_all(self::ALLOW_UNAUTH, $quelle, $m);
+
+            $this->assertSame(1, $treffer, "the call written $wie is not recognised");
+            $this->assertStringContainsString(
+                "'index'",
+                $m[1][0],
+                "the actions of the call written $wie were not captured"
+            );
+        }
+    }
+
+    /**
+     * And the classifier must actually reject something it should. An action
+     * that is neither declared nor guarded has to come out as `member-open`, so
+     * that the two coverage tests above have something to fail on.
+     *
+     * Without this, a classify() that returned `inline` for everything would
+     * make the whole tripwire pass forever.
+     *
+     * @return void
+     */
+    public function testAnUnguardedActionIsNotMistakenForAGuardedOne(): void
+    {
+        $klassifizieren = (new ReflectionClass(self::class))->getMethod('classify');
+
+        // A real controller and a real action of it: htmxIndex is declared
+        // public, so it must classify as `public` …
+        $this->assertSame(
+            'public',
+            $klassifizieren->invoke(
+                $this,
+                'App\\Controller\\EntriesController',
+                'htmxIndex',
+                (new ReflectionClass('App\\Controller\\EntriesController'))->getFileName()
+            )
+        );
+
+        // … while an action name that appears in no allowUnauthenticated() call
+        // and has no guard of its own must not be waved through as public.
+        $this->assertNotSame(
+            'public',
+            $klassifizieren->invoke(
+                $this,
+                'App\\Controller\\EntriesController',
+                'delete',
+                (new ReflectionClass('App\\Controller\\EntriesController'))->getFileName()
+            )
         );
     }
 }

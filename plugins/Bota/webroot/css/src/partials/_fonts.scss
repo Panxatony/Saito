@@ -1,3 +1,11 @@
+// Absolute, not relative to this stylesheet.
+//
+// Bota serves its webroot at /bota/, so this is correct for Bota itself — and it
+// is the only form that survives being imported into a derived theme. With
+// `./../fonts/…` these rules compile into Nova and Macnemo as well, where they
+// resolve under *that* theme's webroot (/nova/fonts/…), 404, and leave the
+// browser to fall back. Nova used to paper over it by re-declaring every face
+// against /bota/fonts; that block is gone with this change.
 
 @font-face {
   font-family: 'Cabin';
@@ -7,7 +15,7 @@
   src:
     local('Cabin Regular '),
     local('Cabin-Regular'),
-    url('./../fonts/cabin-latin-400.woff2') format('woff2');
+    url('/bota/fonts/cabin-latin-400.woff2') format('woff2');
 }
 
 @font-face {
@@ -18,7 +26,7 @@
   src:
     local('Cabin Regular italic'),
     local('Cabin-Regularitalic'),
-    url('./../fonts/cabin-latin-400italic.woff2') format('woff2');
+    url('/bota/fonts/cabin-latin-400italic.woff2') format('woff2');
 }
 
 
@@ -30,7 +38,7 @@
   src:
     local('Cabin Bold '),
     local('Cabin-Bold'),
-    url('./../fonts/cabin-latin-700.woff2') format('woff2');
+    url('/bota/fonts/cabin-latin-700.woff2') format('woff2');
 }
 
 
@@ -42,7 +50,7 @@
   src:
     local('Cabin Bold italic'),
     local('Cabin-Bolditalic'),
-    url('./../fonts/cabin-latin-700italic.woff2') format('woff2');
+    url('/bota/fonts/cabin-latin-700italic.woff2') format('woff2');
 }
 
 
@@ -54,6 +62,6 @@
   src:
     local('Fenix Regular '),
     local('Fenix-Regular'),
-    url('./../fonts/fenix-latin-400.woff2') format('woff2');
+    url('/bota/fonts/fenix-latin-400.woff2') format('woff2');
 }
 

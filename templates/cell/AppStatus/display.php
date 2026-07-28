@@ -9,10 +9,7 @@ use Cake\Utility\Text;
     if ($CurrentUser->isLoggedIn()) {
         // The statistics line sits in the footer of both frontends, so the
         // member-list link has to follow whichever one is running.
-        $usersList = \Cake\Core\Configure::read('Saito.frontend') === 'island'
-            ? '/users/htmx-users'
-            : '/users/index';
-        $loggedin = $this->Html->link($loggedin, $usersList);
+        $loggedin = $this->Html->link($loggedin, '/users/htmx-users');
     }
     echo Text::insert(
         __('discl.status'),

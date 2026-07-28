@@ -22,7 +22,10 @@ environment up and running.
   composer cs-check
   ```
 
-  CI (GitHub Actions) runs the test suite and PHPStan on every pull request and
-  on pushes to `main` / `develop`.
+  What CI actually runs, so there are no surprises: GitHub Actions runs
+  **PHPStan** on pull requests and on pushes to `main` / `develop`, and the full
+  test suite only when a release tag is pushed. GitLab CI runs the test suite on
+  branches. Code style is checked by neither — `composer cs-check` is yours to
+  run, and it currently reports a sizeable backlog.
 
 [saito-github]: https://github.com/Panxatony/Saito/issues

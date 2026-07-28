@@ -9,19 +9,6 @@ module.exports = function (grunt) {
     copy: {
       nonmin: { // non minified files needed for debug modus
         files: [
-          // jQuery Datatables. Copied under a plain `datatables/` dir (not a
-          // `node_modules/` one) so deploys that filter node_modules — rsync
-          // --exclude, Docker .dockerignore, naive tar — don't strip the
-          // web-served assets. cwd drops the node_modules/ prefix from dest.
-          {
-            expand: true,
-            cwd: './node_modules/',
-            src: [
-              'datatables.net/js/jquery.dataTables.js',
-              'datatables.net-bs4/**/*{.js,.css}',
-            ],
-            dest: './webroot/js/datatables/',
-          },
           // CSS (+ sourcemap so DevTools have something to load instead of 404)
           {
             expand: true,
@@ -87,26 +74,10 @@ module.exports = function (grunt) {
       releasePost: ['./webroot/release-tmp']
     },
     shell: {
-      locale: {
-        command: `
-          node dev/gettextExtractor.js;
-          msgmerge --update --backup=none frontend/src/locale/de.po frontend/src/locale/messages.pot;
-          msgmerge --update --backup=none frontend/src/locale/en.po frontend/src/locale/messages.pot;
-          rm frontend/src/locale/messages.pot;
-        `,
-        options: { stdout: true, stderr: true, failOnError: true, }
-      },
-      localeRelease: {
-        command: `
-        targetDir="./webroot/js/locale/"
-        mkdir -p "$targetDir";
-        for line in $(find './frontend/src/locale' -type f -name '*.po'); do
-          v=$(basename "$line" .po);
-          npx po2json --format=mf  frontend/src/locale/$v.po "$targetDir$v".json
-        done
-        `,
-        options: { stdout: true, stderr: true, failOnError: true, }
-      },
+      // The two locale tasks lived here. They turned frontend/src/locale/*.po
+      // into webroot/js/locale/*.json, which only the retired SPA read (via
+      // JsDataHelper::getAppJs, reached from the SPA layout). The island
+      // translates server-side through PHP's __(), out of src/Locale.
       bundle: {
         // JS bundle via Vite (replaces the legacy Webpack 4 build). Emits one
         // self-contained IIFE per entry into webroot/js; no NODE_OPTIONS
@@ -132,8 +103,11 @@ module.exports = function (grunt) {
       },
       static: {
         files: {
+          // The admin stylesheet is not built here: it moved into the plugin
+          // with the Bootstrap 4 rewrite and is loaded as 'Admin.admin.css'.
+          // This entry named a source that has not existed since, and
+          // grunt-dart-sass skips a missing file without a word.
           'webroot/css/stylesheets/static.css': 'webroot/css/src/static.scss',
-          'webroot/css/stylesheets/admin.css': 'webroot/css/src/admin.scss',
         }
       },
       theme: {
@@ -195,7 +169,10 @@ module.exports = function (grunt) {
         src: [
           'webroot/css/stylesheets/static.css',
           'plugins/Bota/webroot/css/*.css',
-          'plugins/Nova/webroot/css/*.css'
+          'plugins/Nova/webroot/css/*.css',
+          // Macnemo is compiled by dart-sass:theme but was missing here, so it
+          // was the one theme released unprefixed and unminified.
+          'plugins/Macnemo/webroot/css/*.css'
         ]
       },
     },
@@ -231,7 +208,6 @@ module.exports = function (grunt) {
     'copy:nonmin',
     'uglify:release',
     // l10n
-    'shell:localeRelease',
     // cleanup
     'clean:releasePost'
   ]);

@@ -2,9 +2,9 @@
 
 A logged-in user is able to ignore an other member in this member's profile. The postings of an ignored member are hidden if possible.
 
-In a member-profile there are two informations (if applicable):
+A profile shows two things about this, where they apply:
 
-- a member sees in its own profile which users he blocks (non-public)
-- the number of users who decided to ignore this member (public)
+- *You ignore* — your own list, on your own profile only and visible to nobody else
+- *Ignored by* — how many members ignore the profile's owner. The number is visible to everyone; the names behind it are not.
 
-Ignored users are automatically unignored after three months.
+Ignoring lapses automatically after three months.

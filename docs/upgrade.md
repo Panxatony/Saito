@@ -68,15 +68,26 @@ No PHP extension beyond a standard install is required. A typical set:
 
 ### The interface
 
-Saito 8 still ships the classic frontend and uses it by default
-(`SAITO_FRONTEND` defaults to `spa`), so **an upgraded installation looks and
-behaves the way your members know it.** The new htmx/Alpine "island" frontend is
-opt-in.
+This is the part your members will notice. Up to and including 8.0.x, Saito
+shipped both frontends and used the classic one by default. **From 8.1 there is
+one**: pages are rendered on the server and enhanced with small htmx/Alpine
+islands, and the Backbone/Marionette application is gone.
 
-Be aware of the direction, though: the classic frontend is being retired, and a
-later release line will ship the island frontend only. If you plan the upgrade
-now, plan a look at the island frontend too — see "Trying the new frontend"
-below.
+What that means in practice:
+
+- Nothing in the database changes, and no content is touched. It is a different
+  way of drawing the same forum.
+- Published addresses keep working. `/entries/view/<id>`, `/users/view/<id>`,
+  `/entries/mix/<tid>` and the two indexes redirect permanently to their new
+  equivalents, so links from search engines, bookmarks and other sites still
+  land in the right place.
+- Members with a page open across the upgrade should reload once. A tab keeps
+  running the JavaScript it loaded, however new the files on the server are.
+
+If a staged approach suits you better, 8.0.x is a working intermediate stop: it
+carries the whole CakePHP 5 / PHP 8.4 migration and still offers the old
+interface, so the platform move and the interface change can be done on
+different days.
 
 The **default theme** for new installations changed to Nova. Existing
 installations keep whatever their own configuration says; nothing changes
@@ -118,7 +129,7 @@ already installed and the frontend assets already built — no Composer, no Node
 no build step on your server.
 
 ```bash
-V=8.0.9
+V=8.2.0
 curl -LO "https://github.com/Panxatony/Saito/releases/download/$V/saito-$V.tar.gz"
 curl -LO "https://github.com/Panxatony/Saito/releases/download/$V/saito-$V.tar.gz.sha256"
 
@@ -146,7 +157,7 @@ rsync -a --delete \
   --exclude 'logs/' \
   --exclude 'tmp/' \
   --exclude 'webroot/useruploads/' \
-  saito-8.0.9/ /path/to/forum/
+  saito-8.2.0/ /path/to/forum/
 ```
 
 > **Careful with `config/`.** The tarball contains a placeholder `app.php`.
@@ -162,8 +173,8 @@ Both files are commented; nothing here is required for the forum to start, but
 it is the moment where you would notice a new option.
 
 ```bash
-diff -u /path/to/forum/config/saito_config.php saito-8.0.9/config/saito_config.php
-diff -u /path/to/forum/config/app.php          saito-8.0.9/config/app.php
+diff -u /path/to/forum/config/saito_config.php saito-8.2.0/config/saito_config.php
+diff -u /path/to/forum/config/app.php          saito-8.2.0/config/app.php
 ```
 
 Do **not** replace the files — read the diff and copy individual keys.
@@ -220,23 +231,13 @@ restoring PHP leaves you with a forum that still does not start.
 
 ---
 
-## Trying the new frontend
+## Coming from 8.0.x
 
-The island frontend replaces the JavaScript application with server-rendered
-HTML and small htmx/Alpine islands. It is what this project is moving to, and
-5.7 → 8 is a sensible moment to look at it — but do it as a **second** step,
-after the upgrade itself is done and quiet.
-
-```bash
-# in the environment, or config/saito_config.php
-SAITO_FRONTEND=island
-```
-
-Then clear the route cache (`tmp/cache/persistent/`) — the root route is decided
-at boot and is cached.
-
-Switch back by removing the variable. Nothing in the database depends on which
-frontend is active, so the choice is reversible at any time.
+If you are already on 8.0.x, the step to 8.1 is the interface change and nothing
+else: same database, same schema, same configuration — except that
+`SAITO_FRONTEND` no longer does anything and can be removed. 8.0.x let you try
+the island frontend by setting it to `island`; doing that before upgrading is a
+good way to see what your members are about to get, with a one-line way back.
 
 ---
 
