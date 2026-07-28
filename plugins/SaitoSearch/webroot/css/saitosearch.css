@@ -2,3 +2,8 @@
 
 /* The way between the two searches. */
 .search-switch { margin-top: .75rem; font-size: .9rem; }
+
+/* "Sort by" and its two options on one line, with the label not glued to the
+   first radio. The wrappers come from the form template; this only spaces them. */
+.search-sort { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem .75rem; }
+.search-sort .form-check { margin: 0; }

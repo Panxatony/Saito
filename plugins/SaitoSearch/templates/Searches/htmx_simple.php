@@ -56,16 +56,35 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
                 ])
             );
 
-            $sortBy = $this->Form->radio(
-                'order',
+            // Written out rather than left to Form->radio(): Bootstrap wants
+            // `form-check form-check-inline` on each option, because
+            // .form-check-input is positioned absolutely and needs its own
+            // wrapper's padding to sit in. The helper put those classes on the
+            // group instead, so both buttons ended up flush against their
+            // labels.
+            $selected = $searchDefaults['order'] ?? 'time';
+            $sortBy = '';
+            foreach (
                 [
-                    ['text' => __d('saito_search', 'Time'), 'value' => 'time'],
-                    ['text' => __d('saito_search', 'Rank'), 'value' => 'rank'],
-                ],
-                ['class' => 'form-check-input', 'hiddenField' => false]
-            );
+                    'time' => __d('saito_search', 'Time'),
+                    'rank' => __d('saito_search', 'Rank'),
+                ] as $value => $text
+            ) {
+                $id = 'order-' . $value;
+                $sortBy .= sprintf(
+                    '<span class="form-check form-check-inline">'
+                        . '<input type="radio" name="order" value="%s" id="%s" class="form-check-input"%s>'
+                        . '<label class="form-check-label" for="%s">%s</label>'
+                        . '</span>',
+                    h($value),
+                    h($id),
+                    $value === $selected ? ' checked="checked"' : '',
+                    h($id),
+                    h($text)
+                );
+            }
             echo $this->Html->div(
-                'form-group form-check form-check-inline',
+                'form-group search-sort',
                 __d('saito_search', 'Sort by: {0}', $sortBy)
             );
 
