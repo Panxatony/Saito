@@ -452,6 +452,18 @@ class UsersController extends AppController
             'hasMoreEntriesThanShownOnPage',
             ($user->numberOfPostings() - $entriesShownOnPage) > 0
         );
+        // What ignoring looks like from here. Two different things, deliberately:
+        // your own list is private and only ever shown on your own profile,
+        // while the number of members ignoring somebody is public — the help has
+        // described both for years, but neither survived the move to the island
+        // profile. Both come from data that is already kept.
+        $UserIgnores = $this->Users->UserIgnores;
+        $this->set(
+            'ignoredByMe',
+            $this->CurrentUser->getId() === $id ? $UserIgnores->getAllIgnoredBy($id) : null
+        );
+        $this->set('ignoredByOthers', $UserIgnores->countIgnored($id));
+
         $this->set('user', $user);
         $this->set('solved', $this->Users->countSolved($id));
         $this->set('titleForLayout', $user->get('username'));

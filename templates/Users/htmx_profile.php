@@ -54,6 +54,23 @@ if ($solved) {
 if ($user->get('user_online') && $user->get('user_online')['logged_in']) {
     $rows[] = [__('userlist_online'), __('Online')];
 }
+// How many members ignore this one. Public by design — it says something about
+// how somebody is received, and hiding it would only make it guesswork.
+if ($ignoredByOthers > 0) {
+    $rows[] = [__('user.ignored.by.t'), $ignoredByOthers];
+}
+// The other direction is nobody else's business, so it appears on your own
+// profile only — $ignoredByMe is null everywhere else.
+if ($ignoredByMe !== null && count($ignoredByMe) > 0) {
+    $namen = [];
+    foreach ($ignoredByMe as $ignored) {
+        $namen[] = $this->Html->link(
+            $ignored->get('username'),
+            ['controller' => 'Users', 'action' => 'htmxProfile', $ignored->get('id')]
+        );
+    }
+    $rows[] = [__('user.ignoring.t'), implode(', ', $namen)];
+}
 if ($user->get('profile')) {
     $rows[] = [__('user_profile'), $this->Parser->parse($user->get('profile'))];
 }

@@ -23,10 +23,9 @@ lassen sich über *Bearbeiten* ändern; sie tragen danach einen Hinweis darauf.
 <!-- icon: image -->
 ### Bilder und Medien
 
-*Medien einfügen* nimmt eine Adresse entgegen und erkennt selbst, ob es sich um
-ein Bild, ein Video oder einen YouTube-Clip handelt. Eine Adresse direkt in das
-Textfeld einzufügen bewirkt dasselbe. Der Upload-Bereich zeigt die eigenen
-Dateien zur Auswahl; verwalten und löschen lassen sie sich im Profil.
+*Medien einfügen* nimmt eine Adresse entgegen und erkennt selbst, ob Bild,
+Video oder YouTube-Clip. Eigene Dateien lädt der Bereich daneben hoch und legt
+sie in ein Archiv, aus dem sich später auswählen lässt.
 
 <!-- icon: filter -->
 ### Kategorien filtern
@@ -39,9 +38,9 @@ Kategorien*; die Auswahl oben bietet dann nur noch diese an.
 <!-- icon: bookmark -->
 ### Lesezeichen und Bewertung
 
-Ein *Lesezeichen* merkt sich einen Beitrag; alle gemerkten sind über das Symbol
-im Kopfbereich erreichbar. Antworten, die weitergeholfen haben, lassen sich als
-*hilfreich* kennzeichnen.
+Ein *Lesezeichen* merkt sich einen Beitrag; die Sammlung öffnet das Symbol im
+Kopfbereich. Antworten, die weitergeholfen haben, lassen sich als *hilfreich*
+kennzeichnen.
 
 <!-- icon: check -->
 ### Gelesen-Markierung
@@ -52,12 +51,8 @@ im Kopfbereich erreichbar. Antworten, die weitergeholfen haben, lassen sich als
 ### Die Widgets
 
 Am rechten Rand — auf schmalen Bildschirmen unterhalb der Liste — stehen
-Kästchen mit den gerade anwesenden Mitgliedern und den letzten Beiträgen. Ein
-Klick auf die Überschrift verkleinert ein Kästchen. Auf breiten Bildschirmen
-schrumpft es dabei auf sein Symbol; sind alle verkleinert, nutzt die Threadliste
-den frei gewordenen Platz. Am Online-Symbol steht die Zahl der angemeldeten
-Mitglieder, Gäste und Suchmaschinen zählen nicht mit. Die Anordnung wird am
-Benutzerkonto gespeichert und gilt auf allen Geräten.
+Kästchen mit den gerade Anwesenden und den letzten Beiträgen. Ein Klick auf die
+Überschrift verkleinert eines; die Anordnung merkt sich dein Konto.
 
 <!-- icon: search -->
 ### Suche
@@ -75,11 +70,10 @@ Die Wahl bleibt auf diesem Gerät erhalten.
 <!-- icon: user -->
 ### Profil und Einstellungen
 
-Unter *Profil* stehen Avatar, Signatur, Farben, Sortierung und Schriftgröße. Zu
-jeder Farbe gibt es ein *Standard*-Häkchen, das die Voreinstellung
-wiederherstellt. Das Passwort wird ebenfalls dort geändert. Die Profilseite
-führt außerdem die eigenen Lesezeichen, die eigenen Uploads und die persönlichen
-RSS-Adressen auf, die auch nur angemeldet sichtbare Bereiche enthalten.
+Unter *Profil* stehen Avatar, Signatur, Farben, Sortierung und Schriftgröße,
+und dort wird auch das Passwort geändert. Die Profilseite führt außerdem die
+eigenen Lesezeichen, die eigenen Uploads und die persönlichen RSS-Adressen
+auf.
 
 <!-- icon: envelope -->
 ### Kontakt und Ignorieren

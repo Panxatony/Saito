@@ -2658,3 +2658,11 @@ msgstr "Text – leer lassen für n/t"
 #: templates/element/layout/htmx_help.php
 msgid "help.overlay.missing"
 msgstr "Für dieses Forum ist kein Hilfetext hinterlegt."
+
+#: templates/Users/htmx_profile.php
+msgid "user.ignored.by.t"
+msgstr "Wird ignoriert von"
+
+#: templates/Users/htmx_profile.php
+msgid "user.ignoring.t"
+msgstr "Von dir ignoriert"

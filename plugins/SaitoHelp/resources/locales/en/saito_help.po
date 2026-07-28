@@ -20,7 +20,7 @@ msgstr "Improve this help-page"
 
 #: plugins/SaitoHelp/templates/SaitoHelps/tour.php
 msgid "overlay.topics"
-msgstr "More topics"
+msgstr "In more detail: all help topics"
 
 #: plugins/SaitoHelp/templates/SaitoHelps/tour.php
 msgid "overlay.back"

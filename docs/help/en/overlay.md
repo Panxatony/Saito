@@ -23,10 +23,9 @@ carry a note afterwards saying so.
 <!-- icon: image -->
 ### Images and media
 
-*Insert media* takes an address and works out for itself whether it is an image,
-a video or a YouTube clip. Pasting an address straight into the text field does
-the same. The upload area lists your own files to choose from; managing and
-deleting them happens in your profile.
+*Insert media* takes an address and works out for itself whether it is an
+image, a video or a YouTube clip. The area beside it uploads files of your own
+into an archive to pick from later.
 
 <!-- icon: filter -->
 ### Filtering categories
@@ -39,8 +38,8 @@ only those.
 <!-- icon: bookmark -->
 ### Bookmarks and marking helpful
 
-A *bookmark* remembers a posting; everything you have kept is reachable from the
-icon in the header. Answers that helped can be marked as *helpful*.
+A *bookmark* remembers a posting; the icon in the header opens your
+collection. Answers that helped can be marked as *helpful*.
 
 <!-- icon: check -->
 ### Marking as read
@@ -51,11 +50,8 @@ icon in the header. Answers that helped can be marked as *helpful*.
 ### The widgets
 
 Along the right — below the list on narrow screens — small panels show who is
-currently present and what was written last. Clicking a heading shrinks a panel.
-On wide screens it shrinks to its icon; once all of them are, the thread list
-takes the space that frees up. The online icon carries the number of signed-in
-members; guests and search engines are not counted. The arrangement is stored on
-your account and applies on every device.
+present and what was written last. Clicking a heading shrinks a panel; your
+account remembers the arrangement.
 
 <!-- icon: search -->
 ### Search
@@ -73,10 +69,9 @@ choice is kept on this device.
 <!-- icon: user -->
 ### Profile and settings
 
-*Profile* holds your avatar, signature, colours, sort order and font size. Every
-colour has a *default* box that restores the preset. The password is changed
-there too. The profile page also lists your bookmarks, your uploads and your
-personal RSS addresses, which include the areas visible only when signed in.
+*Profile* holds your avatar, signature, colours, sort order and font size, and
+the password is changed there too. The page also lists your bookmarks, your
+uploads and your personal RSS addresses.
 
 <!-- icon: envelope -->
 ### Contact and ignoring
