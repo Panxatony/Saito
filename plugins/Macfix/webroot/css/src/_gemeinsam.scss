@@ -164,6 +164,16 @@ body.htmx-island .threadLeaf .threadLine {
   padding-left: 0;
 }
 
+/// The rail is drawn twice, by two different layers and two different
+/// properties — which is why removing only the border left it on screen. Nova's
+/// modern layer paints its own with an inset shadow:
+///   `.threadLeaf.et-new > .threadLine { box-shadow: inset 2px 0 0 … }`
+/// A `border-left: 0` cannot touch that.
+body.htmx-island .threadLeaf.et-new > .threadLine,
+body.htmx-island .threadLeaf.et-old > .threadLine {
+  box-shadow: none;
+}
+
 body.htmx-island.is-member .threadLeaf.et-new .link_show_thread,
 body.htmx-island.is-member .threadLeaf.et-old .link_show_thread {
   font-weight: $font-weight-base;

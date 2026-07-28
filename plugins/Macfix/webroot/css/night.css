@@ -11674,6 +11674,11 @@ body.htmx-island .threadLeaf .threadLine {
   padding-left: 0;
 }
 
+body.htmx-island .threadLeaf.et-new > .threadLine,
+body.htmx-island .threadLeaf.et-old > .threadLine {
+  box-shadow: none;
+}
+
 body.htmx-island.is-member .threadLeaf.et-new .link_show_thread,
 body.htmx-island.is-member .threadLeaf.et-old .link_show_thread {
   font-weight: 500;
