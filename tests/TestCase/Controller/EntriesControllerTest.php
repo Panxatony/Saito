@@ -568,4 +568,119 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertRedirectContains('/login');
     }
 
+
+    /**
+     * The "new postings" counter is public, and that is exactly why it needs a
+     * test: it reports how much has appeared since a given entry, and it must
+     * count only what the visitor is allowed to read. A number is information —
+     * telling a guest that six things appeared in a category they cannot open
+     * would leak the existence of those postings.
+     *
+     * The fixture makes this measurable: category 2 is public, category 4 needs
+     * an account, categories 1 and 5 are for moderators. A guest asking about
+     * everything after entry 3 may therefore only be told about 7, 8, 9, 10 and
+     * 13 — never about 4, 5, 11, 12, 14 or 15.
+     *
+     * @return void
+     */
+    public function testHtmxNewCountCountsOnlyWhatTheVisitorMayRead(): void
+    {
+        $this->get('/entries/htmx-new-count?since=3');
+
+        $this->assertResponseOk();
+        $this->assertSame(5, $this->viewVariable('newCount'), 'public category only');
+    }
+
+    /**
+     * The counterpart: a member sees their categories counted too. Without this
+     * the test above would also pass if the counter always returned the same
+     * small number, or nothing at all.
+     *
+     * @return void
+     */
+    public function testHtmxNewCountIncludesMemberCategoriesForMembers(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-new-count?since=3');
+
+        $this->assertResponseOk();
+        // 5 from the public category plus 4 from the members-only one; still
+        // nothing from the two that need moderator rights.
+        $this->assertSame(9, $this->viewVariable('newCount'), 'public plus members-only');
+    }
+
+    /**
+     * Without a reference point there is nothing to count, and the action must
+     * not fall back to "everything".
+     *
+     * @return void
+     */
+    public function testHtmxNewCountWithoutSinceCountsNothing(): void
+    {
+        $this->get('/entries/htmx-new-count');
+
+        $this->assertResponseOk();
+        $this->assertSame(0, $this->viewVariable('newCount'));
+    }
+
+    /**
+     * The widget rail is public: a guest gets who is online and what was written
+     * recently, but no "your postings" — there is no "your" to speak of.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsArePublicButWithoutOwnPostsForGuests(): void
+    {
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertNotNull($this->viewVariable('recentEntries'), 'recent postings');
+        $this->assertNull($this->viewVariable('myPosts'), 'nothing personal for a guest');
+    }
+
+    /**
+     * Signed in, the third widget appears.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsIncludeOwnPostsForMembers(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertNotNull($this->viewVariable('myPosts'));
+    }
+
+    /**
+     * "Mark all read" from the island answers with an empty 204 and a trigger the
+     * thread list listens for. Returning a redirect instead — which is what the
+     * classic path does — would make htmx replace the list with a whole page.
+     *
+     * @return void
+     */
+    public function testUpdateAnswersHtmxWithAnEmptyResponseAndATrigger(): void
+    {
+        $this->_loginUser(3);
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->get('/entries/update');
+
+        $this->assertResponseCode(204);
+        $this->assertHeader('HX-Trigger', 'refresh-recent');
+        $this->assertResponseEmpty();
+    }
+
+    /**
+     * Without htmx the same action redirects, so the no-JavaScript path still
+     * lands somewhere sensible.
+     *
+     * @return void
+     */
+    public function testUpdateRedirectsWithoutHtmx(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/update');
+
+        $this->assertRedirect();
+    }
 }

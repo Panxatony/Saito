@@ -117,4 +117,94 @@ class ContactsControllerTest extends IntegrationTestCase
             'a validation error redirected instead of returning the form'
         );
     }
+
+    /**
+     * The public contact form's timing guard.
+     *
+     * htmxContactOwner is reachable without an account, so it is one of the few
+     * doors an unattended script can knock on. It defends itself by recording
+     * when the form was fetched and refusing a submission that arrives less than
+     * five seconds later — a human reads and types, a script posts immediately.
+     *
+     * Nothing tested this. The guard could have been removed, or its comparison
+     * inverted, and every suite would still have passed.
+     *
+     * @return void
+     */
+    public function testContactOwnerRejectsAnAnonymousSubmissionThatArrivesTooFast()
+    {
+        $this->mockSecurity();
+
+        // GET first: that is what stamps the session with the load time.
+        $this->get('/contacts/htmx-contact-owner');
+        $this->assertResponseOk();
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => 'Betreff',
+            'text' => 'Nachricht',
+            'sender_contact' => 'bot@example.com',
+            'cc' => 0,
+        ]);
+
+        // Bounced back to the form, not delivered.
+        $this->assertRedirect('/contacts/htmx-contact-owner');
+    }
+
+    /**
+     * The same submission goes through once enough time has passed. Without this
+     * counterpart the test above would also pass if the form were broken
+     * outright.
+     *
+     * @return void
+     */
+    public function testContactOwnerAcceptsAnAnonymousSubmissionAfterTheDelay()
+    {
+        $this->mockSecurity();
+
+        $this->get('/contacts/htmx-contact-owner');
+        // Backdate the stamp rather than sleeping: the guard reads a timestamp,
+        // so moving it is the honest way to represent "the visitor took a while".
+        $this->session(['Contact' => ['formLoadTime' => time() - 60]]);
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => 'Betreff',
+            'text' => 'Nachricht',
+            'sender_contact' => 'mensch@example.com',
+            'cc' => 0,
+        ]);
+
+        $this->assertRedirect('/');
+    }
+
+    /**
+     * A signed-in member is not subject to the delay — they are already known,
+     * and making them wait would be a pointless obstacle.
+     *
+     * @return void
+     */
+    public function testContactOwnerDoesNotDelaySignedInMembers()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(2);
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => 'Betreff',
+            'text' => 'Nachricht',
+            'cc' => 0,
+        ]);
+
+        $this->assertRedirect('/');
+    }
+
+    /**
+     * Reachable without an account at all — that is the point of it.
+     *
+     * @return void
+     */
+    public function testContactOwnerIsPublic()
+    {
+        $this->get('/contacts/htmx-contact-owner');
+
+        $this->assertResponseOk();
+    }
 }

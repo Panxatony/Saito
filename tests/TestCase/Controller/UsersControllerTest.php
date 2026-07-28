@@ -710,4 +710,33 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertRedirectLogin($url);
     }
 
+
+    /**
+     * The island login page is public — it has to be, or nobody could reach it.
+     *
+     * @return void
+     */
+    public function testHtmxLoginIsPublic(): void
+    {
+        $this->get('/users/htmx-login');
+
+        $this->assertResponseOk();
+    }
+
+    /**
+     * Somebody already signed in has no business on the login page, and sending
+     * them to the front page rather than their profile is deliberate: they were
+     * on their way into the forum, not into their settings.
+     *
+     * @return void
+     */
+    public function testHtmxLoginSendsSignedInMembersToTheFrontPage(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/users/htmx-login');
+
+        // '/' rather than '/entries/htmx-index': the root route points at that
+        // action, so the router builds the shorter address for it.
+        $this->assertRedirect('/');
+    }
 }

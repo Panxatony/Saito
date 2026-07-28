@@ -315,6 +315,18 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @param string $file controller file path
      * @return string one of admin|api|public|authorizeAction|inline|member-open
      */
+    /**
+     * How an `allowUnauthenticated([...])` call is recognised.
+     *
+     * A constant rather than a literal inside classify(), so that
+     * {@see testThePatternSurvivesReformatting} exercises the very same
+     * expression. A meta-test with its own copy would happily keep passing while
+     * the real one rotted.
+     *
+     * @var string
+     */
+    private const ALLOW_UNAUTH = '/allowUnauthenticated\(\s*\[([^\]]*)\]/s';
+
     private function classify(string $class, string $action, string $file): string
     {
         // admin plugin, or an `admin` route prefix (…\Controller\Admin\…)
@@ -338,7 +350,7 @@ class AuthorizationCoverageTest extends SaitoTestCase
         // reports them as unclassified, or worse, as stale allowlist entries.
         // A tripwire that switches itself off when someone reformats the code
         // it watches is worse than no tripwire.
-        preg_match_all('/allowUnauthenticated\(\s*\[([^\]]*)\]/s', $src, $ua);
+        preg_match_all(self::ALLOW_UNAUTH, $src, $ua);
         foreach ($ua[1] as $block) {
             if (preg_match("/'" . preg_quote($action, '/') . "'/", $block)) {
                 return 'public';
@@ -396,6 +408,79 @@ class AuthorizationCoverageTest extends SaitoTestCase
         return implode(
             '',
             array_slice($lines, $ref->getStartLine() - 1, $ref->getEndLine() - $ref->getStartLine() + 1),
+        );
+    }
+
+    /**
+     * The tripwire watching itself.
+     *
+     * This test exists because the guard silently stopped guarding once: the
+     * pattern matched `allowUnauthenticated([` literally, and when a call was
+     * reformatted so that its array moved onto the next line, six public actions
+     * quietly dropped out of the `public` class. Nothing failed. The `\s*` that
+     * fixes it looks like a detail, and a later "tidy-up" could remove it again
+     * with the whole suite still green.
+     *
+     * So: both formattings must be recognised. The pattern under test is the
+     * constant the classifier itself uses, not a copy — a copy would drift.
+     *
+     * @return void
+     */
+    public function testThePatternSurvivesReformatting(): void
+    {
+        $einzeilig = "\$this->Authentication->allowUnauthenticated(['index', 'view']);";
+        $mehrzeilig = "\$this->Authentication->allowUnauthenticated(\n"
+            . "    ['index', 'view']\n"
+            . ");";
+
+        foreach (['on one line' => $einzeilig, 'wrapped' => $mehrzeilig] as $wie => $quelle) {
+            $treffer = preg_match_all(self::ALLOW_UNAUTH, $quelle, $m);
+
+            $this->assertSame(1, $treffer, "the call written $wie is not recognised");
+            $this->assertStringContainsString(
+                "'index'",
+                $m[1][0],
+                "the actions of the call written $wie were not captured"
+            );
+        }
+    }
+
+    /**
+     * And the classifier must actually reject something it should. An action
+     * that is neither declared nor guarded has to come out as `member-open`, so
+     * that the two coverage tests above have something to fail on.
+     *
+     * Without this, a classify() that returned `inline` for everything would
+     * make the whole tripwire pass forever.
+     *
+     * @return void
+     */
+    public function testAnUnguardedActionIsNotMistakenForAGuardedOne(): void
+    {
+        $klassifizieren = (new ReflectionClass(self::class))->getMethod('classify');
+
+        // A real controller and a real action of it: htmxIndex is declared
+        // public, so it must classify as `public` …
+        $this->assertSame(
+            'public',
+            $klassifizieren->invoke(
+                $this,
+                'App\\Controller\\EntriesController',
+                'htmxIndex',
+                (new ReflectionClass('App\\Controller\\EntriesController'))->getFileName()
+            )
+        );
+
+        // … while an action name that appears in no allowUnauthenticated() call
+        // and has no guard of its own must not be waved through as public.
+        $this->assertNotSame(
+            'public',
+            $klassifizieren->invoke(
+                $this,
+                'App\\Controller\\EntriesController',
+                'delete',
+                (new ReflectionClass('App\\Controller\\EntriesController'))->getFileName()
+            )
         );
     }
 }
