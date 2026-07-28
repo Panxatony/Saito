@@ -7,6 +7,30 @@
 
 ## [next] -
 
+## [8.1.0] - 2026-07-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.13...8.1.0)
+
+**The Backbone/Marionette frontend is gone.** Pages are rendered by the server and enhanced with small htmx/Alpine islands. Nothing in the database changes and no content is touched — it is a different way of drawing the same forum. The administration area came along: it no longer loads jQuery, DataTables or Bootstrap's JavaScript, and looks the same.
+
+Upgrading from 5.7 or from 8.0.x: see [docs/upgrade.md](docs/upgrade.md). Go to 8.0.12 or later first if you are on an earlier 8.0.x — [8.0.13](#8013---2026-07-27) explains why.
+
+### Changes
+
+- − Removes the single-page application: 28 controller actions, ~34 templates, the whole `frontend/src` tree apart from the islands, the webpack and karma builds, and 52 npm dependencies.
+- − Removes what the retired frontend left behind: jQuery UI's stylesheet, which was still served on every page; per-theme Marionette scripts no layout loaded; the Stopwatch chart, whose only method emitted jQuery; four classes with no callers; and templates nothing rendered. 47 files, 47,000 lines.
+- ＋ The help overlay's tour is Markdown now, in German and English, and a forum can supply its own — from `config/help/` (which survives updates) or from its theme. `docs/help` finally ships: it was excluded from the release tarball, so `/help` said "no help pages are available" on every installation.
+- ＋ Four new help topics — uploads, bookmarks, widgets and RSS feeds — and the BBCode reference is listed at last; it existed for years in the BbcodeParser plugin, where nothing ever looked.
+- Δ `/help` opens a topic under its heading instead of navigating away, and the overlay fetches its content when first opened rather than being rendered into every page.
+- ✓ Fix: the administration area discarded every message it produced. The flash elements only fill a store the retired frontend read, and the backend layout never emptied it — all 35 of them went unseen.
+- ✓ Fix: image smilies and the smiley icon font were broken under Nova, the default theme.
+- ✓ Fix: the CSRF meta tag was rendered by nine templates individually and missing from the ones written later, so on those pages every scripted write was answered with 403 — the editor preview, uploads and the widget state, each failing silently.
+- ✓ Fix: the profile shows again who you ignore and how many members ignore you. The help had described both for years; the island profile stopped rendering them.
+- ✓ Fix: the advanced search was reachable only from a profile or a posting list. All three search views link to it now.
+- ✓ Fix: the category delete overlay in the backend could not be opened, and the settings sidebar stopped marking the section in view — both left behind by dropping Bootstrap's JavaScript.
+- Δ `composer test-all` works and no longer rewrites the source tree while testing it. PHPUnit reports no deprecations.
+- Δ Five public actions have functional tests for the first time, and the authorization tripwire now has a meta-test — it silently stopped guarding once before.
+
 ## [8.1.0-alpha.4] - 2026-07-27
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0-alpha.3...8.1.0-alpha.4)
