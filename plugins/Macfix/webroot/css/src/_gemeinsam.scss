@@ -126,6 +126,49 @@ body.htmx-island #header.htmx-island-header .btn-link:focus {
   text-decoration: none;
 }
 
+/// macfix sets its content flush left. The island layout insets it three times
+/// over — 16px on `body`, another 16px on `#site`, then the 48px island gutter
+/// on `#content` — which measured x=80 against x=0 on the running forum.
+/// `!important` again, and for the same reason as the header: `#site` carries
+/// `@extend .px-md-3`, a Bootstrap responsive utility, and those are
+/// `!important` by design.
+body.htmx-island,
+body.htmx-island #site,
+body.htmx-island #content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/// Except on a phone. Flush against the screen edge is where full-bleed stops
+/// being the forum's character and starts being hard to read, so the narrow
+/// layout keeps a little room.
+@media (max-width: 720px) {
+  body.htmx-island #content {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/// No unread rail, and no bold. The island layout marks unread lines for
+/// signed-in members with a 3px accent border and `font-weight: 700`; macfix
+/// has neither and never has — it marks unread by colour alone.
+///
+/// This is also what made the list look heavier than the real forum when
+/// signed in and lighter when not: the bold is gated on `.is-member`, so a
+/// guest saw the right weight and a member did not.
+///
+/// The transparent border and its padding go too, not just the colour — they
+/// are what put the subject 11px further in than macfix sets it.
+body.htmx-island .threadLeaf .threadLine {
+  border-left: 0;
+  padding-left: 0;
+}
+
+body.htmx-island.is-member .threadLeaf.et-new .link_show_thread,
+body.htmx-island.is-member .threadLeaf.et-old .link_show_thread {
+  font-weight: $font-weight-base;
+}
+
 /// macfix lists its threads plainly: no card, no frame, no shadow — the
 /// indentation alone carries the structure, which is how the forum has always
 /// read.

@@ -11647,6 +11647,29 @@ body.htmx-island #header.htmx-island-header .markupButtons .markupButton:focus,
   text-decoration: none;
 }
 
+body.htmx-island,
+body.htmx-island #site,
+body.htmx-island #content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+@media (max-width: 720px) {
+  body.htmx-island #content {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+body.htmx-island .threadLeaf .threadLine {
+  border-left: 0;
+  padding-left: 0;
+}
+
+body.htmx-island.is-member .threadLeaf.et-new .link_show_thread,
+body.htmx-island.is-member .threadLeaf.et-old .link_show_thread {
+  font-weight: 500;
+}
+
 body.htmx-island .threadBox-body,
 body.htmx-island .threadBox-body.panel {
   border: 0;
