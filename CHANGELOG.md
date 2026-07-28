@@ -7,6 +7,8 @@
 
 ## [next] -
 
+- ✓ Fix: the CHANGELOG lost the 8.0.12 and 8.0.13 sections when the release line branched off, so 8.1.0's "go to 8.0.12 first — [8.0.13](#8013---2026-07-27) explains why" pointed at an anchor that did not exist. The fixes themselves had all arrived; only their record was missing.
+
 ## [8.2.0] - 2026-07-28
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0...8.2.0)

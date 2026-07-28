@@ -175,10 +175,13 @@ class EntriesController extends AppController
     /**
      * The right-rail widgets for the island front page: who's online, recent
      * posts, and — for members — the user's own recent posts. Rendered as a
-     * fragment the sidebar htmx-refreshes on a poll and after new posts. Public
-     * (guests see online + recent).
+     * fragment the sidebar htmx-refreshes on a poll and after new posts.
      *
-     * @return void
+     * Public by default; an installation can keep it for members only, in which
+     * case a guest gets an empty response instead of a rendered view — hence
+     * the two possible returns.
+     *
+     * @return \Cake\Http\Response|void
      */
     public function htmxWidgets()
     {
