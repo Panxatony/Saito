@@ -61,7 +61,9 @@ class EntriesController extends AppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->viewBuilder()->addHelpers(['Posting', 'Text']);
+        // `User` draws the author's profile link — used by the posting views and
+        // by the editor preview, which reproduces the same info line.
+        $this->viewBuilder()->addHelpers(['Posting', 'Text', 'User']);
 
         $this->loadComponent('Posting');
         $this->loadComponent('MarkAsRead');
@@ -569,7 +571,11 @@ class EntriesController extends AppController
         // author/category line, then the text. Author and time are the ones it
         // would actually get, so what is shown is not a mock-up of the layout
         // but the posting itself, one step early.
-        $this->set('previewAuthor', (string)$this->CurrentUser->get('username'));
+        //
+        // The whole user entity, not just the name: the info line links the
+        // author to their profile exactly as a real posting does, and the
+        // helper that draws that link needs the record, not a string.
+        $this->set('previewAuthor', $this->fetchTable('Users')->get((int)$this->CurrentUser->getId()));
 
         // The category is whatever the form knows — the parent's for a reply,
         // the chooser's for a new thread. Absent is fine: the line simply drops

@@ -10,7 +10,7 @@
  * @var \App\View\AppView $this
  * @var string $previewText
  * @var string $previewSubject
- * @var string $previewAuthor
+ * @var \App\Model\Entity\User $previewAuthor
  * @var \Cake\Datasource\EntityInterface|null $previewCategory
  * @var int $previewViews
  */
@@ -43,7 +43,9 @@ if ($subject !== '' && trim($previewText) === '') {
             ?></span>
             –
         <?php endif; ?>
-        <span class="c-username"><?= h($previewAuthor) ?></span>,
+        <?php // Derselbe Helfer wie im echten Beitrag, damit Markup und Ziel
+              // identisch sind — der Name führt aufs Profil. ?>
+        <span class="c-username"><?= $this->User->linkToUserProfile($previewAuthor, $CurrentUser) ?></span>,
         <?= $this->TimeH->formatTime(new \Cake\I18n\DateTime()) ?>,
         <?= h(__('views_headline')) ?>: <?= (int)$previewViews ?>
     </aside>

@@ -761,6 +761,24 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The author's name links to their profile, as it does on a real posting —
+     * drawn by the same helper, so the markup and the target cannot drift
+     * apart.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewLinksTheAuthorToTheirProfile(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('/users/htmx-profile/3');
+        $this->assertResponseContains('c-username');
+    }
+
+    /**
      * Nothing written yet means an empty fragment, so the island can keep the
      * panel shut instead of opening an empty frame above every reply box.
      *
