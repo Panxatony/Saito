@@ -653,6 +653,81 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The order the widgets appear in, as rendered.
+     *
+     * @return list<string>
+     */
+    protected function renderedWidgetOrder(): array
+    {
+        preg_match_all('/data-widget="([a-z]+)"/', (string)$this->_response->getBody(), $matches);
+
+        return $matches[1];
+    }
+
+    /**
+     * Give member 3 a stored rail arrangement.
+     *
+     * @param list<string> $order the order to store
+     * @return void
+     */
+    protected function storeWidgetOrderForUser3(array $order): void
+    {
+        $users = TableRegistry::getTableLocator()->get('Users');
+        $user = $users->get(3);
+        $users->patchEntity($user, [
+            'slidetab_order' => \Saito\User\WidgetPreferences::write($order, [], EntriesController::WIDGETS),
+        ]);
+        $users->saveOrFail($user);
+    }
+
+    /**
+     * The rail is rendered in the member's order rather than reshuffled by a
+     * script afterwards — otherwise it visibly rearranges itself on every load,
+     * and on every one of the sidebar's 60-second refreshes.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsRenderInTheMembersOrder(): void
+    {
+        $this->storeWidgetOrderForUser3(['mine', 'recent', 'online']);
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertSame(['mine', 'recent', 'online'], $this->renderedWidgetOrder());
+    }
+
+    /**
+     * A member who never dragged anything gets the catalogue order. Worth
+     * pinning: the rendering loop is driven by stored data, and "nothing
+     * stored" is the state almost every member is in.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsFallBackToTheCatalogueOrder(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertSame(EntriesController::WIDGETS, $this->renderedWidgetOrder());
+    }
+
+    /**
+     * A stored order naming a widget the viewer does not get — a guest has no
+     * "your postings" — must not leave a gap or drop the others.
+     *
+     * @return void
+     */
+    public function testHtmxWidgetsSkipAnOrderedWidgetTheViewerCannotSee(): void
+    {
+        $this->get('/entries/htmx-widgets');
+
+        $this->assertResponseOk();
+        $this->assertSame(['online', 'recent'], $this->renderedWidgetOrder());
+    }
+
+    /**
      * "Mark all read" from the island answers with an empty 204 and a trigger the
      * thread list listens for. Returning a redirect instead — which is what the
      * classic path does — would make htmx replace the list with a whole page.

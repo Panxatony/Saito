@@ -448,17 +448,23 @@ class UsersControllerTest extends IntegrationTestCase
     }
 
     /**
-     * `@name` mentions in posting text point here, so this redirect is written
-     * into decades of existing content and has to keep resolving — to whichever
-     * profile page the active frontend uses.
+     * Read back what the endpoint stored for member 3.
      *
-     * @return void
+     * @return array{order: list<string>, minimised: list<string>}
      */
+    protected function storedArrangement(): array
+    {
+        return \Saito\User\WidgetPreferences::read(
+            TableRegistry::getTableLocator()->get('Users')->get(3)->get('slidetab_order'),
+            \App\Controller\EntriesController::WIDGETS
+        );
+    }
+
     /**
      * The rail arrangement belongs to the member, not the browser, so it
      * survives a different device. Stored in `users.slidetab_order` — the
-     * column the retired slidetabs used for exactly this — which keeps it a
-     * code change rather than a migration.
+     * column the retired slidetabs kept their drag-and-drop order in — which
+     * keeps it a code change rather than a migration.
      *
      * @return void
      */
@@ -469,12 +475,44 @@ class UsersControllerTest extends IntegrationTestCase
         $this->post('/users/htmx-widget-state', ['widgets' => ['online', 'mine']]);
 
         $this->assertResponseOk();
+        $this->assertSame(['online', 'mine'], $this->storedArrangement()['minimised']);
+    }
+
+    /**
+     * The order a member drags the rail into is the other half of the same
+     * column.
+     *
+     * @return void
+     */
+    public function testWidgetOrderIsStoredOnTheAccount()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/users/htmx-widget-state', ['order' => ['mine', 'recent', 'online']]);
+
+        $this->assertResponseOk();
+        $this->assertSame(['mine', 'recent', 'online'], $this->storedArrangement()['order']);
+    }
+
+    /**
+     * Both halves share one column, so a request carrying both must not lose
+     * either — this is the request the island actually sends.
+     *
+     * @return void
+     */
+    public function testWidgetOrderAndMinimisedStateSurviveTogether()
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/users/htmx-widget-state', [
+            'order' => ['mine', 'online', 'recent'],
+            'widgets' => ['online'],
+        ]);
+
+        $this->assertResponseOk();
         $this->assertSame(
-            ['online', 'mine'],
-            \Saito\User\WidgetPreferences::read(
-                TableRegistry::getTableLocator()->get('Users')->get(3)->get('slidetab_order'),
-                \App\Controller\EntriesController::WIDGETS
-            )
+            ['order' => ['mine', 'online', 'recent'], 'minimised' => ['online']],
+            $this->storedArrangement()
         );
     }
 
@@ -488,15 +526,14 @@ class UsersControllerTest extends IntegrationTestCase
     {
         $this->mockSecurity();
         $this->_loginUser(3);
-        $this->post('/users/htmx-widget-state', ['widgets' => ['online', 'not-a-widget']]);
+        $this->post('/users/htmx-widget-state', [
+            'widgets' => ['online', 'not-a-widget'],
+            'order' => ['not-a-widget', 'mine'],
+        ]);
 
-        $this->assertSame(
-            ['online'],
-            \Saito\User\WidgetPreferences::read(
-                TableRegistry::getTableLocator()->get('Users')->get(3)->get('slidetab_order'),
-                \App\Controller\EntriesController::WIDGETS
-            )
-        );
+        $arrangement = $this->storedArrangement();
+        $this->assertSame(['online'], $arrangement['minimised']);
+        $this->assertSame(['mine', 'online', 'recent'], $arrangement['order']);
     }
 
     /**

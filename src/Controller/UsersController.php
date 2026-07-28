@@ -1095,8 +1095,11 @@ class UsersController extends AppController
             throw new BadRequestException();
         }
 
-        $submitted = (array)$this->getRequest()->getData('widgets');
-        $value = WidgetPreferences::write($submitted, EntriesController::WIDGETS);
+        $value = WidgetPreferences::write(
+            (array)$this->getRequest()->getData('order'),
+            (array)$this->getRequest()->getData('widgets'),
+            EntriesController::WIDGETS,
+        );
 
         $userId = (int)$this->CurrentUser->getId();
         $user = $this->Users->get($userId);

@@ -726,7 +726,15 @@
         height: auto;
         justify-content: flex-start;
         padding: revert;
+        /* `padding: revert` above drops the shorthand back to the button
+           default, which takes the handle's column with it — put it back, or
+           the handle sits on top of the heading. */
+        padding-left: 1.7rem;
     }
+    /* Here a folded widget is still a card with a heading, so there is room for
+       the handle and a reason to keep it: this is the phone layout, where the
+       rail is a stack the member scrolls past. */
+    .htmx-island .island-widget.is-min .island-widget-grip { display: flex; }
     .htmx-island .island-widget.is-min .island-widget-label { display: revert; }
     .htmx-island .island-widget.is-min .island-widget-icon { display: none; }
     .htmx-island .island-widget.is-min .island-widget-badge { display: none; }
@@ -741,6 +749,21 @@
 
 /* Widget cards */
 .htmx-island .island-widget {
+    /* One number for two boxes: the drag handle is positioned against the card
+       but has to line up with the heading beside it, and a guessed height drifts
+       the moment the heading's font or padding changes. The heading claims it as
+       a minimum, the handle takes it as its height, so they cannot disagree.
+
+       2.5rem is the heading's own height at the current font and padding, so it
+       binds nothing today and catches the two drifting apart tomorrow. A
+       heading that wraps to a second line grows past it and the handle stays
+       beside the first line, which is where it belongs. */
+    --isl-widget-head-h: 2.5rem;
+    position: relative;
+    /* Only ever driven by the reordering code, which offsets a displaced widget
+       back to where it was and releases it on the next frame — a DOM move is a
+       layout jump and nothing animates it by itself. */
+    transition: transform .15s ease;
     border: 1px solid var(--isl-border-soft);
     border-radius: 0.6rem;
     /* Follow the theme: a hard #fff left the widgets glowing white in dark mode. */
@@ -750,10 +773,12 @@
 }
 .htmx-island .island-widget-head {
     width: 100%;
+    min-height: var(--isl-widget-head-h);
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.5rem 0.75rem;
+    /* Left padding leaves the handle its column. */
+    padding: 0.5rem 0.75rem 0.5rem 1.7rem;
     background: transparent;
     /* A <button> does not inherit `color` — without this it falls back to the
        browser's default button text, which ignores the page theme entirely. In
@@ -773,6 +798,52 @@
     transition: transform .15s ease;
     color: var(--nova-text-muted, #999);
 }
+
+/* Drag handle ---------------------------------------------------------------
+   Kept visible rather than revealed on hover: a rail that can be rearranged
+   should say so, and on a touch screen there is no hover to reveal it with.
+   Muted enough that it reads as furniture until it is wanted. */
+.htmx-island .island-widget-grip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1.7rem;
+    height: var(--isl-widget-head-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: var(--nova-text-muted, #999);
+    opacity: .45;
+    font-size: .8rem;
+    cursor: grab;
+    /* The browser must not claim the gesture for scrolling, or a touch drag
+       never reports a move. Scoped to the handle, so a finger anywhere else on
+       the widget still scrolls the page. */
+    touch-action: none;
+}
+.htmx-island .island-widget-grip:hover,
+.htmx-island .island-widget-grip:focus-visible { opacity: 1; }
+.htmx-island .island-widget.is-dragging .island-widget-grip { cursor: grabbing; }
+
+/* The widget under the pointer rides above its neighbours and casts a shadow,
+   so it reads as picked up rather than as the list having glitched. */
+.htmx-island .island-widget.is-dragging {
+    z-index: 5;
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, .28);
+    /* No transition on this one: it is following a finger. */
+    transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .htmx-island .island-widget { transition: none; }
+}
+
+/* Minimised to an icon there is no room for a handle beside the glyph, and no
+   heading to line it up with. The rail is reordered in the open state; folding
+   a widget afterwards keeps the place it was given. */
+.htmx-island .island-widget.is-min .island-widget-grip { display: none; }
 .htmx-island .island-widget.is-collapsed .island-widget-caret { transform: rotate(180deg); }
 .htmx-island .island-widget.is-collapsed .island-widget-body { display: none; }
 .htmx-island .island-widget.is-collapsed .island-widget-head { border-bottom: 0; }

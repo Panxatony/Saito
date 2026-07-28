@@ -854,6 +854,9 @@ msgstr "Neuestes Mitglied ist {0}."
 msgid "Recent entries"
 msgstr "Letzte Einträge"
 
+msgid "Move widget"
+msgstr "Widget verschieben"
+
 #: src/Template/Cell/SlidetabUserlist/display.ctp:18
 msgid "user_area_linkname"
 msgstr "Benutzer"

@@ -19,6 +19,16 @@ edge would gain nothing there.
 Where a heading contains a link — *users* in the online panel, for instance — a
 click follows the link rather than closing the panel.
 
+### Changing the order
+
+A handle sits to the left of every heading. Drag it up or down with a mouse or a
+finger and the panel swaps places with its neighbour. The keyboard does the same
+job: tab to the handle and move the panel with the up and down arrow keys.
+
+On wide screens a shrunken panel carries no handle — there it is only an icon,
+with no room beside it. So open it before reordering. On narrow screens the
+handle stays visible either way.
+
 ### Where the arrangement is kept
 
 Signed in, the arrangement is stored on your account and therefore applies on

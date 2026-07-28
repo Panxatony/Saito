@@ -19,6 +19,17 @@ klappt nur der Inhalt weg, weil Symbole am Rand dort nichts gewinnen würden.
 Enthält eine Überschrift einen Verweis — etwa *Benutzer* im Online-Kästchen —,
 dann folgt ein Klick darauf dem Verweis, statt das Kästchen zu schließen.
 
+### Die Reihenfolge ändern
+
+Links neben jeder Überschrift sitzt ein Griff. Zieht man ihn mit Maus oder
+Finger nach oben oder unten, tauscht das Kästchen den Platz mit seinem Nachbarn.
+Mit der Tastatur geht es genauso: den Griff mit der Tabulatortaste ansteuern und
+mit Pfeil hoch oder runter verschieben.
+
+Auf breiten Bildschirmen trägt ein verkleinertes Kästchen keinen Griff — dort
+ist es nur noch ein Symbol, neben das keiner passt. Zum Umsortieren also erst
+aufklappen. Auf schmalen Bildschirmen bleibt der Griff auch dann sichtbar.
+
 ### Wo die Anordnung bleibt
 
 Angemeldet wird die Anordnung am Benutzerkonto gespeichert und gilt damit auf

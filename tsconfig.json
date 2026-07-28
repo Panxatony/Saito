@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    // "baseUrl": "frontend/src",
+    "target": "es2017",
+    // Without an explicit `lib` this follows `target`, which left the standard
+    // library at ES2015 — so `Array.prototype.includes` (ES2016) type-checked
+    // as an error in island code that has always shipped and always worked.
+    // The build never noticed: esbuild strips types without checking them.
+    "lib": ["ES2017", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
-    "allowSyntheticDefaultImports": true, // for moment.js
+    "allowSyntheticDefaultImports": true,
     "strict": true,
   },
   "include": [
     "frontend/src/**/*",
-    // "node_modules/**/*",
   ],
 }

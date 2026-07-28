@@ -137,7 +137,7 @@ class EntriesController extends AppController
             // The rail loads asynchronously, but its width decides the layout —
             // so the page has to know on first paint whether it is a full rail
             // or a strip of icons, or the thread list visibly jumps.
-            $this->set('minimisedWidgets', $this->minimisedWidgets());
+            $this->set('minimisedWidgets', $this->railArrangement()['minimised']);
             $this->set('widgetCatalogue', self::WIDGETS);
             $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_index');
         }
@@ -196,24 +196,27 @@ class EntriesController extends AppController
             ));
         }
         // Rendered server-side rather than applied by script afterwards: the
-        // rail would otherwise flash open on every load before collapsing.
-        $this->set('minimisedWidgets', $this->minimisedWidgets());
+        // rail would otherwise flash open on every load, and in the member's
+        // default order, before a script folded and reshuffled it.
+        $arrangement = $this->railArrangement();
+        $this->set('minimisedWidgets', $arrangement['minimised']);
+        $this->set('widgetOrder', $arrangement['order']);
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_widgets');
     }
 
     /**
-     * Which rail widgets the current member keeps minimised.
+     * How the current member arranged the rail: order, and what is minimised.
      *
      * Signed-in members have this on their account (see WidgetPreferences);
      * for everyone else the island falls back to the browser's own storage,
-     * so the preference still survives a reload without an account.
+     * so the arrangement still survives a reload without an account.
      *
-     * @return list<string>
+     * @return array{order: list<string>, minimised: list<string>}
      */
-    protected function minimisedWidgets(): array
+    protected function railArrangement(): array
     {
         if (!$this->CurrentUser->isLoggedIn()) {
-            return [];
+            return ['order' => self::WIDGETS, 'minimised' => []];
         }
 
         return WidgetPreferences::read(

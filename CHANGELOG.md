@@ -7,6 +7,8 @@
 
 ## [next] -
 
+- ＋ The widget rail can be arranged again: drag a widget by the handle beside its heading, or move it with the arrow keys once the handle has focus. Saito 5 could do this and the island frontend could not. The order goes back into `users.slidetab_order` — the column that held it all along — so nothing in the database changes.
+
 ## [8.1.0] - 2026-07-28
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.13...8.1.0)
