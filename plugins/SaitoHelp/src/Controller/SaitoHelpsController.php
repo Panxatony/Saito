@@ -27,13 +27,14 @@ class SaitoHelpsController extends AppController
      * redirects help/<id> to help/<current language>/id
      *
      * @param string $id help page ID
-     * @return void
+     * @return \Cake\Http\Response
      */
     public function languageRedirect($id)
     {
         $this->autoRender = false;
         $language = Configure::read('Saito.language');
-        $this->redirect("/help/$language/$id");
+
+        return $this->redirect("/help/$language/$id");
     }
 
     /**

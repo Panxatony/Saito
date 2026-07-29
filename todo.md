@@ -59,11 +59,55 @@ already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
 on Alpine now — so its markup is the one thing still tying it to Bootstrap.
 Doing it separately means paying for it twice.
 
+### Take `'unsafe-inline'` out of the script policy
+
+The stored XSS fixed in 8.2.3 was dangerous because of what stood behind it, not
+because of what it was. The last link — a role change that asked for nothing but
+the session — closed in 8.2.4. This is the other one, and the bigger lever: with
+it gone, that XSS would have been inert.
+
+**The CSP allows `'unsafe-inline'` for scripts**, so it does not stop an
+`onerror=` handler. The header (set at the edge, not by the app) currently
+reads:
+
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://plausible.panxatony.net
+
+Dropping `'unsafe-inline'` is the single biggest lever against this whole class,
+and it is achievable — but not free, because three things rely on it today:
+
+- `templates/layout/htmx_island.php` has two blocks that must run *before*
+  paint: the theme stylesheet choice out of `localStorage` (still via
+  `document.write`) and the font scale. Externalising them reintroduces the
+  flash they exist to prevent, so these need a **nonce** — generated per request
+  and passed into the header, which means the app has to own the CSP rather than
+  the edge.
+- `plugins/Admin/templates/Settings/index.php` carries the scroll-spy
+  replacement. That one just belongs in the admin bundle.
+- `plugins/Feeds/templates/cell/FeedLinks/display.php` uses
+  `onclick="this.select()"` as a documented no-JS fallback; a delegated listener
+  does the same.
+
+`'unsafe-eval'` is a separate question and probably **not** worth chasing:
+Alpine evaluates its expressions as strings, so removing it means the CSP build
+plus rewriting the expressions in nine templates into component methods. It also
+buys far less — `unsafe-eval` does not enable an inline event handler, which is
+what the attack actually used.
+
+Worth noting what the current CSP *does* achieve, so it is not mistaken for
+useless: `connect-src 'self'` and `form-action 'self'` keep data from being
+posted off-site. It just cannot help against an attacker who acts same-origin,
+and a takeover needs nothing else. (`img-src` allows `https:` generically, so
+that exfiltration path is open regardless.)
+
 ### The audit's correctness findings
 
-From the 2026-07-29 audit. The security half went out as 8.2.3; what follows
-changes behaviour rather than exposure, so it waits for a feature release. Each
-one was read and confirmed, not inferred.
+From the 2026-07-29 audit. Its security half shipped as 8.2.3 and the small
+self-contained bugs as 8.2.4; what is left needs a fuller release cycle than a
+patch, either because it touches a data-mutating path or because the blast
+radius is wider than the change. Each one was read and confirmed, not inferred.
+
+The three thread-merge items belong together — read all three before touching
+that method.
 
 **Merging threads gets `last_answer` from the wrong posting.**
 `PostingBehavior::threadMerge()` compares the source against `$targetPosting`,
@@ -87,18 +131,6 @@ to a child. It decides the dimming of ignored thread starters
 (`Thread::getLastAnswer()`) — the latter can leave cached lines unrefreshed when
 answers arrive. The data carries `pid == 0`; use that.
 
-**The settings cache is deleted under a key that is never written.**
-`SettingsTable::load()` writes `Saito.appSettings.<version>`; `clearCache()`
-deletes `Saito.appSettings`. Saving a setting works today only because
-`parent::clearCache()` wipes the whole default cache as a side effect — and only
-inside a web request. From console or updater, stale settings survive.
-
-**Undo is still broken in two places.** `insertAtCursor()` was written to keep
-the browser's undo stack, and the smiley button uses it. The BBCode toolbar
-(`editor.ts`) and the upload insert (`uploads.ts`) still assign `textarea.value`
-directly, which wipes the history — and the upload path fires no `input` event,
-so the textarea does not grow to fit what was inserted.
-
 **Pasted code blocks lose their formatting.** `htmlToBbcode()` collapses
 whitespace in every text node, `<pre>` and `<code>` included, and the final tidy
 pass removes what survives. A code block copied from a documentation page
@@ -106,23 +138,13 @@ arrives as one unindented line — and because the conversion "added something",
 the browser's own paste was suppressed to produce it. Take those text nodes
 verbatim and keep them out of the tidy pass.
 
-**Pinning and locking shows no effect.** `postings.ts` refreshes the posting
-with two synthetic clicks, but `toggleInlinePosting()` only flips `display` when
-a slider already exists. The moderator sees the old state, clicks again, and
-sets the flag back on the server.
-
-**`unlock()` reported success on failure** and **crashed on a stale request** —
-both fixed in 8.2.3 because that method was being touched anyway. Listed here
-only so the audit's numbering stays honest.
-
-Smaller items worth folding into whichever release touches the file: `solve()`
-swallows every exception into an anonymous 400 and discards the cause;
-`htmxWidgetState()` updates the session even when the save failed; the
-FormProtection unlock list still names `slidetabToggle`/`slidetabOrder`, which
-no longer exist; `ThreadsComponent::paginateThreads()` starts a Stopwatch it
-never stops on the early return; and `SaitoHelp` decides "admin only" from an
-HTML comment in the *localized* file, so a future translation that drops the
-comment silently makes that topic public in that language.
+**`SaitoHelp` decides "admin only" from a comment in the localized file.**
+`findAll()` lets a localized topic replace the English baseline wholesale, and
+`view()` reads the marker off whichever file it found. Both German admin topics
+carry it, so nothing is wrong today — but a future translation that omits the
+`<!-- admin -->` line silently makes that topic public in that language, and no
+test or lint would notice. Derive it from the English baseline or from the
+filename instead.
 
 ### Drop the six legacy `users` columns
 
@@ -205,6 +227,25 @@ Also: pin Bootstrap to 4.6.2 rather than the current 4.4.1 while the v4 exit
 above is still pending — 4.6.2 is the last v4 and carries fixes 4.4.1 does not.
 And `plugins/BbcodeParser/src/Lib/jBBCode/` is excluded from PHPStan, so the
 definitions that parse untrusted markup get no static analysis at all.
+
+Housekeeping from the same pass, none of it urgent, all of it easy to lose:
+
+- **Psalm earns nothing.** `psalm.xml` runs at `errorLevel="8"` — the weakest —
+  with `findUnusedCode="false"`, so it duplicates PHPStan at lower strictness.
+  Raise it until it says something PHPStan does not, or drop it.
+- **`claviska/simpleimage` is on the unmaintained 3.x line** (3.7.2) and it
+  parses user-uploaded images. The v4 API differences are modest.
+- **`mobiledetect/mobiledetectlib` 2.x is EOL** (current is 4.x). Only UA
+  regexes, but the device data is frozen around 2018.
+- **`grunt` and `yarn` sit in `dependencies`** though nothing from node_modules
+  reaches a browser. Harmless in effect, but it makes any
+  `yarn audit --groups dependencies` triage meaningless. The `grunt` entry is
+  also duplicated across both sections.
+- **`uglify:release` has an empty file list** and its plugin
+  (`grunt-contrib-uglify-es`) is abandoned upstream. Dead weight; delete both.
+- **The PostCSS chain is from 2018** — autoprefixer 8.6.5 still uses the
+  deprecated inline `browsers` option instead of a browserslist config, and
+  cssnano 4.1.10. They run, but the prefix data is seven years stale.
 
 ### DeepSource JS-0067 / JS-0052
 

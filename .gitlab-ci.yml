@@ -56,6 +56,18 @@ cache:
     - vendor/
     - /tmp/composer-cache/
 
+# Is this release described? The version, the tag and the tarball all come out
+# of the pipeline by themselves; the CHANGELOG entry does not, and nothing used
+# to notice when it was missing. Runs only on a tag, needs no PHP setup, and
+# fails in seconds instead of after the suite and the build.
+changelog:
+  stage: test
+  before_script: []
+  script:
+    - sh dev/check-changelog.sh "$CI_COMMIT_TAG"
+  rules:
+    - if: $CI_COMMIT_TAG
+
 test:
   stage: test
   services:

@@ -214,6 +214,22 @@
 
 /* Editor toolbar: modern ghost icon-buttons instead of solid grey Bootstrap
    buttons. Transparent with a soft border; accent tint on hover/focus. */
+/* Subject field: as wide as the subject may be long, no wider.
+
+   A `form-control` spans the whole form, so on a desktop the box invited a
+   headline several times longer than the forum accepts — the writer types on,
+   hits the maxlength, and the field simply stops responding with no explanation.
+   The limit is an admin setting, so the templates pass it in as `--subject-max`
+   and the width follows it.
+
+   `ch` is the width of the digit zero. Running text is narrower than that on
+   average, so this errs on the generous side — the point is to stop promising
+   room that is not there, not to trim to the last pixel. `max-width` keeps it
+   from overflowing a narrow screen, where 100% is still the smaller value. */
+.htmx-island .js-subject {
+    max-width: calc(var(--subject-max, 100) * 1ch);
+}
+
 .htmx-island .js-editor-toolbar { align-items: center; }
 .htmx-island .js-editor-toolbar .btn-group { gap: 0.3rem; }
 .htmx-island .js-editor-toolbar .js-bb-btn,

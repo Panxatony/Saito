@@ -16,9 +16,7 @@ msgstr ""
 "X-Generator: Poedit 2.2.4\n"
 "X-Poedit-SearchPath-0: src\n"
 "X-Poedit-SearchPath-1: plugins\n"
-"X-Poedit-SearchPathExcluded-0: plugins/SpectrumColorpicker/webroot/js/"
-"spectrum.js\n"
-"X-Poedit-SearchPathExcluded-1: tmp\n"
+"X-Poedit-SearchPathExcluded-0: tmp\n"
 
 #: plugins/Admin/src/Controller/AdminsController.php:52
 msgid "Caches cleared."

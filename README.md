@@ -108,12 +108,20 @@ grunt release
 
 ### Create A Release
 
-Push a version tag. CI runs the test suite, builds the tarball from a clean
-checkout and publishes it on the release page with its checksum:
+Write the CHANGELOG section first, then push a version tag. CI runs the test
+suite, builds the tarball from a clean checkout and publishes it on the release
+page with its checksum, using that section as the release notes:
 
 ```shell
-git tag 8.2.1 && git push github 8.2.1   # substitute the version you are releasing
+sh dev/check-changelog.sh 8.2.5        # does CHANGELOG.md describe it yet?
+git tag 8.2.5 && git push github 8.2.5 # substitute the version you are releasing
 ```
+
+The same check runs as the first job of both pipelines and fails the release
+before anything is built. It exists because the description is the one part of a
+release nothing else produces: version, tag and tarball all appear by
+themselves, so a missing section used to go out unnoticed — the release job
+simply published the bare version number as its own notes.
 
 ## Credits
 

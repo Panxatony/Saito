@@ -108,7 +108,7 @@ class EntriesTable extends AppTable
         $this->belongsTo('Users', ['foreignKey' => 'user_id']);
 
         $this->hasMany(
-            'Bookmarks',
+            'Bookmarks.Bookmarks',
             ['foreignKey' => 'entry_id', 'dependent' => true]
         );
 

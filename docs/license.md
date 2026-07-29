@@ -33,7 +33,6 @@ Bundled into the JavaScript the browser loads, or shipped as plugin assets:
 - [htmx](https://htmx.org/) — 0BSD
 - [Alpine.js](https://alpinejs.dev/) — MIT
 - [Bootstrap](https://getbootstrap.com/) — MIT, the base every theme builds on
-- [Spectrum](https://github.com/bgrins/spectrum) colour picker — MIT
 
 Server-side dependencies keep their own `LICENSE` files under `vendor/`, placed
 there by Composer.

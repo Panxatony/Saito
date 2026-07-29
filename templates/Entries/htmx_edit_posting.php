@@ -52,8 +52,14 @@ $backUrl = $this->request->getAttribute('webroot') . 'entries/htmx-thread/' . (i
                     'value' => $posting->get('category_id'),
                 ]);
             }
+            // Same limit as the add and reply forms. Without it, editing was the
+            // one place where the subject could be typed past the maximum and
+            // the writer only found out when the save came back rejected.
+            $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100);
             echo $this->Form->control('subject', [
-                'class' => 'form-control', 'label' => __('subject'),
+                'class' => 'form-control js-subject', 'label' => __('subject'),
+                'maxlength' => $subjectMax,
+                'style' => '--subject-max: ' . $subjectMax,
                 'value' => $posting->get('subject'),
             ]);
             echo $this->element('entry/htmx_editor_toolbar');

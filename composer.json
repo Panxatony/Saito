@@ -95,7 +95,6 @@
       "SaitoSearch\\": "./plugins/SaitoSearch/src",
       "Sitemap\\": "./plugins/Sitemap/src",
       "Sitemap\\Test\\": "./plugins/Sitemap/tests",
-      "SpectrumColorpicker\\": "./plugins/SpectrumColorpicker/src",
       "Stopwatch\\": "./plugins/Stopwatch/src"
     }
   },

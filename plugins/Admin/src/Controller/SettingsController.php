@@ -127,7 +127,9 @@ class SettingsController extends AdminAppController
         $this->set('setting', $setting);
 
         if ($id === 'timezone') {
-            $this->render('timezone');
+            return $this->render('timezone');
         }
+
+        return null;
     }
 }

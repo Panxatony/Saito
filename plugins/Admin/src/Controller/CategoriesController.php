@@ -117,7 +117,7 @@ class CategoriesController extends AdminAppController
                     __('cat.save.success'),
                     ['element' => 'success']
                 );
-                $this->redirect(['action' => 'index']);
+                return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->set(
                     __('The category could not be saved. Please, try again.'),
@@ -167,7 +167,8 @@ class CategoriesController extends AdminAppController
 
                     return $this->redirect($this->referer());
                 }
-                break;
+                // No break: both branches above return, so nothing falls
+                // through to the next case.
             case ('delete'):
                 try {
                     $this->Categories->deleteWithAllEntries(

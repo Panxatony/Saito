@@ -50,8 +50,6 @@ plugins/Bota/webroot/fonts/*.woff*
 plugins/Bota/webroot/fonts/OFL.txt
 plugins/Macnemo/webroot/fonts/OFL.txt
 
-plugins/SpectrumColorpicker/webroot/*
-
 webroot/css/stylesheets/*
 !webroot/css/stylesheets/src/
 webroot/js/*
