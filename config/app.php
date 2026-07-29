@@ -81,12 +81,27 @@ return [
      * - cookieSalt - Same as salt exclusively used for cookie encryption
      * - cookieAuthName - name of the encrypted authentication cookie
      */
+    /*
+     * The placeholder is load-bearing, not laziness. `__SALT__` is what
+     * `App\Console\Installer::setSecuritySalt()` replaces with real randomness on
+     * `composer install`, and what `Installer\Controller\InstallController::salt()`
+     * looks for to decide whether an install still needs a key.
+     *
+     * A concrete-looking fallback here defeats both at once: the replacement finds
+     * nothing to replace and says so only in console output, and the installer's
+     * check reads "not the placeholder" as "properly configured" and waves the
+     * install through. Since this repository is public, every install that never
+     * set SECURITY_SALT would then encrypt its login cookie with a key anyone can
+     * read on GitHub — and be told it was secure.
+     */
     'Security' => [
-        'salt' => env('SECURITY_SALT', '22bb0314d18b1ae3f65deda384e3721cfdc47972e1bb221c4c4f9ae952b2bd4e'),
-        'cookieSalt' => env('SECURITY_COOKIE_SALT', '22bb0314d18b1ae3f65deda384e3721cfdc47972e1bb221c4c4f9ae952b2bd4e'),
+        'salt' => env('SECURITY_SALT', '__SALT__'),
+        'cookieSalt' => env('SECURITY_COOKIE_SALT', '__SALT__'),
         // Dedicated key for API tokens, so ops can invalidate every issued token
-        // without also logging everyone out. Falls back to `salt` when unset.
-        'jwtSalt' => env('SECURITY_JWT_SALT', '22bb0314d18b1ae3f65deda384e3721cfdc47972e1bb221c4c4f9ae952b2bd4e'),
+        // without also logging everyone out. No default on purpose: unset must
+        // stay null so the readers' `?: cookieSalt` fallback engages. A
+        // placeholder string here would be truthy and get used as the key.
+        'jwtSalt' => env('SECURITY_JWT_SALT'),
         'cookieAuthName' => 'Saito-AU',
     ],
 
