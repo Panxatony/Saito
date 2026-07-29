@@ -21,6 +21,7 @@ use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ForbiddenException;
+use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
 use Cake\I18n\DateTime;
 use Cake\Routing\Router;
@@ -921,6 +922,61 @@ class UsersController extends AppController
     }
 
     /**
+     * The note a member can attach to one of their own bookmarks.
+     *
+     * The bookmarks page has always rendered these notes, but the only thing
+     * that could write one was the REST endpoint the SPA used
+     * (`PUT /api/v2/bookmarks/{id}`). With the SPA gone, notes written back then
+     * were still shown and could no longer be changed, and no new one could be
+     * made — so this brings the writing half back into the island.
+     *
+     * Addressed by posting id and scoped to the current user's own bookmark:
+     * there is no id here that could point at somebody else's row.
+     *
+     * GET returns the edit form, POST saves and returns the note as displayed.
+     *
+     * @param string|null $id posting id
+     * @return void
+     */
+    public function htmxBookmarkComment($id = null)
+    {
+        $entryId = (int)$id;
+        if ($entryId <= 0) {
+            throw new BadRequestException();
+        }
+
+        $Bookmarks = $this->fetchTable('Bookmarks.Bookmarks');
+        // The plugin ships no entity class of its own, so rows come back as
+        // plain Cake entities.
+        /** @var \Cake\Datasource\EntityInterface|null $bookmark */
+        $bookmark = $Bookmarks->find()
+            ->where([
+                'Bookmarks.entry_id' => $entryId,
+                'Bookmarks.user_id' => $this->CurrentUser->getId(),
+            ])
+            ->first();
+        if ($bookmark === null) {
+            throw new NotFoundException();
+        }
+
+        if ($this->getRequest()->is(['post', 'put'])) {
+            $Bookmarks->patchEntity(
+                $bookmark,
+                ['comment' => (string)$this->getRequest()->getData('comment')],
+                ['fields' => ['comment']]
+            );
+            if (!$Bookmarks->save($bookmark)) {
+                throw new BadRequestException();
+            }
+        }
+
+        $this->set('entryId', $entryId);
+        $this->set('comment', (string)$bookmark->get('comment'));
+        $this->set('editing', !$this->getRequest()->is(['post', 'put']));
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_bookmark_comment');
+    }
+
+    /**
      * Avatar upload/delete for the htmx island settings — same logic as
      * {@see avatar()} but redirects back to the island settings (htmxEdit).
      * CSRF-only (FormProtection-unlocked); permission is owner/edit-scoped.
@@ -1145,7 +1201,7 @@ class UsersController extends AppController
             'htmxEdit', 'htmxChangePassword', 'htmxAvatar',
             // Posted by the island with a CSRF token in the header, like the
             // other island write endpoints.
-            'htmxWidgetState',
+            'htmxWidgetState', 'htmxBookmarkComment',
         ];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
