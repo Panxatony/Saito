@@ -1035,20 +1035,26 @@
     padding: 2px;
     flex: 0 0 auto;
 }
-.htmx-island .settings-colour-label { flex: 1 1 12rem; }
-/* First on the row: it decides whether the swatch beside it counts at all. The
-   fixed basis keeps the three swatches in a column despite differing label
-   widths. */
+/* Fixed basis on both leading columns, so the three checkboxes and the three
+   swatches each line up rather than stepping with the label lengths. */
+.htmx-island .settings-colour-label { flex: 0 0 11rem; }
 .htmx-island .settings-colour-default {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     margin: 0;
     flex: 0 0 auto;
-    min-width: 9rem;
     font-weight: 400;
     color: var(--isl-text-muted, #6b6560);
     white-space: nowrap;
+}
+/* Ticked means the theme decides, so the swatch does not apply. Saying that
+   visually saves explaining it: a colour field sitting there fully lit next to
+   "use the theme's colour" invites the reader to set it and wonder why nothing
+   happens. CSS only — no state to keep in sync. */
+.htmx-island .settings-colour-row:has(.form-check-input:checked) .settings-colour-input {
+    opacity: 0.35;
+    filter: grayscale(1);
 }
 
 /* Settings: the "which categories to show" picker ---------------------------- */

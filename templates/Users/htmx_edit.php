@@ -98,10 +98,11 @@
             // save, would have written #000000 and dyed the thread lines black.
             // So each colour gets an explicit "use the theme's colour" checkbox.
             //
-            // The checkbox comes first on the row, because it is the decision:
-            // it says whether the swatch beside it is used at all. Sitting at the
-            // far end of the row it read as an afterthought to a colour that had
-            // already been chosen.
+            // Row order: what it applies to, then the decision, then the colour
+            // the decision governs. The checkbox sat at the far right first,
+            // where it read as an afterthought to a colour already chosen; put
+            // in front of everything it read as the swatch's own label. Between
+            // the two it belongs to neither by accident and to both on purpose.
             echo '<div class="input"><label>' . h(__('user_colors')) . '</label>';
             foreach ([
                 'user_color_new_postings' => 'user_color_new_postings_exp',
@@ -111,6 +112,7 @@
                 $stored = (string)$user->get($colourField);
                 $isSet = (bool)preg_match('/^#[0-9a-f]{6}$/i', $stored);
                 echo '<div class="settings-colour-row">';
+                echo '<span class="settings-colour-label">' . h(__($expKey)) . '</span>';
                 echo '<label class="settings-colour-default">';
                 echo $this->Form->checkbox($colourField . '_default', [
                     'checked' => !$isSet, 'hiddenField' => false,
@@ -122,7 +124,6 @@
                     'value' => $isSet ? $stored : '#808080',
                     'class' => 'settings-colour-input',
                 ]);
-                echo '<span class="settings-colour-label">' . h(__($expKey)) . '</span>';
                 echo '</div>';
             }
             echo '</div>';
