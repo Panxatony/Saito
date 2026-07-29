@@ -1029,12 +1029,18 @@
     flex-wrap: wrap;
     margin: 0.35rem 0;
 }
+/* Sized to sit on the line of text beside it rather than to stand out from it:
+   a swatch is a sample, not a button. */
 .htmx-island .settings-colour-input {
-    width: 3rem;
-    height: 2rem;
+    width: 2.75rem;
+    height: 1.4rem;
     padding: 2px;
     flex: 0 0 auto;
+    margin: 0;
 }
+/* Form->control() wraps the input in a div.input whose default spacing is meant
+   for stacked fields; inside a flex row it only pushes the swatch off the line. */
+.htmx-island .settings-colour-row .input { margin: 0; display: flex; }
 /* Fixed basis on both leading columns, so the three checkboxes and the three
    swatches each line up rather than stepping with the label lengths. */
 .htmx-island .settings-colour-label { flex: 0 0 11rem; }
