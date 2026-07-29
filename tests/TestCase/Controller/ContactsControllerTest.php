@@ -197,6 +197,49 @@ class ContactsControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The "send me a copy" box must not deliver to an address the forum has
+     * not verified.
+     *
+     * For an anonymous sender that address is simply whatever was typed in, so
+     * honouring the box made the form an open relay: name your victim as the
+     * sender, tick it, and the forum mails your text to them — from its own
+     * domain, with its SPF and DKIM behind it.
+     *
+     * @return void
+     */
+    public function testContactOwnerDoesNotCopyAnUnverifiedSenderAddress()
+    {
+        RecordingMailTransport::$recipients = [];
+        TransportFactory::drop('recording');
+        TransportFactory::setConfig('recording', ['className' => RecordingMailTransport::class]);
+        $profile = (array)Mailer::getConfig('saito');
+        Mailer::drop('saito');
+        Mailer::setConfig('saito', ['transport' => 'recording'] + $profile);
+
+        $this->mockSecurity();
+        $this->get('/contacts/htmx-contact-owner');
+        $this->session(['Contact' => ['formLoadTime' => time() - 60]]);
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => 'Betreff',
+            'text' => 'Nachricht',
+            'sender_contact' => 'opfer@example.com',
+            'cc' => 1,
+        ]);
+
+        $this->assertNotContains(
+            'opfer@example.com',
+            RecordingMailTransport::$recipients,
+            'the forum delivered to an address it never verified'
+        );
+        $this->assertCount(
+            1,
+            RecordingMailTransport::$recipients,
+            'only the forum owner should have been written to'
+        );
+    }
+
+    /**
      * Reachable without an account at all — that is the point of it.
      *
      * @return void

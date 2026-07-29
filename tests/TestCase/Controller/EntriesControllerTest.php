@@ -701,6 +701,45 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * A disabled forum must not serve postings.
+     *
+     * The 503 page alone was never enough: rendering it in beforeFilter left
+     * the action to run afterwards, so the content was produced and — for any
+     * action returning its own response — sent instead of the 503.
+     *
+     * @return void
+     */
+    public function testForumDisabledDoesNotServePostings(): void
+    {
+        Configure::write('Saito.Settings.forum_disabled', true);
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseCode(503);
+        $this->assertResponseNotContains('postingBody');
+    }
+
+    /**
+     * …and must not accept new ones either.
+     *
+     * @return void
+     */
+    public function testForumDisabledDoesNotAcceptPostings(): void
+    {
+        $table = $this->getTableLocator()->get('Entries');
+        $before = $table->find()->count();
+
+        Configure::write('Saito.Settings.forum_disabled', true);
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-add', [
+            'category_id' => 2,
+            'subject' => 'written while closed',
+            'text' => 'should not exist',
+        ]);
+
+        $this->assertSame($before, $table->find()->count(), 'a posting was created');
+    }
+
+    /**
      * The accent rail beside unread thread lines is drawn unless asked otherwise.
      *
      * @return void

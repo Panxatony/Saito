@@ -128,6 +128,11 @@ class SmiliesController extends AdminAppController
      */
     public function delete($id = null)
     {
+        // Deleting travels by POST only: a GET is not covered by CSRF
+        // protection, so an image tag on any page an admin opens could
+        // fire it.
+        $this->request->allowMethod(['post', 'delete']);
+
         if (empty($id) || !$this->Smilies->exists(['id' => $id])) {
             $this->Flash->set(__('Invalid smiley.'), ['element' => 'error']);
             $this->redirect(['action' => 'index']);

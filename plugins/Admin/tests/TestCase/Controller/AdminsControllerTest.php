@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace App\Test\TestCase\Controller;
 
 use Cake\Cache\Cache;
+use Cake\Http\Exception\MethodNotAllowedException;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
 
@@ -62,8 +63,24 @@ class AdminsControllerTest extends IntegrationTestCase
         $this->_loginUser(1);
         Cache::write('foo', 'bar');
         $this->assertEquals('bar', Cache::read('foo'));
-        $this->get('admin/admins/emptyCaches');
+        $this->post('admin/admins/emptyCaches');
         $this->assertEmpty(Cache::read('foo'));
+    }
+
+    /**
+     * Flushing the caches is a state change and must not answer to a GET —
+     * otherwise an image tag on any page an admin opens can fire it, as often
+     * as it likes, and CSRF protection never sees the request.
+     *
+     * @return void
+     */
+    public function testAdminEmptyCachesRejectsGet()
+    {
+        $this->_loginUser(1);
+        Cache::write('foo', 'bar');
+
+        $this->expectException(MethodNotAllowedException::class);
+        $this->get('admin/admins/emptyCaches');
     }
 
     /**

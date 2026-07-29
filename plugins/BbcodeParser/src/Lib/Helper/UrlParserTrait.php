@@ -59,10 +59,14 @@ trait UrlParserTrait
         // Decode HTML entities (incl. HTML5 named refs) first: JBBCode
         // pre-encodes attribute values, and browsers decode them too.
         $rawUrl = html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        // Remove the characters a browser strips from a URL (tab, LF, CR)
-        // anywhere, plus any leading C0 control characters or spaces.
-        $rawUrl = (string)preg_replace('/[\x09\x0a\x0d]+/', '', $rawUrl);
-        $rawUrl = (string)preg_replace('/^[\x00-\x20]+/', '', $rawUrl);
+        // Strip every C0 control and DEL anywhere, plus leading spaces. Tab, LF
+        // and CR are the ones browsers themselves remove from a URL; the rest
+        // are here because parse_url() reports an *empty* scheme for something
+        // like "j\0avascript:", which this method reads as "relative, fine".
+        // No legitimate URL contains a control character, so removing them all
+        // costs nothing and leaves no variant of that trick to find.
+        $rawUrl = (string)preg_replace('/[\x00-\x1f\x7f]+/', '', $rawUrl);
+        $rawUrl = (string)preg_replace('/^[\x20]+/', '', $rawUrl);
         $scheme = strtolower((string)parse_url($rawUrl, PHP_URL_SCHEME));
 
         return in_array($scheme, ['http', 'https', 'ftp', ''], true);

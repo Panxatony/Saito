@@ -910,6 +910,54 @@ EOF;
     }
 
     /**
+     * SECURITY: a control character inside the scheme must not defeat the
+     * blocklist. parse_url() reports an *empty* scheme for "j\0avascript:",
+     * which the check used to read as "relative URL, therefore safe".
+     *
+     * @return void
+     */
+    public function testUrlWithControlCharacterInSchemeIsRejected()
+    {
+        $result = $this->_Parser->parse("[url]j\x00avascript:alert(1)[/url]");
+        $this->assertStringNotContainsStringIgnoringCase('script:', $result);
+        $this->assertStringNotContainsString('<a ', $result);
+    }
+
+    /**
+     * SECURITY: media tags put the address straight into a src attribute and
+     * had no scheme check at all — [img] and [url] were hardened, these were
+     * missed.
+     *
+     * @return void
+     */
+    public function testMediaTagsRejectUnsafeSchemes()
+    {
+        // A rejected tag is left as the literal BBCode, so the text still reads
+        // "javascript:" — harmless, it is escaped plain text. What must not
+        // exist is the element carrying it as a src.
+        foreach (['video', 'audio'] as $tag) {
+            $result = $this->_Parser->parse("[$tag]javascript:alert(1)[/$tag]");
+            $this->assertStringNotContainsString(
+                "<$tag",
+                $result,
+                "[$tag] rendered an element for a javascript: URL"
+            );
+        }
+    }
+
+    /**
+     * …while an ordinary address still plays.
+     *
+     * @return void
+     */
+    public function testMediaTagsKeepOrdinaryUrls()
+    {
+        $result = $this->_Parser->parse('[video]https://example.com/clip.mp4[/video]');
+        $this->assertStringContainsString('https://example.com/clip.mp4', $result);
+        $this->assertStringContainsString('<video', $result);
+    }
+
+    /**
      * The email autolink regex was linearized to remove a nested quantifier
      * (ReDoS). A bare multi-label email must still autolink.
      *

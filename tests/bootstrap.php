@@ -72,6 +72,14 @@ ConnectionHelper::addTestAliases();
 // otherwise Security mock fails with debug info
 Configure::write('debug', true);
 
+// A key of the suite's own. config/app.php ships `__SALT__`, which the installer
+// replaces with real randomness — as a literal it is nine characters and too
+// short for the JWT signer, which is exactly the failure a fresh install is
+// supposed to be walked through rather than silently pass. Tests must not
+// depend on either the placeholder or on whatever a developer's machine has.
+Configure::write('Security.salt', str_repeat('saito-test-salt-', 4));
+Configure::write('Security.cookieSalt', str_repeat('saito-test-cookie-salt-', 3));
+
 // Cake Session isn't isolated and clashes with PHPUnit
 // @see https://github.com/sebastianbergmann/phpunit/issues/1416
 session_id('cli');

@@ -30,8 +30,15 @@ class Html5Audio extends CodeDefinition
      */
     protected function _parse($content, $attributes, \JBBCode\ElementNode $node)
     {
-        if (!empty($attributes['src']) && $attributes['src'] === 'upload') {
+        $isUpload = !empty($attributes['src']) && $attributes['src'] === 'upload';
+        if ($isUpload) {
             $content = $this->_linkToUploadedFile($content);
+        } elseif (!$this->_hasSafeUrlScheme($content)) {
+            // An author-supplied address goes straight into a src attribute, so
+            // it needs the same scheme check [img] and [url] make. A media src
+            // does not execute script, but `javascript:`/`data:` have no place
+            // here and the editor's own paste conversion can produce them.
+            return false;
         }
 
         // Better: preload='metadata'. But Safari 12 doesn't support it.
@@ -61,8 +68,12 @@ class Html5Video extends CodeDefinition
      */
     protected function _parse($content, $attributes, \JBBCode\ElementNode $node)
     {
-        if (!empty($attributes['src']) && $attributes['src'] === 'upload') {
+        $isUpload = !empty($attributes['src']) && $attributes['src'] === 'upload';
+        if ($isUpload) {
             $content = $this->_linkToUploadedFile($content);
+        } elseif (!$this->_hasSafeUrlScheme($content)) {
+            // See the audio tag above: same attribute, same check.
+            return false;
         }
 
         // Better: preload='metadata'. But Safari 12 doesn't support it and
