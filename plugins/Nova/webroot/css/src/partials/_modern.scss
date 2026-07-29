@@ -157,7 +157,10 @@ textarea {
 
 // Unread postings: Bota signals them by link colour alone. Add a quiet accent
 // rail so the eye finds them while scanning, and keep the colour cue.
-.threadLeaf.et-new > .threadLine {
+//
+// `Saito.unreadRail => false` marks the body and takes the rail back out — the
+// colour cue is what remains, which is how Bota showed unread all along.
+body:not(.no-unread-rail) .threadLeaf.et-new > .threadLine {
   box-shadow: inset 2px 0 0 var(--nova-accent);
 }
 

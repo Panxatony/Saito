@@ -26,11 +26,34 @@ export function csrfToken(): string {
  * @param text what to insert
  */
 export function insertAtCursor(ta: HTMLTextAreaElement, text: string): void {
+    ta.focus();
+
+    // `execCommand` is deprecated and still the only way to put text into a
+    // textarea *as though it were typed*: the browser records it on its own undo
+    // stack, so Ctrl/Cmd-Z takes it back again. Assigning `value` — which is what
+    // this did — replaces the field's contents wholesale and throws that history
+    // away, leaving undo silently doing nothing after a smiley, a toolbar tag or
+    // a pasted link.
+    //
+    // It returns false where it is not supported, and that is the only case the
+    // manual path below is for.
+    let inserted = false;
+    try {
+        inserted = document.execCommand('insertText', false, text);
+    } catch {
+        inserted = false;
+    }
+    if (inserted) {
+        return;
+    }
+
     const start = ta.selectionStart ?? ta.value.length;
     const end = ta.selectionEnd ?? ta.value.length;
     ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
     ta.selectionStart = ta.selectionEnd = start + text.length;
-    ta.focus();
+    // Anything listening for a change — the auto-growing editor, for one — hears
+    // nothing from a direct assignment, so say it explicitly.
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 /**

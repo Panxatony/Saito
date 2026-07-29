@@ -106,15 +106,19 @@ Push a version tag. CI runs the test suite, builds the tarball from a clean
 checkout and publishes it on the release page with its checksum:
 
 ```shell
-git tag 8.0.13 && git push github 8.0.13
+git tag 8.2.1 && git push github 8.2.1   # substitute the version you are releasing
 ```
 
 ## Credits
 
-Saito was created and, for well over a decade, carried by **Schlaefer**. The
-threading model, the performance work that lets a shared-hosting account serve
-hundreds of postings on one page, and the test suite that still makes changes
-safe today are all his. This fork stands on that work — thank you.
+Saito was created and, from 2012 to 2020, carried by **Schlaefer** — 4154 of the
+commits in this repository are his. The threading model, the performance work
+that lets a shared-hosting account serve hundreds of postings on one page, and
+the test suite that still makes changes safe today all came from him. This fork
+stands on that work — thank you.
+
+**Gert Dietrich** and **kt007** contributed in those early years as well, and
+their work is still in here.
 
 ## FAQ
 

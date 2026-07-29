@@ -10,6 +10,7 @@
  * Turning a URL into the right BBCode: the insert overlay and paste-to-embed.
  */
 import { csrfToken, insertAtCursor } from '../lib/dom';
+import { bbcodeAddsSomething, htmlToBbcode } from '../lib/htmlToBbcode';
 
 // --- Smart insert overlay + paste-to-embed ---------------------------------
 // Turn a URL into the right BBCode: YouTube → embedded iframe (matching the
@@ -148,7 +149,26 @@ document.addEventListener('paste', (event: ClipboardEvent) => {
     if (!ta.closest('form')?.querySelector('.js-editor-toolbar')) {
         return;
     }
-    const pasted = event.clipboardData?.getData('text')?.trim() ?? '';
+    const plain = event.clipboardData?.getData('text') ?? '';
+
+    // Copied from a web page: keep the links and the emphasis instead of
+    // flattening them to text the writer then has to mark up again.
+    //
+    // "Paste and match style" puts no `text/html` on the clipboard at all, so
+    // that gesture keeps meaning what it says without needing a rule here.
+    const html = event.clipboardData?.getData('text/html') ?? '';
+    if (html) {
+        const bbcode = htmlToBbcode(html);
+        if (bbcodeAddsSomething(bbcode, plain)) {
+            event.preventDefault();
+            insertAtCursor(ta, bbcode);
+
+            return;
+        }
+    }
+
+    // A bare URL on its own still becomes the tag that suits what it points at.
+    const pasted = plain.trim();
     if (!pasted || /\s/.test(pasted)) {
         return;
     }

@@ -79,7 +79,13 @@
     <?= $this->Html->css('htmx-island') ?>
     <meta name="viewport" content="width=device-width"/>
 </head>
-<body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>" data-threads-collapsed="<?= !empty($CurrentUser) && $CurrentUser->get('user_show_thread_collapsed') ? '1' : '0' ?>">
+<?php
+// The unread accent rail is drawn by two stylesheets — the island's and the
+// theme's — so it is switched off here, on the one element both can see, rather
+// than in either of them.
+$noUnreadRail = \Cake\Core\Configure::read('Saito.unreadRail') === false ? ' no-unread-rail' : '';
+?>
+<body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?><?= $noUnreadRail ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>" data-threads-collapsed="<?= !empty($CurrentUser) && $CurrentUser->get('user_show_thread_collapsed') ? '1' : '0' ?>">
     <div id="site">
         <?php
         // The corner ribbon marks a test deployment and must not survive the
