@@ -1022,12 +1022,19 @@
 
 /* Thread-line colour pickers: swatch, what it applies to, and the "use the
    theme's colour" opt-out on one row. */
+/* A grid, not a flex row. Form->control() wraps the colour input in a
+   `div.input` of its own, so the row holds three boxes of unequal natural
+   height; flex centring then left the checkbox label and the swatch sitting
+   visibly above the text they belong to. Grid tracks with one shared
+   line-height make the three baselines identical by construction. */
 .htmx-island .settings-colour-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 11rem auto auto;
     align-items: center;
+    justify-content: start;
     gap: 0.6rem;
-    flex-wrap: wrap;
-    margin: 0.35rem 0;
+    margin: 0.3rem 0;
+    line-height: 1.5;
 }
 /* Sized to sit on the line of text beside it rather than to stand out from it:
    a swatch is a sample, not a button. */
@@ -1035,25 +1042,26 @@
     width: 2.75rem;
     height: 1.4rem;
     padding: 2px;
-    flex: 0 0 auto;
     margin: 0;
+    display: block;
 }
-/* Form->control() wraps the input in a div.input whose default spacing is meant
-   for stacked fields; inside a flex row it only pushes the swatch off the line. */
-.htmx-island .settings-colour-row .input { margin: 0; display: flex; }
-/* Fixed basis on both leading columns, so the three checkboxes and the three
-   swatches each line up rather than stepping with the label lengths. */
-.htmx-island .settings-colour-label { flex: 0 0 11rem; }
+.htmx-island .settings-colour-row .input {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+.htmx-island .settings-colour-label { margin: 0; }
+/* Same colour and weight as the rest of the form: this is a choice the reader
+   makes, not a hint about one. Muted, it read as disabled. */
 .htmx-island .settings-colour-default {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     margin: 0;
-    flex: 0 0 auto;
     font-weight: 400;
-    color: var(--isl-text-muted, #6b6560);
     white-space: nowrap;
 }
+.htmx-island .settings-colour-default .form-check-input { margin: 0; }
 /* Ticked means the theme decides, so the swatch does not apply. Saying that
    visually saves explaining it: a colour field sitting there fully lit next to
    "use the theme's colour" invites the reader to set it and wonder why nothing
