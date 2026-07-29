@@ -47,6 +47,7 @@ class EntriesControllerTest extends IntegrationTestCase
 
     public array $fixtures = [
         'plugin.Bookmarks.Bookmark',
+        'plugin.ImageUploader.Uploads',
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -1163,5 +1164,48 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->get('/entries/update');
 
         $this->assertRedirect();
+    }
+
+    /**
+     * `saito.plugin.uploader.view` grants admins another member's uploads. The
+     * permission was declared throughout, but this action hard-coded the current
+     * user, so nothing in the island could act on it.
+     *
+     * @return void
+     */
+    public function testHtmxUploadsLetsAnAdminSeeAnotherMembersArchive(): void
+    {
+        $this->_loginUser(1);
+        $this->get('/entries/htmx-uploads?id=3');
+
+        $this->assertResponseOk();
+    }
+
+    /**
+     * The other half of the same permission: an ordinary member asking for
+     * somebody else's archive is refused, not quietly shown their own.
+     *
+     * @return void
+     */
+    public function testHtmxUploadsRefusesAnotherMembersArchiveToAMember(): void
+    {
+        $this->expectException(SaitoForbiddenException::class);
+
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-uploads?id=1');
+    }
+
+    /**
+     * Asking for your own id is the default path, not the permission-checked
+     * one — a member must not be locked out of their own archive.
+     *
+     * @return void
+     */
+    public function testHtmxUploadsAllowsAMembersOwnIdExplicitly(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-uploads?id=3');
+
+        $this->assertResponseOk();
     }
 }
