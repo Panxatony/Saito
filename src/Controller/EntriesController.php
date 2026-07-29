@@ -743,6 +743,7 @@ class EntriesController extends AppController
         // For the preview: a reply inherits its parent's category, and there is
         // no chooser in this form to read it from.
         $this->set('parentCategoryId', (int)$parent->get('category_id'));
+        $this->set('replySubject', $this->replySubject((string)$parent->get('subject')));
 
         if ($parentPosting->isAnsweringForbidden()) {
             $this->set('forbidden', true);
@@ -752,9 +753,19 @@ class EntriesController extends AppController
         }
 
         if ($this->getRequest()->is('post')) {
+            // An empty subject means "the one the placeholder offered". The form
+            // shows it in pale text rather than filling it in, so nothing is
+            // submitted when the writer leaves it alone — and without this the
+            // posting would get the parent's subject *without* the "Re:" the
+            // field had just promised.
+            $subject = trim((string)$this->getRequest()->getData('subject'));
+            if ($subject === '') {
+                $subject = $this->replySubject((string)$parent->get('subject'));
+            }
+
             $data = [
                 'pid' => $parent->get('id'),
-                'subject' => (string)$this->getRequest()->getData('subject'),
+                'subject' => $subject,
                 'text' => (string)$this->getRequest()->getData('text'),
                 // Required by validation and set the same way as the REST add().
                 'name' => $this->CurrentUser->get('username'),
@@ -1055,5 +1066,38 @@ class EntriesController extends AppController
             $root = $posting;
         }
         $this->set('rootEntry', $root);
+    }
+
+    /**
+     * What a reply's subject field starts out holding.
+     *
+     * The parent's subject with "Re:" in front, which is what the writer would
+     * have typed anyway. Leaving it empty is still allowed and still works —
+     * `PostingComponent::prepareChildPosting()` then takes the parent's subject
+     * verbatim — but an empty box gave no hint that this was so.
+     *
+     * The prefix does not stack. Answering the third posting in a thread should
+     * read "Re: Question" and not "Re: Re: Re: Question", so a subject that
+     * already carries one is left as it is. The prefix itself is translatable
+     * because not every language writes it the same way.
+     *
+     * @param string $parentSubject the subject being replied to
+     * @return string the subject to offer, empty when the parent has none
+     */
+    private function replySubject(string $parentSubject): string
+    {
+        $subject = trim($parentSubject);
+        if ($subject === '') {
+            return '';
+        }
+
+        $prefix = trim((string)__('reply.subject.prefix'));
+        // Case-insensitive, and tolerant of the space being there or not — the
+        // subject may have come from a mail gateway or another forum.
+        if ($prefix !== '' && preg_match('/^' . preg_quote($prefix, '/') . '\s*/iu', $subject)) {
+            return $subject;
+        }
+
+        return $prefix === '' ? $subject : $prefix . ' ' . $subject;
     }
 }

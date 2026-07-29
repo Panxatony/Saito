@@ -33,6 +33,13 @@ class SmileyLoader
         }
         $this->_smilies = Cache::remember('Saito.Smilies.data', function () {
             $Smilies = TableRegistry::getTableLocator()->get('Smilies');
+            // enableHydration(false) below means these are plain arrays, not
+            // entities — which the static analysis cannot see through the query
+            // builder, so it is stated here. It matters beyond tidiness: the
+            // loop appends `$smiley` once per code and relies on arrays being
+            // copied on assignment. With entities every appended smiley would
+            // be the same object and end up carrying the last code.
+            /** @var list<array<string, mixed>> $smiliesRaw */
             $smiliesRaw = $Smilies->find()
                 ->contain(['SmileyCodes'])
                 ->orderBy(['sort' => 'ASC'])
@@ -77,7 +84,7 @@ class SmileyLoader
      * @param array $smiley smiley
      * @return string image|font
      */
-    protected function _getType($smiley)
+    protected function _getType(array $smiley)
     {
         if (preg_match('/^.*\.[\w]{3,4}$/i', $smiley['image'])) {
             return 'image';

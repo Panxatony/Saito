@@ -54,18 +54,6 @@ parameters:
 			count: 1
 			path: plugins/Installer/src/Lib/InstallerState.php
 
-		-
-			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
-			identifier: cake.entity.arrayAccess
-			count: 4
-			path: plugins/Sitemap/src/Lib/SitemapEntries.php
-
-		-
-			message: '#^Variable \$entries in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: plugins/Sitemap/src/Lib/SitemapEntries.php
-
 
 		-
 			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
@@ -120,18 +108,6 @@ parameters:
 			identifier: empty.property
 			count: 1
 			path: src/Lib/Model/Table/AppTable.php
-
-		-
-			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
-			identifier: cake.entity.arrayAccess
-			count: 11
-			path: src/Lib/Saito/Smiley/SmileyLoader.php
-
-		-
-			message: '#^Parameter \#1 \$smiley of method Saito\\Smiley\\SmileyLoader\:\:_getType\(\) expects array, Cake\\Datasource\\EntityInterface given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Lib/Saito/Smiley/SmileyLoader.php
 
 		-
 			message: '#^Result of method PHPUnit\\Framework\\Assert\:\:assertEquals\(\) \(void\) is used\.$#'

@@ -2679,3 +2679,19 @@ msgstr "Zur Bestätigung, dass die Änderung von dir kommt — nicht das Passwor
 #: plugins/Admin/src/Controller/UsersController.php
 msgid "user.role.set.confirm.error"
 msgstr "Passwort falsch. Die Rolle wurde nicht geändert."
+
+#: templates/element/entry/htmx_editor_toolbar.php
+msgid "insert.title"
+msgstr "Verweis/Einbinden"
+
+#: templates/layout/htmx_island.php
+msgid "insert_as_card"
+msgstr "Als Vorschaukarte einbinden"
+
+#: templates/layout/htmx_island.php
+msgid "insert_as_card.exp"
+msgstr "Holt Titel, Kurztext und Bild von der verlinkten Seite."
+
+#: src/Controller/EntriesController.php
+msgid "reply.subject.prefix"
+msgstr "Re:"

@@ -1840,3 +1840,19 @@ msgstr "Confirms the change is coming from you — not the password of the accou
 #: plugins/Admin/src/Controller/UsersController.php
 msgid "user.role.set.confirm.error"
 msgstr "Wrong password. The role was not changed."
+
+#: templates/element/entry/htmx_editor_toolbar.php
+msgid "insert.title"
+msgstr "Link/Embed"
+
+#: templates/layout/htmx_island.php
+msgid "insert_as_card"
+msgstr "Insert as preview card"
+
+#: templates/layout/htmx_island.php
+msgid "insert_as_card.exp"
+msgstr "Fetches title, teaser and picture from the linked page."
+
+#: src/Controller/EntriesController.php
+msgid "reply.subject.prefix"
+msgstr "Re:"

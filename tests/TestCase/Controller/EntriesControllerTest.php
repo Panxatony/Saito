@@ -718,6 +718,96 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertNotNull($this->viewVariable('recentEntries'));
     }
 
+
+    /**
+     * Replying starts from the parent's subject, so the writer does not retype
+     * what the thread is already called.
+     *
+     * @return void
+     */
+    public function testReplyFormPrefillsTheSubject(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-reply/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('placeholder="Re: First_Subject"');
+        // As a placeholder, not a value — the writer must not have to delete
+        // a line to type their own.
+        $this->assertResponseNotContains('value="Re: First_Subject"');
+    }
+
+    /**
+     * …but the prefix does not stack. Three replies deep the subject should
+     * still read "Re: X", not "Re: Re: Re: X".
+     *
+     * @return void
+     */
+    public function testReplyFormDoesNotStackThePrefix(): void
+    {
+        $table = $this->getTableLocator()->get('Entries');
+        $table->updateAll(['subject' => 'Re: First_Subject'], ['id' => 1]);
+
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-reply/1');
+
+        $this->assertResponseContains('placeholder="Re: First_Subject"');
+        $this->assertResponseNotContains('Re: Re:');
+    }
+
+    /**
+     * A parent with no subject leaves the field empty rather than offering a
+     * bare "Re:".
+     *
+     * @return void
+     */
+    public function testReplyFormLeavesAnEmptySubjectEmpty(): void
+    {
+        $table = $this->getTableLocator()->get('Entries');
+        $table->updateAll(['subject' => ''], ['id' => 1]);
+
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-reply/1');
+
+        $this->assertResponseNotContains('placeholder="Re:');
+    }
+
+
+    /**
+     * Submitting without touching the subject stores exactly what the
+     * placeholder offered.
+     *
+     * This is the half that is easy to miss: the field sends nothing when it is
+     * left alone, and the fallback further down used to take the parent's
+     * subject *without* the "Re:" the writer had just been shown.
+     *
+     * @return void
+     */
+    public function testReplyWithoutASubjectStoresThePlaceholder(): void
+    {
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-reply/1', ['subject' => '', 'text' => 'Antwort']);
+
+        $posting = $this->getTableLocator()->get('Entries')
+            ->find()->orderByDesc('id')->first();
+        $this->assertSame('Re: First_Subject', $posting->get('subject'));
+    }
+    /**
+     * What was typed survives a rejected submission — the prefill must not
+     * overwrite it.
+     *
+     * @return void
+     */
+    public function testReplyFormKeepsWhatWasTyped(): void
+    {
+        $this->_loginUser(3);
+        // The form only comes back when the save failed, so this has to fail:
+        // a subject past the allowed length does it without needing a fixture.
+        $tooLong = str_repeat('a', 400) . ' Etwas ganz anderes';
+        $this->post('/entries/htmx-reply/1', ['subject' => $tooLong, 'text' => 'x']);
+
+        $this->assertResponseContains('Etwas ganz anderes', 'the typed subject was replaced by the prefill');
+    }
     /**
      * A disabled forum must not serve postings.
      *

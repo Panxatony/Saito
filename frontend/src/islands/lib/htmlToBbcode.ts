@@ -30,6 +30,34 @@
 /** Tags whose content must never be carried over, only dropped. */
 const DROPPED = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'HEAD', 'TITLE']);
 
+/**
+ * Tags that wrap their content in one BBCode pair and nothing more.
+ *
+ * As data rather than as `case` labels: the mapping is the whole rule, and a
+ * table says so at a glance where twenty fall-through cases did not.
+ */
+const WRAPPED: Record<string, [string, string]> = {
+    S: ['[s]', '[/s]'],
+    DEL: ['[s]', '[/s]'],
+    STRIKE: ['[s]', '[/s]'],
+    CODE: ['[code]', '[/code]'],
+    PRE: ['[code]', '[/code]'],
+};
+
+/**
+ * Tags that carry emphasis rather than markup of their own.
+ *
+ * `SPAN` and `FONT` are in here because Google Docs and Word put the actual
+ * emphasis in their style attribute rather than in a tag.
+ */
+const EMPHASIS = new Set(['B', 'STRONG', 'I', 'EM', 'SPAN', 'FONT']);
+
+/** Tags that close a block, so their content is followed by a line break. */
+const BLOCK = new Set(['P', 'DIV', 'SECTION', 'ARTICLE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+
+/** Tags that become a list. Saito's list has no nesting and no numbering. */
+const LIST = new Set(['UL', 'OL']);
+
 /** A link target worth keeping. Anything else — `javascript:`, `data:` — is not. */
 function isSafeUrl(url: string): boolean {
     return /^https?:\/\//i.test(url.trim());
@@ -53,18 +81,18 @@ function styledAs(el: Element, property: 'weight' | 'style'): boolean | null {
         return null;
     }
     if (property === 'weight') {
-        const m = /font-weight\s*:\s*([^;]+)/i.exec(declared);
-        if (!m) {
+        const weight = /font-weight\s*:\s*([^;]+)/i.exec(declared);
+        if (!weight) {
             return null;
         }
-        const value = m[1].trim().toLowerCase();
+        const value = weight[1].trim().toLowerCase();
         const numeric = parseInt(value, 10);
 
         return Number.isNaN(numeric) ? value === 'bold' || value === 'bolder' : numeric >= 600;
     }
-    const m = /font-style\s*:\s*([^;]+)/i.exec(declared);
+    const slant = /font-style\s*:\s*([^;]+)/i.exec(declared);
 
-    return m ? /^(italic|oblique)/i.test(m[1].trim()) : null;
+    return slant ? /^(italic|oblique)/i.test(slant[1].trim()) : null;
 }
 
 /**
@@ -79,6 +107,94 @@ function styledAs(el: Element, property: 'weight' | 'style'): boolean | null {
 interface Emphasis {
     bold: boolean;
     italic: boolean;
+}
+
+/**
+ * Which emphasis this element is the first to open.
+ *
+ * "First" is what the two `!active` terms are for — see {@link Emphasis}. The
+ * rest is the disagreement between tag and style: a `<b>` counts unless its own
+ * style says otherwise, and any element counts if its style says so.
+ */
+function opensEmphasis(el: Element, active: Emphasis): Emphasis {
+    const tag = el.tagName;
+
+    return {
+        bold: !active.bold
+            && (((tag === 'B' || tag === 'STRONG') && styledAs(el, 'weight') !== false)
+                || styledAs(el, 'weight') === true),
+        italic: !active.italic
+            && (((tag === 'I' || tag === 'EM') && styledAs(el, 'style') !== false)
+                || styledAs(el, 'style') === true),
+    };
+}
+
+/**
+ * `<a>` — kept only when the target is one we would follow.
+ *
+ * An unsafe target loses the link but keeps the words: the text a reader can
+ * see is not the dangerous part, the destination is.
+ */
+function convertLink(el: Element, inner: string): string {
+    const href = el.getAttribute('href') ?? '';
+    if (!isSafeUrl(href)) {
+        return inner;
+    }
+    const label = inner.trim();
+
+    return label && label !== href.trim() ? `[url=${href}]${label}[/url]` : `[url]${href}[/url]`;
+}
+
+/** `<img>` — an unsafe source leaves nothing behind; there is no text to keep. */
+function convertImage(el: Element): string {
+    const src = el.getAttribute('src') ?? '';
+
+    return isSafeUrl(src) ? `[img]${src}[/img]` : '';
+}
+
+/**
+ * Turn one element and its already-converted content into BBCode.
+ *
+ * @param el the element
+ * @param inner its children, converted
+ * @param emphasise wraps text in whatever emphasis this element opens
+ */
+function convertElement(el: Element, inner: string, emphasise: (text: string) => string): string {
+    const tag = el.tagName;
+
+    // The four table-driven groups first — between them they cover twenty of the
+    // tags and each is one lookup rather than a run of fall-through cases.
+    if (EMPHASIS.has(tag)) {
+        return inner.trim() ? emphasise(inner) : inner;
+    }
+    const wrapper = WRAPPED[tag];
+    if (wrapper !== undefined) {
+        return inner.trim() ? `${wrapper[0]}${inner}${wrapper[1]}` : inner;
+    }
+    if (BLOCK.has(tag)) {
+        return inner.trim() ? `${inner}\n` : inner;
+    }
+    if (LIST.has(tag)) {
+        // A nested list simply continues as further items rather than
+        // pretending to indent.
+        return `\n[list]\n${inner}[/list]\n`;
+    }
+
+    // What is left needs an attribute or a shape of its own.
+    switch (tag) {
+        case 'A':
+            return convertLink(el, inner);
+        case 'IMG':
+            return convertImage(el);
+        case 'BLOCKQUOTE':
+            return inner.trim() ? `\n[quote]${inner.trim()}[/quote]\n` : '';
+        case 'LI':
+            return `[*] ${inner.trim()}\n`;
+        case 'BR':
+            return '\n';
+        default:
+            return inner;
+    }
 }
 
 function convertNode(node: Node, active: Emphasis = { bold: false, italic: false }): string {
@@ -96,89 +212,27 @@ function convertNode(node: Node, active: Emphasis = { bold: false, italic: false
         return '';
     }
 
-    // Does this element open an emphasis that is not already open?
-    const opensBold = !active.bold
-        && (((el.tagName === 'B' || el.tagName === 'STRONG') && styledAs(el, 'weight') !== false)
-            || styledAs(el, 'weight') === true);
-    const opensItalic = !active.italic
-        && (((el.tagName === 'I' || el.tagName === 'EM') && styledAs(el, 'style') !== false)
-            || styledAs(el, 'style') === true);
+    const opens = opensEmphasis(el, active);
     const nested: Emphasis = {
-        bold: active.bold || opensBold,
-        italic: active.italic || opensItalic,
+        bold: active.bold || opens.bold,
+        italic: active.italic || opens.italic,
     };
     const inner = Array.from(el.childNodes).map((child) => convertNode(child, nested)).join('');
 
     /** Wrap in whatever this element is the first to open. */
-    const emphasised = (text: string): string => {
+    const emphasise = (text: string): string => {
         let out = text;
-        if (opensBold) {
+        if (opens.bold) {
             out = `[b]${out}[/b]`;
         }
-        if (opensItalic) {
+        if (opens.italic) {
             out = `[i]${out}[/i]`;
         }
 
         return out;
     };
 
-    switch (el.tagName) {
-        case 'A': {
-            const href = el.getAttribute('href') ?? '';
-            if (!isSafeUrl(href)) {
-                return inner;
-            }
-            const label = inner.trim();
-
-            return label && label !== href.trim() ? `[url=${href}]${label}[/url]` : `[url]${href}[/url]`;
-        }
-        case 'IMG': {
-            const src = el.getAttribute('src') ?? '';
-
-            return isSafeUrl(src) ? `[img]${src}[/img]` : '';
-        }
-        case 'B':
-        case 'STRONG':
-        case 'I':
-        case 'EM':
-            return inner.trim() ? emphasised(inner) : inner;
-        case 'S':
-        case 'DEL':
-        case 'STRIKE':
-            return inner.trim() ? `[s]${inner}[/s]` : inner;
-        case 'CODE':
-        case 'PRE':
-            return inner.trim() ? `[code]${inner}[/code]` : inner;
-        case 'BLOCKQUOTE':
-            return inner.trim() ? `\n[quote]${inner.trim()}[/quote]\n` : '';
-        case 'LI':
-            return `[*] ${inner.trim()}\n`;
-        case 'UL':
-        case 'OL':
-            // Saito's list has no nesting and no numbering; a nested list simply
-            // continues as further items rather than pretending to indent.
-            return `\n[list]\n${inner}[/list]\n`;
-        case 'BR':
-            return '\n';
-        case 'P':
-        case 'DIV':
-        case 'SECTION':
-        case 'ARTICLE':
-        case 'H1':
-        case 'H2':
-        case 'H3':
-        case 'H4':
-        case 'H5':
-        case 'H6':
-            return inner.trim() ? `${inner}\n` : inner;
-        case 'SPAN':
-        case 'FONT':
-            // Carries no meaning of its own — but Google Docs and Word put the
-            // actual emphasis here, in the style rather than in a tag.
-            return inner.trim() ? emphasised(inner) : inner;
-        default:
-            return inner;
-    }
+    return convertElement(el, inner, emphasise);
 }
 
 /**

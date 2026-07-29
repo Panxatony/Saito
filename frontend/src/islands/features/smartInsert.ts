@@ -11,6 +11,7 @@
  */
 import { csrfToken, insertAtCursor } from '../lib/dom';
 import { bbcodeAddsSomething, htmlToBbcode } from '../lib/htmlToBbcode';
+import { renderEmbeds } from './embeds';
 
 // --- Smart insert overlay + paste-to-embed ---------------------------------
 // Turn a URL into the right BBCode: YouTube → embedded iframe (matching the
@@ -50,6 +51,19 @@ function urlToBbcode(url: string, text: string): { type: string; bbcode: string 
     return { type: 'Link', bbcode: label ? `[url=${trimmedUrl}]${label}[/url]` : `[url]${trimmedUrl}[/url]` };
 }
 
+/**
+ * The same address as a preview card instead of a link.
+ *
+ * `[embed]` makes the server fetch the page and read its Open Graph data —
+ * title, teaser, picture — which the reader then sees instead of a bare
+ * address. It has no label of its own: the card carries the page's own words.
+ */
+function urlToCard(url: string): string {
+    const trimmed = url.trim();
+
+    return trimmed ? `[embed]${trimmed}[/embed]` : '';
+}
+
 let insertTarget: HTMLTextAreaElement | null = null;
 let insertPreviewUrl = '/entries/htmx-preview';
 let insertPreviewTimer = 0;
@@ -65,13 +79,35 @@ function refreshInsert(): void {
         return;
     }
     const { type, bbcode } = urlToBbcode(urlEl.value, textEl?.value ?? '');
-    textRow?.toggleAttribute('hidden', type !== 'Link');
+
+    // The label belongs to a link, so it is hidden for an image or a video —
+    // but not before anything has been typed. With an empty address the type is
+    // still undecided, and hiding the row then would swallow a label carried in
+    // from the editor's selection: the writer selects a word, opens this, and
+    // the field holding that word is nowhere to be seen until an address
+    // happens to be entered.
+    const undecided = type === '';
+    const carriesLabel = (textEl?.value ?? '') !== '';
+    textRow?.toggleAttribute('hidden', undecided ? !carriesLabel : type !== 'Link');
+
+    // A card is offered for an ordinary link only. An image or a video is shown
+    // as itself already, and a card about it would say the same thing twice.
+    const cardRow = document.querySelector('.js-insertCardRow');
+    const cardEl = document.getElementById('js-insertCard') as HTMLInputElement | null;
+    cardRow?.toggleAttribute('hidden', type !== 'Link');
+    const asCard = type === 'Link' && cardEl?.checked === true;
+    // The label belongs to a link; a card carries the page's own words, so the
+    // field has nothing to say once the card is chosen.
+    if (asCard) {
+        textRow?.setAttribute('hidden', '');
+    }
     typeEl.textContent = type ? `→ ${type}` : '';
-    confirmBtn.disabled = !bbcode;
-    confirmBtn.dataset.bbcode = bbcode;
+    const finalBbcode = asCard ? urlToCard(urlEl.value) : bbcode;
+    confirmBtn.disabled = !finalBbcode;
+    confirmBtn.dataset.bbcode = finalBbcode;
 
     window.clearTimeout(insertPreviewTimer);
-    if (!bbcode) {
+    if (!finalBbcode) {
         previewEl.innerHTML = '';
 
         return;
@@ -84,12 +120,16 @@ function refreshInsert(): void {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: new URLSearchParams({ text: bbcode }).toString(),
+            body: new URLSearchParams({ text: finalBbcode }).toString(),
             credentials: 'same-origin',
         })
             .then((r) => r.text())
             .then((html) => {
                 previewEl.innerHTML = html;
+                // A card is built here, not by the server: the fragment carries
+                // only the placeholder, so without this the preview of a card
+                // would be an empty box.
+                renderEmbeds(previewEl);
             })
             .catch(() => undefined);
     }, 350);
@@ -106,21 +146,50 @@ document.addEventListener('click', (event: MouseEvent) => {
     insertPreviewUrl = btn.getAttribute('data-preview-url') ?? '/entries/htmx-preview';
     const urlEl = document.getElementById('js-insertUrl') as HTMLInputElement | null;
     const textEl = document.getElementById('js-insertText') as HTMLInputElement | null;
+
+    // Whatever is selected in the editor is almost always what the insert is
+    // about, so it starts the dialogue off rather than being retyped. Which
+    // field it belongs in depends on what it is: an address goes to the address
+    // field, anything else becomes the link's label.
+    //
+    // Nothing has to be done about the selection itself — insertAtCursor()
+    // replaces it, so the words are not left standing beside the link they were
+    // turned into.
+    const selected = insertTarget
+        ? insertTarget.value.slice(insertTarget.selectionStart, insertTarget.selectionEnd).trim()
+        : '';
+    const selectionIsUrl = /^(https?:\/\/|www\.)\S+$/i.test(selected);
+
     if (urlEl) {
-        urlEl.value = '';
+        urlEl.value = selectionIsUrl ? selected : '';
     }
     if (textEl) {
-        textEl.value = '';
+        textEl.value = selectionIsUrl ? '' : selected;
+    }
+    const cardEl = document.getElementById('js-insertCard') as HTMLInputElement | null;
+    if (cardEl) {
+        cardEl.checked = false;
     }
     document.getElementById('js-insertModal')?.removeAttribute('hidden');
     refreshInsert();
-    urlEl?.focus();
+
+    // Land on the field still to be filled rather than on the one just answered
+    // — but only if it is on screen. refreshInsert() hides the label row for
+    // anything that is not a link, so an image address selected in the editor
+    // leaves nothing further to say and the address field keeps the focus.
+    const labelRowVisible = textEl !== null
+        && document.querySelector('.js-insertTextRow')?.hasAttribute('hidden') === false;
+    if (selectionIsUrl && labelRowVisible) {
+        textEl?.focus();
+    } else {
+        urlEl?.focus();
+    }
 });
 
 // Live-update as the URL / text changes.
 document.addEventListener('input', (event: Event) => {
     const id = (event.target as HTMLElement).id;
-    if (id === 'js-insertUrl' || id === 'js-insertText') {
+    if (id === 'js-insertUrl' || id === 'js-insertText' || id === 'js-insertCard') {
         refreshInsert();
     }
 });

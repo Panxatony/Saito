@@ -197,6 +197,16 @@ $noUnreadRail = \Cake\Core\Configure::read('Saito.unreadRail') === false ? ' no-
                 <label for="js-insertText"><?= h(__('insert_text_optional')) ?></label>
                 <input type="text" id="js-insertText" class="form-control" autocomplete="off">
             </div>
+            <?php // Only offered for an ordinary link: an image or a video is
+                  // already shown, and a card about it would say the same thing
+                  // twice. ?>
+            <div class="input js-insertCardRow" hidden>
+                <label style="font-weight: normal;">
+                    <input type="checkbox" id="js-insertCard">
+                    <?= h(__('insert_as_card')) ?>
+                </label>
+                <small class="text-muted" style="display: block;"><?= h(__('insert_as_card.exp')) ?></small>
+            </div>
             <div class="js-insertType" style="font-size: .85rem; color: #777; margin: .25rem 0 .5rem;"></div>
             <div class="js-insertPreview" style="min-height: 1px;"></div>
             <button type="button" class="btn btn-primary js-insertConfirm" disabled><?= h(__('insert_btn')) ?></button>

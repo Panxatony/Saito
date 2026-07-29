@@ -100,13 +100,27 @@ enabled = true
 #   3. The built bundle assigns exactly three names to `window`: `htmx`,
 #      `Alpine` and `onpopstate`. All three are deliberate.
 #
-# JS-R1005 ("cyclomatic complexity higher than threshold") — 20 occurrences, all
-# rated "medium risk" at complexity 6 to 10, spread over the island event
-# handlers. Not treated as defects. The worst of them
-# (smartInsert.ts, the paste handler) is eighteen lines of guard clauses that
-# return early; its score comes from counting those guards and one four-way
-# `||`. Splitting such a function to satisfy a threshold buys a number and costs
-# a reader. Revisit if something crosses into "high risk" or grows past ~15.
+# JS-R1005 ("cyclomatic complexity higher than threshold") — spread over the
+# island event handlers, rated "medium risk" at complexity 6 to 13. Not treated
+# as defects. The worst of them (smartInsert.ts, the paste handler) is eighteen
+# lines of guard clauses that return early; its score comes from counting those
+# guards and one four-way `||`. Splitting such a function to satisfy a threshold
+# buys a number and costs a reader.
+#
+# The condition below has been acted on once, which is the point of writing it
+# down: `convertNode` in htmlToBbcode.ts reached 55 at "critical" risk on
+# 2026-07-29 and was taken apart into four functions (highest now 14), verified
+# against the old version over eighteen paste cases with identical output.
+#
+# Expect that to make the *count* go up, not down — and do not read that as a
+# regression. Splitting one function into four turns one occurrence into four,
+# so the total went 24 -> 26 while the worst case went 55 -> 14. DeepSource
+# fails a check on newly introduced occurrences, so the two commits that did the
+# splitting are marked failed; the next commit that adds none is green again.
+# This metric counts functions over a threshold. It does not measure how bad
+# they are, and it cannot tell a split from a regression.
+#
+# Revisit if something crosses into "high risk" or grows past ~15.
 
 # JS-0052 ("alert/confirm/prompt") is *not* a false positive and is therefore
 # not ignored here: it is suppressed with a `skipcq` comment at the one call

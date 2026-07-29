@@ -83,6 +83,10 @@ class SitemapEntries extends SitemapGenerator
         }
 
         $Entries = TableRegistry::getTableLocator()->get('Entries');
+        // enableHydration(false) below makes each row a plain array rather than
+        // an entity; the query builder does not carry that through to the static
+        // analysis, so it is said here.
+        /** @var \Cake\Datasource\ResultSetInterface<int, array<string, mixed>> $entries */
         $entries = $Entries->find()
             ->contain(['Categories'])
             ->select(['Entries.id', 'Entries.time', 'Entries.edited'])
@@ -95,7 +99,11 @@ class SitemapEntries extends SitemapGenerator
             ->all();
 
         $urls = [];
-        if (empty($entries)) {
+        // isEmpty(), not empty(): a ResultSet is an object and always truthy, so
+        // the guard never fired — harmless here, the loop over an empty result
+        // yields nothing either way, but it also meant an empty result was
+        // written to the sitemap cache as though it were a real one.
+        if ($entries->isEmpty()) {
             return $urls;
         }
         foreach ($entries as $entry) {

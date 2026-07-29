@@ -11,6 +11,7 @@
  * preview.
  */
 import { csrfToken, insertAtCursor } from '../lib/dom';
+import { renderEmbeds } from './embeds';
 
 // BBCode editor toolbar: wrap the textarea selection in the button's tags.
 document.addEventListener('click', (event: MouseEvent) => {
@@ -152,6 +153,10 @@ document.addEventListener('click', (event: MouseEvent) => {
         .then((r) => r.text())
         .then((html) => {
             box.innerHTML = html;
+            // Preview cards are built in the browser — the server sends only the
+            // placeholder — so the panel has to be told, or an [embed] shows as
+            // a blank gap here while appearing correctly in the thread.
+            renderEmbeds(box);
             // An empty response means there was nothing worth previewing; keep
             // the panel shut rather than opening an empty frame.
             panel.hidden = html.trim() === '';
