@@ -38,15 +38,4 @@ class AppHelper extends Helper
     {
         return 'id' . static::$_tagId++;
     }
-
-    /**
-     * Generate an ID suitable for use in an ID attribute.
-     *
-     * @param string $value The value to convert into an ID.
-     * @return string The generated id.
-     */
-    public function domId(string $value)
-    {
-        return $this->_domId($value);
-    }
 }

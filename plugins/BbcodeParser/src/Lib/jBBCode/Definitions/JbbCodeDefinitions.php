@@ -569,16 +569,25 @@ class Spoiler extends CodeDefinition
             STR_PAD_BOTH
         );
 
-        // Escape HTML-special chars to prevent injection
+        // Escape HTML-special chars to prevent injection. What is revealed is
+        // therefore the literal text of the spoiler, nested markup included —
+        // long-standing behaviour, kept.
         $spoilerContent = htmlentities($content);
-        // Encode content for JS usage
-        $spoilerContent = json_encode($spoilerContent);
 
+        // The content travels in a data attribute and is revealed by a delegated
+        // handler in the island, not by an inline `onclick`. Both the handler and
+        // the `display: inline` used to be inline attributes, which only worked
+        // because the CSP still allows 'unsafe-inline'; that allowance is due to
+        // go, and a spoiler that silently stopped opening would have been a hard
+        // bug to trace back to a header change.
+        //
+        // Written raw, not through h(): htmlentities() has already escaped the
+        // quotes, so it cannot break out of the attribute — and escaping it a
+        // second time would survive one decode too many and show the reader
+        // `&quot;` where the author wrote `"`.
         $out = <<<EOF
-<div class="richtext-spoiler" style="display: inline;">
-	<a href="#" class="richtext-spoiler-link"
-		onclick='this.parentNode.innerHTML = $spoilerContent; return false;'
-		>
+<div class="richtext-spoiler">
+	<a href="#" class="richtext-spoiler-link js-spoiler" data-spoiler="$spoilerContent">
 		$title
 	</a>
 </div>

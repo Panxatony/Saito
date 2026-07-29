@@ -91,14 +91,15 @@ class BbcodeParserTest extends SaitoTestCase
             [
                 'div' => [
                     'class' => 'richtext-spoiler',
-                    'style' => 'display: inline;',
                 ],
             ],
             [
                 'a' => [
                     'href' => '#',
-                    'class' => 'richtext-spoiler-link',
-                    'onclick' => 'preg:/.*" te &amp;quot;&amp;#039; xt".*/',
+                    'class' => 'richtext-spoiler-link js-spoiler',
+                    // Escaped twice on purpose: once so the revealed text cannot
+                    // introduce markup, once for the attribute it travels in.
+                    'data-spoiler' => ' te &amp;quot;&amp;#039; xt',
                 ],
             ],
             'preg:/.*▇ Spoiler ▇.*?(?=<)/',

@@ -32,33 +32,6 @@ class LayoutHelper extends AppHelper
     ];
 
     /**
-     * Generates page heading html
-     *
-     * @param string $heading heading
-     * @param string $tag tag
-     * @return string
-     */
-    public function pageHeading($heading, $tag = 'h1')
-    {
-        return $this->Html->tag(
-            $tag,
-            $heading,
-            ['class' => 'pageHeading', 'escape' => true]
-        );
-    }
-
-    /**
-     * Generates intoText tag
-     *
-     * @param string $content content
-     * @return string
-     */
-    public function infoText($content)
-    {
-        return $this->Html->tag('span', $content, ['class' => 'infoText']);
-    }
-
-    /**
      * text with icon
      *
      * @param string $text text

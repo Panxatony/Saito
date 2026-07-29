@@ -75,7 +75,12 @@ class BookmarksTable extends Table
                     ],
                     'numeric' => ['rule' => 'numeric', 'last' => true],
                 ]
-            );
+            )
+            // The column is varchar(255) NOT NULL, so an over-long note would be
+            // truncated by the database rather than refused. Nothing checked it
+            // before because the only writer was the REST endpoint.
+            ->allowEmptyString('comment')
+            ->maxLength('comment', 255);
 
         return $validator;
     }

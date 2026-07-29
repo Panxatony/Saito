@@ -83,20 +83,26 @@
                 ],
             ]);
 
-            // Auto-refresh interval (minutes; optional).
-            echo $this->Form->control('user_forum_refresh_time', [
-                'class' => 'form-control', 'type' => 'number', 'min' => 0,
-                'label' => __('user_forum_refresh_time'),
-            ]);
+            // The "reload the forum every N minutes" setting used to sit here. It
+            // was read by AutoReloadComponent, which was removed as never-loaded
+            // — so the field took a number, saved it, and nothing ever acted on
+            // it. Offering a switch that does nothing is worse than not offering
+            // it; the column is left in place, there is no schema change here.
 
             // Custom thread-line colours. These are a tri-state: a colour, or
             // "unset" so the theme decides. Saito stores unset as an empty value
-            // or a bare '#' (UserHelper::generateCss() skips both), but
+            // or a bare '#' (UserHelper::colors() skips both), but
             // <input type="color"> cannot express "unset" — it always reports a
             // colour, and an invalid value shows as black. Rendering the raw
             // value therefore both looked broken (three black swatches) and, on
             // save, would have written #000000 and dyed the thread lines black.
             // So each colour gets an explicit "use the theme's colour" checkbox.
+            //
+            // Row order: what it applies to, then the decision, then the colour
+            // the decision governs. The checkbox sat at the far right first,
+            // where it read as an afterthought to a colour already chosen; put
+            // in front of everything it read as the swatch's own label. Between
+            // the two it belongs to neither by accident and to both on purpose.
             echo '<div class="input"><label>' . h(__('user_colors')) . '</label>';
             foreach ([
                 'user_color_new_postings' => 'user_color_new_postings_exp',
@@ -106,11 +112,6 @@
                 $stored = (string)$user->get($colourField);
                 $isSet = (bool)preg_match('/^#[0-9a-f]{6}$/i', $stored);
                 echo '<div class="settings-colour-row">';
-                echo $this->Form->control($colourField, [
-                    'type' => 'color', 'label' => false,
-                    'value' => $isSet ? $stored : '#808080',
-                    'class' => 'settings-colour-input',
-                ]);
                 echo '<span class="settings-colour-label">' . h(__($expKey)) . '</span>';
                 echo '<label class="settings-colour-default">';
                 echo $this->Form->checkbox($colourField . '_default', [
@@ -118,6 +119,11 @@
                     'class' => 'form-check-input',
                 ]);
                 echo ' ' . h(__('user_colors.default')) . '</label>';
+                echo $this->Form->control($colourField, [
+                    'type' => 'color', 'label' => false,
+                    'value' => $isSet ? $stored : '#808080',
+                    'class' => 'settings-colour-input',
+                ]);
                 echo '</div>';
             }
             echo '</div>';

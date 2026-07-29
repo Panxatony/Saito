@@ -21,6 +21,7 @@ use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ForbiddenException;
+use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
 use Cake\I18n\DateTime;
 use Cake\Routing\Router;
@@ -651,7 +652,7 @@ class UsersController extends AppController
                 'user_automaticaly_mark_as_read', 'personal_messages',
                 'user_signatures_hide', 'user_signatures_images_hide',
                 'user_sort_last_answer', 'user_show_thread_collapsed',
-                'user_category_override', 'user_forum_refresh_time',
+                'user_category_override',
                 'user_category_custom', 'user_category_active',
                 'user_color_new_postings', 'user_color_old_postings',
                 'user_color_actual_posting',
@@ -797,63 +798,6 @@ class UsersController extends AppController
     }
 
     /**
-     * A user's recent postings, delivered server-rendered for htmx.
-     *
-     * PoC for the strangler-fig migration away from the Backbone/Marionette
-     * SPA: the same data source ({@see \Saito\Posting\Behavior\PostingBehavior::getRecentPostings})
-     * and thread rendering as {@see view()}, but served as an HTML fragment
-     * instead of a client-side template.
-     *
-     * - A normal request renders a small standalone shell page (htmx + Alpine).
-     * - An htmx request (`HX-Request` header) renders only the thread-list
-     *   fragment, which htmx swaps into the shell.
-     *
-     * @param string|null $id user-ID
-     * @return \Cake\Http\Response|void
-     */
-    public function recentPosts($id = null)
-    {
-        $id = (int)$id;
-
-        /** @var \App\Model\Entity\User|null $user */
-        $user = $this->Users->find()
-            ->where(['Users.id' => $id])
-            ->first();
-
-        if (empty($user)) {
-            $this->Flash->set(__('Invalid user'), ['element' => 'error']);
-
-            return $this->redirect('/');
-        }
-
-        $entriesShownOnPage = 20;
-        $this->set(
-            'lastEntries',
-            $this->Users->Entries->getRecentPostings(
-                $this->CurrentUser,
-                ['user_id' => $id, 'limit' => $entriesShownOnPage]
-            )
-        );
-        $this->set(
-            'hasMoreEntriesThanShownOnPage',
-            ($user->numberOfPostings() - $entriesShownOnPage) > 0
-        );
-        $this->set('user', $user);
-        $this->set('titleForLayout', $user->get('username'));
-
-        // htmx swaps only the fragment; a direct visit gets the shell page,
-        // served standalone (no SPA) via the htmx_island layout so the SPA and
-        // the island don't fight over the same thread markup.
-        if ($this->getRequest()->getHeaderLine('HX-Request') === 'true') {
-            $this->viewBuilder()
-                ->disableAutoLayout()
-                ->setTemplate('recent_posts_fragment');
-        } else {
-            $this->viewBuilder()->setLayout('htmx_island');
-        }
-    }
-
-    /**
      * The current user's bookmarked postings, as an htmx/Alpine island.
      *
      * Strangler-fig migration of the profile "bookmarks" tab (the live one is a
@@ -918,6 +862,61 @@ class UsersController extends AppController
         } else {
             $this->viewBuilder()->setLayout('htmx_island');
         }
+    }
+
+    /**
+     * The note a member can attach to one of their own bookmarks.
+     *
+     * The bookmarks page has always rendered these notes, but the only thing
+     * that could write one was the REST endpoint the SPA used
+     * (`PUT /api/v2/bookmarks/{id}`). With the SPA gone, notes written back then
+     * were still shown and could no longer be changed, and no new one could be
+     * made — so this brings the writing half back into the island.
+     *
+     * Addressed by posting id and scoped to the current user's own bookmark:
+     * there is no id here that could point at somebody else's row.
+     *
+     * GET returns the edit form, POST saves and returns the note as displayed.
+     *
+     * @param string|null $id posting id
+     * @return void
+     */
+    public function htmxBookmarkComment($id = null)
+    {
+        $entryId = (int)$id;
+        if ($entryId <= 0) {
+            throw new BadRequestException();
+        }
+
+        $Bookmarks = $this->fetchTable('Bookmarks.Bookmarks');
+        // The plugin ships no entity class of its own, so rows come back as
+        // plain Cake entities.
+        /** @var \Cake\Datasource\EntityInterface|null $bookmark */
+        $bookmark = $Bookmarks->find()
+            ->where([
+                'Bookmarks.entry_id' => $entryId,
+                'Bookmarks.user_id' => $this->CurrentUser->getId(),
+            ])
+            ->first();
+        if ($bookmark === null) {
+            throw new NotFoundException();
+        }
+
+        if ($this->getRequest()->is(['post', 'put'])) {
+            $Bookmarks->patchEntity(
+                $bookmark,
+                ['comment' => (string)$this->getRequest()->getData('comment')],
+                ['fields' => ['comment']]
+            );
+            if (!$Bookmarks->save($bookmark)) {
+                throw new BadRequestException();
+            }
+        }
+
+        $this->set('entryId', $entryId);
+        $this->set('comment', (string)$bookmark->get('comment'));
+        $this->set('editing', !$this->getRequest()->is(['post', 'put']));
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_bookmark_comment');
     }
 
     /**
@@ -1145,7 +1144,7 @@ class UsersController extends AppController
             'htmxEdit', 'htmxChangePassword', 'htmxAvatar',
             // Posted by the island with a CSRF token in the header, like the
             // other island write endpoints.
-            'htmxWidgetState',
+            'htmxWidgetState', 'htmxBookmarkComment',
         ];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 

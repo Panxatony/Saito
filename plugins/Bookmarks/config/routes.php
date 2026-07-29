@@ -17,6 +17,9 @@ $routes->plugin(
     ['path' => '/api/v2'],
     function ($routes) {
         $routes->setExtensions(['json']);
-        $routes->resources('Bookmarks');
+        // The controller has no view() — resources() would route
+        // `GET /api/v2/bookmarks/{id}` at it anyway and answer with
+        // MissingActionException rather than a clean 404.
+        $routes->resources('Bookmarks', ['only' => ['index', 'create', 'update', 'delete']]);
     }
 );

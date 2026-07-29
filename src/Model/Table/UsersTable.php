@@ -288,14 +288,6 @@ class UsersTable extends AppTable
                 ]
             );
 
-        $validator->add(
-            'user_forum_refresh_time',
-            [
-                'numeric' => ['rule' => 'numeric'],
-                'greaterNull' => ['rule' => ['comparison', '>=', 0]],
-                'maxLength' => ['rule' => ['maxLength', 3]],
-            ]
-        );
 
         $validator->add(
             'user_type',
@@ -536,23 +528,6 @@ class UsersTable extends AppTable
         if ($entity->isDirty('password')) {
             $hashedPassword = $this->getPasswordHasher()->hash((string)$entity->get('password'));
             $entity->set('password', $hashedPassword);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function beforeValidate(
-        Event $event,
-        Entity $entity,
-        \ArrayObject $options,
-        Validator $validator
-    ) {
-        if ($entity->isDirty('user_forum_refresh_time')) {
-            $time = $entity->get('user_forum_refresh_time');
-            if (empty($time)) {
-                $entity->set('user_forum_refresh_time', 0);
-            }
         }
     }
 

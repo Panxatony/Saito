@@ -1,7 +1,8 @@
 <?php
 /**
- * One page of the current user's upload archive (thumbnail tiles), plus a
- * "load more" control. Rendered by EntriesController::htmxUploads().
+ * One page of an upload archive (thumbnail tiles), plus a "load more" control.
+ * Rendered by EntriesController::htmxUploads() — the current user's own uploads,
+ * or another member's when an admin asked for them by id.
  *
  * Two modes:
  *  - editor overlay (default): bare tiles that insert their BBCode on click.
@@ -61,7 +62,7 @@ endforeach;
 if ($hasMore) :
     ?>
     <button type="button" class="btn btn-link js-uploadsMore"
-            hx-get="<?= $webroot ?>entries/htmx-uploads?page=<?= (int)$page + 1 ?><?= $manage ? '&manage=1' : '' ?>"
+            hx-get="<?= $webroot ?>entries/htmx-uploads?page=<?= (int)$page + 1 ?><?= $manage ? '&manage=1' : '' ?><?= !empty($ownerId) ? '&id=' . (int)$ownerId : '' ?>"
             hx-target="this" hx-swap="outerHTML">
         <?= h(__('Load more')) ?>
     </button>

@@ -651,9 +651,15 @@ class EntriesController extends AppController
     }
 
     /**
-     * The current user's upload archive for the editor upload overlay — a page
-     * of thumbnail tiles (20 per page, newest first) plus a "load more" control.
+     * An upload archive for the editor upload overlay — a page of thumbnail
+     * tiles (20 per page, newest first) plus a "load more" control.
      * Session-based (the REST uploads API is token-auth). Login required.
+     *
+     * Defaults to the current user's own uploads. `?id=` asks for somebody
+     * else's and is checked against `saito.plugin.uploader.view`, which grants
+     * admins exactly that — the permission has been declared all along, but this
+     * action hard-coded the current user, so the admin half of it had no way to
+     * be exercised outside the token-authed REST controller.
      *
      * @return void
      */
@@ -663,6 +669,24 @@ class EntriesController extends AppController
         if (!$userId) {
             throw new BadRequestException();
         }
+
+        $requested = (int)$this->getRequest()->getQuery('id');
+        if ($requested > 0 && $requested !== (int)$userId) {
+            /** @var \App\Model\Entity\User $owner */
+            $owner = $this->fetchTable('Users')->get($requested);
+            $allowed = $this->CurrentUser->permission(
+                'saito.plugin.uploader.view',
+                (new ResourceAI())->onRole($owner->getRole())->onOwner($owner->getId()),
+            );
+            if (!$allowed) {
+                throw new SaitoForbiddenException(
+                    sprintf('Attempt to index uploads of "%s".', $requested),
+                    ['CurrentUser' => $this->CurrentUser]
+                );
+            }
+            $userId = $requested;
+        }
+
         $perPage = 20;
         $page = max(1, (int)$this->getRequest()->getQuery('page'));
 
@@ -674,6 +698,9 @@ class EntriesController extends AppController
         $this->set('uploads', $uploads);
         $this->set('page', $page);
         $this->set('hasMore', ($page * $perPage) < $total);
+        // Only set when looking at somebody else's archive, so "load more" keeps
+        // asking about the same member instead of falling back to the admin's own.
+        $this->set('ownerId', $requested > 0 && $requested !== (int)$this->CurrentUser->getId() ? $userId : null);
         // `?manage=1` (the profile view) renders a delete control per tile.
         $this->set('manage', (bool)$this->getRequest()->getQuery('manage'));
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_uploads');

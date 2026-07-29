@@ -69,68 +69,47 @@ class AuthUserComponentTest extends IntegrationTestCase
     }
 
     /**
-     * Cookie should not be set on anonoymous user
+     * A guest gets no JWT cookie — and now neither does anybody else.
      *
      * @return void
      */
-    public function testSetJwtCookieNoCookieSet()
+    public function testNoJwtCookieForAGuest()
     {
         $event = new Event('Controller.shutdown', $this->controller);
         $this->component->afterFilter($event);
 
-        $cookie = $this->controller->getResponse()->getCookie('Saito-jwt');
-        $this->assertNull($cookie);
+        $this->assertNull($this->controller->getResponse()->getCookie('Saito-JWT'));
     }
 
     /**
-     * Integration guard for the event wiring: a real logged-in request must
-     * issue the JWT cookie the SPA reads for API auth. Cake 5 maps
-     * Controller.shutdown to a component's afterFilter() (not shutdown()); if
-     * that callback isn't wired the cookie is never set and every /api/v2
-     * request returns 401.
+     * The cookie was minted on every logged-in request so the SPA's JavaScript
+     * could send it to /api/v2 as a bearer token — which is why it was created
+     * readable by script. The SPA is gone and the server never accepted it
+     * anyway (TokenAuthenticator reads the Authorization header, not cookies),
+     * so a logged-in request must no longer hand one out.
      *
      * @return void
      */
-    public function testJwtCookieIssuedOnLoggedInRequest()
+    public function testNoJwtCookieIssuedOnALoggedInRequest()
     {
         $this->_loginUser(1);
         $this->get('/');
 
         $this->assertResponseOk();
-        $this->assertNotEmpty($this->_response->getCookie('Saito-JWT'));
+        $this->assertEmpty($this->_response->getCookie('Saito-JWT'));
     }
 
     /**
-     * Set cookie on logged-in user 1
+     * Cookies already in members' browsers are cleared on the next visit rather
+     * than left to expire, so the script-readable token stops existing now
+     * instead of a day from now.
      *
      * @return void
      */
-    public function testSetJwtCookieLoggedInSetCookieSet()
+    public function testExistingJwtCookieIsDeleted()
     {
-        $user = $this->_loginUser(1);
-        $this->component->getUser()->setSettings($user);
-
-        $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->afterFilter($event);
-
-        $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
-        $this->assertNotEmpty($cookie);
-        $this->assertSame('Saito-JWT', $cookie['name']);
-        // httponly stays false (the SPA reads the token in JS), but the cookie
-        // must carry SameSite to reduce cross-site exposure of the token.
-        $this->assertFalse($cookie['httponly']);
-        $this->assertSame('Lax', $cookie['samesite']);
-    }
-
-    /**
-     * Delete cookie if set and user is not logged-in
-     *
-     * @return void
-     */
-    public function testSetJwtCookieDeleteCookieIfNotLoggedIn()
-    {
-        $request = $this->controller->getRequest();
-        $request = $request->withCookieParams(['Saito-JWT' => 'foo']);
+        $request = $this->controller->getRequest()
+            ->withCookieParams(['Saito-JWT' => 'foo']);
         $this->controller->setRequest($request);
 
         $event = new Event('Controller.shutdown', $this->controller);
@@ -138,39 +117,7 @@ class AuthUserComponentTest extends IntegrationTestCase
 
         $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
         $this->assertNotEmpty($cookie);
-        $this->assertSame('Saito-JWT', $cookie['name']);
         $this->assertSame(1, $cookie['expires']);
-    }
-
-    /**
-     * Replace token if token doesn't belong to current user
-     *
-     * @return void
-     */
-    public function testSetJwtCookieCheckUserAndReplace()
-    {
-        $newUser = 1;
-        $user = $this->_loginUser($newUser);
-        $this->component->getUser()->setSettings($user);
-
-        $jwtKey = Configure::read('Security.cookieSalt');
-
-        $oldUser = 2;
-        $jwtPayload = ['sub' => $oldUser, 'exp' => time() + 10];
-        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
-        $request = $this->controller->getRequest();
-        $request = $request->withCookieParams(['Saito-JWT' => $jwtToken]);
-        $this->controller->setRequest($request);
-
-        $event = new Event('Controller.shutdown', $this->controller);
-        $this->component->afterFilter($event);
-
-        $cookie = $this->controller->getResponse()->getCookie('Saito-JWT');
-        $this->assertNotEmpty($cookie);
-        $this->assertSame('Saito-JWT', $cookie['name']);
-
-        $payload = \Firebase\JWT\JWT::decode($cookie['value'], new \Firebase\JWT\Key($jwtKey, 'HS256'));
-        $this->assertEquals(1, $payload->sub);
     }
 
     public function testLoginSuccessSession()

@@ -12,13 +12,9 @@ declare(strict_types=1);
 
 namespace App\View\Helper;
 
-use Cake\Core\Configure;
 use Cake\Http\ServerRequest;
-use Cake\Log\Log;
 use Cake\View\Helper\UrlHelper;
-use Cake\View\View;
 use Saito\JsData\Notifications;
-use Saito\User\ForumsUserInterface;
 
 /**
  * Javascript Data Helper
@@ -36,38 +32,6 @@ class JsDataHelper extends AppHelper
      * @var Notifications
      */
     protected $Notifications;
-
-    /**
-     * Get CSRF-config
-     *
-     * @param View $View View
-     * @return array
-     * - 'header' HTTP header for CSRF-token
-     * - 'token' CSRF-token
-     */
-    protected function _getCsrf(View $View)
-    {
-        // CakePHP 4's CsrfProtectionMiddleware puts the (salted) token on
-        // the request as the `csrfToken` attribute *before* the view runs;
-        // the matching Set-Cookie header is only added to the response
-        // afterwards, so reading the cookie at render time misses it on
-        // the very first request. The request attribute is the canonical
-        // source of truth in Cake 4.
-        $token = $View->getRequest()->getAttribute('csrfToken');
-        if (!is_string($token)) {
-            // Fall back to whatever cookie is already there (subsequent
-            // requests, or contexts where the middleware was skipped).
-            $key = Configure::read('Session.cookie') . '-CSRF';
-            $token = $View->getRequest()->getCookie($key);
-            if ($token === null) {
-                $cookie = $View->getResponse()->getCookie($key);
-                $token = $cookie['value'] ?? null;
-            }
-        }
-        $header = 'X-CSRF-Token';
-
-        return compact('header', 'token');
-    }
 
     /**
      * Gets notifications

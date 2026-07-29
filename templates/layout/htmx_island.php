@@ -84,8 +84,19 @@
 // theme's — so it is switched off here, on the one element both can see, rather
 // than in either of them.
 $noUnreadRail = \Cake\Core\Configure::read('Saito.unreadRail') === false ? ' no-unread-rail' : '';
+
+// A member's own thread-line colours, handed to the island as plain values; it
+// applies them (userColors.ts). Empty for guests and for anyone who left the
+// setting on "use the theme's colour".
+$userColors = !empty($CurrentUser) && $CurrentUser->isLoggedIn()
+    ? $this->User->colors($CurrentUser->getSettings())
+    : [];
 ?>
-<body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?><?= $noUnreadRail ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>" data-threads-collapsed="<?= !empty($CurrentUser) && $CurrentUser->get('user_show_thread_collapsed') ? '1' : '0' ?>">
+<body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?><?= $noUnreadRail ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>" data-threads-collapsed="<?= !empty($CurrentUser) && $CurrentUser->get('user_show_thread_collapsed') ? '1' : '0' ?>"<?php
+    foreach ($userColors as $key => $value) {
+        echo ' data-color-' . h($key) . '="' . h($value) . '"';
+    }
+?>>
     <div id="site">
         <?php
         // The corner ribbon marks a test deployment and must not survive the

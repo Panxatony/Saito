@@ -7,6 +7,66 @@
 
 ## [next] -
 
+## [8.2.8] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.7...8.2.8)
+
+No migration and no new configuration; upgrading from 8.2.7 is a code deploy.
+
+This release comes out of one question — *what else does the backend still do
+that the frontend no longer uses?* — asked after the link previews in 8.2.7
+turned out to have been working on the server for months with nothing to show
+them. The answer was eight more cases. Two of them were taking members' input
+and quietly throwing it away.
+
+### Changes
+
+- ✓ Fixed: **thread colours work again.** A member could set their own colours
+  for unread, read and current thread lines; the form saved them and the page
+  ignored them. The one line joining the two ends was lost when the old layout
+  went, and nothing noticed, because everything on either side of it kept
+  working. The colours are now applied through the stylesheet rather than an
+  inline `<style>` block, which also means they survive the tightening of the
+  content-security policy planned for 8.3.
+- − Removed: **the "reload the forum every N minutes" setting.** It was offered
+  in the profile, validated and stored — and read by nothing. What used to read
+  it was removed as unreachable even before the frontend rewrite. A switch that
+  does nothing is worse than no switch; the database column stays, so nothing
+  needs migrating.
+- ＋ Added: **list and spoiler buttons in the editor.** Both markups have always
+  worked and always rendered; neither had a button, so the only way to find them
+  was to read the source. `[spoiler]` in particular hid its content behind an
+  inline click handler — it would have broken silently under a stricter security
+  policy, with nobody able to connect the two.
+- ＋ Added: **formatting help in the editor.** A question mark in the toolbar
+  opens a guide to writing postings, which links on to the complete markup
+  reference. That reference was written years ago and has been in the help all
+  along, with nothing pointing at it.
+- ＋ Added: **notes on bookmarks can be edited again.** The bookmarks page showed
+  them, but the only thing able to write one was the interface the old frontend
+  used. Anyone who had annotated a bookmark could read the note and never change
+  it, and no new one could be made.
+- ＋ Added: **administrators can see a member's uploads again.** The permission
+  has been granted the whole time; the page serving it was fixed to the current
+  user, so acting on it meant leaving the forum. A member's profile now shows
+  their archive to an administrator, with the same delete control.
+- − Removed: **the token cookie the old frontend read.** Saito minted a
+  deliberately script-readable authentication token on every signed-in request,
+  for a client that no longer exists — and the server never accepted it in the
+  first place. Existing cookies are cleared on the next visit. Two API addresses
+  that pointed at code that was never written now answer as not-found instead of
+  erroring.
+- − Removed: a status endpoint, an orphaned page duplicating the profile, nine
+  unused helper methods, the editor's obsolete second button definition, and
+  seven settings that nothing reads. All verified unreachable by reading, not by
+  a failed search.
+
+### Notes
+
+Three further findings were deliberately left alone rather than guessed at, and
+draft autosave — whose storage layer is intact but whose feature is gone —
+needs a release of its own. The reasoning for each is in `todo.md`.
+
 ## [8.2.7] - 2026-07-29
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.6...8.2.7)

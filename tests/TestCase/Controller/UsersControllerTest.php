@@ -11,6 +11,7 @@ use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\Http\Cookie\CookieCollection;
 use Cake\Http\Exception\BadRequestException;
+use Cake\Http\Exception\NotFoundException;
 use Cake\Mailer\Message;
 use Cake\ORM\TableRegistry;
 use Laminas\Diactoros\UploadedFile;
@@ -733,5 +734,52 @@ class UsersControllerTest extends IntegrationTestCase
         // '/' rather than '/entries/htmx-index': the root route points at that
         // action, so the router builds the shorter address for it.
         $this->assertRedirect('/');
+    }
+
+    /**
+     * Bookmark notes were rendered but unwritable after the SPA went: the only
+     * thing that could set one was the REST endpoint its client called.
+     *
+     * @return void
+     */
+    public function testHtmxBookmarkCommentSavesTheNote(): void
+    {
+        $this->_loginUser(3);
+        $this->post('/users/htmx-bookmark-comment/1', ['comment' => 'read this later']);
+
+        $this->assertResponseOk();
+        $stored = TableRegistry::getTableLocator()->get('Bookmarks.Bookmarks')
+            ->find()->where(['user_id' => 3, 'entry_id' => 1])->first();
+        $this->assertSame('read this later', $stored->get('comment'));
+    }
+
+    /**
+     * The bookmark is found by posting id *and* current user, so there is no id
+     * here that could address somebody else's row. Bookmark 3 belongs to user 1
+     * on the same posting; user 3 must not reach it.
+     *
+     * @return void
+     */
+    public function testHtmxBookmarkCommentTouchesOnlyTheCurrentUsersBookmark(): void
+    {
+        $this->_loginUser(3);
+        $this->post('/users/htmx-bookmark-comment/1', ['comment' => 'mine']);
+
+        $this->assertResponseOk();
+        $other = TableRegistry::getTableLocator()->get('Bookmarks.Bookmarks')->get(3);
+        $this->assertSame('Comment 3', $other->get('comment'));
+    }
+
+    /**
+     * A posting the member has not bookmarked is not a note they may write.
+     *
+     * @return void
+     */
+    public function testHtmxBookmarkCommentRefusesAPostingWithoutABookmark(): void
+    {
+        $this->expectException(NotFoundException::class);
+
+        $this->_loginUser(3);
+        $this->post('/users/htmx-bookmark-comment/2', ['comment' => 'nope']);
     }
 }

@@ -87,6 +87,12 @@ and it is achievable — but not free, because three things rely on it today:
   `onclick="this.select()"` as a documented no-JS fallback; a delegated listener
   does the same.
 
+There used to be a fourth, and it was the dangerous kind: the `[spoiler]` parser
+wrote an `onclick` into every spoiler it rendered. Nothing linked to the tag, so
+dropping `'unsafe-inline'` would have broken a working feature that nobody was
+watching. 8.2.8 moved it to a delegated handler and gave it an editor button, so
+it is now both reachable and policy-safe.
+
 `'unsafe-eval'` is a separate question and probably **not** worth chasing:
 Alpine evaluates its expressions as strings, so removing it means the CSP build
 plus rewriting the expressions in nine templates into component methods. It also
@@ -161,6 +167,40 @@ forum for 194 accounts who never asked for it.
 Note for whoever does it: a `grep` over the codebase proves a column is unused,
 never that it is residue. The way to tell is to compare a grown database against
 one built from the migrations — the difference is exactly these six.
+
+### Draft autosave: the storage survived, the feature did not
+
+Found in the 2026-07-29 sweep for backend capability the frontend no longer uses.
+`DraftsTable` is complete — validation, uniqueness rules, a daily Cron garbage
+collection, `EntriesTable::hasOne('Drafts')`, `UsersTable::hasMany('Drafts')`, and
+a post-save `deleteDraftForPosting()` — and the `drafts` table is real. **Nothing
+has ever created a draft since the teardown**: `DraftsController` and the help
+topic went with `7070aa075`. A daily `DELETE` runs against a table nothing fills.
+
+Left standing on purpose. Unlike the thread colours and the reload interval —
+both of which took a member's input and quietly discarded it, and are fixed in
+8.2.8 — drafts are invisible: no form, no setting, nobody is being misled. And
+unlike `[embed]`, the write half is gone too, so this is not a one-line
+reconnection but a feature: an autosave endpoint, a restore path in the editor,
+and a decision about what happens when a draft and a half-typed reply disagree.
+
+Whoever picks it up starts from a working storage layer. Feature `#342`.
+
+### Residue deliberately left in place
+
+Three things the same sweep turned up that look dead and were kept, so the next
+reader does not re-derive the reasoning:
+
+- **`UsersTable::setCategory()`** has no caller in the application but five
+  tests. Tested behaviour with no caller is as likely to be public API for a
+  site-specific plugin as it is to be residue, and the cost of keeping it is
+  nothing.
+- **`UserOnlineTable::setOnlinePeriod()`** is called only by tests, which use it
+  to make the online-period deterministic. That is a legitimate use.
+- **`$SaitoSettings`**, set on every request in `AppController`, is read by no
+  template *in this repository*. Saito runs on installations whose themes are not
+  tracked here and cannot be checked, and removing a view variable would fail
+  there silently. Not worth the risk for one `set()` call.
 
 ---
 
