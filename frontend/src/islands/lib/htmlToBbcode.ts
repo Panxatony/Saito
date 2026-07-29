@@ -109,53 +109,63 @@ interface Emphasis {
     italic: boolean;
 }
 
-function convertNode(node: Node, active: Emphasis = { bold: false, italic: false }): string {
-    if (node.nodeType === Node.TEXT_NODE) {
-        // Collapse runs of whitespace the way HTML rendering would; a newline in
-        // the source is not a newline on screen.
-        return (node.nodeValue ?? '').replace(/\s+/g, ' ');
-    }
-    if (node.nodeType !== Node.ELEMENT_NODE) {
-        return '';
-    }
+/**
+ * Which emphasis this element is the first to open.
+ *
+ * "First" is what the two `!active` terms are for — see {@link Emphasis}. The
+ * rest is the disagreement between tag and style: a `<b>` counts unless its own
+ * style says otherwise, and any element counts if its style says so.
+ */
+function opensEmphasis(el: Element, active: Emphasis): Emphasis {
+    const tag = el.tagName;
 
-    const el = node as Element;
-    if (DROPPED.has(el.tagName)) {
-        return '';
-    }
-
-    // Does this element open an emphasis that is not already open?
-    const opensBold = !active.bold
-        && (((el.tagName === 'B' || el.tagName === 'STRONG') && styledAs(el, 'weight') !== false)
-            || styledAs(el, 'weight') === true);
-    const opensItalic = !active.italic
-        && (((el.tagName === 'I' || el.tagName === 'EM') && styledAs(el, 'style') !== false)
-            || styledAs(el, 'style') === true);
-    const nested: Emphasis = {
-        bold: active.bold || opensBold,
-        italic: active.italic || opensItalic,
+    return {
+        bold: !active.bold
+            && (((tag === 'B' || tag === 'STRONG') && styledAs(el, 'weight') !== false)
+                || styledAs(el, 'weight') === true),
+        italic: !active.italic
+            && (((tag === 'I' || tag === 'EM') && styledAs(el, 'style') !== false)
+                || styledAs(el, 'style') === true),
     };
-    const inner = Array.from(el.childNodes).map((child) => convertNode(child, nested)).join('');
+}
 
-    /** Wrap in whatever this element is the first to open. */
-    const emphasised = (text: string): string => {
-        let out = text;
-        if (opensBold) {
-            out = `[b]${out}[/b]`;
-        }
-        if (opensItalic) {
-            out = `[i]${out}[/i]`;
-        }
+/**
+ * `<a>` — kept only when the target is one we would follow.
+ *
+ * An unsafe target loses the link but keeps the words: the text a reader can
+ * see is not the dangerous part, the destination is.
+ */
+function convertLink(el: Element, inner: string): string {
+    const href = el.getAttribute('href') ?? '';
+    if (!isSafeUrl(href)) {
+        return inner;
+    }
+    const label = inner.trim();
 
-        return out;
-    };
+    return label && label !== href.trim() ? `[url=${href}]${label}[/url]` : `[url]${href}[/url]`;
+}
 
+/** `<img>` — an unsafe source leaves nothing behind; there is no text to keep. */
+function convertImage(el: Element): string {
+    const src = el.getAttribute('src') ?? '';
+
+    return isSafeUrl(src) ? `[img]${src}[/img]` : '';
+}
+
+/**
+ * Turn one element and its already-converted content into BBCode.
+ *
+ * @param el the element
+ * @param inner its children, converted
+ * @param emphasise wraps text in whatever emphasis this element opens
+ */
+function convertElement(el: Element, inner: string, emphasise: (text: string) => string): string {
     const tag = el.tagName;
 
     // The four table-driven groups first — between them they cover twenty of the
     // tags and each is one lookup rather than a run of fall-through cases.
     if (EMPHASIS.has(tag)) {
-        return inner.trim() ? emphasised(inner) : inner;
+        return inner.trim() ? emphasise(inner) : inner;
     }
     const wrapper = WRAPPED[tag];
     if (wrapper !== undefined) {
@@ -172,20 +182,10 @@ function convertNode(node: Node, active: Emphasis = { bold: false, italic: false
 
     // What is left needs an attribute or a shape of its own.
     switch (tag) {
-        case 'A': {
-            const href = el.getAttribute('href') ?? '';
-            if (!isSafeUrl(href)) {
-                return inner;
-            }
-            const label = inner.trim();
-
-            return label && label !== href.trim() ? `[url=${href}]${label}[/url]` : `[url]${href}[/url]`;
-        }
-        case 'IMG': {
-            const src = el.getAttribute('src') ?? '';
-
-            return isSafeUrl(src) ? `[img]${src}[/img]` : '';
-        }
+        case 'A':
+            return convertLink(el, inner);
+        case 'IMG':
+            return convertImage(el);
         case 'BLOCKQUOTE':
             return inner.trim() ? `\n[quote]${inner.trim()}[/quote]\n` : '';
         case 'LI':
@@ -195,6 +195,44 @@ function convertNode(node: Node, active: Emphasis = { bold: false, italic: false
         default:
             return inner;
     }
+}
+
+function convertNode(node: Node, active: Emphasis = { bold: false, italic: false }): string {
+    if (node.nodeType === Node.TEXT_NODE) {
+        // Collapse runs of whitespace the way HTML rendering would; a newline in
+        // the source is not a newline on screen.
+        return (node.nodeValue ?? '').replace(/\s+/g, ' ');
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+        return '';
+    }
+
+    const el = node as Element;
+    if (DROPPED.has(el.tagName)) {
+        return '';
+    }
+
+    const opens = opensEmphasis(el, active);
+    const nested: Emphasis = {
+        bold: active.bold || opens.bold,
+        italic: active.italic || opens.italic,
+    };
+    const inner = Array.from(el.childNodes).map((child) => convertNode(child, nested)).join('');
+
+    /** Wrap in whatever this element is the first to open. */
+    const emphasise = (text: string): string => {
+        let out = text;
+        if (opens.bold) {
+            out = `[b]${out}[/b]`;
+        }
+        if (opens.italic) {
+            out = `[i]${out}[/i]`;
+        }
+
+        return out;
+    };
+
+    return convertElement(el, inner, emphasise);
 }
 
 /**
