@@ -212,6 +212,50 @@ written under changing assumptions. It needs:
    feeds the database-local block `ends` through `timeAgoInWords` as if it were
    UTC — so "your block ends in N hours" is off by the server offset.
 
+### Video uploads
+
+`video/mp4` and `video/webm` are already in the allowed types and `[video]`
+already exists in the parser, so the feature is not missing — it is unusable.
+The limits are far too small for any real recording, and nothing converts what
+arrives.
+
+**There is no single open format that plays everywhere**, and it is worth
+saying plainly rather than discovering it halfway through. H.264/AAC in MP4 runs
+on every phone and browser with hardware decoding, and is patent-encumbered.
+VP9 in WebM is open and at home on Android, but Safari's support arrived late
+and is not dependable. AV1 is open and modern, and older devices decode it in
+software — a flat battery and a stuttering picture, when it plays at all. The
+usual way out is to ship two encodings and let `<video>` pick, at the cost of
+double the storage and double the encoding time.
+
+**The cheap step, if the goal is "members can post a clip":** raise the limits
+and accept only what already plays. Check the uploaded file with `ffprobe` and
+refuse anything that is not H.264/AAC in MP4, with a message saying so. Phones
+record exactly that, so it covers nearly everyone, and it needs no queue, no
+migration and no new state. Someone with an exotic file has to convert it
+themselves — that is the whole cost.
+
+Four limits have to move together or it fails at the smallest one: Saito's own
+`setDefaultMaxFileSize` (16 MB on the live install), PHP's `upload_max_filesize`
+and `post_max_size` (30 MB each), and nginx's `client_max_body_size`. A minute
+of phone video is easily 100 MB.
+
+**The full version is a project, not a feature.** Converting cannot happen in
+the request — a transcode takes minutes and would block a PHP worker into its
+timeout — so it needs a queue and a real background worker. The `Cron` plugin
+does not qualify; it is a poor man's cron that runs off page views. From the
+queue follows a state model (an upload is "in progress", then ready), which
+means a column on `uploads` and a migration, and a posting that can render both
+states. `ffmpeg` is **not installed** on the live install, and encoding to H.264
+carries its own licensing question.
+
+Two things not to skip when it happens: storage — the live install holds 2.5 GB
+of uploads today and video plus two encodings changes the order of magnitude,
+not the percentage — and the fact that a video is a complex file handed to a
+very large parser. Saito checks images for decompression bombs; video would need
+ceilings on duration, resolution and bitrate, and `ffmpeg` should not run as the
+same user as the forum.
+
 ### Toolchain, from the same audit
 
 Nothing broken, but everything on this list is past its support window and they
