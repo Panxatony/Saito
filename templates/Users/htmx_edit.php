@@ -91,12 +91,17 @@
 
             // Custom thread-line colours. These are a tri-state: a colour, or
             // "unset" so the theme decides. Saito stores unset as an empty value
-            // or a bare '#' (UserHelper::generateCss() skips both), but
+            // or a bare '#' (UserHelper::colors() skips both), but
             // <input type="color"> cannot express "unset" — it always reports a
             // colour, and an invalid value shows as black. Rendering the raw
             // value therefore both looked broken (three black swatches) and, on
             // save, would have written #000000 and dyed the thread lines black.
             // So each colour gets an explicit "use the theme's colour" checkbox.
+            //
+            // The checkbox comes first on the row, because it is the decision:
+            // it says whether the swatch beside it is used at all. Sitting at the
+            // far end of the row it read as an afterthought to a colour that had
+            // already been chosen.
             echo '<div class="input"><label>' . h(__('user_colors')) . '</label>';
             foreach ([
                 'user_color_new_postings' => 'user_color_new_postings_exp',
@@ -106,18 +111,18 @@
                 $stored = (string)$user->get($colourField);
                 $isSet = (bool)preg_match('/^#[0-9a-f]{6}$/i', $stored);
                 echo '<div class="settings-colour-row">';
-                echo $this->Form->control($colourField, [
-                    'type' => 'color', 'label' => false,
-                    'value' => $isSet ? $stored : '#808080',
-                    'class' => 'settings-colour-input',
-                ]);
-                echo '<span class="settings-colour-label">' . h(__($expKey)) . '</span>';
                 echo '<label class="settings-colour-default">';
                 echo $this->Form->checkbox($colourField . '_default', [
                     'checked' => !$isSet, 'hiddenField' => false,
                     'class' => 'form-check-input',
                 ]);
                 echo ' ' . h(__('user_colors.default')) . '</label>';
+                echo $this->Form->control($colourField, [
+                    'type' => 'color', 'label' => false,
+                    'value' => $isSet ? $stored : '#808080',
+                    'class' => 'settings-colour-input',
+                ]);
+                echo '<span class="settings-colour-label">' . h(__($expKey)) . '</span>';
                 echo '</div>';
             }
             echo '</div>';

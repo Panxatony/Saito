@@ -1036,11 +1036,16 @@
     flex: 0 0 auto;
 }
 .htmx-island .settings-colour-label { flex: 1 1 12rem; }
+/* First on the row: it decides whether the swatch beside it counts at all. The
+   fixed basis keeps the three swatches in a column despite differing label
+   widths. */
 .htmx-island .settings-colour-default {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     margin: 0;
+    flex: 0 0 auto;
+    min-width: 9rem;
     font-weight: 400;
     color: var(--isl-text-muted, #6b6560);
     white-space: nowrap;
