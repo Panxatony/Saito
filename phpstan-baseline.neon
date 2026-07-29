@@ -126,11 +126,6 @@ parameters:
 			count: 1
 			path: plugins/Sitemap/src/Lib/SitemapEntries.php
 
-		-
-			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.renderMustBeUsed
-			count: 1
-			path: src/Controller/AppController.php
 
 		-
 			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
