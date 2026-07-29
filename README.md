@@ -53,6 +53,12 @@ cannot override the value, and the override fails silently.
 
 ## Development
 
+Larger work that is known and scheduled but not yet done — currently getting the
+project off Bootstrap 4 — is collected in [todo.md](todo.md), filed under the
+release it is meant for. Worth a look before starting anything structural: the
+reasoning, the measurements and the reasons something was *not* done are there
+rather than in the commit history.
+
 ### Set-Up Environment
 
 You need a more or less generic environement providing:
