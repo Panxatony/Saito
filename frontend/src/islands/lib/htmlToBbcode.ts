@@ -35,7 +35,53 @@ function isSafeUrl(url: string): boolean {
     return /^https?:\/\//i.test(url.trim());
 }
 
-function convertNode(node: Node): string {
+/**
+ * What the element's own `style` says about weight and slant.
+ *
+ * Editors do not agree with themselves here. Google Docs wraps a whole pasted
+ * passage in `<b style="font-weight:normal">` — a bold tag that explicitly is
+ * not bold — and marks the actually bold words with `<span
+ * style="font-weight:700">`. Taking the tag at its word turns the entire paste
+ * bold and loses the emphasis that was really there.
+ *
+ * So the inline style wins where it speaks, and the tag decides where it does
+ * not. `null` means "no opinion".
+ */
+function styledAs(el: Element, property: 'weight' | 'style'): boolean | null {
+    const declared = el.getAttribute('style');
+    if (!declared) {
+        return null;
+    }
+    if (property === 'weight') {
+        const m = /font-weight\s*:\s*([^;]+)/i.exec(declared);
+        if (!m) {
+            return null;
+        }
+        const value = m[1].trim().toLowerCase();
+        const numeric = parseInt(value, 10);
+
+        return Number.isNaN(numeric) ? value === 'bold' || value === 'bolder' : numeric >= 600;
+    }
+    const m = /font-style\s*:\s*([^;]+)/i.exec(declared);
+
+    return m ? /^(italic|oblique)/i.test(m[1].trim()) : null;
+}
+
+/**
+ * Emphasis already in force further up the tree.
+ *
+ * Word writes `<b><span style="font-weight:bold">`, saying the same thing twice
+ * in two different ways. Without knowing what is already open, both fire and the
+ * result is `[b][b]…[/b][/b]` — valid but silly, and it makes a diff of two
+ * pasted versions unreadable. Carrying the state down means each emphasis is
+ * opened by whichever element mentions it first, and ignored by the rest.
+ */
+interface Emphasis {
+    bold: boolean;
+    italic: boolean;
+}
+
+function convertNode(node: Node, active: Emphasis = { bold: false, italic: false }): string {
     if (node.nodeType === Node.TEXT_NODE) {
         // Collapse runs of whitespace the way HTML rendering would; a newline in
         // the source is not a newline on screen.
@@ -50,7 +96,31 @@ function convertNode(node: Node): string {
         return '';
     }
 
-    const inner = Array.from(el.childNodes).map(convertNode).join('');
+    // Does this element open an emphasis that is not already open?
+    const opensBold = !active.bold
+        && (((el.tagName === 'B' || el.tagName === 'STRONG') && styledAs(el, 'weight') !== false)
+            || styledAs(el, 'weight') === true);
+    const opensItalic = !active.italic
+        && (((el.tagName === 'I' || el.tagName === 'EM') && styledAs(el, 'style') !== false)
+            || styledAs(el, 'style') === true);
+    const nested: Emphasis = {
+        bold: active.bold || opensBold,
+        italic: active.italic || opensItalic,
+    };
+    const inner = Array.from(el.childNodes).map((child) => convertNode(child, nested)).join('');
+
+    /** Wrap in whatever this element is the first to open. */
+    const emphasised = (text: string): string => {
+        let out = text;
+        if (opensBold) {
+            out = `[b]${out}[/b]`;
+        }
+        if (opensItalic) {
+            out = `[i]${out}[/i]`;
+        }
+
+        return out;
+    };
 
     switch (el.tagName) {
         case 'A': {
@@ -69,10 +139,9 @@ function convertNode(node: Node): string {
         }
         case 'B':
         case 'STRONG':
-            return inner.trim() ? `[b]${inner}[/b]` : inner;
         case 'I':
         case 'EM':
-            return inner.trim() ? `[i]${inner}[/i]` : inner;
+            return inner.trim() ? emphasised(inner) : inner;
         case 'S':
         case 'DEL':
         case 'STRIKE':
@@ -102,6 +171,11 @@ function convertNode(node: Node): string {
         case 'H5':
         case 'H6':
             return inner.trim() ? `${inner}\n` : inner;
+        case 'SPAN':
+        case 'FONT':
+            // Carries no meaning of its own — but Google Docs and Word put the
+            // actual emphasis here, in the style rather than in a tag.
+            return inner.trim() ? emphasised(inner) : inner;
         default:
             return inner;
     }
