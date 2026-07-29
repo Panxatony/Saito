@@ -83,11 +83,11 @@
                 ],
             ]);
 
-            // Auto-refresh interval (minutes; optional).
-            echo $this->Form->control('user_forum_refresh_time', [
-                'class' => 'form-control', 'type' => 'number', 'min' => 0,
-                'label' => __('user_forum_refresh_time'),
-            ]);
+            // The "reload the forum every N minutes" setting used to sit here. It
+            // was read by AutoReloadComponent, which was removed as never-loaded
+            // — so the field took a number, saved it, and nothing ever acted on
+            // it. Offering a switch that does nothing is worse than not offering
+            // it; the column is left in place, there is no schema change here.
 
             // Custom thread-line colours. These are a tri-state: a colour, or
             // "unset" so the theme decides. Saito stores unset as an empty value

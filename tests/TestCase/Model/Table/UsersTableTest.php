@@ -344,22 +344,9 @@ class UsersTableTest extends SaitoTableTestCase
         $this->assertEquals($user->toArray(), $result['User']->toArray());
     }
 
-    public function testBeforeValidate()
-    {
-        $Entity = $this->Table->get(3);
-        $Entity->set('user_forum_refresh_time', '1');
-        $this->Table->save($Entity);
-
-        $expected = 1;
-        $result = $this->Table->get(3)->get('user_forum_refresh_time');
-        $this->assertEquals($result, $expected);
-
-        $Entity->set('user_forum_refresh_time', '');
-        $this->Table->save($Entity);
-        $expected = 0;
-        $result = $this->Table->get(3)->get('user_forum_refresh_time');
-        $this->assertEquals($result, $expected);
-    }
+    // testBeforeValidate() covered nothing but the beforeValidate() callback,
+    // which existed solely to normalise user_forum_refresh_time — a setting
+    // whose only reader was removed long ago. Both are gone.
 
     public function testValidateConfirmPassword()
     {

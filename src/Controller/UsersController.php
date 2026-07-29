@@ -651,7 +651,7 @@ class UsersController extends AppController
                 'user_automaticaly_mark_as_read', 'personal_messages',
                 'user_signatures_hide', 'user_signatures_images_hide',
                 'user_sort_last_answer', 'user_show_thread_collapsed',
-                'user_category_override', 'user_forum_refresh_time',
+                'user_category_override',
                 'user_category_custom', 'user_category_active',
                 'user_color_new_postings', 'user_color_old_postings',
                 'user_color_actual_posting',
