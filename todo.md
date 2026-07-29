@@ -59,6 +59,54 @@ already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
 on Alpine now — so its markup is the one thing still tying it to Bootstrap.
 Doing it separately means paying for it twice.
 
+### Break the chain that turns any XSS into a forum takeover
+
+The stored XSS fixed in 8.2.3 was not dangerous on its own — it was dangerous
+because nothing downstream stopped it. Both links below are worth removing
+whether or not another XSS ever appears, because they decide what *any* future
+one is worth.
+
+**A role change needs no confirmation.** `Admin\UsersController::role()` checks
+the permission and nothing else — no password, no second step. So a script
+running in an admin's browser can promote an account to `admin` with one POST,
+and the attacker keeps that account long after the payload is gone. The CSRF
+token is no obstacle: it sits in a `<meta>` tag that same-origin script reads
+freely, which is what it is for. Asking for the admin's password before a role
+change breaks the chain at its last link — the cheapest of the two by far.
+
+**The CSP allows `'unsafe-inline'` for scripts**, so it does not stop an
+`onerror=` handler. The header (set at the edge, not by the app) currently
+reads:
+
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://plausible.panxatony.net
+
+Dropping `'unsafe-inline'` is the single biggest lever against this whole class,
+and it is achievable — but not free, because three things rely on it today:
+
+- `templates/layout/htmx_island.php` has two blocks that must run *before*
+  paint: the theme stylesheet choice out of `localStorage` (still via
+  `document.write`) and the font scale. Externalising them reintroduces the
+  flash they exist to prevent, so these need a **nonce** — generated per request
+  and passed into the header, which means the app has to own the CSP rather than
+  the edge.
+- `plugins/Admin/templates/Settings/index.php` carries the scroll-spy
+  replacement. That one just belongs in the admin bundle.
+- `plugins/Feeds/templates/cell/FeedLinks/display.php` uses
+  `onclick="this.select()"` as a documented no-JS fallback; a delegated listener
+  does the same.
+
+`'unsafe-eval'` is a separate question and probably **not** worth chasing:
+Alpine evaluates its expressions as strings, so removing it means the CSP build
+plus rewriting the expressions in nine templates into component methods. It also
+buys far less — `unsafe-eval` does not enable an inline event handler, which is
+what the attack actually used.
+
+Worth noting what the current CSP *does* achieve, so it is not mistaken for
+useless: `connect-src 'self'` and `form-action 'self'` keep data from being
+posted off-site. It just cannot help against an attacker who acts same-origin,
+and a takeover needs nothing else. (`img-src` allows `https:` generically, so
+that exfiltration path is open regardless.)
+
 ### The audit's correctness findings
 
 From the 2026-07-29 audit. The security half went out as 8.2.3; what follows
