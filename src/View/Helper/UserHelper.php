@@ -52,34 +52,45 @@ class UserHelper extends AppHelper
     }
 
     /**
-     * generates CSS from user-preferences
+     * A member's thread-line colours, normalised for use as CSS values.
      *
-     * @param array $User user
-     * @return string
+     * This used to be generateCss(), which returned a whole `<style>` block. The
+     * block was echoed from the classic layout's header; that layout went with
+     * the SPA and the island never picked the call up again, so for two
+     * releases members could pick colours that the page then ignored — the
+     * settings form saved them and nothing ever read them back.
+     *
+     * Returning values rather than markup so the island can apply them through
+     * CSSOM (see userColors.ts). An inline `<style>` would have worked today and
+     * broken the moment 'unsafe-inline' leaves the CSP, in a way nobody would
+     * have connected to a header change.
+     *
+     * Values are re-checked here rather than trusted: validation allows a bare
+     * `#` and a hex string without one, and rows predating it are whatever they
+     * were. Anything not a plain hex colour is dropped, which also means no
+     * posting-independent path can push arbitrary text into a CSS declaration.
+     *
+     * @param array $User user settings
+     * @return array<string, string> keys `new`, `old`, `current`; absent when unset
      */
-    public function generateCss(array $User)
+    public function colors(array $User): array
     {
-        $styles = [];
+        $fields = [
+            'new' => 'user_color_new_postings',
+            'old' => 'user_color_old_postings',
+            'current' => 'user_color_actual_posting',
+        ];
 
-        // colors
-        $cNew = $User['user_color_new_postings'];
-        $cOld = $User['user_color_old_postings'];
-        $cAct = $User['user_color_actual_posting'];
-
-        $aMetatags = ['', ':link', ':visited', ':hover', ':active'];
-        foreach ($aMetatags as $aMetatag) {
-            if (!empty($cOld) && $cOld !== '#') {
-                $styles[] = ".et-root .et$aMetatag, .et-reply .et$aMetatag	{ color: $cOld; }";
+        $colors = [];
+        foreach ($fields as $key => $field) {
+            $value = trim((string)($User[$field] ?? ''));
+            if (preg_match('/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i', $value, $matches) !== 1) {
+                continue;
             }
-            if (!empty($cNew) && $cNew !== '#') {
-                $styles[] = ".et-new .et$aMetatag { color: $cNew; }";
-            }
-            if (!empty($cAct) && $cAct !== '#') {
-                $styles[] = ".et-current .et$aMetatag { color: $cAct; }";
-            }
+            $colors[$key] = '#' . $matches[1];
         }
 
-        return '<style type="text/css">' . implode(" ", $styles) . '</style>';
+        return $colors;
     }
 
     /**

@@ -96,4 +96,54 @@ class UserHelperTest extends TestCase
 
         $this->assertStringContainsString('<i class="fa fa-home fa-lg">', $actual);
     }
+
+    public function testColorsReturnsTheChosenColours()
+    {
+        $actual = $this->helper->colors([
+            'user_color_new_postings' => '#ff0000',
+            'user_color_old_postings' => '#00FF00',
+            'user_color_actual_posting' => '#00f',
+        ]);
+
+        $this->assertSame(
+            ['new' => '#ff0000', 'old' => '#00FF00', 'current' => '#00f'],
+            $actual
+        );
+    }
+
+    /**
+     * "Use the theme's colour" is stored as an empty value or a bare `#`, and a
+     * guest has no settings at all. None of those may produce a declaration —
+     * an empty one would override the theme with nothing.
+     *
+     * @return void
+     */
+    public function testColorsSkipsUnsetValues()
+    {
+        $actual = $this->helper->colors([
+            'user_color_new_postings' => '',
+            'user_color_old_postings' => '#',
+        ]);
+
+        $this->assertSame([], $actual);
+    }
+
+    /**
+     * The values end up inside a CSS declaration, so anything that is not a
+     * plain hex colour is dropped rather than passed on. Validation has allowed
+     * a hex string without its `#` for years, and rows predating it are whatever
+     * they were.
+     *
+     * @return void
+     */
+    public function testColorsRejectsAnythingButAHexColour()
+    {
+        $actual = $this->helper->colors([
+            'user_color_new_postings' => 'red; } body { display: none',
+            'user_color_old_postings' => 'ff0000',
+            'user_color_actual_posting' => 'javascript:alert(1)',
+        ]);
+
+        $this->assertSame(['old' => '#ff0000'], $actual);
+    }
 }
