@@ -7,6 +7,15 @@
 
 ## [next] -
 
+- ＋ Added: **the subject field says how many characters are left.** The limit is
+  an admin setting and has always been on the field, so it could not be
+  exceeded — the field simply stopped accepting input once it was reached, with
+  nothing to say the end was near. The count sits at the right-hand edge of the
+  field and turns red for the last stretch.
+
+  Deployed to the live forum ahead of this release, as two static files (the
+  island bundle and its stylesheet); it carries no server-side change.
+
 ## [8.2.8] - 2026-07-29
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.7...8.2.8)
