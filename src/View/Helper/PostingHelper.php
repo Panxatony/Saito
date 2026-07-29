@@ -44,49 +44,6 @@ class PostingHelper extends AppHelper
     protected $_SEM;
 
     /**
-     * get paginated index
-     *
-     * @param int $tid tid
-     * @param null|string $lastAction last action
-     * @return string
-     */
-    public function getPaginatedIndexPageId(int $tid, ?string $lastAction = null): string
-    {
-        $params = [];
-        if ($lastAction !== 'add') {
-            $session = $this->getView()->getRequest()->getSession();
-            if ($session->read('paginator.lastPage')) {
-                $params[] = 'page=' . $session->read('paginator.lastPage');
-            }
-        }
-        $params[] = 'jump=' . $tid;
-
-        return '/?' . implode('&', $params);
-    }
-
-    /**
-     * Get fast link for posting.
-     *
-     * @param BasicPostingInterface $posting posting
-     * @param array $options options
-     * @return string HTML
-     */
-    public function getFastLink(BasicPostingInterface $posting, array $options = [])
-    {
-        $options += ['class' => ''];
-        $id = $posting->get('id');
-        $webroot = $this->getView()->getRequest()->getAttribute('webroot');
-        // The subject points at htmxPosting: that page is the single posting
-        // plus its thread, and on an HX-Request it returns the very fragment the
-        // island fetches to expand inline. One URL for both, as the retired
-        // entries/view did.
-        $url = "{$webroot}entries/htmx-posting/{$id}";
-        $link = "<a href=\"{$url}\" class=\"{$options['class']}\">" . $this->getSubject($posting) . '</a>';
-
-        return $link;
-    }
-
-    /**
      * Render view counter
      *
      * @param BasicPostingInterface $posting posting

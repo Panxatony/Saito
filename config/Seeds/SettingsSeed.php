@@ -18,10 +18,15 @@ class SettingsSeed extends BaseSeed
      */
     public function run(): void
     {
+        // Seven rows were dropped from this seed in 8.2.8, all of them settings
+        // nothing reads: block_user_ui, shoutbox_enabled, shoutbox_max_shouts,
+        // stopwatch_get, text_word_maxlength, and the two upload_max_* (which
+        // config/saito_config.php's UploaderConfig superseded). Existing installs
+        // keep their inert rows — that is not worth a migration; new ones simply
+        // no longer get them.
         $data = [
             ['name' => 'autolink', 'value' => '1'],
             ['name' => 'bbcode_img', 'value' => '1'],
-            ['name' => 'block_user_ui', 'value' => '1'],
             ['name' => 'db_version', 'value' => null],
             ['name' => 'category_chooser_global', 'value' => '0'],
             ['name' => 'category_chooser_user_override', 'value' => '1'],
@@ -38,22 +43,16 @@ class SettingsSeed extends BaseSeed
             ['name' => 'forum_email', 'value' => ''],
             ['name' => 'forum_name', 'value' => 'Saito Forum'],
             ['name' => 'quote_symbol', 'value' => '>'],
-            ['name' => 'shoutbox_enabled', 'value' => '1'],
-            ['name' => 'shoutbox_max_shouts', 'value' => '10'],
             ['name' => 'signature_separator', 'value' => '⁂'],
             ['name' => 'smilies', 'value' => '1'],
-            ['name' => 'stopwatch_get', 'value' => '0'],
             ['name' => 'store_ip', 'value' => '0'],
             ['name' => 'store_ip_anonymized', 'value' => '1'],
             ['name' => 'subject_maxlength', 'value' => '75'],
-            ['name' => 'text_word_maxlength', 'value' => '120'],
             ['name' => 'thread_depth_indent', 'value' => '20'],
             ['name' => 'timezone', 'value' => 'UTC'],
             ['name' => 'topics_per_page', 'value' => '20'],
             ['name' => 'tos_enabled', 'value' => '0'],
             ['name' => 'tos_url', 'value' => ''],
-            ['name' => 'upload_max_img_size', 'value' => '5000'],
-            ['name' => 'upload_max_number_of_uploads', 'value' => '10'],
             [
                     'name' => 'video_domains_allowed',
                     'value' => 'youtube | youtube-nocookie | vimeo | vine'

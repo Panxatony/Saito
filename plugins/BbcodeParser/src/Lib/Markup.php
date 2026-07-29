@@ -18,8 +18,6 @@ use Saito\Markup\MarkupSettings;
 
 class Markup implements MarkupInterface
 {
-    /** @var Editor|null */
-    protected $editor;
     /** @var Parser|null */
     protected $parser;
     /** @var Preprocessor|null */
@@ -33,22 +31,6 @@ class Markup implements MarkupInterface
     public function __construct(MarkupSettings $settings)
     {
         $this->settings = $settings;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getEditorHelp(ParserHelper $helper): string
-    {
-        return $this->getEditor()->getEditorHelp($helper);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getMarkupSet(): array
-    {
-        return $this->getEditor()->getMarkupSet();
     }
 
     /**
@@ -139,27 +121,12 @@ class Markup implements MarkupInterface
     }
 
     /**
-     * Get editor
-     *
-     * @return Editor
-     */
-    protected function getEditor(): Editor
-    {
-        if (!$this->editor) {
-            $this->editor = new Editor();
-        }
-
-        return $this->editor;
-    }
-
-    /**
      * Reset class
      *
      * @return void
      */
     protected function reset()
     {
-        $this->editor = null;
         $this->parser = null;
         $this->preproccesor = null;
     }
