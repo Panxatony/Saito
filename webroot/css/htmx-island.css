@@ -1061,7 +1061,15 @@
     font-weight: 400;
     white-space: nowrap;
 }
-.htmx-island .settings-colour-default .form-check-input { margin: 0; }
+/* Bootstrap ships a `.form-check-input` variant with `position: absolute` and a
+   negative left margin, meant for its own `.form-check` wrapper. Out of flow it
+   ignores the gap and lands on top of the word beside it, so it is put back into
+   the flex line explicitly. */
+.htmx-island .settings-colour-default .form-check-input {
+    position: static;
+    flex: 0 0 auto;
+    margin: 0;
+}
 /* Ticked means the theme decides, so the swatch does not apply. Saying that
    visually saves explaining it: a colour field sitting there fully lit next to
    "use the theme's colour" invites the reader to set it and wonder why nothing
