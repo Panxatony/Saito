@@ -227,6 +227,8 @@ class Embed extends CodeDefinition
 class Iframe extends CodeDefinition
 //@codingStandardsIgnoreEnd
 {
+    use UrlParserTrait;
+
     protected $_sTagName = 'iframe';
 
     protected $_sParseContent = false;
@@ -257,6 +259,15 @@ class Iframe extends CodeDefinition
         }
 
         unset($attributes['iframe']);
+
+        // The host allowlist is not a scheme check, and it steps aside entirely
+        // when an admin sets `video_domains_allowed` to `*` — a documented
+        // value. Without this, `[iframe src=javascript:…]` on such an install
+        // renders a frame that runs in the forum's own origin. `[img]` and
+        // `[url]` have had this guard for a while; the frame tags were missed.
+        if (!$this->_hasSafeUrlScheme($attributes['src'])) {
+            return false;
+        }
 
         $allowed = $this->_checkHostAllowed($attributes['src']);
         if ($allowed !== true) {
