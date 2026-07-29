@@ -45,8 +45,6 @@ plugins/Macnemo/webroot/css/*
 
 plugins/Bota/webroot/fonts/*.woff*
 
-plugins/SpectrumColorpicker/webroot/*
-
 webroot/css/stylesheets/*
 !webroot/css/stylesheets/src/
 webroot/js/*

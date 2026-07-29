@@ -67,7 +67,6 @@ class UsersController extends AppController
     {
         parent::initialize();
         $this->viewBuilder()->addHelpers([
-            'SpectrumColorpicker.SpectrumColorpicker',
             'Posting',
             'Text',
         ]);

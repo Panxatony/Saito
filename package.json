@@ -7,7 +7,6 @@
     "font-awesome": "^4.7.0",
     "grunt": "^1.0.4",
     "htmx.org": "^2.0.10",
-    "spectrum-colorpicker": "^1.8.0",
     "typeface-cabin": "^0.0.72",
     "typeface-fenix": "^0.0.72",
     "yarn": "^1.15.2"
