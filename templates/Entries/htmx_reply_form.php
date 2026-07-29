@@ -39,7 +39,8 @@ $text = $submitted['text'] ?? '';
     <?php endif; ?>
     <div class="form-group">
         <?php $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100); ?>
-        <input type="text" name="subject" class="form-control" maxlength="<?= $subjectMax ?>"
+        <input type="text" name="subject" class="form-control js-subject" maxlength="<?= $subjectMax ?>"
+               style="--subject-max: <?= $subjectMax ?>"
                placeholder="<?= h(__('subject')) ?>" value="<?= h($subject) ?>">
     </div>
     <?= $this->element('entry/htmx_editor_toolbar') ?>
