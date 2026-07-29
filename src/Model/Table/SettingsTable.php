@@ -134,7 +134,12 @@ class SettingsTable extends AppSettingTable
     public function clearCache()
     {
         parent::clearCache();
-        Cache::delete('Saito.appSettings');
+        // The same key load() writes. Deleting the unversioned name removed
+        // nothing; saving a setting only appeared to work because
+        // parent::clearCache() wipes the whole default cache as a side effect —
+        // and it only does that inside a web request, so from console or the
+        // updater the old settings survived.
+        Cache::delete('Saito.appSettings.' . Configure::read('Saito.v'));
     }
 
     /**

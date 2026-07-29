@@ -863,11 +863,10 @@ class EntriesController extends AppController
     {
         $this->autoRender = false;
         try {
+            // get() raises RecordNotFoundException for an unknown id; it never
+            // returns an empty value, so the check that used to stand here could
+            // not fire.
             $posting = $this->Entries->get($id);
-
-            if (empty($posting)) {
-                throw new \InvalidArgumentException('Posting to mark solved not found.');
-            }
 
             $rootId = $posting->get('tid');
             $rootPosting = $this->Entries->get($rootId);
@@ -889,8 +888,15 @@ class EntriesController extends AppController
             if (!$success) {
                 throw new BadRequestException();
             }
+        } catch (SaitoForbiddenException $e) {
+            // Let it through: it is a 403 and it logs who tried what. Turning it
+            // into an anonymous 400 threw that away, so a refused attempt read
+            // like a malformed request.
+            throw $e;
         } catch (\Exception $e) {
-            throw new BadRequestException();
+            // Keep the cause rather than discarding it — a failure here used to
+            // be indistinguishable from a typo in the id.
+            throw new BadRequestException(null, null, $e);
         }
     }
 
@@ -944,6 +950,12 @@ class EntriesController extends AppController
      */
     public function ajaxToggle($id = null, $toggle = null)
     {
+        // POST only. The ajax check below is a header test, not a token — it
+        // happens to keep a cross-origin request out because no <img> or <form>
+        // can set the header, but that is a side effect. CSRF protection only
+        // looks at POST/PUT/PATCH/DELETE, so this action was outside it.
+        $this->request->allowMethod(['post']);
+
         $allowed = ['fixed', 'locked'];
         if (
             !$id

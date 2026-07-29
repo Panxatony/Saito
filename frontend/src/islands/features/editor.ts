@@ -26,10 +26,15 @@ document.addEventListener('click', (event: MouseEvent) => {
     const open = btn.getAttribute('data-bb-open') ?? '';
     const close = btn.getAttribute('data-bb-close') ?? '';
     const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selected = textarea.value.slice(start, end);
-    textarea.value = textarea.value.slice(0, start) + open + selected + close + textarea.value.slice(end);
-    textarea.focus();
+    const selected = textarea.value.slice(start, textarea.selectionEnd);
+
+    // Through insertAtCursor rather than by assigning `value`: the assignment
+    // wiped the browser's undo history, so Ctrl-Z after clicking **B** did
+    // nothing — and could not get back what had been typed before it either.
+    // insertText replaces the selection, which is exactly the wrapping wanted.
+    insertAtCursor(textarea, open + selected + close);
+
+    // Leave the wrapped text selected, so a second tag can be applied to it.
     textarea.selectionStart = start + open.length;
     textarea.selectionEnd = start + open.length + selected.length;
 });
