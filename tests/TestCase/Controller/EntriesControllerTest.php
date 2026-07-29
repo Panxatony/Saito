@@ -701,6 +701,53 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The accent rail beside unread thread lines is drawn unless asked otherwise.
+     *
+     * @return void
+     */
+    public function testUnreadRailIsDrawnByDefault(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('no-unread-rail');
+    }
+
+    /**
+     * Switching it off marks the body, which is what both the island stylesheet
+     * and the theme hang their rail rule on. Asserting on the class rather than
+     * on either stylesheet keeps this honest: the two are built separately and a
+     * grep through compiled CSS has fooled us before.
+     *
+     * @return void
+     */
+    public function testUnreadRailCanBeSwitchedOff(): void
+    {
+        Configure::write('Saito.unreadRail', false);
+        $this->_loginUser(3);
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('no-unread-rail');
+    }
+
+    /**
+     * An installation whose config predates the setting keeps the rail.
+     *
+     * @return void
+     */
+    public function testUnreadRailStaysWithoutTheSetting(): void
+    {
+        Configure::delete('Saito.unreadRail');
+        $this->_loginUser(3);
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('no-unread-rail');
+    }
+
+    /**
      * The preview shows the posting, not just its body: a writer checking their
      * work wants to see the heading they typed above the text it belongs to.
      *

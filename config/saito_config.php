@@ -129,6 +129,22 @@ $config = [
          */
         'widgetsForGuests' => true,
 
+        /**
+         * Draw the accent rail beside unread thread lines.
+         *
+         * A signed-in member's unread postings are marked three ways: the
+         * subject keeps the theme's accent colour, the line is set in bold, and
+         * a short vertical bar sits at its left edge. The bar is the youngest of
+         * the three and the only one some installations never had — a forum
+         * whose readers are used to colour alone reads it as clutter.
+         *
+         * False drops the bar and leaves colour and weight untouched, so unread
+         * postings stay just as recognisable. The space the bar occupied is
+         * kept transparent, which means switching this does not shift the thread
+         * list sideways.
+         */
+        'unreadRail' => true,
+
         'Settings' => [
             /**
              * Sets the markup parser

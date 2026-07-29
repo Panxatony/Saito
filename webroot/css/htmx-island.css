@@ -622,8 +622,11 @@
     padding-left: 0.5rem;
 }
 /* Unread marking only makes sense for logged-in members (a guest has no
-   persistent read state), so the accent rail + bold are gated on .is-member. */
-.htmx-island.is-member .threadLeaf.et-new .threadLine {
+   persistent read state), so the accent rail + bold are gated on .is-member.
+   The rail additionally answers to Saito.unreadRail: `false` puts
+   .no-unread-rail on the body and the bar stays transparent, while colour and
+   weight below carry on marking what is unread. */
+.htmx-island.is-member:not(.no-unread-rail) .threadLeaf.et-new .threadLine {
     border-left-color: var(--isl-accent, #fe5603);
 }
 .htmx-island.is-member .threadLeaf.et-new .link_show_thread {
