@@ -76,6 +76,11 @@ class ThreadsComponent extends Component
         $categories = $User->getCategories()->getCurrent('read');
         if (empty($categories)) {
             // no readable categories for user (e.g. no public categories
+            // The timer was started above, so close it here too — leaving it
+            // open puts a stray entry in the debug output for every guest an
+            // install with no public category turns away.
+            Stopwatch::stop('Entries->_getInitialThreads() Paginate');
+
             return [];
         }
 

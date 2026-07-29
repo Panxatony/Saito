@@ -124,10 +124,74 @@ class UsersControllerTest extends IntegrationTestCase
     public function testRoleIsChanged()
     {
         $this->_loginUser(1);
-        $this->post('/admin/users/role/3', ['user_type' => 'mod']);
+        $this->post('/admin/users/role/3', [
+            'user_type' => 'mod',
+            'confirm_password' => 'test',
+        ]);
 
         $this->assertRedirect('/admin/users');
         $this->assertSame('mod', $this->Users->get(3)->get('user_type'));
+    }
+
+    /**
+     * A role outlives the session that granted it, so granting one asks for the
+     * acting admin's password. Without that, a session is enough — and a
+     * session is precisely what an XSS in an admin's browser hands over.
+     *
+     * @return void
+     */
+    public function testRoleNeedsTheActingAdminsPassword()
+    {
+        $this->_loginUser(1);
+        $before = $this->Users->get(3)->get('user_type');
+
+        $this->post('/admin/users/role/3', [
+            'user_type' => 'mod',
+            'confirm_password' => 'not-the-password',
+        ]);
+
+        $this->assertSame($before, $this->Users->get(3)->get('user_type'), 'role changed anyway');
+        $this->assertNoRedirect();
+    }
+
+    /**
+     * An omitted field must not count as a match either.
+     *
+     * @return void
+     */
+    public function testRoleRejectsAMissingConfirmation()
+    {
+        $this->_loginUser(1);
+        $before = $this->Users->get(3)->get('user_type');
+
+        $this->post('/admin/users/role/3', ['user_type' => 'mod']);
+
+        $this->assertSame($before, $this->Users->get(3)->get('user_type'));
+    }
+
+    /**
+     * The password checked is the acting admin's, not that of the account being
+     * changed — they happen to share one in the fixture, so this pins the
+     * distinction against a lookup on the wrong user.
+     *
+     * @return void
+     */
+    public function testRoleChecksTheActorsOwnPasswordNotTheTargets()
+    {
+        $hasher = $this->Users->getPasswordHasher();
+        $this->Users->updateAll(
+            ['password' => $hasher->hash('only-alice-knows-this')],
+            ['id' => 1]
+        );
+
+        $this->_loginUser(1);
+        $this->post('/admin/users/role/3', [
+            'user_type' => 'mod',
+            // The *target's* password — must not be accepted.
+            'confirm_password' => 'test',
+        ]);
+
+        $this->assertSame('user', $this->Users->get(3)->get('user_type'));
     }
 
     /**
@@ -142,7 +206,10 @@ class UsersControllerTest extends IntegrationTestCase
         $this->_loginUser(1);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->post('/admin/users/role/3', ['user_type' => 'owner']);
+        $this->post('/admin/users/role/3', [
+            'user_type' => 'owner',
+            'confirm_password' => 'test',
+        ]);
     }
 
     /**

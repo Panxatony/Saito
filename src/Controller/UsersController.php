@@ -1121,7 +1121,13 @@ class UsersController extends AppController
         $userId = (int)$this->CurrentUser->getId();
         $user = $this->Users->get($userId);
         $this->Users->patchEntity($user, ['slidetab_order' => $value]);
-        $this->Users->save($user);
+        if (!$this->Users->save($user)) {
+            // Only mirror what actually reached the database. Updating the
+            // session regardless made a failed save look like it worked: the
+            // rail kept the new arrangement until the next login quietly put
+            // the old one back.
+            throw new BadRequestException('Widget arrangement could not be saved.');
+        }
         // Keep the session copy in step, or the next render would still show the
         // old arrangement until the member logs in again.
         $this->CurrentUser->set('slidetab_order', $value);
@@ -1138,7 +1144,7 @@ class UsersController extends AppController
         Stopwatch::start('Users->beforeFilter()');
 
         $unlocked = [
-            'slidetabToggle', 'slidetabOrder', 'htmxEdit', 'htmxChangePassword', 'htmxAvatar',
+            'htmxEdit', 'htmxChangePassword', 'htmxAvatar',
             // Posted by the island with a CSRF token in the header, like the
             // other island write endpoints.
             'htmxWidgetState',

@@ -1830,3 +1830,15 @@ msgstr "Ignored by"
 #: templates/Users/htmx_profile.php
 msgid "user.ignoring.t"
 msgstr "You ignore"
+
+#: plugins/Admin/src/Controller/UsersController.php
+msgid "user.role.set.confirm.label"
+msgstr "Your own password"
+
+#: plugins/Admin/src/Controller/UsersController.php
+msgid "user.role.set.confirm.exp"
+msgstr "Confirms the change is coming from you — not the password of the account being changed."
+
+#: plugins/Admin/src/Controller/UsersController.php
+msgid "user.role.set.confirm.error"
+msgstr "Wrong password. The role was not changed."
