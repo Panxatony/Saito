@@ -1214,3 +1214,28 @@
     min-height: 6rem;
     overflow-y: hidden;
 }
+
+/* [spoiler]: the covering block sits in the flow of the sentence it interrupts.
+   This used to be a `style="display: inline"` attribute written by the parser,
+   moved here so the tag survives dropping 'unsafe-inline' from the CSP. */
+.richtext-spoiler { display: inline; }
+.richtext-spoiler-link { cursor: pointer; }
+
+/* A member's own thread-line colours. The values arrive as custom properties set
+   by userColors.ts; the classes say which ones the member actually chose, so an
+   unset colour stays the theme's rather than being reset to `inherit`.
+   Order is deliberate — a posting can be read *and* the current one at once, and
+   the last matching rule of equal specificity is the one meant to win. */
+body.has-color-old .et-root .et,
+body.has-color-old .et-reply .et { color: var(--saito-color-old); }
+body.has-color-new .et-new .et { color: var(--saito-color-new); }
+body.has-color-current .et-current .et { color: var(--saito-color-current); }
+
+/* The note on a bookmark, and its inline edit form. The display state shows its
+   edit control only on hover/focus so a list of bookmarks stays a list. */
+.bookmarkComment { display: flex; align-items: center; gap: .4rem; }
+.bookmarkComment .btn-link { opacity: 0; padding: 0 .25rem; }
+.bookmarkComment:hover .btn-link,
+.bookmarkComment .btn-link:focus { opacity: 1; }
+.bookmarkComment-form { display: flex; align-items: center; gap: .4rem; margin: .2rem 0; }
+.bookmarkComment-form .form-control { flex: 1 1 auto; max-width: 32rem; }

@@ -30,11 +30,13 @@ import './features/editor';
 import './features/uploads';
 import './features/smartInsert';
 import './features/embeds';
+import './features/spoiler';
 import './features/widgets';
 import './features/categoryFilter';
 import './features/headerActions';
 import './features/modals';
 import './features/flash';
 import './features/appearance';
+import './features/userColors';
 
 Alpine.start();

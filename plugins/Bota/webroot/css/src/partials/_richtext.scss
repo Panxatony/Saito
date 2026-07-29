@@ -75,7 +75,14 @@
   @extend .text-muted;
 }
 
+// The parser used to write `style="display: inline"` onto this element; it is a
+// rule, not a per-element decision, and inline attributes are on their way out.
+.richtext-spoiler {
+  display: inline;
+}
+
 .richtext-spoiler-link {
+  cursor: pointer;
   color: black;
   background-color: black;
   text-shadow: none;
