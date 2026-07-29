@@ -116,6 +116,21 @@ class UsersController extends AdminAppController
         $roles = $Permissions->getRoles()->get($this->CurrentUser->getRole(), false, $unrestricted);
 
         if ($this->getRequest()->is(['put', 'post'])) {
+            // Handing out a role is the one admin action that makes another
+            // account permanent — everything else can be undone by an admin who
+            // still has access. It is therefore the last link in the chain that
+            // turns a script running in an admin's browser into an attacker's
+            // own admin account: the session alone used to be enough, and a
+            // stolen session is exactly what an XSS gives away. Asking for the
+            // password means the attacker needs something the browser does not
+            // hold.
+            if (!$this->isCurrentPassword($this->getRequest()->getData('confirm_password'))) {
+                $this->Flash->set(__('user.role.set.confirm.error'), ['element' => 'error']);
+                $this->set(compact('roles', 'user'));
+
+                return null;
+            }
+
             $type = $this->getRequest()->getData('user_type');
             if (!in_array($type, $roles)) {
                 throw new InvalidArgumentException(
@@ -206,5 +221,24 @@ class UsersController extends AdminAppController
         $this->Flash->set(__('user.del.ok.m', $username), ['element' => 'success']);
 
         return $this->redirect(['action' => 'index']);
+    }
+
+    /**
+     * Whether the given plain-text password is the acting admin's own.
+     *
+     * @param mixed $password what the confirmation field carried
+     * @return bool true only on a match
+     */
+    private function isCurrentPassword($password): bool
+    {
+        if (!is_string($password) || $password === '') {
+            return false;
+        }
+
+        $hash = $this->Users
+            ->get($this->CurrentUser->getId(), fields: ['password'])
+            ->get('password');
+
+        return $this->Users->getPasswordHasher()->check($password, (string)$hash);
     }
 }
