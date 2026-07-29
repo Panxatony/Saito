@@ -222,12 +222,17 @@
    The limit is an admin setting, so the templates pass it in as `--subject-max`
    and the width follows it.
 
-   `ch` is the width of the digit zero. Running text is narrower than that on
-   average, so this errs on the generous side — the point is to stop promising
-   room that is not there, not to trim to the last pixel. `max-width` keeps it
-   from overflowing a narrow screen, where 100% is still the smaller value. */
+   `ch` is the width of the digit zero, and running text is narrower than that:
+   measured against this theme's font, a hundred characters of ordinary prose
+   come to 713px while `100ch` is 891px. A plain `1ch` per character therefore
+   still left a fifth of the box empty — which is the complaint this rule exists
+   to answer, so the measured 0.8 goes in rather than the round number.
+
+   The 2rem covers the field's own padding and border plus a little slack, so a
+   subject of wide characters is not clipped at the last letter. `max-width`
+   keeps it from overflowing a narrow screen, where 100% is the smaller value. */
 .htmx-island .js-subject {
-    max-width: calc(var(--subject-max, 100) * 1ch);
+    max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
 }
 
 .htmx-island .js-editor-toolbar { align-items: center; }
