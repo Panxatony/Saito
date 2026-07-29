@@ -83,6 +83,20 @@ class PostingComponent extends Component
             throw new SaitoForbiddenException('Updating posting not allowed.');
         }
 
+        // Editing rights are about the posting where it currently sits. Moving
+        // it is a different question, and only the root can be moved: changing
+        // its category takes the whole thread along, replies by other people
+        // included. Asked the same way create() asks it for a new thread —
+        // without this, the check above ran against the *old* category and the
+        // target was never examined at all.
+        if ($isRoot && isset($data['category_id'])) {
+            $target = (int)$data['category_id'];
+            $isMoving = $target !== (int)$entry->get('category_id');
+            if ($isMoving && $CurrentUser->getCategories()->permission('thread', $target) !== true) {
+                throw new SaitoForbiddenException('Moving posting to that category not allowed.');
+            }
+        }
+
         return $this->getTable()->updateEntry($entry, $data);
     }
 

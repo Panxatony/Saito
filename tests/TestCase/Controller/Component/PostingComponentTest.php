@@ -164,6 +164,56 @@ class PostingComponentTest extends SaitoTestCase
         $this->component->update($entity, $edit, $user);
     }
 
+    /**
+     * A thread may not be moved into a category the mover has no right to.
+     *
+     * Changing a root posting's category moves the whole thread, replies by
+     * other people included. Editing rights answer where the posting *is*;
+     * they say nothing about where it is going, so the target needs its own
+     * check — the same one create() makes for a new thread.
+     *
+     * @return void
+     */
+    public function testUpdateCannotMoveThreadIntoForbiddenCategory()
+    {
+        $table = TableRegistry::getTableLocator()->get('Entries');
+        // Posting 1 is a thread root in category 2.
+        $entity = $table->findById(1)->first();
+
+        // Category 5 requires accession 3 (admins) to start a thread.
+        $edit = ['subject' => 'moved', 'category_id' => 5];
+
+        $user = ['id' => 7, 'user_type' => 'mod', 'username' => 'bar'];
+        $user = CurrentUserFactory::createLoggedIn($user);
+
+        $this->expectException(SaitoForbiddenException::class);
+
+        $this->component->update($entity, $edit, $user);
+    }
+
+    /**
+     * …but a category the mover may use is still allowed, so the check
+     * discriminates rather than simply forbidding every move.
+     *
+     * @return void
+     */
+    public function testUpdateCanMoveThreadIntoPermittedCategory()
+    {
+        $table = TableRegistry::getTableLocator()->get('Entries');
+        $entity = $table->findById(1)->first();
+
+        // Category 3 only requires accession 1.
+        $edit = ['subject' => 'moved', 'category_id' => 3];
+
+        $user = ['id' => 7, 'user_type' => 'mod', 'username' => 'bar'];
+        $user = CurrentUserFactory::createLoggedIn($user);
+
+        $result = $this->component->update($entity, $edit, $user);
+
+        $this->assertEmpty($result->getErrors());
+        $this->assertEquals(3, $result->get('category_id'));
+    }
+
     public function testPrepareChildPosting()
     {
         $parent = [
