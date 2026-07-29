@@ -1,40 +1,10 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 1
-			path: plugins/Admin/src/Controller/AdminsController.php
-
-		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 1
-			path: plugins/Admin/src/Controller/CategoriesController.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: plugins/Admin/src/Controller/CategoriesController.php
-
-		-
-			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.renderMustBeUsed
-			count: 1
-			path: plugins/Admin/src/Controller/SettingsController.php
-
-		-
 			message: '#^Variable \$setting in empty\(\) always exists and is not falsy\.$#'
 			identifier: empty.variable
 			count: 1
 			path: plugins/Admin/src/Controller/SettingsController.php
-
-		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 5
-			path: plugins/Admin/src/Controller/SmileyCodesController.php
 
 		-
 			message: '#^Parameter \#1 \$smiley of method Admin\\Controller\\SmileyCodesController\:\:_addEditCommon\(\) expects Cake\\ORM\\Entity, Cake\\Datasource\\EntityInterface given\.$#'
@@ -85,12 +55,6 @@ parameters:
 			path: plugins/Installer/src/Lib/InstallerState.php
 
 		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 1
-			path: plugins/SaitoHelp/src/Controller/SaitoHelpsController.php
-
-		-
 			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
 			identifier: cake.entity.arrayAccess
 			count: 4
@@ -138,24 +102,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Controller/Component/ThreadsComponent.php
-
-		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 2
-			path: src/Controller/EntriesController.php
-
-		-
-			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.renderMustBeUsed
-			count: 1
-			path: src/Controller/PagesController.php
-
-		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 4
-			path: src/Controller/UsersController.php
 
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'

@@ -44,9 +44,9 @@ class AdminsController extends AdminAppController
     /**
      * Empty out all caches
      *
-     * @return void
+     * @return \Cake\Http\Response
      */
-    public function emptyCaches(): void
+    public function emptyCaches(): \Cake\Http\Response
     {
         // Flushing every cache is a state change, and a cheap one to
         // repeat — it must not be reachable by GET.
@@ -54,7 +54,8 @@ class AdminsController extends AdminAppController
 
         $this->CacheSupport->clear();
         $this->Flash->set(__('Caches cleared.'), ['element' => 'success']);
-        $this->redirect($this->referer());
+
+        return $this->redirect($this->referer());
     }
 
     /**

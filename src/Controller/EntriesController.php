@@ -796,14 +796,14 @@ class EntriesController extends AppController
             return $this->response->withStatus(204)->withHeader('HX-Trigger', 'refresh-recent');
         }
 
-        $this->redirect('/entries/index');
+        return $this->redirect('/entries/index');
     }
 
     /**
      * Delete posting
      *
      * @param string $id posting-ID
-     * @return void
+     * @return \Cake\Http\Response|null
      * @throws NotFoundException
      * @throws MethodNotAllowedException
      */
@@ -829,7 +829,7 @@ class EntriesController extends AppController
         if (!$this->request->is(['post', 'delete'])) {
             $this->set('posting', $posting);
 
-            return;
+            return null;
         }
 
         $success = $this->Entries->deletePosting($id);
@@ -849,7 +849,8 @@ class EntriesController extends AppController
             $redirect = $this->referer();
         }
         $this->Flash->set($message, ['element' => $flashType]);
-        $this->redirect($redirect);
+
+        return $this->redirect($redirect);
     }
 
     /**

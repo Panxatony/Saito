@@ -326,10 +326,10 @@ class UsersController extends AppController
             && str_starts_with($redirect, '/')
             && !str_starts_with($redirect, '//')
         ) {
-            $this->redirect($redirect);
-        } else {
-            $this->redirect('/');
+            return $this->redirect($redirect);
         }
+
+        return $this->redirect('/');
     }
 
     /**
@@ -769,8 +769,8 @@ class UsersController extends AppController
      * existing content. It has no view of its own — it only translates a name
      * into an ID, which is why it survives the removal of the SPA.
      *
-     * @param string $name username
-     * @return void
+     * @param string|null $name username
+     * @return Response
      */
     public function name($name = null)
     {
@@ -782,19 +782,18 @@ class UsersController extends AppController
             if (!empty($viewedUser)) {
                 // Follows the active frontend: on an island install the SPA
                 // profile page is the wrong destination for an @name mention.
-                $this->redirect(
+                return $this->redirect(
                     [
                         'controller' => 'users',
                         'action' => 'htmxProfile',
                         $viewedUser->get('id'),
                     ]
                 );
-
-                return;
             }
         }
         $this->Flash->set(__('Invalid user'), ['element' => 'error']);
-        $this->redirect('/');
+
+        return $this->redirect('/');
     }
 
     /**
