@@ -7,6 +7,133 @@
 
 ## [next] -
 
+## [8.2.4] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.3...8.2.4)
+
+Fixes only; no migration and no new configuration. **One change is visible to
+admins:** changing a member's role now asks for your own password.
+
+### Changes
+
+- Δ Change: **granting a role asks for the acting admin's password.** A role
+  outlives the session that handed it out, which made it the one action worth
+  hijacking a session for — and a session is exactly what a cross-site scripting
+  flaw gives away. Everything else an admin can do can be undone by an admin who
+  still has access; this could not, so it is the only place that gained a
+  confirmation rather than the backend gaining a re-authentication step.
+- ✓ Fix: **pinning or locking a posting appeared to do nothing.** The posting was
+  reloaded with two synthetic clicks, but that only hid and re-showed the version
+  from before the change — so a moderator saw no effect, clicked again, and set
+  the flag back on the server.
+- ✓ Fix: **undo works after the toolbar and after inserting an upload.** Both
+  still wrote into the text box in a way that discards the browser's undo
+  history, which the smiley button had already been fixed for. The upload path
+  additionally never told the editor to grow to fit what it had inserted.
+- ✓ Fix: saving a setting from the console or the updater left the old values in
+  place — the settings cache was cleared under a key it is never stored under,
+  and only a side effect of the surrounding cache clear covered that up during a
+  web request.
+- ✓ Fix: a refused "mark as solution" was reported as a malformed request
+  instead of as forbidden, and the underlying cause was discarded.
+- ✓ Fix: a failed save of the widget arrangement was still written into the
+  session, so it looked like it had worked until the next sign-in put the old
+  arrangement back.
+- Δ Change: pinning and locking travels by POST like its neighbours. It was
+  reachable by GET, kept out of reach cross-site only by a header requirement
+  that happens to be hard to forge rather than by a token.
+- − Removed: two retired action names left in the form-protection list, and a
+  debug timer that was started but never stopped when a visitor has no readable
+  category.
+
+## [8.2.3] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.2...8.2.3)
+
+**Security release. Upgrading is strongly recommended for every installation.**
+No migration and no new configuration; upgrading from 8.2.2 is a code deploy.
+
+One change needs attention on an installation that has never set
+`SECURITY_SALT`: see the first entry below.
+
+### Changes
+
+- ✓ Fix: **stored cross-site scripting through a member's profile homepage
+  address.** The address was written into the link without being escaped, so
+  content placed there ran in the browser of anyone opening that profile —
+  including a moderator reviewing a reported account. Any signed-in member could
+  set it. Present since 2018 and in every release up to 8.2.2.
+- ✓ Fix: **a thread could be moved into any category at all.** Editing a thread's
+  first posting accepted whatever category the request named; the permission
+  check ran against the category the thread was already in and never looked at
+  the destination. Since moving the first posting moves the whole thread, this
+  could carry other people's replies out of a closed category — or hide a thread
+  in one nobody can read.
+- ✓ Fix: **`config/app.php` shipped a real-looking default for `SECURITY_SALT`**
+  instead of the `__SALT__` placeholder, in 8.1.0 through 8.2.2. This repository
+  is public, so an installation that never set the value encrypted its login
+  cookie and signed its API tokens with a key anyone could read — and was told it
+  was configured correctly, because both the installer's key generation and its
+  own check look for exactly that placeholder. **If your installation runs 8.1.0
+  – 8.2.2 and has no `SECURITY_SALT` in `config/.env`, set one now.** Doing so
+  signs everybody out; that is the intended effect. Installations on 8.0.x or
+  earlier, and any that set the value themselves, are unaffected.
+- ✓ Fix: **"forum closed" did not close the forum.** The notice was rendered but
+  the request carried on, so postings were still served to visitors and members
+  could still write, delete and upload while the forum was supposedly switched
+  off.
+- ✓ Fix: **the contact form could send mail to any address.** Ticking "send me a
+  copy" delivered to whatever address the sender had typed in, which for an
+  anonymous visitor is not their address in any verified sense — so the form
+  could be used to send arbitrary text to arbitrary recipients from the forum's
+  own domain. The copy now goes only to a signed-in member, whose address comes
+  from their account. A per-address limit of five messages an hour joins it.
+- ✓ Fix: `[iframe]`, `[video]` and `[audio]` accepted URL schemes that `[img]`
+  and `[url]` had been rejecting for a while. For frames this mattered on an
+  installation that had widened `video_domains_allowed` to `*`.
+- Δ Change: deleting a smiley or a smiley code, emptying the caches and lifting a
+  block now require a POST. Over GET they sat outside the cross-site request
+  protection entirely, so a lured admin's browser could trigger them by loading
+  an image. Their confirmation dialogs start working as a side effect — the
+  previous markup passed the confirmation text in a position that was ignored.
+- ✓ Fix: lifting a block reported success even when it had failed, and answered a
+  second click with a server error instead of a message.
+
+## [8.2.2] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.1...8.2.2)
+
+No migration. One new optional key in `config/saito_config.php`; leaving it out
+keeps 8.2.1's behaviour.
+
+### Changes
+
+- ＋ Added: **pasting from a web page keeps its links and emphasis.** A copied
+  passage arrives as BBCode — links, bold, italic, strikethrough, lists, quotes
+  and images — instead of losing all of it to plain text. Word's and Google
+  Docs' habit of saying the same thing twice, in a tag and again in a style, is
+  handled; anything unrecognised contributes its text and nothing else. When the
+  conversion would add nothing, the browser's own paste is left alone.
+- ＋ Added: `Saito.unreadRail`. Unread thread lines carry the accent colour, bold
+  weight and a short vertical bar; `false` drops the bar and keeps the other two.
+  Meant for forums whose readers have always gone by colour, where the bar reads
+  as clutter. The space it occupied stays transparent, so switching it does not
+  shift the thread list sideways.
+- ✓ Fix: **undo stopped working after inserting a smiley, a link or a pasted
+  passage.** Text was written into the box in a way that discards the browser's
+  undo history — so Ctrl-Z did nothing, and could not recover what had been typed
+  before it either.
+- ＋ Added: the two admin help topics that existed only in English are now
+  translated, so `docs/help/de` and `docs/help/en` hold the same eleven topics.
+- Δ Changed: `docs/license.md` names the web fonts and the frontend libraries
+  that ship with the forum, and the font licence travels next to the fonts it
+  covers, as its terms require.
+- ＋ Added: a `.mailmap`, so contribution counts show people rather than
+  addresses. The README credits **Gert Dietrich** and **kt007** alongside
+  Schlaefer.
+- Δ Changed: static-analysis cleanups, and CI takes Node from the distribution
+  and pins its container image.
+
 ## [8.2.1] - 2026-07-28
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.0...8.2.1)
