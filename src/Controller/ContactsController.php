@@ -14,6 +14,7 @@ namespace App\Controller;
 
 use App\Form\ContactForm;
 use App\Form\ContactFormOwner;
+use Cake\Cache\Cache;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Form\Form;
@@ -125,6 +126,39 @@ class ContactsController extends AppController
         return $this->_contact(new ContactFormOwner(), $recipient, $sender);
     }
 
+    /** @var int contact messages a client may send per window */
+    private const CONTACT_MAX_MESSAGES = 5;
+
+    /** @var int throttle window in seconds */
+    private const CONTACT_THROTTLE_WINDOW = 3600;
+
+    /**
+     * Whether this client has used up its contact-form budget.
+     *
+     * The form is the one place an unauthenticated visitor can make the forum
+     * send mail, and the honeypot field and five-second timer in front of it are
+     * both trivially satisfied by a script. Login has had a per-IP throttle for
+     * a while; this is the same idea with a slower budget.
+     *
+     * Counts on the way in, so a message that fails validation still costs — an
+     * attempt is an attempt.
+     *
+     * @return bool true when the client should be turned away
+     */
+    private function isContactThrottled(): bool
+    {
+        $key = 'contact-throttle-' . $this->getRequest()->clientIp();
+        $record = Cache::read($key);
+
+        if (!is_array($record) || (time() - $record['first']) >= self::CONTACT_THROTTLE_WINDOW) {
+            $record = ['count' => 0, 'first' => time()];
+        }
+        $record['count']++;
+        Cache::write($key, $record);
+
+        return $record['count'] > self::CONTACT_MAX_MESSAGES;
+    }
+
     /**
      *  contact form validating and email sending
      *
@@ -146,17 +180,33 @@ class ContactsController extends AppController
             }
         }
 
+        if ($this->request->is('post') && $this->isContactThrottled()) {
+            $this->Flash->set(__('user.authe.throttled'), ['element' => 'error']);
+
+            return $this->redirect('/');
+        }
+
         if ($this->request->is('post')) {
             $isValid = $contact->validate($this->request->getData());
             if ($isValid) {
                 try {
+                    // The copy goes only to a sender the forum knows. An
+                    // anonymous sender's address is whatever was typed into the
+                    // form, so honouring `cc` for them turned this into an open
+                    // relay: name the victim as sender, tick the box, and the
+                    // forum mails your text to them from its own domain, with
+                    // its SPF and DKIM behind it. Nothing is lost for a guest —
+                    // they never had a mailbox here to copy to.
+                    $ccSender = (bool)$this->request->getData('cc')
+                        && $this->CurrentUser->isLoggedIn();
+
                     $email = [
                         'recipient' => $recipient,
                         'sender' => $sender,
                         'subject' => $this->request->getData('subject'),
                         'message' => $this->request->getData('text'),
                         'template' => 'user_contact',
-                        'ccsender' => (bool)$this->request->getData('cc'),
+                        'ccsender' => $ccSender,
                     ];
                     $this->SaitoEmail->email($email);
                     $message = __('Message was send.');
