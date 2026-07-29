@@ -21,7 +21,9 @@ in einem neuen Tab.
 ### Beiträge schreiben
 
 *Neuer Beitrag* öffnet den Editor an Ort und Stelle. Die Werkzeugleiste
-formatiert Text und fügt Smilies ein. *Vorschau* zeigt den Beitrag so, wie er
+formatiert Text und fügt Smilies ein. Aus einer Webseite kopierte Absätze
+behalten beim Einfügen ihre Links und Hervorhebungen; wer das nicht möchte,
+fügt ohne Formatierung ein. *Vorschau* zeigt den Beitrag so, wie er
 später aussieht — mit Betreff und Kopfzeile — in einem Feld oberhalb des
 Editors. Das Textfeld wächst mit, wenn mehr geschrieben wird. Eigene Beiträge
 lassen sich über *Bearbeiten* ändern; sie tragen danach einen Hinweis darauf.

@@ -20,7 +20,8 @@ Held open with Command or Ctrl, a posting opens in a new tab as usual.
 ### Writing
 
 *New posting* opens the editor in place. The toolbar formats text and inserts
-smilies. *Preview* shows the posting as it will look — subject and heading line
+smilies. A paragraph copied from a web page keeps its links and emphasis when
+pasted; paste without formatting if you would rather it did not. *Preview* shows the posting as it will look — subject and heading line
 included — in a panel above the editor. The text box grows as you write. Your
 own postings can be changed with *edit*; they carry a note afterwards saying so.
 
