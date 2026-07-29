@@ -49,7 +49,7 @@ class SmiliesController extends AdminAppController
     /**
      * Add new smiley.
      *
-     * @return void
+     * @return \Cake\Http\Response|void
      */
     public function add()
     {
@@ -66,9 +66,7 @@ class SmiliesController extends AdminAppController
                     __('The smily has been saved'),
                     ['element' => 'success']
                 );
-                $this->redirect(['action' => 'index']);
-
-                return;
+                return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->set(
                     __('The smiley could not be saved. Please, try again.'),
@@ -82,16 +80,19 @@ class SmiliesController extends AdminAppController
     /**
      * Edit smiley.
      *
-     * @param null $id smiley-ID
-     * @return void
+     * @param string|null $id smiley-ID
+     * @return \Cake\Http\Response|void
      */
     public function edit($id = null)
     {
-        if (empty($id) && empty($this->request->getData())) {
+        // `||`, as delete() has it. The `&&` made sense only while an id could
+        // arrive in the POST body; since primary-key mass-assignment was blocked
+        // an id-less POST fell through to get(null), and
+        // InvalidPrimaryKeyException carries no HTTP code — so the admin got a
+        // 500 instead of the "Invalid smiley." flash this branch exists for.
+        if (empty($id)) {
             $this->Flash->set(__('Invalid smiley.'), ['element' => 'error']);
-            $this->redirect(['action' => 'index']);
-
-            return;
+            return $this->redirect(['action' => 'index']);
         }
 
         $smiley = $this->Smilies->get($id);
@@ -107,9 +108,7 @@ class SmiliesController extends AdminAppController
                     __('The smily has been saved'),
                     ['element' => 'success']
                 );
-                $this->redirect(['action' => 'index']);
-
-                return;
+                return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->set(
                     __('The smiley could not be saved. Please, try again.'),
@@ -123,8 +122,8 @@ class SmiliesController extends AdminAppController
     /**
      * Delete smiley.
      *
-     * @param null $id Smiley-ID
-     * @return void
+     * @param string|null $id Smiley-ID
+     * @return \Cake\Http\Response|void
      */
     public function delete($id = null)
     {
@@ -135,18 +134,14 @@ class SmiliesController extends AdminAppController
 
         if (empty($id) || !$this->Smilies->exists(['id' => $id])) {
             $this->Flash->set(__('Invalid smiley.'), ['element' => 'error']);
-            $this->redirect(['action' => 'index']);
-
-            return;
+            return $this->redirect(['action' => 'index']);
         }
         $smiley = $this->Smilies->get($id);
         if ($this->Smilies->delete($smiley)) {
             $this->Flash->set(__('Smiley deleted.'), ['element' => 'success']);
-            $this->redirect(['action' => 'index']);
-
-            return;
+            return $this->redirect(['action' => 'index']);
         }
         $this->Flash->set(__('Smily was not deleted.'), ['element' => 'error']);
-        $this->redirect(['action' => 'index']);
+        return $this->redirect(['action' => 'index']);
     }
 }

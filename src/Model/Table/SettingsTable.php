@@ -84,7 +84,12 @@ class SettingsTable extends AppSettingTable
     public function getSettings()
     {
         $settings = $this->find()->all();
-        if (empty($settings)) {
+        // isEmpty(), not empty(): a ResultSet is an object and therefore always
+        // truthy, so this never fired. An installation whose settings table is
+        // empty — a half-run migration, a botched install — got no exception but
+        // an empty configuration, which load() then cached under the versioned
+        // key. The broken state survived until somebody cleared the cache.
+        if ($settings->isEmpty()) {
             throw new \RuntimeException(
                 'No settings found in settings table.'
             );

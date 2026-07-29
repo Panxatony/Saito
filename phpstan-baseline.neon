@@ -43,30 +43,6 @@ parameters:
 			path: plugins/Admin/src/Controller/SmileyCodesController.php
 
 		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 4
-			path: plugins/Admin/src/Controller/SmiliesController.php
-
-		-
-			message: '#^Result of \|\| is always true\.$#'
-			identifier: booleanOr.alwaysTrue
-			count: 1
-			path: plugins/Admin/src/Controller/SmiliesController.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: plugins/Admin/src/Controller/SmiliesController.php
-
-		-
-			message: '#^Variable \$id in empty\(\) always exists and is always falsy\.$#'
-			identifier: empty.variable
-			count: 2
-			path: plugins/Admin/src/Controller/SmiliesController.php
-
-		-
 			message: '#^Variable \$user in empty\(\) always exists and is not falsy\.$#'
 			identifier: empty.variable
 			count: 1
@@ -254,12 +230,6 @@ parameters:
 			path: src/Lib/Saito/User/ReadPostings/ReadPostingsCookie.php
 
 		-
-			message: '#^Call to App\\Model\\Table\\EntriesTable\:\:hasMany could not find the class for "Bookmarks"$#'
-			identifier: cake.addAssociation.existClass
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
 			message: '#^Parameter \#1 \$entry of method App\\Model\\Table\\DraftsTable\:\:deleteDraftForPosting\(\) expects App\\Model\\Entity\\Entry, Cake\\ORM\\Entity given\.$#'
 			identifier: argument.type
 			count: 1
@@ -284,22 +254,10 @@ parameters:
 			path: src/Model/Table/EntriesTable.php
 
 		-
-			message: '#^Variable \$settings in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: src/Model/Table/SettingsTable.php
-
-		-
 			message: '#^Dead catch \- PDOException is never thrown in the try block\.$#'
 			identifier: catch.neverThrown
 			count: 1
 			path: src/Model/Table/UserOnlineTable.php
-
-		-
-			message: '#^Call to App\\Model\\Table\\UsersTable\:\:hasMany could not find the class for "Bookmarks"$#'
-			identifier: cake.addAssociation.existClass
-			count: 1
-			path: src/Model/Table/UsersTable.php
 
 		-
 			message: '#^Variable \$user in empty\(\) always exists and is not falsy\.$#'

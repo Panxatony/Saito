@@ -97,7 +97,7 @@ class UsersTable extends AppTable
         );
 
         $this->hasMany(
-            'Bookmarks',
+            'Bookmarks.Bookmarks',
             ['foreignKey' => 'user_id', 'dependent' => true]
         );
         $this->hasMany('Drafts', ['dependent' => true]);
