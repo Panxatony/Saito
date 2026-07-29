@@ -7,6 +7,22 @@
 
 ## [next] -
 
+## [8.2.6] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.5...8.2.6)
+
+One stylesheet line. Upgrading from 8.2.5 is a code deploy; browsers pick the
+change up by themselves, the stylesheet is served with a cache-busting stamp.
+
+### Changes
+
+- ✓ Fix: **the subject field was still wider than its own limit.** 8.2.5 capped
+  it at one `ch` per allowed character, but `ch` is the width of a zero and
+  prose is narrower — a hundred characters of ordinary text measure 713px where
+  `100ch` is 891px, so a fifth of the box stayed empty and it still invited more
+  than it takes. Now sized by the measured ratio: 899px before, 751px after, for
+  733px of text and padding.
+
 ## [8.2.5] - 2026-07-29
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.4...8.2.5)
