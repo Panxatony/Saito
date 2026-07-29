@@ -24,8 +24,6 @@ use Cake\Event\Event;
 use Cake\Http\Exception\ForbiddenException;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Security;
-use DateTimeImmutable;
-use Firebase\JWT\JWT;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\RememberTrait;
 use Saito\User\Cookie\Storage;
@@ -292,14 +290,13 @@ class AuthUserComponent extends Component
 
     /**
      * Fires on Controller.shutdown (Cake 5 maps that event to a component's
-     * afterFilter(), not shutdown()). Refreshes the JWT cookie the SPA reads
-     * for API authentication.
+     * afterFilter(), not shutdown()). Clears the leftover JWT cookie.
      *
      * {@inheritDoc}
      */
     public function afterFilter(\Cake\Event\EventInterface $event)
     {
-        $this->setJwtCookie($event->getSubject());
+        $this->clearJwtCookie($event->getSubject());
     }
 
     /**
@@ -344,65 +341,30 @@ class AuthUserComponent extends Component
     }
 
     /**
-     * Stores (or deletes) the JS-Web-Token as Cookie for access in front-end
+     * Removes the JWT cookie Saito used to mint on every logged-in request.
+     *
+     * It existed so the SPA's JavaScript could read a bearer token and send it
+     * to /api/v2 — hence `http => false`, i.e. deliberately readable by script.
+     * The SPA is gone, and the server never accepted it anyway: Cake's
+     * TokenAuthenticator reads the Authorization header and the query parameter,
+     * never a cookie. What was left was a script-readable, daily-refreshed
+     * credential for a CSRF-exempt API that no client calls.
+     *
+     * Kept as a deletion rather than simply dropped, so the cookies already sitting
+     * in members' browsers go away on their next visit instead of lingering for
+     * another day. Once installs have turned over this can go entirely.
      *
      * @param Controller $controller The controller
      * @return void
      */
-    private function setJwtCookie(Controller $controller): void
+    private function clearJwtCookie(Controller $controller): void
     {
-        $expire = '+1 day';
         $cookieKey = Configure::read('Session.cookie') . '-JWT';
-        $cookie = new Storage(
-            $controller,
-            $cookieKey,
-            ['http' => false, 'expire' => $expire]
-        );
+        $cookie = new Storage($controller, $cookieKey, ['http' => false]);
 
-        $existingToken = $cookie->read();
-
-        // User not logged-in: No JWT-cookie for you!
-        if (!$this->CurrentUser->isLoggedIn()) {
-            if ($existingToken) {
-                $cookie->delete();
-            }
-
-            return;
+        if ($cookie->read()) {
+            $cookie->delete();
         }
-
-        if ($existingToken) {
-            // Encoded JWT token format: <header>.<payload>.<signature>
-            $parts = explode('.', $existingToken);
-            $payloadEncoded = $parts[1];
-            // [performance] Done every logged-in request. Don't decrypt whole
-            // token with signature. We only make sure it exists, the auth
-            // happens elsewhere.
-            $payload = Jwt::jsonDecode(Jwt::urlsafeB64Decode($payloadEncoded));
-            $isCurrentUser = $payload->sub === $this->CurrentUser->getId();
-            // Refresh early: treat the token as expiring if it runs out within
-            // the next two hours.
-            $aboutToExpire = $payload->exp < (time() + 7200);
-            // Token doesn't require an update if it belongs to current user and
-            // isn't about to expire.
-            if ($isCurrentUser && !$aboutToExpire) {
-                return;
-            }
-        }
-
-        /// Set new token
-        // Prefer a dedicated jwtSalt (lets ops invalidate all tokens by
-        // rotating it independently) but fall back to cookieSalt — which the
-        // installer always seeds — so default deployments work out of the
-        // box without extra config.
-        $jwtKey = Configure::read('Security.jwtSalt')
-            ?: Configure::read('Security.cookieSalt');
-        $jwtPayload = [
-            'sub' => $this->CurrentUser->getId(),
-            // Token is valid for one day.
-            'exp' => (new DateTimeImmutable($expire))->getTimestamp(),
-        ];
-        $jwtToken = \Firebase\JWT\JWT::encode($jwtPayload, $jwtKey, 'HS256');
-        $cookie->write($jwtToken);
     }
 
     /**
