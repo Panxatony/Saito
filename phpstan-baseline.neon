@@ -170,12 +170,6 @@ parameters:
 			path: src/Controller/EntriesController.php
 
 		-
-			message: '#^Variable \$posting in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: src/Controller/EntriesController.php
-
-		-
 			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
 			identifier: cake.controller.renderMustBeUsed
 			count: 1

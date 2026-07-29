@@ -12,6 +12,7 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Controller\Exception\InvalidParameterException;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
+use Cake\Http\Exception\MethodNotAllowedException;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
 
@@ -359,7 +360,7 @@ class EntriesControllerTest extends IntegrationTestCase
         // Mitch (role mod): has pinAndLock but not edit.unrestricted.
         $this->_loginUser(2);
         $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
-        $this->get('/entries/ajaxToggle/10/fixed');
+        $this->post('/entries/ajaxToggle/10/fixed');
 
         $this->assertResponseOk();
         $this->assertResponseContains('OK');
@@ -515,10 +516,27 @@ class EntriesControllerTest extends IntegrationTestCase
     public function testSolveNotRootEntryDoesntBelongToCurrentUser()
     {
         $this->_loginUser(2);
-        $this->expectException(
-            'Cake\Http\Exception\BadRequestException'
-        );
+        // A refused attempt is a 403 and gets logged with who tried what. It
+        // used to be caught and re-thrown as an anonymous 400, which threw that
+        // away and made a forbidden action look like a malformed request.
+        $this->expectException(SaitoForbiddenException::class);
         $this->get('/entries/solve/2');
+    }
+
+    /**
+     * Pinning changes state, so it does not answer to a GET — the ajax header
+     * the action insists on keeps a cross-origin request out by accident, but
+     * CSRF protection never sees a GET at all.
+     *
+     * @return void
+     */
+    public function testAjaxToggleRejectsGet()
+    {
+        $this->_loginUser(2);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+
+        $this->expectException(MethodNotAllowedException::class);
+        $this->get('/entries/ajaxToggle/10/fixed');
     }
 
     public function testSolveIsRootEntry()

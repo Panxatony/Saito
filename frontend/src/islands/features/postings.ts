@@ -164,8 +164,10 @@ document.body.addEventListener('htmx:afterSwap', (event: Event) => {
     }, 5000);
 });
 
-// Tool menu — pin / lock (moderators). ajaxToggle is an ajax GET (no CSRF needed
-// on GET); on success reopen the posting so its state reflects the change.
+// Tool menu — pin / lock (moderators). Posts with the CSRF token like its
+// neighbours; it used to travel by GET, protected only by the X-Requested-With
+// header the controller insists on, which is a side effect rather than a
+// defence.
 document.addEventListener('click', (event: MouseEvent) => {
     const link = (event.target as HTMLElement).closest<HTMLElement>(
         '.js-btn-toggle-fixed, .js-btn-toggle-locked'
@@ -181,14 +183,20 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
     fetch(`/entries/ajaxToggle/${id}/${toggle}`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'same-origin',
     })
         .then((r) => {
             if (r.ok && leaf) {
-                const icon = leaf.querySelector<HTMLElement>('.btn_show_thread');
-                icon?.click(); // close
-                icon?.click(); // reopen with fresh state
+                // Throw the cached fragment away before reopening. Two clicks on
+                // the icon only hid and re-showed it — toggleInlinePosting takes
+                // the fetch path solely when no slider exists, so the moderator
+                // was looking at the state from before their own change and
+                // clicked again, setting the flag back.
+                leaf.querySelector('.threadInline-slider')?.remove();
+                leaf.classList.remove('is-inline-open');
+                leaf.querySelector<HTMLElement>('.btn_show_thread')?.click();
             }
         })
         .catch(() => undefined);
