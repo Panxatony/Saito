@@ -14,12 +14,15 @@ view* beside it shows all postings of a thread in one run instead. With *expand
 posting on click* switched on this happens in place, without changing page;
 another click restores the tree.
 
+Held open with Command or Ctrl, a posting opens in a new tab as usual.
+
 <!-- icon: pencil -->
 ### Writing
 
-*New posting* opens the editor in place. The toolbar formats text, inserts
-smilies and shows a preview. Your own postings can be changed with *edit*; they
-carry a note afterwards saying so.
+*New posting* opens the editor in place. The toolbar formats text and inserts
+smilies. *Preview* shows the posting as it will look — subject and heading line
+included — in a panel above the editor. The text box grows as you write. Your
+own postings can be changed with *edit*; they carry a note afterwards saying so.
 
 <!-- icon: image -->
 ### Images and media

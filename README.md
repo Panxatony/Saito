@@ -106,7 +106,7 @@ Push a version tag. CI runs the test suite, builds the tarball from a clean
 checkout and publishes it on the release page with its checksum:
 
 ```shell
-git tag 8.0.13 && git push github 8.0.13
+git tag 8.2.1 && git push github 8.2.1   # substitute the version you are releasing
 ```
 
 ## Credits

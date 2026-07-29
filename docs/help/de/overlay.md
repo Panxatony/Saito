@@ -14,11 +14,16 @@ Threads voreinstellen. Die *Mix-Ansicht* daneben zeigt stattdessen alle Beiträg
 des Threads am Stück. Ist *Posting aufklappen* eingeschaltet, geschieht das
 ohne Seitenwechsel; ein weiterer Klick stellt den Baum wieder her.
 
+Mit gedrückter Befehls- bzw. Strg-Taste geöffnet, landet ein Beitrag wie gewohnt
+in einem neuen Tab.
+
 <!-- icon: pencil -->
 ### Beiträge schreiben
 
 *Neuer Beitrag* öffnet den Editor an Ort und Stelle. Die Werkzeugleiste
-formatiert Text, fügt Smilies ein und zeigt eine Vorschau. Eigene Beiträge
+formatiert Text und fügt Smilies ein. *Vorschau* zeigt den Beitrag so, wie er
+später aussieht — mit Betreff und Kopfzeile — in einem Feld oberhalb des
+Editors. Das Textfeld wächst mit, wenn mehr geschrieben wird. Eigene Beiträge
 lassen sich über *Bearbeiten* ändern; sie tragen danach einen Hinweis darauf.
 
 <!-- icon: image -->
