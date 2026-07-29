@@ -120,6 +120,9 @@ class SmileyCodesController extends AdminAppController
      */
     public function delete($id)
     {
+        // See SmiliesController::delete().
+        $this->request->allowMethod(['post', 'delete']);
+
         if (!$id) {
             $this->Flash->set(
                 __('Invalid id for smiley code'),

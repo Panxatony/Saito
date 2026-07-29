@@ -17,6 +17,7 @@ use App\Model\Entity\User;
 use Cake\Cache\Cache;
 use Saito\Posting\Posting;
 use Cake\Core\Configure;
+use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ForbiddenException;
@@ -1043,19 +1044,30 @@ class UsersController extends AppController
      * Unblock user.
      *
      * @param string $id user-ID
-     * @return void
+     * @return \Cake\Http\Response|void
      */
     public function unlock(string $id)
     {
+        // The template has always used postLink(); the action simply never
+        // insisted, leaving a lured moderator's GET able to lift a block.
+        $this->request->allowMethod(['post']);
+
         $id = (int)$id;
 
-        /** @var User */
+        /** @var User|null */
         $user = $this->Users
             ->find()
             ->matching('UserBlocks', function ($q) use ($id) {
                 return $q->where(['UserBlocks.id' => $id]);
             })
             ->first();
+
+        // No such block: a second click on "unblock", or a click from a page
+        // rendered before somebody else lifted it. That used to reach
+        // getRole() on null and answer a moderator's click with a 500.
+        if ($user === null) {
+            throw new RecordNotFoundException('No such user block.');
+        }
 
         $permission = $this->CurrentUser->permission(
             'saito.core.user.lock.set',
@@ -1073,11 +1085,16 @@ class UsersController extends AppController
                 __('Error while unlocking.'),
                 ['element' => 'error']
             );
+
+            // Without the return, the success message below was set as well and
+            // the moderator was told both that it failed and that it worked.
+            return $this->redirect($this->referer());
         }
 
         $message = __('User {0} is unlocked.', $user->get('username'));
         $this->Flash->set($message, ['element' => 'success']);
-        $this->redirect($this->referer());
+
+        return $this->redirect($this->referer());
     }
 
     /**

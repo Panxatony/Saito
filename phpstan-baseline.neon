@@ -184,7 +184,7 @@ parameters:
 		-
 			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
 			identifier: cake.controller.redirectMustBeUsed
-			count: 5
+			count: 4
 			path: src/Controller/UsersController.php
 
 		-
