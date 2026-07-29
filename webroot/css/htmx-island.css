@@ -235,6 +235,67 @@
     max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
 }
 
+/* Preview card for an [embed] link — image beside title, description and source.
+   Falls to a stacked layout on a phone, where a picture and two columns of text
+   leave no room for either. */
+.htmx-island .embed-card {
+    display: flex;
+    gap: 0.75rem;
+    align-items: stretch;
+    max-width: 34rem;
+    margin: 0.5rem 0;
+    border: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.2));
+    border-radius: 0.5rem;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    background: var(--nova-surface, #fff);
+    transition: border-color .12s, box-shadow .12s;
+}
+.htmx-island .embed-card:hover,
+.htmx-island .embed-card:focus-visible {
+    border-color: var(--isl-accent, #fe5603);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+}
+.htmx-island .embed-card-image {
+    width: 10rem;
+    flex: 0 0 10rem;
+    object-fit: cover;
+    align-self: stretch;
+}
+.htmx-island .embed-card-body {
+    padding: 0.6rem 0.75rem;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.htmx-island .embed-card-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+.htmx-island .embed-card-description {
+    color: var(--nova-text-muted, #6b6357);
+    font-size: 0.9em;
+    line-height: 1.4;
+    /* Three lines, then stop — a long teaser must not out-shout the posting it
+       sits in. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.htmx-island .embed-card-provider {
+    font-size: 0.8em;
+    color: var(--nova-text-muted, #6b6357);
+    margin-top: auto;
+}
+@media (max-width: 480px) {
+    .htmx-island .embed-card { flex-direction: column; }
+    .htmx-island .embed-card-image { width: 100%; flex: 0 0 auto; height: 9rem; }
+}
+
 .htmx-island .js-editor-toolbar { align-items: center; }
 .htmx-island .js-editor-toolbar .btn-group { gap: 0.3rem; }
 .htmx-island .js-editor-toolbar .js-bb-btn,

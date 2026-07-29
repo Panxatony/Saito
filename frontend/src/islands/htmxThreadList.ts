@@ -29,6 +29,7 @@ import './features/postings';
 import './features/editor';
 import './features/uploads';
 import './features/smartInsert';
+import './features/embeds';
 import './features/widgets';
 import './features/categoryFilter';
 import './features/headerActions';
