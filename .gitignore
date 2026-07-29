@@ -44,6 +44,11 @@ plugins/Macnemo/webroot/css/*
 !plugins/Macnemo/webroot/css/src/
 
 plugins/Bota/webroot/fonts/*.woff*
+# The font licence is generated too: one source under webroot/css/src/fonts/,
+# copied next to the fonts by `grunt copy`. Tracking the copies as well would
+# give three files that must say the same thing and no reason for them to.
+plugins/Bota/webroot/fonts/OFL.txt
+plugins/Macnemo/webroot/fonts/OFL.txt
 
 webroot/css/stylesheets/*
 !webroot/css/stylesheets/src/

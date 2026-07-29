@@ -46,6 +46,23 @@ module.exports = function (grunt) {
             src: './node_modules/typeface-fenix/files/fenix-latin-400.woff*',
             dest: './plugins/Bota/webroot/fonts/',
           },
+          /// The licence those two fonts are under. The SIL Open Font License
+          /// requires its text to be distributed with the font, and the npm
+          /// packages carry only their own packaging licence — so it is kept in
+          /// the repository and copied next to the files it covers. Both theme
+          /// font directories get a copy, because either can be deployed alone.
+          {
+            expand: true,
+            flatten: true,
+            src: './webroot/css/src/fonts/OFL.txt',
+            dest: './plugins/Bota/webroot/fonts/',
+          },
+          {
+            expand: true,
+            flatten: true,
+            src: './webroot/css/src/fonts/OFL.txt',
+            dest: './plugins/Macnemo/webroot/fonts/',
+          },
         ]
       },
     },

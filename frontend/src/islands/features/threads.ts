@@ -144,18 +144,17 @@ document.addEventListener('click', (event: MouseEvent) => {
 
     const inlineOnClick = document.body.dataset.inlineOnClick === '1';
     const leaf = link.closest<HTMLElement>('.threadLeaf');
+    // First click with the setting on: open inline instead of navigating.
+    //
+    // Otherwise — setting off, or the posting already open — nothing happens
+    // here and the anchor does its own work. The href already points at the
+    // island page, so calling `preventDefault()` and assigning `location.href`
+    // only reproduced what the browser does, while removing everything else it
+    // can do with a link.
     if (inlineOnClick && leaf && !leaf.classList.contains('is-inline-open')) {
-        // First click: open inline instead of navigating.
         event.preventDefault();
         toggleInlinePosting(leaf);
-
-        return;
     }
-
-    // Setting off, or already open (second click): let the anchor do its own
-    // work. The href already points at the island page, so calling
-    // `preventDefault()` and assigning `location.href` only reproduced what the
-    // browser does — while removing everything else it can do with a link.
 });
 
 // Mix button on a thread box.

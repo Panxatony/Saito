@@ -82,6 +82,39 @@ function previewPanelFor(form: HTMLElement): HTMLElement | null {
     return null;
 }
 
+/**
+ * What the preview needs to know about the posting being written.
+ *
+ * Subject and category travel with the text so the preview can show the
+ * posting's heading and info line, not just its body. Both are optional, and
+ * each form supplies them differently — which is the whole reason this is worth
+ * a function of its own rather than another eight branches in the click
+ * handler.
+ */
+function previewPayload(form: HTMLElement, textarea: HTMLTextAreaElement): URLSearchParams {
+    const body = new URLSearchParams({ text: textarea.value });
+
+    const subject = form.querySelector<HTMLInputElement>('input[name="subject"]')?.value;
+    if (subject) {
+        body.append('subject', subject);
+    }
+
+    // From the chooser when the form has one (a new thread, or editing a thread
+    // starter). A reply has no chooser — it inherits its parent's — and neither
+    // does editing an answer, so those forms carry it as a data attribute.
+    const category = form.querySelector<HTMLSelectElement>('[name="category_id"]')?.value
+        || form.dataset.previewCategory;
+    if (category && category !== '0') {
+        body.append('categoryId', category);
+    }
+
+    // Nought for a posting that does not exist yet, the real count when an
+    // existing one is being edited.
+    body.append('views', form.dataset.previewViews ?? '0');
+
+    return body;
+}
+
 // Editor preview: render what the writer has so far through htmxPreview and
 // show it in the panel above the form. Wired explicitly (not via htmx's fragile
 // `next` target inside the hx-post form) so it works in the inline editor too.
@@ -99,27 +132,7 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
 
-    // Subject and category travel with the text, so the preview can show the
-    // posting's heading and info line and not just its body. Both are optional:
-    // a reply has no category chooser, and a posting may have no subject yet.
-    const body = new URLSearchParams({ text: textarea.value });
-    const subject = form.querySelector<HTMLInputElement>('input[name="subject"]')?.value;
-    if (subject) {
-        body.append('subject', subject);
-    }
-    // The category comes from the chooser when the form has one (a new thread,
-    // or editing a thread starter). A reply has no chooser — it inherits the
-    // parent's — and neither does editing an answer, so those forms carry it as
-    // a data attribute instead.
-    const category = form.querySelector<HTMLSelectElement>('[name="category_id"]')?.value
-        || form.dataset.previewCategory;
-    if (category && category !== '0') {
-        body.append('categoryId', category);
-    }
-    // Views: nought for a posting that does not exist yet, the real count when
-    // an existing one is being edited.
-    body.append('views', form.dataset.previewViews ?? '0');
-
+    const body = previewPayload(form, textarea);
     const url = btn.getAttribute('data-preview-url') ?? '/entries/htmx-preview';
     fetch(url, {
         method: 'POST',

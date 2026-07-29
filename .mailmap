@@ -1,0 +1,14 @@
+# Maps the several identities people have committed under onto one each, so
+# `git shortlog`, `git log --author` and anything counting contributions see a
+# person rather than an address.
+#
+# Format: canonical name and address first, then the variant being folded into
+# it. Nothing here rewrites history — it is a lookup table git applies when it
+# displays an author.
+
+# Two machines, one person: an early series of commits carries the hostname the
+# work was done on rather than a real address.
+Lars Vonhof-Hunold <lars@vonhof-hunold.de> Lars <lhuno@vserver19.panxatony.net>
+
+# Schlaefer used two addresses of the same mailbox across the years.
+Schlaefer <openmail+sourcecode@siezi.com> <openmail+github@siezi.com>
