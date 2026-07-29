@@ -48,6 +48,10 @@ class AdminsController extends AdminAppController
      */
     public function emptyCaches(): void
     {
+        // Flushing every cache is a state change, and a cheap one to
+        // repeat — it must not be reachable by GET.
+        $this->request->allowMethod(['post']);
+
         $this->CacheSupport->clear();
         $this->Flash->set(__('Caches cleared.'), ['element' => 'success']);
         $this->redirect($this->referer());

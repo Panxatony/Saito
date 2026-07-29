@@ -85,6 +85,17 @@ class UserHelper extends AppHelper
     /**
      * Creates link to user's external (non-Saito) homepage
      *
+     * The address is whatever a member typed into their profile, so it is
+     * untrusted twice over: the reader is somebody else, and one of those
+     * readers is a moderator opening a reported account.
+     *
+     * Two details carry the safety here. `escapeTitle` rather than `escape`:
+     * both keep the icon markup intact, but `escape` is *also* read by
+     * `UrlHelper::build()`, which then returns the address unescaped — a quote
+     * in it closed the href and everything after became live markup. And the
+     * scheme is matched as a whole rather than by a four-character prefix,
+     * which used to accept `httpfoo:` and hand it to the browser as a link.
+     *
      * @param string $url user provided URL-string
      * @return string link or escaped string
      */
@@ -92,13 +103,13 @@ class UserHelper extends AppHelper
     {
         $link = $url;
 
-        if (substr($link, 0, 4) == 'www.') {
+        if (str_starts_with($link, 'www.')) {
             $link = 'http://' . $link;
         }
-        if (substr($link, 0, 4) == 'http') {
+        if (preg_match('#^https?://#i', $link)) {
             $text = '<i class="fa fa-home fa-lg"></i>';
 
-            return $this->Html->link($text, $link, ['escape' => false]);
+            return $this->Html->link($text, $link, ['escapeTitle' => false]);
         }
 
         return h($url);

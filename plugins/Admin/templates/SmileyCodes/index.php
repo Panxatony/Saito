@@ -52,19 +52,21 @@
                         ['class' => 'btn btn-warning']
                     );
                     echo ' ';
-                    echo $this->Html->link(
+                    // See Smilies/index.php: deleting must not travel by GET,
+                    // and the confirm only takes effect as an option.
+                    echo $this->Form->postLink(
                         __('Delete'),
                         [
                             'action' => 'delete',
                             $smileyCode->get('id'),
                         ],
-                        ['class' => 'btn btn-danger'],
-                        sprintf(
-                            __(
-                                'Are you sure you want to delete # %s?'
+                        [
+                            'class' => 'btn btn-danger',
+                            'confirm' => sprintf(
+                                __('Are you sure you want to delete # %s?'),
+                                $smileyCode->get('id')
                             ),
-                            $smileyCode->get('id')
-                        )
+                        ]
                     );
                     ?>
                 </td>

@@ -36,7 +36,10 @@ $this->Breadcrumbs->add(__('admin.sysInfo.h'), false);
 </div>
 <hr/>
 <?=
-$this->Html->link(
+// Flushing every cache is a state change, so it travels by POST — a GET link
+// can be fired by any image tag on a page an admin happens to open, and
+// repeatedly at that.
+$this->Form->postLink(
     __('Empty Caches'),
     ['controller' => 'admins', 'action' => 'emptyCaches', 'plugin' => 'admin'],
     ['class' => 'btn btn-warning']
