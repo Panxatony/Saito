@@ -235,6 +235,37 @@
     max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
 }
 
+/* The remaining-characters count, inside the field at its right edge.
+   subjectCount.ts wraps the field so the number can be pinned to the field
+   rather than to the wider row it sits in; the width rule therefore moves to the
+   wrapper and the field goes back to filling what it is given. The right padding
+   is what keeps a long subject from running under the number. */
+.htmx-island .subject-field {
+    position: relative;
+    display: block;
+    max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
+}
+.htmx-island .subject-field .js-subject {
+    max-width: none;
+    width: 100%;
+    padding-right: 3.2rem;
+}
+.htmx-island .subject-count {
+    position: absolute;
+    right: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    line-height: 1;
+    color: var(--isl-text-muted, #6b6560);
+    font-variant-numeric: tabular-nums;
+    /* Decorative twin of the field's own maxlength: clicking it should put the
+       cursor in the field, not select a number. */
+    pointer-events: none;
+    user-select: none;
+}
+.htmx-island .subject-count.is-low { color: var(--isl-danger, #b3261e); }
+
 /* Preview card for an [embed] link — image beside title, description and source.
    Falls to a stacked layout on a phone, where a picture and two columns of text
    leave no room for either. */
