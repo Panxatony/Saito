@@ -7,6 +7,58 @@
 
 ## [next] -
 
+## [8.2.5] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.4...8.2.5)
+
+Fixes only; no migration and no new configuration. Upgrading from 8.2.4 is a
+code deploy.
+
+One thing to check before deploying, if your installation sets upload sizes as
+text: a value the parser cannot read is now refused instead of being silently
+replaced by the built-in default (see below). `'8MB'` and `'650kB'` are fine;
+`'8 Megabytes'` is not, and would now stop the application at start-up rather
+than quietly meaning 2 MB.
+
+### Changes
+
+- ✓ Fix: **bookmarks were saved past their own validation.** `UsersTable` and
+  `EntriesTable` declared the association without the plugin prefix, so CakePHP
+  quietly bound a generic table to the same rows — without the duplicate check,
+  the "posting exists" and "user exists" checks, or the timestamps. Only the
+  deletion path went through it, which is why nothing had noticed.
+- ✓ Fix: **editing a smiley without an id answered with a server error**
+  instead of "Invalid smiley." The guard combined two conditions with `and`
+  where it needed `or`; the deletion path had it right.
+- ✓ Fix: **a mistyped upload size silently became the default.** `'8 Megabytes'`
+  in `config/saito_config.php` meant 2 MB and said nothing. It is now refused,
+  naming the value.
+- ✓ Fix: **the who's-online list could go permanently empty with nothing in the
+  log.** A database error during the online-ping was caught and discarded — the
+  suppression was meant for one specific race and applied to everything.
+  Anything else is raised again.
+- ✓ Fix: an installation whose settings table is empty got an empty
+  configuration rather than the intended error, and that empty configuration was
+  then cached.
+- ✓ Fix: deleting a smiley code showed its success message in the error styling.
+- Δ Change: **the subject field is no longer wider than the subject may be
+  long.** It spanned the whole form, so it invited a headline several times what
+  the forum accepts. The width follows the admin setting for subject length.
+  Editing a posting also had no length limit at all, while adding and replying
+  did — so that was the one place where the limit was only discovered on saving.
+- − Removed: the Spectrum colour picker. Nothing had called it since the profile
+  moved to the browser's own colour input, and it could not have worked anyway —
+  it needs jQuery, which left with the old frontend.
+
+### Under the hood
+
+- Static analysis: eight suppressed findings turned out to be real defects (six
+  of them above). The suppression list is down from 52 entries to 36, and the
+  rule that catches a redirect whose result is dropped — the shape behind two of
+  this week's bugs — is no longer switched off for the files that need it.
+- A release whose CHANGELOG section is missing is now refused before it is
+  built, rather than published with its version number as the only note.
+
 ## [8.2.4] - 2026-07-29
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.3...8.2.4)
