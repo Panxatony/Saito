@@ -31,9 +31,12 @@ lassen sich über *Bearbeiten* ändern; sie tragen danach einen Hinweis darauf.
 <!-- icon: image -->
 ### Bilder und Medien
 
-*Medien einfügen* nimmt eine Adresse entgegen und erkennt selbst, ob Bild,
-Video oder YouTube-Clip. Eigene Dateien lädt der Bereich daneben hoch und legt
-sie in ein Archiv, aus dem sich später auswählen lässt.
+*Verweis/Einbinden* nimmt eine Adresse entgegen und erkennt selbst, was daraus
+wird: ein Bild, ein Video, ein YouTube-Clip oder ein gewöhnlicher Verweis. War
+im Editor Text markiert, ist er schon eingetragen — eine Adresse als Adresse,
+alles andere als Beschriftung des Verweises. Der markierte Text wird dabei
+ersetzt, steht also nicht doppelt da. Eigene Dateien lädt der Bereich daneben
+hoch und legt sie in ein Archiv, aus dem sich später auswählen lässt.
 
 <!-- icon: filter -->
 ### Kategorien filtern

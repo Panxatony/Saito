@@ -80,13 +80,17 @@ $buttons = [
                     title="<?= h($title) ?>" aria-label="<?= h($title) ?>"><?= $label ?></button>
         <?php endforeach; ?>
     </div>
-    <?php // Link + Media both open the smart insert overlay (auto-detects type). ?>
+    <?php
+    // One button, not two. There used to be a "Link" and a "Media" button side
+    // by side, identical in every respect — same class, same overlay, same
+    // behaviour. What is inserted has never depended on which one was pressed
+    // but on the address typed into it: a YouTube link becomes a frame, an image
+    // address an [img], a media file a [video] or [audio], anything else a link.
+    // Two buttons offered a choice that did not exist.
+    ?>
     <button type="button" class="btn btn-secondary btn-sm js-insertOpen"
             data-preview-url="<?= h($previewUrl) ?>"
-            title="<?= h(__('Link')) ?>" aria-label="<?= h(__('Link')) ?>"><?= $icon($icons['link']) ?></button>
-    <button type="button" class="btn btn-secondary btn-sm js-insertOpen"
-            data-preview-url="<?= h($previewUrl) ?>"
-            title="<?= h(__('Media')) ?>" aria-label="<?= h(__('Media')) ?>"><?= $icon($icons['media']) ?></button>
+            title="<?= h(__('insert.title')) ?>" aria-label="<?= h(__('insert.title')) ?>"><?= $icon($icons['link']) ?></button>
     <button type="button" class="btn btn-sm btn-link js-bb-upload" title="<?= h(__('upl.title.pl')) ?>">
         <?= $icon($icons['upload']) ?> <?= h(__('upl.title.pl')) ?>
     </button>

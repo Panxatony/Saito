@@ -28,9 +28,12 @@ own postings can be changed with *edit*; they carry a note afterwards saying so.
 <!-- icon: image -->
 ### Images and media
 
-*Insert media* takes an address and works out for itself whether it is an
-image, a video or a YouTube clip. The area beside it uploads files of your own
-into an archive to pick from later.
+*Link/Embed* takes an address and works out for itself what it becomes: an
+image, a video, a YouTube clip or an ordinary link. If text was selected in the
+editor it is already filled in — an address as the address, anything else as the
+link's label — and the selection is replaced rather than left standing beside
+it. The area beside it uploads files of your own into an archive to pick from
+later.
 
 <!-- icon: filter -->
 ### Filtering categories
