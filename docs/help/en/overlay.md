@@ -25,6 +25,10 @@ pasted; paste without formatting if you would rather it did not. *Preview* shows
 included — in a panel above the editor. The text box grows as you write. Your
 own postings can be changed with *edit*; they carry a note afterwards saying so.
 
+When replying, the subject of the posting being answered stands pale in the
+field with *Re:* in front. It is used as it is when nothing is typed, and gets
+out of the way as soon as you write.
+
 <!-- icon: image -->
 ### Images and media
 
@@ -32,7 +36,14 @@ own postings can be changed with *edit*; they carry a note afterwards saying so.
 image, a video, a YouTube clip or an ordinary link. If text was selected in the
 editor it is already filled in — an address as the address, anything else as the
 link's label — and the selection is replaced rather than left standing beside
-it. The area beside it uploads files of your own into an archive to pick from
+it.
+
+An ordinary link can additionally be ticked as *Insert as preview card*: the
+forum then fetches the title, teaser and picture from the linked page and shows
+a card instead of a bare address. Images and videos are not offered this — they
+already show as themselves.
+
+The area beside it uploads files of your own into an archive to pick from
 later.
 
 <!-- icon: filter -->

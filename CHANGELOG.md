@@ -7,6 +7,52 @@
 
 ## [next] -
 
+## [8.2.7] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.6...8.2.7)
+
+No migration and no new configuration; upgrading from 8.2.6 is a code deploy.
+Mostly editor work, plus one feature that turns out to have been half-built all
+along.
+
+### Changes
+
+- ＋ Added: **link previews**. Pasting an article address can now show a card —
+  title, teaser and picture from the linked page — instead of a bare URL. Tick
+  *insert as preview card* in the insert dialogue; images and videos are not
+  offered it, being already visible as themselves.
+
+  The server side of this has existed and worked the whole time: `[embed]`
+  fetched the page and read its data, and then handed the result to a frontend
+  that had been removed. The forum has been fetching previews and showing nobody
+  anything. What the far end supplies as ready-made markup is deliberately still
+  ignored — the card is built from the individual fields, so a link in a posting
+  cannot become script on the forum.
+- Δ Change: **one insert button instead of two.** *Link* and *Media* were the
+  same button twice — same dialogue, same behaviour, different icon. What gets
+  inserted has never depended on which was pressed but on the address given:
+  a YouTube link becomes a frame, an image address an image, anything else a
+  link. The one that remains says *Link/Embed*.
+- ＋ Added: **the insert dialogue starts from the selection.** Select a word,
+  press the button, and it is already in place — an address as the address,
+  anything else as the link's label. The selected text is replaced by the
+  result rather than left standing beside it.
+- ＋ Added: **replies offer the thread's subject.** It stands pale in the field
+  with *Re:* in front, is used as it is when nothing is typed, and gets out of
+  the way as soon as you write. The prefix does not stack, and it is
+  translatable for installations that write it differently.
+
+### Under the hood
+
+- The paste-to-BBCode converter was one function of cyclomatic complexity 55,
+  rated critical — the project's own note says to act at that point, so it was
+  taken apart into four. Verified against the previous version over eighteen
+  paste cases with identical output. Expect the *count* of complexity findings
+  to rise rather than fall: splitting one function into four turns one
+  occurrence into four.
+- Two queries that deliberately return arrays rather than entities now say so,
+  which retires fifteen suppressed findings that were reporting correct code.
+
 ## [8.2.6] - 2026-07-29
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.5...8.2.6)
