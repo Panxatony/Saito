@@ -20,10 +20,22 @@ one installation at a time:
 
 - `config/nginx/saito.conf.example` carries the strict policy, still commented
   out, because anything an installation embeds has to be added to it first.
-- **The test system runs it. Prod and beta do not.** Their header still allows
-  `'unsafe-inline'`, so the protection the release was written for is not in
-  place where it matters most. Changing that is a change on hosting02, not in
-  this repository.
+- **Test and beta run it.** Beta was switched on at the edge on 2026-07-30 and
+  measured in a browser afterwards: four pages, zero policy violations, zero
+  JavaScript errors, and 209 Alpine/htmx markers in the DOM to show the scripts
+  really did run. The detector was checked against a page that violates on
+  purpose, so the zero means something.
+- **Prod cannot have it yet, and the reason is the version.** macnemo.de runs
+  8.2.9; the change that removed the last inline scripts is in 8.3.0. Its own
+  markup was rendered against the strict policy on 2026-07-30 and produced
+  **four blocks**: the theme-stylesheet picker, the font scale, the Plausible
+  snippet, and the Plausible script itself. The first two run before the page is
+  painted — blocking them is not a console message, it is a visibly wrong page.
+
+  So this waits on the 8.3.0 deploy, and needs one addition beyond the example
+  policy: `https://plausible.panxatony.net` in both `script-src` and
+  `connect-src`. Prod's current header already allows it; what has to go is
+  `'unsafe-inline'` from `script-src`, and only after 8.3.0 is live.
 - `'unsafe-eval'` has to stay: Alpine evaluates its expressions as strings. It
   is the far less dangerous of the two — it does not enable an injected event
   handler, which is what the stored XSS of 8.2.3 actually used.
