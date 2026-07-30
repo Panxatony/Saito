@@ -5,7 +5,26 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.0-alpha.2] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0-alpha...8.3.0-alpha.2)
+
+**Still a pre-release**, and it carries one migration more than the first alpha:
+three in total. The upgrade notes are unchanged otherwise — run
+`bin/cake migrations migrate` from the command line and clear the schema cache
+afterwards, or the forum answers 500 on every page. See the entry below.
+
+- ✓ Fixed: **an error page is an error page again.** Any address containing
+  `api/` anywhere in it — the query string counted — was answered as JSON
+  rather than as the error page: asking for something that does not exist with
+  `?x=api/` on the end produced `{"errors":[…]}` for a reader. The API itself is
+  unaffected and still answers JSON where it should.
+
+- Δ Changed: **CakePHP 5.3.6 → 5.4.1**, along with eight other direct
+  dependencies, plus `aura/di` and Symfony's DOM crawler a major version each.
+  Nothing that required a change to the application; the two static-analysis
+  findings the framework's tightened types produced were in our own
+  annotations, which were saying less than the framework already knew.
 
 - − Removed: **`ecaches`, a cache table Saito stopped writing to in 2014.** The
   code that used it went in 4.6.0 and the table stayed, which is what happens to
