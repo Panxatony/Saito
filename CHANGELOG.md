@@ -7,6 +7,50 @@
 
 ## [next] -
 
+## [8.2.9] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.8...8.2.9)
+
+No migration and no new configuration; upgrading from 8.2.8 is a code deploy.
+
+Two of the four below have been running on the macnemo forum as hand-applied
+patches since they were written. This release is what makes them a version you
+can name — an installation patched by hand is one nobody can reproduce.
+
+- ✓ Fixed: **pinning and unpinning a thread works again.** It has been dead since
+  the frontend rewrite and failed in complete silence: the island posts the
+  request with a token in the header and no form behind it, and the
+  form-tampering guard — which had this one endpoint outside its exemption
+  list — rejected every attempt before it reached the code. Nothing appeared on
+  screen; the only trace was a line in the server log.
+
+  The whole test suite passed throughout, because the integration test harness
+  attaches a form token to every request it makes. Every test therefore looked
+  like a form submission, which a browser's `fetch` is not — the harness was more
+  permissive than the thing it stands in for. The regression test switches that
+  token off, which is the only way it could have caught this. A second test now
+  walks the island's write endpoints and fails if any of them is left out of the
+  exemption list, so the next one cannot be added silently.
+
+- ✓ Fixed: **a member at the upload limit can make room.** Reaching the
+  per-member ceiling was a dead end: the editor's upload area said the limit was
+  reached and offered no way to delete anything, and nothing mentioned that
+  deleting lives in the profile. So the member could neither add nor remove — from
+  where they were standing, the archive was simply stuck. Every tile in that area
+  now carries the same delete control the profile has, and the message says so.
+
+- ✓ Fixed: **thread lines sit in the middle of their boxes again.** They were
+  pinned to the top edge with a full spacer of empty room underneath: the box
+  inherits padding on all four sides and only the top one had been taken away.
+  Invisible while the box had no border, obvious once it grew one. The boxes keep
+  their height, so a page of threads is no taller than before.
+
+- ＋ Added: **the subject field says how many characters are left.** The limit is
+  an admin setting and has always been on the field, so it could not be
+  exceeded — the field simply stopped accepting input once it was reached, with
+  nothing to say the end was near. The count sits at the right-hand edge of the
+  field and turns red for the last stretch.
+
 ## [8.2.8] - 2026-07-29
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.7...8.2.8)
