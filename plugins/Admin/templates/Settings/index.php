@@ -95,63 +95,9 @@ $this->end('settings');
         </div>
     </div>
 </div>
-<script>
-// Highlight the section currently in view in the sidebar — what Bootstrap's
-// ScrollSpy used to do here. The anchors the helper emits are empty divs with
-// no height, so this measures their position rather than observing them: the
-// last anchor that has passed the top of the viewport is the current one.
-// Without this the links still jump correctly, they just do not follow along.
-(function () {
-    var links = document.querySelectorAll('.navbarsidelist .nav-link');
-    if (!links.length) {
-        return;
-    }
-
-    var sections = [];
-    Array.prototype.forEach.call(links, function (link) {
-        var anchor = document.getElementById(link.getAttribute('href').slice(1));
-        if (anchor) {
-            sections.push({ link: link, anchor: anchor });
-        }
-    });
-    if (!sections.length) {
-        return;
-    }
-
-    var pending = false;
-    function update() {
-        pending = false;
-
-        // A little below the top edge, so the heading one is reading counts as
-        // current rather than the one just scrolled past.
-        var line = 80;
-        var current = sections[0];
-        sections.forEach(function (section) {
-            if (section.anchor.getBoundingClientRect().top <= line) {
-                current = section;
-            }
-        });
-
-        // At the very bottom the last section may never reach the line — no
-        // scrolling left to do — so claim it explicitly.
-        if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 2) {
-            current = sections[sections.length - 1];
-        }
-
-        sections.forEach(function (section) {
-            section.link.classList.toggle('active', section === current);
-        });
-    }
-
-    function schedule() {
-        if (!pending) {
-            pending = true;
-            window.requestAnimationFrame(update);
-        }
-    }
-
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
-    update();
-})();
-</script>
+<?php
+// The sidebar scroll-spy used to be an inline <script> here. It moved into
+// the admin bundle (frontend/src/adminScrollSpy.ts), which every backend page
+// loads anyway, so the content-security policy can stop allowing
+// 'unsafe-inline'.
+?>

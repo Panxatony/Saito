@@ -14,7 +14,20 @@
  */
 ?>
 <!DOCTYPE html>
-<html>
+<?php
+// The theme's two stylesheets, handed to the pre-paint script on the root
+// element. That script is a static file and cannot carry values the server
+// computes, and an inline block is what dropping 'unsafe-inline' from the
+// content-security policy forbids. `getTheme()` is set by ThemesComponent in
+// AppController::beforeRender().
+$theme = $this->getTheme();
+$themeAttrs = '';
+if ($theme) {
+    $themeAttrs = ' data-theme-css="' . h($this->Url->assetUrl($theme . '.css/theme.css')) . '"'
+        . ' data-night-css="' . h($this->Url->assetUrl($theme . '.css/night.css')) . '"';
+}
+?>
+<html<?= $themeAttrs ?>>
 <head>
     <title><?= h($titleForLayout ?? '') ?></title>
     <?php if (\Cake\Core\Configure::read('Saito.noindex')) : ?>
@@ -33,42 +46,22 @@
     <?= $this->fetch('css') ?>
 
     <?php
-    // Theme look. The theme's own layout/default.php loads this via a
-    // SaitoApp-dependent `document.write`; replicate it here without the SPA
-    // global so migrated pages keep the operator's theme (incl. the night
-    // preset toggled via localStorage). $this->getTheme() is the active theme
-    // set by ThemesComponent in AppController::beforeRender().
-    $theme = $this->getTheme();
-    if ($theme) {
-        $themeCss = $this->Url->assetUrl($theme . '.css/theme.css');
-        $nightCss = $this->Url->assetUrl($theme . '.css/night.css');
-        ?>
-        <script>
-            (function () {
-                var css = <?= json_encode($themeCss) ?>;
-                try {
-                    if (localStorage.theme === 'night') { css = <?= json_encode($nightCss) ?>; }
-                } catch (e) { /* localStorage unavailable */ }
-                document.write('<link id="js-themeCss" rel="stylesheet" type="text/css" href="' + css + '">');
-            })();
-        </script>
-        <noscript><?= $this->Html->css($theme . '.theme.css') ?></noscript>
-        <?php
-    }
+    // Before anything is painted: which theme stylesheet to load and the reader's
+    // font scale, both per-device preferences out of localStorage. Deliberately
+    // *not* deferred — a synchronous external script still runs before the first
+    // paint, which is the whole point; `defer` would bring back the flash of the
+    // wrong theme these lines exist to prevent.
+    //
+    // It used to be two inline blocks. External so the content-security policy can
+    // drop 'unsafe-inline' without the application having to take the policy over
+    // from the edge and hand out a nonce per request.
     ?>
+    <script src="<?= h($this->Url->assetUrl('boot.bundle.js', ['pathPrefix' => 'js/'])) ?>"></script>
+    <?php if ($theme) : ?>
+        <noscript><?= $this->Html->css($theme . '.theme.css') ?></noscript>
+    <?php endif; ?>
 
-    <?php // User font-size preference (set in settings, stored per device like the
-          // night/day theme). Applied here before paint to avoid a size flash. ?>
-    <script>
-        (function () {
-            try {
-                var s = localStorage.islandFontScale;
-                if (s) { document.documentElement.style.fontSize = s + '%'; }
-            } catch (e) { /* localStorage unavailable */ }
-        })();
-    </script>
-
-    <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
+        <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
     <?php // RSS feed autodiscovery (public feeds) so browsers/readers find them. ?>
     <?php $webrootFeed = $this->request->getAttribute('webroot'); ?>
     <link rel="alternate" type="application/rss+xml"

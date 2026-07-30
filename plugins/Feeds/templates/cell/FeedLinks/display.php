@@ -23,7 +23,6 @@
                     class="form-control js-feed-url"
                     value="<?= h($feed['url']) ?>"
                     readonly
-                    onclick="this.select()"
                     aria-label="<?= h($feed['label']) ?>">
                 <button
                     type="button"
@@ -47,35 +46,9 @@
     <?= h($personalized ? __d('feeds', 'feeds.personalized.hint') : __d('feeds', 'feeds.public.hint')) ?>
 </p>
 <?php
-// Copy-to-clipboard for the feed URL fields. Delegated + guarded so it binds
-// once even if the cell renders more than once on a page. The readonly input's
-// onclick=select() is the no-JS fallback (select then Ctrl+C).
-echo $this->Html->scriptBlock(
-    <<<'JS'
-    (function () {
-        if (window.__saitoFeedCopyInit) { return; }
-        window.__saitoFeedCopyInit = true;
-        document.addEventListener('click', function (event) {
-            var btn = event.target.closest('.js-feed-copy');
-            if (!btn) { return; }
-            var group = btn.closest('.feed-links-actions');
-            var field = group && group.querySelector('.js-feed-url');
-            if (!field) { return; }
-            field.select();
-            var done = function () {
-                var original = btn.textContent;
-                btn.textContent = btn.getAttribute('data-copied-label') || original;
-                window.setTimeout(function () { btn.textContent = original; }, 1500);
-            };
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(field.value).then(done, function () {
-                    try { document.execCommand('copy'); done(); } catch (e) {}
-                });
-            } else {
-                try { document.execCommand('copy'); done(); } catch (e) {}
-            }
-        });
-    })();
-    JS
-);
+// The copy button and the select-on-click used to live here, as an inline
+// script block and an onclick attribute. Both moved into the island bundle
+// (features/feedLinks.ts): this cell only renders on island pages, so that
+// bundle is already loaded, and inline script is what the content-security
+// policy stops allowing once 'unsafe-inline' goes.
 ?>

@@ -63,51 +63,39 @@ already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
 on Alpine now — so its markup is the one thing still tying it to Bootstrap.
 Doing it separately means paying for it twice.
 
-### Take `'unsafe-inline'` out of the script policy
+### `'unsafe-inline'`: the application side is done, the header is per install
 
-The stored XSS fixed in 8.2.3 was dangerous because of what stood behind it, not
-because of what it was. The last link — a role change that asked for nothing but
-the session — closed in 8.2.4. This is the other one, and the bigger lever: with
-it gone, that XSS would have been inert.
+Saito no longer emits inline script of any kind — no `<script>` with a body, no
+event attributes, anywhere in the repository. Verified in a browser rather than by
+reading: with `script-src 'self' 'unsafe-eval'` in force, four pages load with
+zero policy violations, zero JavaScript errors, and the island visibly enhancing
+the DOM.
 
-**The CSP allows `'unsafe-inline'` for scripts**, so it does not stop an
-`onerror=` handler. The header (set at the edge, not by the app) currently
-reads:
+What moved, in 8.3.0: the two pre-paint blocks (theme stylesheet, font scale) into
+a synchronous external `boot.bundle.js` — synchronous because that still runs
+before the first paint, which is the whole reason they were inline; the feed copy
+button and its select-on-click into the island bundle; the settings scroll-spy
+into the admin bundle. `[spoiler]` was the fourth and went in 8.2.8.
 
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://plausible.panxatony.net
+**A nonce turned out to be unnecessary**, which is why this is smaller than the
+plan said. The blocks were inline only to run early, and a synchronous external
+script does that too — so the application never had to take the policy over from
+the edge, and there is no per-request secret to get wrong.
 
-Dropping `'unsafe-inline'` is the single biggest lever against this whole class,
-and it is achievable — but not free, because three things rely on it today:
+`'unsafe-eval'` stays: Alpine evaluates `x-data`/`x-show` expressions as strings.
+It is the far less dangerous of the two — it does not enable an injected event
+handler, which is what the stored XSS of 8.2.3 actually used.
 
-- `templates/layout/htmx_island.php` has two blocks that must run *before*
-  paint: the theme stylesheet choice out of `localStorage` (still via
-  `document.write`) and the font scale. Externalising them reintroduces the
-  flash they exist to prevent, so these need a **nonce** — generated per request
-  and passed into the header, which means the app has to own the CSP rather than
-  the edge.
-- `plugins/Admin/templates/Settings/index.php` carries the scroll-spy
-  replacement. That one just belongs in the admin bundle.
-- `plugins/Feeds/templates/cell/FeedLinks/display.php` uses
-  `onclick="this.select()"` as a documented no-JS fallback; a delegated listener
-  does the same.
+**What is left is deployment, not code.** The policy lives at the edge, one web
+server at a time:
 
-There used to be a fourth, and it was the dangerous kind: the `[spoiler]` parser
-wrote an `onclick` into every spoiler it rendered. Nothing linked to the tag, so
-dropping `'unsafe-inline'` would have broken a working feature that nobody was
-watching. 8.2.8 moved it to a delegated handler and gave it an editor button, so
-it is now both reachable and policy-safe.
-
-`'unsafe-eval'` is a separate question and probably **not** worth chasing:
-Alpine evaluates its expressions as strings, so removing it means the CSP build
-plus rewriting the expressions in nine templates into component methods. It also
-buys far less — `unsafe-eval` does not enable an inline event handler, which is
-what the attack actually used.
-
-Worth noting what the current CSP *does* achieve, so it is not mistaken for
-useless: `connect-src 'self'` and `form-action 'self'` keep data from being
-posted off-site. It just cannot help against an attacker who acts same-origin,
-and a takeover needs nothing else. (`img-src` allows `https:` generically, so
-that exfiltration path is open regardless.)
+- `config/nginx/saito.conf.example` carries the strict policy, still commented
+  out, because anything an installation embeds has to be added first.
+- The test system runs it. Prod and beta do not yet — their header still allows
+  `'unsafe-inline'`, so the protection is not in place there until the header is
+  changed on hosting02.
+- `style-src` keeps `'unsafe-inline'`: templates still set `style` attributes, and
+  inline style is not a route to code execution.
 
 ### The audit's correctness findings
 

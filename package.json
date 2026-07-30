@@ -32,7 +32,7 @@
   },
   "scripts": {
     "lint": "tsc --noEmit && eslint \"frontend/src/**/*.ts\"",
-    "build": "ENTRY=htmx-threads vite build && ENTRY=admin vite build",
+    "build": "ENTRY=htmx-threads vite build && ENTRY=admin vite build && ENTRY=boot vite build",
     "dev": "ENTRY=htmx-threads vite build --watch",
     "typecheck": "tsc --noEmit"
   },

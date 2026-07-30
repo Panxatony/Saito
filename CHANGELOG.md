@@ -7,6 +7,26 @@
 
 ## [next] -
 
+- Δ Changed: **nothing in Saito is an inline script any more**, so a
+  content-security policy can forbid them. That is the strongest single measure
+  against stored cross-site scripting: with inline script refused, a payload that
+  reaches the page still does not run — the hole closed in 8.2.3 would have been
+  inert. Four things had to move: the two blocks that pick the theme and the font
+  scale before the page is painted, the feed copy button, and the settings
+  sidebar's scroll-spy. `[spoiler]` was the fifth and moved in 8.2.8.
+
+  A per-request nonce turned out not to be needed. Those blocks were inline only
+  in order to run early, and a plain external script loaded synchronously does
+  that just as well — so the policy can stay where it is instead of the
+  application taking it over.
+
+  **This does not switch itself on.** The policy is a web-server header, one
+  installation at a time; `config/nginx/saito.conf.example` carries it, still
+  commented out, because anything you embed has to be added to it first.
+  `'unsafe-eval'` has to stay — Alpine evaluates its expressions as strings — but
+  that is the far less dangerous of the two, since it does not enable an injected
+  event handler.
+
 - ✓ Fixed: **a member at the upload limit can make room.** Reaching the
   per-member ceiling was a dead end: the editor's upload area said the limit was
   reached and offered no way to delete anything, and nothing mentioned that

@@ -161,11 +161,16 @@ sends `nosniff` / `Referrer-Policy` from the application layer, so dynamic pages
 stay covered even behind a different web server.
 
 A commented-out `Content-Security-Policy` starting point is included as well. It
-is off by default because CSP is install-specific and a wrong policy breaks the
-page: Saito's SPA relies on inline scripts (so a strict, nonce-based CSP is not
-shipped yet), and any analytics or external host you embed must be added to
-`script-src`/`connect-src`. Enable it only after widening it for your setup and
-checking the browser console for violations.
+is off by default because a policy is install-specific and a wrong one breaks the
+page quietly — anything external you embed (analytics, an image host) has to be
+added to `script-src`/`connect-src` first. Enable it after widening it for your
+setup and watching the browser console.
+
+Since 8.3.0 that policy **forbids inline script**, which is the part worth
+having: a stored-XSS payload that reaches the page still does not run. Saito emits
+no inline `<script>` and no event attributes anywhere. `'unsafe-eval'` remains,
+because Alpine evaluates its expressions as strings; it is the far less dangerous
+of the two, since it does not enable an injected event handler.
 
 ### Access logs without full IP addresses
 

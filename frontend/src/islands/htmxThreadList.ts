@@ -36,6 +36,7 @@ import './features/widgets';
 import './features/categoryFilter';
 import './features/headerActions';
 import './features/modals';
+import './features/feedLinks';
 import './features/flash';
 import './features/appearance';
 import './features/userColors';

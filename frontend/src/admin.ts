@@ -11,6 +11,7 @@
  * — they are just less convenient.
  */
 import Alpine from 'alpinejs';
+import { initAdminScrollSpy } from './adminScrollSpy';
 
 /** A table row reduced to what sorting and filtering need. */
 interface Row {
@@ -172,3 +173,8 @@ Alpine.data('adminNav', () => ({
 }));
 
 Alpine.start();
+
+// The settings sidebar's scroll-spy. Was an inline <script> in the settings
+// template, which is what a content-security policy without 'unsafe-inline'
+// refuses; it belongs in this bundle, which every backend page loads.
+initAdminScrollSpy();
