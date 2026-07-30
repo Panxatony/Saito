@@ -41,6 +41,12 @@ exclude_patterns = [
   # the `'use strict'` that is correct in a CommonJS module). Named explicitly
   # because the glob `**` does not match direct root files.
   "Gruntfile.js",
+  # eslint.config.mjs: the lint configuration itself. It is a genuine ES module
+  # — `.mjs` says so and Node reads it that way — but DeepSource parses it as a
+  # script and reports its first `import` as a syntax error (JS-0833, the same
+  # finding frontend/src/exports.js is excluded for). Nothing about the file is
+  # wrong, and there is no per-file parser setting to correct the reading.
+  "eslint.config.mjs",
   # exports.js: the jQuery/underscore/Bootstrap globals the administration
   # backend needs. A .js entry among the .ts source, and DeepSource parses .js
   # as a script and errors on `import` (JS-0833).
@@ -121,6 +127,17 @@ enabled = true
 # they are, and it cannot tell a split from a regression.
 #
 # Revisit if something crosses into "high risk" or grows past ~15.
+#
+# That stance was narrowed once, on 2026-07-30. Five functions were split for
+# this rule after the JavaScript check went red on them: three that 8.3.0 had
+# just added (the pre-paint boot script, the settings scroll-spy, the draft
+# discard handler) and the admin table's init() and apply(), reported again once
+# the file was touched. Strictly, waiting would also have cleared the check —
+# an occurrence is only "newly introduced" once. They were split anyway,
+# because each was doing several separable jobs and reads better apart, not to
+# move a number. That is the test to apply next time: split when the function
+# is genuinely two functions, leave it when the score is just counting guard
+# clauses. The fourteen other functions above the threshold were left alone.
 
 # JS-0052 ("alert/confirm/prompt") is *not* a false positive and is therefore
 # not ignored here: it is suppressed with a `skipcq` comment at the one call
