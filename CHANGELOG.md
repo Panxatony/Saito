@@ -22,6 +22,19 @@
   parent while all of its replies still belonged to the old thread — a state that
   could not be repaired, or even retried, from the interface.
 
+- Δ Changed: **the themes stop shipping the Bootstrap they do not use.** The
+  theme stylesheet imported all thirty-eight Bootstrap modules; nineteen of them
+  styled components the forum does not have — modals, carousels, spinners,
+  tooltips, pagination, breadcrumbs and the rest. Bootstrap's JavaScript has not
+  been loaded since 8.1.0 and the island brings its own overlay, so those rules
+  could not have been doing anything. All six stylesheets are **23% smaller**;
+  nothing in any template changes and no derived theme breaks.
+
+  The list was derived rather than guessed: every class used in the frontend was
+  collected, each module compiled on its own, and the two compared. Three classes
+  looked needed and were not — they come from the administration templates, which
+  get their Bootstrap from a separate file this does not touch.
+
 - ✓ Fixed: **a code block shows the characters that were typed.** The posting
   text is HTML-escaped before it is parsed, and the syntax highlighter escaped it
   a second time, so `<button>` reached the reader as the literal `&lt;button&gt;`
