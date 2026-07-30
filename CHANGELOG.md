@@ -53,26 +53,31 @@
 
   **What this means for a grown installation.** The live forums are already
   InnoDB and the migration finds almost nothing to do. An installation whose
-  `entries` is still MyISAM should read on:
+  `entries` is still MyISAM should read on — the figures below were measured by
+  converting a copy of the live table (679,910 postings, 321 MB) back to MyISAM
+  and migrating it for real, not estimated:
 
   - The table is **rewritten in full**, unavoidably: `entries` carries a
     full-text index, and InnoDB needs a hidden column for one that cannot be
-    added afterwards. Expect minutes and a held lock for a few hundred thousand
-    postings, with the forum unavailable meanwhile.
-  - **Keep disk space free.** The rebuild needs room for a second copy, and
-    InnoDB typically occupies 1.5 to 2 times what MyISAM did. A 300 MB table
-    wants roughly a gigabyte in transit. This is the likeliest way the upgrade
-    fails.
+    added afterwards. The measured conversion took **5 minutes 31 seconds** and
+    holds a lock throughout, so the forum is unavailable for that long. The
+    full-text index survives it.
+  - **Keep disk space free for a second copy** — the rebuild writes the new table
+    beside the old one. The result, though, came out *smaller*: 279 MB against the
+    321 MB it occupied as MyISAM. Expect to need roughly double the table size in
+    transit and slightly less than before afterwards.
   - **Migrate from the command line** (`bin/cake migrations migrate`). Through
-    the web updater, PHP's execution limit can cut the request short; the server
-    finishes the conversion regardless, but it may then not be recorded as
+    the web updater, PHP's execution limit will cut a five-minute conversion
+    short; the server finishes it regardless, but it may then not be recorded as
     applied.
-  - **The search will find more than before.** MyISAM ignores words shorter than
-    four characters and carries some 500 stopwords; InnoDB's limits are three
-    characters and 36. Nothing is lost — Saito searches in boolean mode, so
-    MyISAM's "ignore words in over half the rows" rule never applied — but
-    three-letter words become findable, which is a change worth expecting rather
-    than discovering.
+  - **The search will find more than before**, and the difference is larger than
+    it sounds. MyISAM ignores words shorter than four characters and carries some
+    500 stopwords; InnoDB's limits are three characters and 36. On the measured
+    copy, the three-letter search `mac` went from **0 hits to 16,384**, while a
+    longer term returned exactly the same count as before. Nothing is lost —
+    Saito searches in boolean mode, so MyISAM's "ignore words in over half the
+    rows" rule never applied — but a forum whose members search for short words
+    will notice, and it is better expected than discovered.
 
   Index lengths are not a concern: `users.username` has been capped at 191
   characters for exactly this reason since the schema was written.
