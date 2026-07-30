@@ -1174,6 +1174,14 @@
     margin-top: 1.5rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--isl-border-soft);
+    /* Line up with the posting above. `.viewEntry` is a panel and carries a
+       spacer of padding on all four sides; this block is its sibling, not its
+       child, so it started flush against the page edge — the heading and the
+       whole tree sat a spacer to the left of the article they belong to.
+       Measured at 16px in both the Nova and the macfix themes, which is the
+       Bootstrap spacer they both inherit. */
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 .htmx-island .viewEntry-threadHeading {
