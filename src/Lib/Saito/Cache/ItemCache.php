@@ -248,7 +248,11 @@ class ItemCache
     protected function _gcOutdated()
     {
         Stopwatch::start("ItemCache _gcOutdated: {$this->_name}");
-        $expired = time() - $this->_settings['duration'];
+        // The same instant the items were stamped with. Reading the clock again
+        // here would age an item written in this very request against a later
+        // now, which is how an entry sitting exactly on the boundary could be
+        // kept or dropped depending on whether a second happened to tick over.
+        $expired = $this->_now - $this->_settings['duration'];
         foreach ($this->_cache as $key => $item) {
             if ($item['metadata']['created'] < $expired) {
                 unset($this->_cache[$key]);
