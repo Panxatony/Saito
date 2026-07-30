@@ -226,7 +226,7 @@ build:
       --exclude='./phpstan.neon'
       --exclude='./phpunit.xml.dist'
       --exclude='./tsconfig.json'
-      --exclude='./.eslintrc.json'
+      --exclude='./eslint.config.mjs'
       --exclude='./yarn.lock'
       --exclude='*/tests'
       .

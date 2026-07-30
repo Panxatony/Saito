@@ -37,7 +37,7 @@ export function insertAtCursor(ta: HTMLTextAreaElement, text: string): void {
     //
     // It returns false where it is not supported, and that is the only case the
     // manual path below is for.
-    let inserted = false;
+    let inserted: boolean;
     try {
         inserted = document.execCommand('insertText', false, text);
     } catch {

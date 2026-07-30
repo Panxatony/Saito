@@ -12,11 +12,13 @@
     "yarn": "^1.15.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "autoprefixer": "^8.4.1",
     "cssnano": "^4.0.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9",
+    "globals": "^17.8.0",
     "grunt": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
@@ -27,6 +29,7 @@
     "grunt-shell": "*",
     "load-grunt-tasks": "^3.5.2",
     "typescript": "^5",
+    "typescript-eslint": "^8",
     "vite": "^5"
   },
   "engines": {

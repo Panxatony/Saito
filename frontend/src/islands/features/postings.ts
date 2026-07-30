@@ -32,7 +32,9 @@ function enhancePosting(core: HTMLElement): void {
     if (!id || !dataEl) {
         return;
     }
-    let data: { isBookmarked?: boolean; showSolvedBtn?: boolean; solves?: number; pid?: number } = {};
+    // No initialiser: the parse either assigns or the function returns, so an
+    // empty object here would only ever be overwritten unread.
+    let data: { isBookmarked?: boolean; showSolvedBtn?: boolean; solves?: number; pid?: number };
     try {
         data = JSON.parse(dataEl.getAttribute('data-entry') ?? '{}');
     } catch {

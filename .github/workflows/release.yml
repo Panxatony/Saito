@@ -185,7 +185,7 @@ jobs:
             --exclude='./phpstan.neon' \
             --exclude='./phpunit.xml.dist' \
             --exclude='./tsconfig.json' \
-            --exclude='./.eslintrc.json' \
+            --exclude='./eslint.config.mjs' \
             --exclude='./vite.config.ts' \
             --exclude='./yarn.lock' \
             --exclude='*/tests' \
