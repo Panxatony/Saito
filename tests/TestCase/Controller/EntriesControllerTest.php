@@ -369,6 +369,41 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * Regression: pin/unpin from the browser, which sends no form token.
+     *
+     * The island posts this with a CSRF token in the header and nothing else —
+     * there is no form behind it. FormProtection had `ajaxToggle` outside its
+     * unlocked list, found no `_Token` field to validate, and blackholed every
+     * attempt: pinning and unpinning did nothing at all, silently, with the
+     * failure visible only in the server log.
+     *
+     * It has to be tested with the form token switched **off**. IntegrationTestCase
+     * turns it on for every request by default, which is why the whole suite —
+     * including the moderator test above — passed while the feature was dead in
+     * every browser. The harness was more permissive than the thing it stands in
+     * for.
+     *
+     * @return void
+     */
+    public function testAjaxToggleWorksWithoutAFormToken()
+    {
+        $this->Table->updateAll(['fixed' => 1], ['id' => 10]);
+
+        // What a browser actually sends: session, CSRF header, no form token.
+        $this->_securityToken = false;
+
+        $this->_loginUser(1);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->post('/entries/ajaxToggle/10/fixed');
+
+        $this->assertResponseOk();
+        $this->assertFalse(
+            (bool)$this->Table->get(10)->get('fixed'),
+            'the thread was unpinned'
+        );
+    }
+
+    /**
      * only logged in users should be able to answer
      */
     public function testAddUserNotLoggedInGet()

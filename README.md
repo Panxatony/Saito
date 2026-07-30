@@ -123,6 +123,18 @@ release nothing else produces: version, tag and tarball all appear by
 themselves, so a missing section used to go out unnoticed — the release job
 simply published the bare version number as its own notes.
 
+Do not create the GitHub release by hand. The release job calls `gh release
+create` itself, with the tarball and its checksum attached; an already-existing
+release makes it fail with *a release with the same tag name already exists*,
+and the assets never get built. Push the tag and let it run.
+
+One thing outside this repository has to follow a release: the project page at
+<https://saito.macnemo.de> names the current version in both languages
+(`index.html` and `en/index.html`, the paragraph marked `class="release"`). It
+is deliberately a plain sentence rather than something generated — the page is
+four static files and makes no request of its own — so it only stays true if it
+is edited along with the release.
+
 ## Credits
 
 Saito was created and, from 2012 to 2020, carried by **Schlaefer** — 4154 of the
