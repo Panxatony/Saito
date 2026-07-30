@@ -7,6 +7,34 @@
 
 ## [next] -
 
+- ＋ Added: **what you are writing is kept.** A few seconds after you stop typing,
+  the reply is stored as a draft; open the same reply again — after closing the tab,
+  after the browser crashed, tomorrow — and it is waiting for you, with a note
+  saying where it came from and a button to throw it away. One draft per posting
+  you are answering, cleared the moment you post, and forgotten after thirty days.
+
+  Nothing is said when a draft is saved, on purpose: you did not ask for it, the
+  text is in front of you either way, and a message about a background request is
+  noise. A submission that came back rejected always wins over a stored draft —
+  what you just typed is newer than what was saved seconds before.
+
+  The storage for this has been in Saito since version 5 — the table, the
+  validation, the daily clean-up, the removal after a posting is saved — with
+  nothing to write to it: the part that did went with the old frontend. Two things
+  turned up while connecting it, and both are fixed below.
+
+- ✓ Fixed: **the subject length an administrator sets is the one the forum
+  enforces.** It never was: the setting fed the input field's own limit, while the
+  server went on validating against a built-in 100. Set it higher and the field
+  accepted a subject the server then refused, with nothing said about why. The
+  live forum sits at 101, so exactly one character was affected — long enough to
+  be baffling, short enough never to be reported.
+
+- ✓ Fixed: **a draft with a subject could not have been saved at all.** Its length
+  limit was read from a setting that the removed frontend's controller used to
+  provide, so it came out as zero and refused every subject. Nobody had noticed,
+  because nothing wrote drafts.
+
 - Δ Changed: **nothing in Saito is an inline script any more**, so a
   content-security policy can forbid them. That is the strongest single measure
   against stored cross-site scripting: with inline script refused, a payload that

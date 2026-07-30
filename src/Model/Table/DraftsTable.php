@@ -15,6 +15,7 @@ namespace App\Model\Table;
 use App\Lib\Model\Table\AppTable;
 use App\Model\Entity\Entry;
 use Cake\Chronos\Chronos;
+use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Rule\IsUnique;
@@ -39,6 +40,18 @@ class DraftsTable extends AppTable
     public function initialize(array $config): void
     {
         parent::initialize($config);
+
+        // The subject limit. This read a config nothing set: DraftsController put
+        // it there, and that controller went with the old frontend — so the limit
+        // was `(int)null`, which is 0, and every draft carrying a subject was
+        // refused. The storage layer was not merely unused, it could not have
+        // worked. Same source and same ceiling as EntriesTable, so a draft is
+        // never rejected for a subject the posting itself would accept.
+        $configured = (int)(Configure::read('Saito.Settings.subject_maxlength') ?: 0);
+        $this->setConfig(
+            'subject_maxlength',
+            $configured > 0 ? min($configured, EntriesTable::SUBJECT_MAXLENGTH) : 100
+        );
 
         $this->addBehavior(
             'Cron.Cron',

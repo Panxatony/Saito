@@ -1876,3 +1876,11 @@ msgstr "Fetches title, teaser and picture from the linked page."
 #: src/Controller/EntriesController.php
 msgid "reply.subject.prefix"
 msgstr "Re:"
+
+#: templates/Entries/htmx_reply_form.php
+msgid "draft.restored"
+msgstr "A saved draft was put back in."
+
+#: templates/Entries/htmx_reply_form.php
+msgid "draft.discard"
+msgstr "Discard"

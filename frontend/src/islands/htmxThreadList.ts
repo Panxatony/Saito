@@ -27,6 +27,7 @@ import { Alpine } from './runtime';
 import './features/threads';
 import './features/postings';
 import './features/editor';
+import './features/drafts';
 import './features/uploads';
 import './features/smartInsert';
 import './features/subjectCount';

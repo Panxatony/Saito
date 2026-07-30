@@ -11,15 +11,68 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: two migrations
+### The database: four migrations
 
-Between 5.7.0 and 8.x there are **two** schema changes, and the second exists
-only to repair the first:
+Between 5.7.0 and 8.3.x there are **four** schema changes. The second exists only
+to repair the first; the last two arrived in 8.3.0 and are the ones that take
+time on a grown installation.
 
 | Migration | What it does |
 |---|---|
 | `20260604090000_ConvertLegacyTablesToUtf8mb4` | Converts `useronline` and the single column `users.user_category_custom` from utf8mb3 to utf8mb4 |
 | `20260727190000_RestoreUserCategoryCustomWidth` | Restores `users.user_category_custom` to its full 1024 characters |
+| `20260730000000_ConvertCoreTablesToInnodb` | Moves the core tables off MyISAM — **the expensive one, read below** |
+| `20260730010000_DropLegacySaito5UserColumns` | Drops six `users` columns dead since 2012 |
+
+#### The InnoDB conversion is the one to plan for
+
+MyISAM has no transactions and does not object to being asked for one: it accepts
+`BEGIN` and `COMMIT` and ignores them. Every safeguard that groups several writes
+together is therefore correct on InnoDB and silently unprotected on MyISAM —
+merging two threads is five dependent writes, and a failure part-way through used
+to leave a thread half-merged and unrepairable through the interface.
+
+A 5.7 installation created before the 2018 schema almost certainly still has
+MyISAM tables. The figures below were measured on a copy of a live table with
+679,910 postings taking 321 MB, converted for real rather than estimated:
+
+- **5 minutes 31 seconds**, with the table locked throughout, so the forum is
+  unavailable for that long. `entries` carries a full-text index and InnoDB needs
+  a hidden column for one that cannot be added afterwards, so the table is
+  rewritten in full — there is no incremental path.
+- **Keep room for a second copy.** The rebuild writes the new table beside the old
+  one. The result came out *smaller* — 279 MB against 321 — but you need roughly
+  double the table size in transit. This is the likeliest way the upgrade fails.
+- **Run migrations from the command line**, `bin/cake migrations migrate`. Through
+  the web updater PHP's execution limit will cut a five-minute conversion short;
+  the server finishes it regardless, but it may then not be recorded as applied.
+- **The search finds more afterwards.** MyISAM ignores words shorter than four
+  characters and carries some 500 stopwords; InnoDB's limits are three characters
+  and 36. On the measured copy the three-letter term `mac` went from **0 hits to
+  16,384**, while a longer term returned exactly the same count. Nothing is lost —
+  Saito searches in boolean mode, so MyISAM's "ignore words in over half the rows"
+  rule never applied — but a forum whose members search for short words will
+  notice.
+
+Check what you are in for before you start:
+
+```sql
+SELECT table_name, engine, table_rows,
+       ROUND((data_length + index_length) / 1024 / 1024) AS mb
+FROM information_schema.tables
+WHERE table_schema = DATABASE() AND engine = 'MyISAM';
+```
+
+Nothing listed means the conversion is a no-op for you.
+
+#### The dropped columns
+
+`user_font_size`, `show_about`, `show_donate` and three `flattr_*` exist only on
+installations grown from Saito 5 — upstream removed them around 2012, as a manual
+SQL step printed in a changelog rather than as a migration, so nobody ran it.
+They are dropped rather than carried over: `user_font_size` holds a Saito 5
+scaling *factor*, not the percentage today's settings page works in, so the stored
+values no longer mean what they say.
 
 That is the whole schema delta. Older installations kept two stragglers on the
 3-byte character set, so they could not store 4-byte characters — emoji, mostly.
@@ -45,8 +98,9 @@ SELECT COUNT(*) FROM users WHERE CHAR_LENGTH(user_category_custom) = 512;
 
 Zero means nothing was truncated.
 
-No table is added, dropped or restructured. **Your postings, users, categories
-and settings are untouched.**
+No table is added or restructured, and no posting, user, category or setting is
+altered — the two 8.3.0 migrations change how tables are stored and remove columns
+nothing has read since 2012. **Your content is untouched.**
 
 Every setting Saito 8 reads already exists in a 5.7 database — the newest of
 them was introduced before 5.0. Nothing has to be inserted by hand.

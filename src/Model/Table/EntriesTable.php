@@ -59,6 +59,11 @@ class EntriesTable extends AppTable
         'category' => ['type' => 'value'],
     ];
 
+    /**
+     * The fallback for `subject_maxlength`, used where the forum's settings are
+     * not loaded — the console, mostly. In a request the admin setting wins; see
+     * initialize().
+     */
     protected array $_defaultConfig = [
         'subject_maxlength' => 100,
     ];
@@ -68,6 +73,18 @@ class EntriesTable extends AppTable
      */
     public function initialize(array $config): void
     {
+        // Take the subject limit from the admin setting. Nothing did, so this
+        // validated against the 100 above whatever an administrator had chosen —
+        // and the *form* has always used the setting for its `maxlength`. Set it
+        // above 100 and the field accepted what the server then refused, with no
+        // hint as to why; the live forum sits at 101, so exactly one character
+        // was affected. Capped by the constant the setting itself is validated
+        // against, so a wider value cannot reach a column that will not hold it.
+        $configured = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 0);
+        if ($configured > 0) {
+            $this->setConfig('subject_maxlength', min($configured, self::SUBJECT_MAXLENGTH));
+        }
+
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Posting');

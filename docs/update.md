@@ -92,6 +92,21 @@ database with the version of the code; if they differ it routes you to the
 updater instead of the front page. Confirm, and it applies any pending
 migrations and records the new version.
 
+> **Check what is pending first if you are crossing 8.3.0.** That release carries
+> a migration that moves the core tables to InnoDB, and on an installation whose
+> `entries` is still MyISAM it rewrites the table — measured at five and a half
+> minutes for 680,000 postings, with the table locked throughout. PHP's execution
+> limit will cut that short through the browser: the server finishes the
+> conversion anyway, but it may then not be recorded as applied. Run it from the
+> command line instead, and read the database section of
+> [upgrade.md](upgrade.md) for what to expect.
+>
+> ```bash
+> cd /path/to/forum
+> php bin/cake.php migrations status   # what is pending
+> php bin/cake.php migrations migrate
+> ```
+
 **This is expected, not an error.** If you deploy without the updater — from a
 configuration-management tool, say — remember that the database version has to
 be set as well, or every request keeps landing on the updater.

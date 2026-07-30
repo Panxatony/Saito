@@ -27,6 +27,17 @@ $actionUrl = $this->Url->build(
 // filled in as a value but offered as a placeholder — see the field below.
 $subject = $submitted['subject'] ?? '';
 $text = $submitted['text'] ?? '';
+
+// A saved draft fills the empty form. Only when nothing was submitted: a rejected
+// submission is newer than a draft stored seconds earlier, and overwriting it
+// would throw away what the writer had just typed. The controller only looks the
+// draft up on a GET for the same reason.
+$restored = false;
+if (!isset($submitted) && !empty($draft)) {
+    $subject = $draft['subject'];
+    $text = $draft['text'];
+    $restored = true;
+}
 ?>
 <?= $this->element('entry/htmx_editor_preview') ?>
 <?php // Datenattribute für die Vorschau: eine Antwort erbt die Kategorie des
@@ -38,6 +49,16 @@ $text = $submitted['text'] ?? '';
       hx-swap="innerHTML">
     <?php if (!empty($errors)) : ?>
         <div class="alert alert-error"><?= h(__('Please check your entry.')) ?></div>
+    <?php endif; ?>
+    <?php if ($restored) : ?>
+        <?php // Say why there is text in a box the writer just opened. Without
+              // this the draft looks like the forum inventing content. ?>
+        <p class="draft-restored exp">
+            <?= h(__('draft.restored')) ?>
+            <button type="button" class="btn btn-sm btn-link js-draftDiscard">
+                <?= h(__('draft.discard')) ?>
+            </button>
+        </p>
     <?php endif; ?>
     <div class="form-group">
         <?php $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100); ?>

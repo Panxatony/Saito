@@ -63,6 +63,19 @@ These work as you type, without any button:
   into a quote from the parent posting
 * An address in the text becomes a clickable link by itself
 
+### Drafts
+
+What you write is saved a few seconds after you stop typing. Open the same reply
+again — after closing the tab, after a crash, tomorrow — and it is waiting for
+you, with a note saying where the text came from and a button to throw it away.
+
+One draft per posting you are answering. It goes when you post, and after thirty
+days untouched. Saving happens quietly: you did not ask for it, and the text is in
+front of you anyway.
+
+If a form comes back with an error, what you just typed always wins over the
+draft.
+
 ### Every markup tag
 
 The button row covers the usual cases. If you need more, the

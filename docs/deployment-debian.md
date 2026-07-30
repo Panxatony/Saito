@@ -265,6 +265,31 @@ Then apply database migrations. Two paths exist depending on your deploy style:
 
 After migrations, visit the site once with a logged-out browser. The boot path exercises the middleware stack and surfaces any per-environment misconfiguration immediately.
 
+#### Upgrading to 8.3.x
+
+This is the first release since 5.7 whose migrations do real work on a grown installation, so **take the CLI path** — the web updater runs inside a PHP request and its execution limit will cut the long one short. The server finishes the conversion regardless, but it may then not be recorded as applied, which leaves you guessing about the state of the schema.
+
+Two migrations ship:
+
+- `ConvertCoreTablesToInnodb` moves `entries`, `users`, `settings` and the rest off MyISAM. Only tables that are still MyISAM are touched, so this is a no-op on an installation that was converted at some earlier point. Where it does apply, expect the `entries` table to be **rewritten in full and locked while it happens** — measured at 5 minutes 31 seconds for 679,910 postings occupying 321 MB. It carries a full-text index, and InnoDB needs a hidden column for one that cannot be added afterwards, so there is no incremental path. Keep roughly double the table size free on disk for the second copy; the result came out smaller than the original (279 MB against 321), but the rebuild needs the room in transit.
+- `DropLegacySaito5UserColumns` removes six `users` columns dead since 2012. Instant.
+
+Find out in advance whether the first one applies to you:
+
+```sh
+sudo mysql saito -e "
+SELECT table_name, engine, table_rows,
+       ROUND((data_length + index_length) / 1024 / 1024) AS mb
+  FROM information_schema.tables
+ WHERE table_schema = DATABASE() AND engine = 'MyISAM';"
+```
+
+Nothing listed means both migrations are cheap and the web path is fine.
+
+Two things change visibly afterwards. The **search finds more**: MyISAM ignores words under four characters and carries some 500 stopwords, where InnoDB's limits are three and 36 — on the measured copy a three-letter term went from 0 hits to 16,384, while longer terms returned identical counts. And with the tables transactional, operations that touch several rows at once are finally atomic; merging two threads could previously fail half-way and leave a state the interface could not repair.
+
+Worth doing in the same maintenance window: **enable the content-security policy** in the vhost. From 8.3.0 Saito emits no inline `<script>` and no event attributes anywhere, so `script-src` no longer needs `'unsafe-inline'` — which is the setting that matters, because without it an injected payload that reaches the page still does not run. The commented-out line in `saito.conf.example` is ready to uncomment; add anything external you embed first.
+
 #### Upgrading from 6.0.x to 7.0.x
 
 7.0 is a framework upgrade (CakePHP 4.6 → 5). As with 6.0, **no database migration ships** with this version — the last schema change is still `Saito5x7x0` (early 2020), so your `phinxlog` table stays untouched.

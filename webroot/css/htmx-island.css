@@ -1303,3 +1303,12 @@ body.has-color-current .et-current .et { color: var(--saito-color-current); }
 .bookmarkComment .btn-link:focus { opacity: 1; }
 .bookmarkComment-form { display: flex; align-items: center; gap: .4rem; margin: .2rem 0; }
 .bookmarkComment-form .form-control { flex: 1 1 auto; max-width: 32rem; }
+
+/* "A saved draft was put back in" — a note, not an alert: the writer has lost
+   nothing, they are being told where the text came from. */
+.htmx-island .draft-restored {
+    margin: 0 0 .5rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}

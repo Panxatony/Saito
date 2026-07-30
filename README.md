@@ -24,6 +24,13 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 
 - PHP 8.4+ (extensions: gd, exif, intl, mbstring, pdo, simplexml)
 - Database (MySQL/MariaDB tested, [others untested](https://book.cakephp.org/5/en/orm/database-basics.html#supported-databases)).
+  **Transactional tables are required.** Operations that touch several rows at
+  once — merging two threads, for one — rely on a transaction to keep them
+  together, and MyISAM accepts the request without honouring it, silently. Since
+  8.3.0 a migration converts the core tables to InnoDB; an installation older
+  than the 2018 schema should read the 8.3.0 entry in the
+  [changelog](CHANGELOG.md) before upgrading, because converting a large
+  `entries` table takes minutes and holds a lock.
 
 ## Get Started
 
@@ -53,9 +60,8 @@ cannot override the value, and the override fails silently.
 
 ## Development
 
-Larger work that is known and scheduled but not yet done — currently getting the
-project off Bootstrap 4 — is collected in [todo.md](todo.md), filed under the
-release it is meant for. Worth a look before starting anything structural: the
+Larger work that is known and scheduled but not yet done is collected in
+[todo.md](todo.md), filed under the release it is meant for. Worth a look before starting anything structural: the
 reasoning, the measurements and the reasons something was *not* done are there
 rather than in the commit history.
 
@@ -88,7 +94,11 @@ Run all test cases:
 composer test-all
 ```
 
-`composer test-all` runs PHPUnit, PHPStan and ESLint. Code style is checked
+`composer test-all` runs PHPUnit, PHPStan, the TypeScript type-checker and
+ESLint — `yarn lint` is `tsc --noEmit && eslint`, and both pipelines run it as
+their own job. Until 8.3.0 nothing ever type-checked: `tsconfig.json` has asked
+for strict checking for years while the build went through esbuild, which strips
+types without looking at them. Code style is checked
 separately with `composer cs-check`, and is not part of `test-all`: the code
 base is some 270 violations away from its own PHPCS standard, so wiring it in
 would mean a command that can only ever fail. `composer cs-fix` applies what
@@ -105,6 +115,14 @@ To generate all the minimized assets for production:
 ```shell
 grunt release
 ```
+
+That builds the theme stylesheets and three JavaScript bundles:
+`htmx-threads.bundle.js` (the forum), `admin.bundle.js` (the backend) and
+`boot.bundle.js` — a few hundred bytes loaded synchronously in `<head>` that pick
+the theme stylesheet and the font scale before the first paint. It is a separate
+bundle because it has to run first, and because it exists at all so that no page
+carries an inline `<script>`; see the content-security policy note in
+[docs/deployment-debian.md](docs/deployment-debian.md).
 
 ### Create A Release
 

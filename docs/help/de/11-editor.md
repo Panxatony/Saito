@@ -67,6 +67,20 @@ Diese funktionieren beim Tippen, ganz ohne Knopf:
   Zeile zu einem Zitat aus dem Elternbeitrag
 * Eine Adresse im Text wird von allein zu einem anklickbaren Verweis
 
+### Entwürfe
+
+Was du schreibst, wird ein paar Sekunden nach dem Tippen gespeichert. Öffnest du
+dieselbe Antwort erneut — nach einem geschlossenen Tab, nach einem Absturz, morgen
+—, steht sie wieder da, mit einem Hinweis, woher der Text kommt, und einem Knopf
+zum Verwerfen.
+
+Ein Entwurf pro Beitrag, auf den du antwortest. Beim Absenden verschwindet er, und
+nach dreißig Tagen ohne Bearbeitung ebenfalls. Gespeichert wird still: Du hast
+nicht darum gebeten, und der Text steht ohnehin vor dir.
+
+Kommt ein Formular mit einer Fehlermeldung zurück, gilt immer das, was du gerade
+getippt hast — nicht der Entwurf von vorhin.
+
 ### Alle Auszeichnungen
 
 Die Knopfleiste deckt das Übliche ab. Wer mehr braucht, findet in der

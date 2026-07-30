@@ -2715,3 +2715,11 @@ msgstr "Holt Titel, Kurztext und Bild von der verlinkten Seite."
 #: src/Controller/EntriesController.php
 msgid "reply.subject.prefix"
 msgstr "Re:"
+
+#: templates/Entries/htmx_reply_form.php
+msgid "draft.restored"
+msgstr "Ein gespeicherter Entwurf wurde eingesetzt."
+
+#: templates/Entries/htmx_reply_form.php
+msgid "draft.discard"
+msgstr "Verwerfen"

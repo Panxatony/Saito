@@ -815,6 +815,10 @@ class EntriesController extends AppController
             $this->set('submitted', $data);
         }
 
+        if (!$this->getRequest()->is('post')) {
+            $this->set('draft', $this->draftFor((int)$parent->get('id')));
+        }
+
         $this->viewBuilder()->setTemplate('htmx_reply_form');
     }
 
@@ -940,6 +944,101 @@ class EntriesController extends AppController
     }
 
     /**
+     * The current member's saved draft for one parent posting, if any.
+     *
+     * Handed to the form as `draft`, which fills the fields when nothing was
+     * submitted. A rejected submission must win over it — what the writer just
+     * typed is newer than what was stored seconds ago — so the caller only asks
+     * for this on a GET.
+     *
+     * @param int $pid parent posting id, 0 for a new thread
+     * @return array{subject: string, text: string}|null
+     */
+    private function draftFor(int $pid): ?array
+    {
+        $userId = $this->CurrentUser->getId();
+        if (!$userId) {
+            return null;
+        }
+        /** @var \Cake\Datasource\EntityInterface|null $draft */
+        $draft = $this->fetchTable('Drafts')->find()
+            ->where(['pid' => $pid, 'user_id' => $userId])
+            ->first();
+        if ($draft === null) {
+            return null;
+        }
+
+        return [
+            'subject' => (string)$draft->get('subject'),
+            'text' => (string)$draft->get('text'),
+        ];
+    }
+
+    /**
+     * Keep what is being written, so closing the tab does not lose it.
+     *
+     * Posted by the editor a few seconds after typing stops. There is one draft
+     * per (parent posting, member) — `pid = 0` for a new thread — which the
+     * storage layer enforces with a uniqueness rule, so this is an upsert rather
+     * than a log of versions.
+     *
+     * Submitting nothing at all removes the draft. That is the discard button and
+     * also what happens when the writer empties the box themselves: the table
+     * refuses a draft with neither subject nor text, and keeping an empty row to
+     * restore from would offer the writer their own blank page back.
+     *
+     * The whole storage layer for this — table, validation, uniqueness rule, the
+     * daily garbage collection, the clean-up after a posting is saved — has been
+     * in the code since Saito 5 with nothing to write to it. This is the writer
+     * that was missing.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function htmxDraft(): Response
+    {
+        $this->request->allowMethod(['post']);
+        $this->autoRender = false;
+
+        $userId = $this->CurrentUser->getId();
+        if (!$userId) {
+            throw new BadRequestException();
+        }
+
+        $pid = (int)$this->getRequest()->getData('pid');
+        $subject = trim((string)$this->getRequest()->getData('subject'));
+        $text = trim((string)$this->getRequest()->getData('text'));
+
+        $Drafts = $this->fetchTable('Drafts');
+        /** @var \Cake\Datasource\EntityInterface|null $draft */
+        $draft = $Drafts->find()
+            ->where(['pid' => $pid, 'user_id' => $userId])
+            ->first();
+
+        if ($subject === '' && $text === '') {
+            if ($draft !== null) {
+                $Drafts->delete($draft);
+            }
+
+            return $this->response->withStatus(204);
+        }
+
+        $data = ['subject' => $subject, 'text' => $text];
+        if ($draft === null) {
+            $draft = $Drafts->newEntity($data + ['pid' => $pid, 'user_id' => $userId]);
+        } else {
+            $Drafts->patchEntity($draft, $data);
+        }
+
+        // A failure is not worth telling the writer about: they did not ask for
+        // this to happen, and the text is still in front of them. The subject is
+        // the one thing that can be refused — it has a maximum length — and the
+        // editor caps it at the same number anyway.
+        $Drafts->save($draft);
+
+        return $this->response->withStatus(204);
+    }
+
+    /**
      * Toggle the current user's bookmark for a posting (session/CSRF variant of
      * the token-authed REST bookmarks API, for the htmx island posting view).
      *
@@ -1039,7 +1138,7 @@ class EntriesController extends AppController
             // unpinning a thread simply did nothing, silently, with the failure
             // visible only in the server log.
             ['solve', 'ajaxToggle', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload',
-                'htmxBookmark', 'htmxEdit', 'htmxMerge', 'htmxUploadDelete']
+                'htmxBookmark', 'htmxEdit', 'htmxMerge', 'htmxUploadDelete', 'htmxDraft']
         );
         $this->Authentication->allowUnauthenticated(
             ['update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxPosting', 'htmxWidgets']

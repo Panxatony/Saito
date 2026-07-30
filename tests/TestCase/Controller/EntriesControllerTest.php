@@ -48,6 +48,7 @@ class EntriesControllerTest extends IntegrationTestCase
     public array $fixtures = [
         'plugin.Bookmarks.Bookmark',
         'plugin.ImageUploader.Uploads',
+        'app.Draft',
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -400,6 +401,163 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertFalse(
             (bool)$this->Table->get(10)->get('fixed'),
             'the thread was unpinned'
+        );
+    }
+
+    /**
+     * Autosave: the editor stores what is being written.
+     *
+     * The whole storage layer for this has been in the code since Saito 5 with
+     * nothing to write to it — the controller that did was removed with the old
+     * frontend. This is that writer.
+     *
+     * @return void
+     */
+    public function testHtmxDraftSavesWhatIsBeingWritten()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $this->_securityToken = false;
+        $this->_loginUser(3);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+
+        $this->post('/entries/htmx-draft', ['pid' => 1, 'subject' => 'halb fertig', 'text' => 'noch am Tippen']);
+
+        $this->assertResponseCode(204);
+        $draft = $Drafts->find()->where(['pid' => 1, 'user_id' => 3])->first();
+        $this->assertNotNull($draft);
+        $this->assertSame('halb fertig', $draft->get('subject'));
+        $this->assertSame('noch am Tippen', $draft->get('text'));
+    }
+
+    /**
+     * One draft per parent posting, updated rather than piled up — the table has
+     * a uniqueness rule on (pid, user_id), so a second save must patch the first.
+     *
+     * @return void
+     */
+    public function testHtmxDraftUpdatesInsteadOfAccumulating()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        // Fixture draft 1: user 3, pid 4.
+        $before = $Drafts->find()->count();
+
+        $this->_securityToken = false;
+        $this->_loginUser(3);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->post('/entries/htmx-draft', ['pid' => 4, 'subject' => 'neuer Betreff', 'text' => 'neuer Text']);
+
+        $this->assertResponseCode(204);
+        $this->assertSame($before, $Drafts->find()->count(), 'no second row for the same parent');
+        $this->assertSame('neuer Betreff', $Drafts->get(1)->get('subject'));
+    }
+
+    /**
+     * Emptying the form is how a draft is discarded — the table refuses one with
+     * neither subject nor text, and an empty row would offer the writer their own
+     * blank page back.
+     *
+     * @return void
+     */
+    public function testHtmxDraftDeletesWhenEmptied()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $this->assertNotNull($Drafts->find()->where(['id' => 1])->first());
+
+        $this->_securityToken = false;
+        $this->_loginUser(3);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->post('/entries/htmx-draft', ['pid' => 4, 'subject' => '', 'text' => '   ']);
+
+        $this->assertResponseCode(204);
+        $this->assertNull($Drafts->find()->where(['id' => 1])->first());
+    }
+
+    /**
+     * A member's draft is their own: the row is found by parent id *and* user id,
+     * so there is no id here that could reach somebody else's.
+     *
+     * @return void
+     */
+    public function testHtmxDraftTouchesOnlyTheCurrentUsersDraft()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        // Draft 1 belongs to user 3 on parent 4.
+        $this->_securityToken = false;
+        $this->_loginUser(1);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->post('/entries/htmx-draft', ['pid' => 4, 'subject' => 'von jemand anderem', 'text' => 'x']);
+
+        $this->assertResponseCode(204);
+        $this->assertSame('Draft Subject 1', $Drafts->get(1)->get('subject'), "user 3's draft is untouched");
+    }
+
+    /**
+     * The reply form offers a saved draft when it is opened.
+     *
+     * @return void
+     */
+    public function testReplyFormRestoresADraft()
+    {
+        // Posting 1, not 4: the fixture locks 4, so answering it is forbidden and
+        // the form returns before there is anywhere to put a draft.
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $Drafts->saveOrFail($Drafts->newEntity(
+            ['pid' => 1, 'user_id' => 3, 'subject' => 'halb getippt', 'text' => 'und weiter']
+        ));
+
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-reply/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('halb getippt');
+        $this->assertResponseContains('und weiter');
+    }
+
+    /**
+     * But a rejected submission wins over it. What the writer just typed is newer
+     * than what was stored seconds earlier, and putting the draft back would throw
+     * it away — the worst possible moment to do that, since the form is being
+     * redisplayed precisely because something needs fixing.
+     *
+     * @return void
+     */
+    public function testARejectedSubmissionIsNotOverwrittenByTheDraft()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $Drafts->saveOrFail($Drafts->newEntity(
+            ['pid' => 1, 'user_id' => 3, 'subject' => 'aus dem Entwurf', 'text' => 'aus dem Entwurf']
+        ));
+
+        $this->_loginUser(3);
+        // Over the 40-character subject limit of the test settings, so the posting
+        // is refused and the form comes back carrying what was submitted.
+        $tooLong = str_repeat('a', 60);
+        $this->post('/entries/htmx-reply/1', ['subject' => $tooLong, 'text' => 'gerade getippt']);
+
+        $this->assertResponseContains('gerade getippt');
+        $this->assertResponseNotContains('aus dem Entwurf');
+    }
+
+    /**
+     * Posting successfully clears the draft, so the next reply does not open with
+     * text that has already been published.
+     *
+     * @return void
+     */
+    public function testPostingClearsTheDraft()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $Drafts->saveOrFail($Drafts->newEntity(
+            ['pid' => 1, 'user_id' => 3, 'subject' => 'fast fertig', 'text' => 'fast fertig']
+        ));
+        $this->assertNotNull($Drafts->find()->where(['pid' => 1, 'user_id' => 3])->first());
+
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-reply/1', ['subject' => 'fertig', 'text' => 'abgeschickt']);
+
+        $this->assertNull(
+            $Drafts->find()->where(['pid' => 1, 'user_id' => 3])->first(),
+            'the draft went with the posting'
         );
     }
 
