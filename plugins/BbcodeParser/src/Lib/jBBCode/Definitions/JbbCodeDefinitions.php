@@ -648,9 +648,14 @@ EOF;
 }
 
 /**
- * Hanldes [upload]<image>[/upload]
+ * Handles [upload]<image>[/upload]
  *
- * @deprecated since Saito 5.2; kept for backwards compatability
+ * @deprecated since Saito 5.2 — nothing writes this tag any more. It is not
+ *     removable, though, and "kept for backwards compatibility" undersells why:
+ *     counted on the live forum on 2026-07-30, **10,901 postings** still contain
+ *     `[upload]`, written between 2010 and 2020. Deleting this class does not
+ *     tidy anything up; it stops eleven thousand postings from rendering their
+ *     images.
  */
 //@codingStandardsIgnoreStart
 class Upload extends Image
@@ -676,9 +681,11 @@ class Upload extends Image
 }
 
 /**
- * Hanldes [upload width=<width> height=<height>]<image>[/upload]
+ * Handles [upload width=<width> height=<height>]<image>[/upload]
  *
- * @deprecated since Saito 5.2; kept for backwards compatability
+ * @deprecated since Saito 5.2 — the attribute form of the tag above. Rarer: one
+ *     posting on the live forum carries it. Kept for the same reason, and
+ *     because `Upload` extends it into existence anyway.
  */
 //@codingStandardsIgnoreStart
 class UploadWithAttributes extends Upload
