@@ -66,13 +66,6 @@ module.exports = function (grunt) {
         ]
       },
     },
-    uglify: {
-      release: {
-        files: {
-          // './webroot/dist/main.min.js': ['./webroot/dist/main.min.js']
-        }
-      }
-    },
     clean: {
       devsetup: [
         // font-awesome
@@ -158,7 +151,10 @@ module.exports = function (grunt) {
         },
         */
         processors: [
-          require('autoprefixer')({ browsers: 'last 2 versions' }), // add vendor prefixes
+          // The target browsers live in package.json's `browserslist` now:
+          // autoprefixer dropped the inline `browsers` option in v10, and a
+          // shared list is what cssnano and every other tool reads as well.
+          require('autoprefixer')(), // add vendor prefixes
           //// minify the result
           require('cssnano')({
             //// prevents shortening and namespace collision on keyframes names
@@ -189,12 +185,14 @@ module.exports = function (grunt) {
   grunt.initConfig(gruntConfig);
 
   grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-uglify-es');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-dart-sass');
-  grunt.loadNpmTasks('grunt-postcss');
+  // The maintained fork: `grunt-postcss` was last released in 2018 and speaks
+  // only the PostCSS 7 plugin API, so autoprefixer 10 and cssnano 7 arrive as
+  // "[object Object] is not a PostCSS plugin".
+  grunt.loadNpmTasks('@lodder/grunt-postcss');
 
   // dev-setup
   grunt.registerTask(
@@ -214,7 +212,6 @@ module.exports = function (grunt) {
     'shell:bundle',
     // JS
     'copy:nonmin',
-    'uglify:release',
     // l10n
     // cleanup
     'clean:releasePost'

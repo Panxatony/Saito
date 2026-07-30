@@ -48,6 +48,14 @@
   done nothing; and Alpine's own properties were undeclared, which is why every
   component that reads `this.$el` counted as an error.
 
+- Δ Changed: **the build tools are current again.** TypeScript, ESLint,
+  typescript-eslint, Vite, autoprefixer and cssnano were all past their support
+  windows — the CSS chain dated from 2018 and was still adding vendor prefixes for
+  browsers that no longer exist. Together with the Bootstrap change below, the
+  theme stylesheet is **36% smaller** than at the start of this release, and the
+  island bundle a little smaller too. Bootstrap itself moves to 4.6.2, the last
+  of its line, which carries fixes 4.4.1 did not.
+
 - Δ Changed: **the themes stop shipping the Bootstrap they do not use.** The
   theme stylesheet imported all thirty-eight Bootstrap modules; nineteen of them
   styled components the forum does not have — modals, carousels, spinners,
