@@ -284,40 +284,52 @@ very large parser. Saito checks images for decompression bombs; video would need
 ceilings on duration, resolution and bitrate, and `ffmpeg` should not run as the
 same user as the forum.
 
-### Toolchain, from the same audit
+### What the jBBCode PHPStan exclusion hides
 
-Nothing broken, but everything on this list is past its support window and they
-have to move together: TypeScript is pinned at 3.7.4 (2019) while the code is
-written for a modern compiler, ESLint 8 and typescript-eslint 5 are both EOL,
-and Vite 5 is past its own. `tsconfig.json` sets `strict: true` and **nothing
-ever type-checks** — esbuild strips types without looking at them, and neither
-`yarn build` nor `yarn lint` nor `composer test-all` runs `tsc --noEmit`. So the
-strictness is enforced by whichever editor happens to be open. One coordinated
-bump, then add the type-check to the lint gate.
+`phpstan.neon` excludes `plugins/BbcodeParser/src/Lib/jBBCode/Definitions/*`,
+which is the code that parses untrusted markup — so the one place most worth
+analysing gets none. Measured on 2026-07-30 by removing the exclusion: **16
+errors**, and they come from three causes rather than sixteen.
 
-Also: pin Bootstrap to 4.6.2 rather than the current 4.4.1 while the v4 exit
-above is still pending — 4.6.2 is the last v4 and carries fixes 4.4.1 does not.
-And `plugins/BbcodeParser/src/Lib/jBBCode/` is excluded from PHPStan, so the
-definitions that parse untrusted markup get no static analysis at all.
+- **One wrong property type, six symptoms.** `CodeDefinition::$_sOptions` is
+  declared `array` and holds a `MarkupSettings`, so every `->get()` on it reports
+  "cannot call method get() on array". Fix the declaration and six of the sixteen
+  go.
+- **Four `??` fallbacks that can never fire.** The `embed` library declares
+  `$favicon`, `$providerName`, `$providerUrl` and `$url` as non-nullable, so the
+  defaults behind `??` are unreachable. Harmless, but they promise a robustness
+  that is not there — worth knowing before someone relies on it.
+- **`$node->getParent()->getTagName()`** in the `[img]` definition. `getParent()`
+  is typed as returning `Node`, which has no `getTagName()`; only `ElementNode`
+  does. Not reachable today — the parser wraps everything in a document root, so
+  an `[img]` always has an element parent — but the code depends on an invariant
+  the types do not state, and `getParent()` returning null would be fatal.
 
-Housekeeping from the same pass, none of it urgent, all of it easy to lose:
+The rest are Cake's magic helper properties (`$this->Html`) needing `@property`
+annotations.
 
-- **Psalm earns nothing.** `psalm.xml` runs at `errorLevel="8"` — the weakest —
-  with `findUnusedCode="false"`, so it duplicates PHPStan at lower strictness.
-  Raise it until it says something PHPStan does not, or drop it.
-- **`claviska/simpleimage` is on the unmaintained 3.x line** (3.7.2) and it
-  parses user-uploaded images. The v4 API differences are modest.
-- **`mobiledetect/mobiledetectlib` 2.x is EOL** (current is 4.x). Only UA
-  regexes, but the device data is frozen around 2018.
-- **`grunt` and `yarn` sit in `dependencies`** though nothing from node_modules
-  reaches a browser. Harmless in effect, but it makes any
-  `yarn audit --groups dependencies` triage meaningless. The `grunt` entry is
-  also duplicated across both sections.
-- **`uglify:release` has an empty file list** and its plugin
-  (`grunt-contrib-uglify-es`) is abandoned upstream. Dead weight; delete both.
-- **The PostCSS chain is from 2018** — autoprefixer 8.6.5 still uses the
-  deprecated inline `browsers` option instead of a browserslist config, and
-  cssnano 4.1.10. They run, but the prefix data is seven years stale.
+None of it is a live fault, which is why this is a to-do and not a fix. But
+"untrusted markup, no static analysis" is the wrong place to leave a gap, and the
+work is now quantified rather than guessed at.
+
+### Psalm: it does earn something — the note here was wrong
+
+An earlier version of this file said Psalm "duplicates PHPStan at lower
+strictness" and should be raised or dropped. That was wrong about how it is used.
+Nothing runs Psalm's general analysis; the pipeline runs
+`psalm --taint-analysis`, which follows user input through to dangerous sinks —
+something PHPStan does not do without its paid extension. Measured on
+2026-07-30: 30 seconds, no findings, types inferred for 83.6% of the codebase.
+
+So `errorLevel="8"` and `findUnusedCode="false"` describe a mode nobody invokes,
+and changing them would change nothing. Left alone deliberately.
+
+### Two PHP dependencies still worth moving
+
+- **`claviska/simpleimage` is on the unmaintained 3.x line** (3.7.2) and it parses
+  user-uploaded images. The v4 API differences are modest.
+- **`mobiledetect/mobiledetectlib` 2.x is EOL** (current is 4.x). Only UA regexes,
+  but the device data is frozen around 2018.
 
 ### DeepSource JS-0067 / JS-0052
 
