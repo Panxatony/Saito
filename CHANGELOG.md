@@ -5,6 +5,25 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+- Δ Changed: **the markup parser is under static analysis again.** The definitions
+  that turn `[code]`, `[img]`, `[url]` and the rest into HTML — the code that
+  handles what members type — were excluded from PHPStan. Sixteen findings came
+  out of that exclusion, and one of them was a type the code was telling about
+  itself: the property holding Saito's markup settings was declared an array
+  while it has only ever held an object, so every setting lookup in every
+  definition read as nonsense. Nothing was broken by it; nothing could be
+  checked either.
+
+  Also honest now about two assumptions: an `[img]` asked its parent node for a
+  tag name that only some node types have (safe in practice, fatal if the parser
+  ever changed), and four fallbacks for embed values that the library declares
+  can never be missing are gone rather than left implying otherwise.
+
+  No behaviour changes. Verified by breaking the one branch that had a
+  behavioural choice in it and watching eight tests fail, then putting it back.
+
 ## [8.3.0-alpha.2] - 2026-07-30
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0-alpha...8.3.0-alpha.2)

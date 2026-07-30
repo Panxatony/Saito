@@ -162,46 +162,6 @@ very large parser. Saito checks images for decompression bombs; video would need
 ceilings on duration, resolution and bitrate, and `ffmpeg` should not run as the
 same user as the forum.
 
-### What the jBBCode PHPStan exclusion hides
-
-
-`phpstan.neon` excludes `plugins/BbcodeParser/src/Lib/jBBCode/Definitions/*`,
-the code that parses untrusted markup. Measured on 2026-07-30 by removing the
-exclusion: **16 errors**, from three causes rather than sixteen.
-
-**Correcting this entry's own framing**, checked the same day: it said the one
-place most worth analysing gets none, which is not true. `psalm.xml` puts all of
-`plugins/` in scope and excludes only tests and vendor, so
-`psalm --taint-analysis` — the analysis that follows untrusted input to a
-dangerous sink, which is the one that matters here — already covers these files
-and reports nothing. The gap is PHPStan's type checking, not security analysis.
-Worth doing, but as "keep the parser's types honest", not as "close a hole".
-
-The exclusion's stated reason no longer holds either. The comment says the inline
-class definitions "aren't autoloadable for PHPStan"; removing the line produced
-16 ordinary type errors and no autoload failure at all.
-
-- **One wrong property type, six symptoms.** `CodeDefinition::$_sOptions` is
-  declared `array` and holds a `MarkupSettings`, so every `->get()` on it reports
-  "cannot call method get() on array". Fix the declaration and six of the sixteen
-  go.
-- **Four `??` fallbacks that can never fire.** The `embed` library declares
-  `$favicon`, `$providerName`, `$providerUrl` and `$url` as non-nullable, so the
-  defaults behind `??` are unreachable. Harmless, but they promise a robustness
-  that is not there — worth knowing before someone relies on it.
-- **`$node->getParent()->getTagName()`** in the `[img]` definition. `getParent()`
-  is typed as returning `Node`, which has no `getTagName()`; only `ElementNode`
-  does. Not reachable today — the parser wraps everything in a document root, so
-  an `[img]` always has an element parent — but the code depends on an invariant
-  the types do not state, and `getParent()` returning null would be fatal.
-
-The rest are Cake's magic helper properties (`$this->Html`) needing `@property`
-annotations.
-
-None of it is a live fault, which is why this is a to-do and not a fix. But
-"untrusted markup, no static analysis" is the wrong place to leave a gap, and the
-work is now quantified rather than guessed at.
-
 ### The rest of the way out from under Bootstrap 4
 
 Bootstrap has been unmaintained since January 2023. The exposure is smaller than

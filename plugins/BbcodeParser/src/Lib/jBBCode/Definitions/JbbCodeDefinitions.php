@@ -113,13 +113,18 @@ class Embed extends CodeDefinition
                 // v4 exposes typed values (EmbedCode / UriInterface); cast to
                 // strings for the JSON payload the front-end consumes.
                 $code = $info->code;
+                // Four of these used to carry a `?? ''` fallback that could
+                // never fire: embed/embed declares favicon, providerName,
+                // providerUrl and url as non-nullable, so the defaults promised
+                // a robustness that was not there. `title` and `description`
+                // keep theirs — those two really can be absent.
                 $embed = [
                     'html' => $code !== null ? $code->html : '',
-                    'providerIcon' => (string)($info->favicon ?? ''),
-                    'providerName' => (string)($info->providerName ?? ''),
-                    'providerUrl' => (string)($info->providerUrl ?? ''),
+                    'providerIcon' => (string)$info->favicon,
+                    'providerName' => (string)$info->providerName,
+                    'providerUrl' => (string)$info->providerUrl,
                     'title' => (string)($info->title ?? ''),
-                    'url' => (string)($info->url ?? $url),
+                    'url' => (string)$info->url,
                 ];
 
                 if ($this->_sOptions->get('content_embed_text')) {
@@ -140,7 +145,7 @@ class Embed extends CodeDefinition
         $uid = 'embed-' . md5($url); // DOM id for the embed, not password hashing skipcq: PHP-A1004
         $info = Cache::remember($uid, $callable, 'bbcodeParserEmbed');
 
-        return $this->_sHelper->Html->div('js-embed', '', ['id' => $uid, 'data-embed' => json_encode($info)]);
+        return $this->Html->div('js-embed', '', ['id' => $uid, 'data-embed' => json_encode($info)]);
     }
 
     /**
@@ -439,7 +444,7 @@ class FileWithAttributes extends CodeDefinition
 
         $url = $this->_linkToUploadedFile($content);
 
-        return $this->_sHelper->Html->link($content, $url, ['target' => '_blank']);
+        return $this->Html->link($content, $url, ['target' => '_blank']);
     }
 }
 
@@ -498,8 +503,13 @@ class Image extends CodeDefinition
 
         $image = $this->Html->image($url, $options);
 
-        if ($node->getParent()->getTagName() === 'Document') {
-            $image = $this->_sHelper->Html->link(
+        // getParent() is typed as returning a Node, and only an ElementNode has
+        // a tag name. In practice the parser wraps everything in a document
+        // root so an [img] always has one — but the code depended on that
+        // without saying so, and a null parent would have been fatal.
+        $parent = $node->getParent();
+        if ($parent instanceof \JBBCode\ElementNode && $parent->getTagName() === 'Document') {
+            $image = $this->Html->link(
                 $image,
                 $url,
                 ['escape' => false, 'target' => '_blank']
