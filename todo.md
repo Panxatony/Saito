@@ -324,13 +324,6 @@ something PHPStan does not do without its paid extension. Measured on
 So `errorLevel="8"` and `findUnusedCode="false"` describe a mode nobody invokes,
 and changing them would change nothing. Left alone deliberately.
 
-### Two PHP dependencies still worth moving
-
-- **`claviska/simpleimage` is on the unmaintained 3.x line** (3.7.2) and it parses
-  user-uploaded images. The v4 API differences are modest.
-- **`mobiledetect/mobiledetectlib` 2.x is EOL** (current is 4.x). Only UA regexes,
-  but the device data is frozen around 2018.
-
 ### DeepSource JS-0067 / JS-0052
 
 Knowingly accepted reports, ignored in the dashboard. The reasoning is in

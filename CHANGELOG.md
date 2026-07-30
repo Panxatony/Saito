@@ -48,6 +48,16 @@
   done nothing; and Alpine's own properties were undeclared, which is why every
   component that reads `this.$el` counted as an error.
 
+- Δ Changed: **the image library that handles uploads is current again**
+  (claviska/simpleimage 3.7.2 to 4.4.0). It parses what members upload, so an
+  unmaintained line was the wrong place to sit. Every call the forum makes —
+  orient, best-fit, thumbnail, convert — was exercised against a real image
+  before and after; the results are identical.
+
+- − Removed: **a dependency nothing used.** `mobiledetect/mobiledetectlib` was
+  declared but never called: Saito detects mobile clients with its own check,
+  because the library was too slow, and nothing else asked for it either.
+
 - Δ Changed: **the build tools are current again.** TypeScript, ESLint,
   typescript-eslint, Vite, autoprefixer and cssnano were all past their support
   windows — the CSS chain dated from 2018 and was still adding vendor prefixes for
