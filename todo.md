@@ -152,22 +152,6 @@ carry it, so nothing is wrong today — but a future translation that omits the
 test or lint would notice. Derive it from the English baseline or from the
 filename instead.
 
-### Drop the six legacy `users` columns
-
-`user_font_size`, `show_about`, `show_donate`, `flattr_uid`, `flattr_allow_user`
-and `flattr_allow_posting` exist only on installations that grew from Saito 5.
-Upstream removed them around 2012 — but as a manual SQL step printed in
-`docs/CHANGELOG_OLD.md`, not as a migration, so nobody ran it. A fresh install
-built from the 2018 `Initial` migration never had them.
-
-Drop, do not convert. `user_font_size` holds a Saito 5 *factor* rather than the
-percentage today's settings page uses; reviving those values would resize the
-forum for 194 accounts who never asked for it.
-
-Note for whoever does it: a `grep` over the codebase proves a column is unused,
-never that it is residue. The way to tell is to compare a grown database against
-one built from the migrations — the difference is exactly these six.
-
 ### Draft autosave: the storage survived, the feature did not
 
 Found in the 2026-07-29 sweep for backend capability the frontend no longer uses.

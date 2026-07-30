@@ -22,6 +22,29 @@
   parent while all of its replies still belonged to the old thread — a state that
   could not be repaired, or even retried, from the interface.
 
+- ✓ Fixed: **a pasted code block keeps its shape.** Copying code out of a
+  documentation page used to deliver it as one unindented line — and because the
+  conversion had "added something", the browser's own paste was suppressed in
+  order to produce it, so the writer lost the formatting they would have got by
+  doing nothing. `<pre><code>…</code></pre>`, which is what those pages almost
+  always ship, no longer arrives wrapped twice either.
+
+- ✓ Fixed: **an admin-only help topic stays admin-only in every language.** Which
+  topics are for administrators was read from the file being served, so it was a
+  property of the translation: a translated topic that omitted the marker would
+  have been readable by anyone. Nothing was wrong in practice — both German admin
+  topics carry it — and nothing would have caught the day one did not. The
+  English topic decides now.
+
+- − Removed: **six columns in `users` that have been dead since 2012.**
+  `user_font_size`, `show_about`, `show_donate` and three `flattr_*` — the last
+  belonging to a payment service that shut down in 2018. Upstream removed them
+  as a manual SQL step printed in a changelog rather than as a migration, so
+  nobody ran it and every grown installation still carries them. Dropped rather
+  than revived: `user_font_size` holds a Saito 5 scaling *factor*, not the
+  percentage the settings page works in, so the stored values no longer mean what
+  they say. An installation that never had the columns is left alone.
+
 - Δ Changed: **the core tables are moved to InnoDB.** MyISAM has no transactions
   and does not object to being asked for one; it accepts the request and ignores
   it. Every safeguard that groups several writes together — the thread merge
