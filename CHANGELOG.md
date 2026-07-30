@@ -5,6 +5,55 @@
 - Δ Changed
 - − Removed
 
+## [8.3.0] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.9...8.3.0)
+
+### Upgrading — read this part
+
+**Three migrations run, and they need the command line.**
+
+```bash
+php bin/cake.php migrations status     # what is pending
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear    # not optional, see below
+```
+
+- **`bin/cake schema_cache clear` is part of the upgrade, not tidying up
+  afterwards.** One migration drops six columns from `users`, and CakePHP keeps
+  each table's column list on disk. Until that cache is cleared, every request
+  asks the database for a column that no longer exists and gets a 500 — on every
+  page, for everyone logged in. Nothing is damaged; the forum simply stays down
+  until someone works out why. Reload PHP-FPM afterwards.
+- **Not through the web updater.** One migration moves the core tables to
+  InnoDB, and on an installation whose `entries` is still MyISAM that rewrites
+  the table — measured at 5 minutes 31 seconds for 680,000 postings, with the
+  table locked throughout. PHP's execution limit cuts that short in a browser:
+  the server finishes anyway, but it may not be recorded as applied. Check
+  first whether it even applies to you:
+
+  ```sql
+  SELECT table_name, engine FROM information_schema.tables
+  WHERE table_schema = DATABASE() AND engine = 'MyISAM';
+  ```
+
+  An empty result means the expensive part does not concern you.
+- The full picture, including what the InnoDB move does to search results, is in
+  [docs/upgrade.md](docs/upgrade.md).
+
+### What is in it
+
+Drafts that keep what you are writing · a subject-length counter · pinning and
+unpinning working again · uploads deletable where you hit the limit · the search
+finding three-letter words · pasted code keeping its shape · thread merging that
+is all-or-nothing · no inline script anywhere, so a content-security policy can
+forbid it · a lighter stylesheet · a modernised build chain · and a good deal of
+residue removed.
+
+The three pre-release entries below carry the reasoning and the measurements
+for each of those; this release is `8.3.0-alpha.3` with the version number
+changed.
+
 ## [8.3.0-alpha.3] - 2026-07-30
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0-alpha.2...8.3.0-alpha.3)
