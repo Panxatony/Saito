@@ -7,6 +7,13 @@
 
 ## [next] -
 
+- ✓ Fixed: **a member at the upload limit can make room.** Reaching the
+  per-member ceiling was a dead end: the editor's upload area said the limit was
+  reached and offered no way to delete anything, and nothing mentioned that
+  deleting lives in the profile. So the member could neither add nor remove — from
+  where they were standing, the archive was simply stuck. Every tile in that area
+  now carries the same delete control the profile has, and the message says so.
+
 - ✓ Fixed: **pinning and unpinning a thread works again.** It has been dead since
   the frontend rewrite and failed in complete silence: the island posts the
   request with a token in the header and no form behind it, and the form-tampering

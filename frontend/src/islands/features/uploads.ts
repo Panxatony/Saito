@@ -33,7 +33,13 @@ function insertUploadTag(textarea: HTMLTextAreaElement, name: string, mime: stri
 function loadUploadGrid(): void {
     const grid = document.querySelector<HTMLElement>('.js-uploadGrid');
     if (grid) {
-        htmx.ajax('GET', '/entries/htmx-uploads', { target: grid, swap: 'innerHTML' });
+        // `manage=1` so each tile carries its delete control. Without it the
+        // overlay could only add — and a member who had reached the per-member
+        // limit was told so here, in the one place that offered no way to make
+        // room. Deleting lived in the profile, which nothing said. Clicking a
+        // tile still selects it for inserting; the delete button is separate and
+        // asks first.
+        htmx.ajax('GET', '/entries/htmx-uploads?manage=1', { target: grid, swap: 'innerHTML' });
     }
 }
 

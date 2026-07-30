@@ -305,6 +305,8 @@ class UploadsControllerTest extends IntegrationTestCase
         $count = $Uploads->find()->count();
 
         $this->expectException(GenericApiException::class);
+        // The message now names the remedy as well; the overlay where a member
+        // meets this limit offers a delete control since 8.3.0.
         $this->expectExceptionMessage('Error: Reached the maximal number of 1 uploads.');
 
         $this->upload($this->file);
