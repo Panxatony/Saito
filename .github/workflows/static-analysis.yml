@@ -50,3 +50,25 @@ jobs:
 
       - name: PHPStan
         run: vendor/bin/phpstan analyse --no-progress --error-format=github --memory-limit=2G
+
+  frontend:
+    # The type-checker and the linter. `tsconfig.json` has had `strict: true` for
+    # years and nothing ever ran against it: vite builds with esbuild, which
+    # strips types without looking at them, so the strictness was enforced only
+    # by whichever editor happened to be open. The first run found seven errors
+    # in shipped code.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: yarn install
+        run: |
+          npm install -g --silent yarn
+          yarn install --frozen-lockfile --non-interactive --no-progress
+
+      - name: Type-check and lint
+        run: npm run lint

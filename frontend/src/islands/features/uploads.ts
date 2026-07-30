@@ -179,7 +179,11 @@ document.addEventListener('click', (event: MouseEvent) => {
 // remove each upload and drop its tile. Deleting is per-upload on the server, so
 // a single failure leaves the rest done and that tile in place.
 document.addEventListener('click', (event: MouseEvent) => {
-    const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-uploadsDeleteSelected');
+    // Typed as the button it is: the handler disables it while the batch runs,
+    // and on a plain HTMLElement that assignment would have been accepted by the
+    // browser and done nothing — leaving the control live during a delete that
+    // cannot be undone.
+    const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.js-uploadsDeleteSelected');
     if (!btn) {
         return;
     }

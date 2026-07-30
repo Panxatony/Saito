@@ -133,7 +133,11 @@ document.addEventListener('click', (event: MouseEvent) => {
     if (toggle?.closest('.js-thread-island')) {
         event.preventDefault();
         const menu = toggle.parentElement?.querySelector<HTMLElement>('.dropdown-menu') ?? null;
-        const willOpen = Boolean(menu) && !menu.classList.contains('show');
+        // `menu !== null` rather than `Boolean(menu)`: both are the same at
+        // runtime, but only the comparison narrows the type, so the reader of the
+        // next line does not have to work out for themselves that it cannot be
+        // null there.
+        const willOpen = menu !== null && !menu.classList.contains('show');
         closeIslandDropdowns();
         if (willOpen && menu) {
             menu.classList.add('show');

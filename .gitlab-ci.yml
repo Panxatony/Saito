@@ -96,6 +96,21 @@ test:
 # vulnerable contrib/cssgen.php is additionally deleted on every composer
 # install/update by the `remove-insecure-vendor-files` script, so the ignore
 # only silences the version-pinned advisory for a file we no longer ship).
+# The frontend type-checker and linter. `tsconfig.json` has had `strict: true`
+# for years while nothing ever checked against it — vite builds with esbuild,
+# which strips types without looking at them, so the setting was enforced by
+# whichever editor happened to be open. In the `test` stage rather than `build`:
+# a type error should stop a release before the tarball is made, not while it is
+# being made.
+frontend:
+  stage: test
+  image: node:20
+  before_script:
+    - npm install -g --silent yarn
+    - yarn install --frozen-lockfile --non-interactive --no-progress
+  script:
+    - npm run lint
+
 security:composer-audit:
   stage: security
   before_script:

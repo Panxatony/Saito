@@ -26,15 +26,16 @@
     "grunt-postcss": "*",
     "grunt-shell": "*",
     "load-grunt-tasks": "^3.5.2",
-    "typescript": "^3.5.0",
+    "typescript": "^5",
     "vite": "^5"
   },
   "engines": {
     "yarn": ">= 1.0.0"
   },
   "scripts": {
-    "lint": "eslint \"frontend/src/**/*.ts\"",
+    "lint": "tsc --noEmit && eslint \"frontend/src/**/*.ts\"",
     "build": "ENTRY=htmx-threads vite build && ENTRY=admin vite build",
-    "dev": "ENTRY=htmx-threads vite build --watch"
+    "dev": "ENTRY=htmx-threads vite build --watch",
+    "typecheck": "tsc --noEmit"
   }
 }

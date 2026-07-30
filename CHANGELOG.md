@@ -35,6 +35,19 @@
   parent while all of its replies still belonged to the old thread — a state that
   could not be repaired, or even retried, from the interface.
 
+- Δ Changed: **the frontend is type-checked, for the first time.**
+  `tsconfig.json` has asked for strict checking for years and nothing ever ran it:
+  the build uses esbuild, which strips types without looking at them, so the
+  setting was enforced by whichever editor happened to be open. TypeScript is on
+  5.9 now, the check runs as part of linting, and both pipelines run it — a type
+  error stops a release instead of waiting to be noticed.
+
+  The first run found seven errors in code that ships. None of them was a live
+  fault, but two were worth having: a delete button was typed as a plain element,
+  so the line that disables it during the deletion would have been accepted and
+  done nothing; and Alpine's own properties were undeclared, which is why every
+  component that reads `this.$el` counted as an error.
+
 - Δ Changed: **the themes stop shipping the Bootstrap they do not use.** The
   theme stylesheet imported all thirty-eight Bootstrap modules; nineteen of them
   styled components the forum does not have — modals, carousels, spinners,
