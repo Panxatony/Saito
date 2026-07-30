@@ -106,18 +106,37 @@ $userColors = !empty($CurrentUser) && $CurrentUser->isLoggedIn()
               // used to try something else, where it is only in the way. Absent
               // configuration means "show", so installations that predate the
               // setting are unaffected. ?>
-        <?php if (\Cake\Core\Configure::read('Saito.notice') !== false) : ?>
+        <?php
+        // Two messages, two lifetimes, and they used to share one switch.
+        //
+        // The lead is about a change that happened: a new frontend, reload if it
+        // looks off. It stops being true a few weeks after the switch, and an
+        // installation turning it off then lost the help pointer with it.
+        //
+        // The pointer below has no expiry date — there is always somebody
+        // arriving for the first time — so it has its own setting and shows
+        // unless an installation says otherwise. Both keep the "absent means
+        // show" convention: leaving a key out is not the same as setting it to
+        // false, which is exactly the trap the lead's own setting laid.
+        $showLead = \Cake\Core\Configure::read('Saito.notice') !== false;
+        $showHelp = \Cake\Core\Configure::read('Saito.noticeHelp') !== false;
+        ?>
+        <?php if ($showLead || $showHelp) : ?>
         <div class="island-notice" role="status">
+            <?php if ($showLead) : ?>
             <p class="island-notice-lead">
                 <i class="fa fa-<?= $isBeta ? 'flask' : 'refresh' ?>" aria-hidden="true"></i>
                 <?= h($isBeta ? __('beta_notice') : __('notice.modernised')) ?>
             </p>
+            <?php endif; ?>
+            <?php if ($showHelp) : ?>
             <p class="island-notice-help-line">
                 <?= h(__('beta_notice_help')) ?>
                 <button type="button" class="island-notice-help js-helpOpen">
                     <i class="fa fa-question-circle" aria-hidden="true"></i>&nbsp;<?= h(__('notice.help.btn')) ?>
                 </button>
             </p>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
         <?= $this->element('layout/htmx_header') ?>

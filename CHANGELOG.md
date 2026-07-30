@@ -5,6 +5,16 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+- ✓ Fixed: **turning off the "new frontend" notice no longer takes the pointer
+  for newcomers with it.** Two messages shared one switch: one describes a
+  change that happened and stops being true a few weeks later, the other says
+  where the help button is and never stops being true. An installation past the
+  switch had to keep a stale message or lose both. They have separate settings
+  now — `Saito.notice` and `Saito.noticeHelp` — and both keep the convention
+  that an absent key means shown.
+
 ## [8.3.0] - 2026-07-30
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.9...8.3.0)
