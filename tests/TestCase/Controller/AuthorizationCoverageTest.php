@@ -62,20 +62,19 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @var array<string, string>
      */
     private const MEMBER_OPEN = [
-        'App\\Controller\\StatusController::status' => 'read-only forum status for a logged-in member',
         'App\\Controller\\UsersController::name' => 'view a public user profile by name (read)',
         'App\\Controller\\UsersController::ignore' => 'adds to the current user\'s own ignore list (self-scoped)',
         'App\\Controller\\UsersController::unignore' => 'removes from the current user\'s own ignore list (self-scoped)',
         // htmx island counterparts of the above — same exposure as the classic
         // action each one replaces (verified self-scoped or plain read).
         'App\\Controller\\UsersController::htmxUsers' => 'member list in the island (read; same as index)',
-        'App\\Controller\\UsersController::recentPosts' => 'a user\'s recent postings, category-filtered for the reader (read)',
         'App\\Controller\\UsersController::bookmarks' => 'renders the current user\'s own bookmarks (self-scoped)',
         'App\\Controller\\UsersController::htmxWidgetState' => 'stores the current user\'s own widget-rail arrangement (self-scoped)',
+        'App\\Controller\\UsersController::htmxBookmarkComment' => 'edits the note on the current user\'s own bookmark; the row is looked up by posting id AND user id (self-scoped)',
         'App\\Controller\\UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
         'App\\Controller\\EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
-        'App\\Controller\\EntriesController::htmxUploads' => 'lists the current user\'s own uploads (self-scoped)',
         'App\\Controller\\EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
+        'App\\Controller\\EntriesController::htmxDraft' => 'stores the current user\'s own unfinished posting; the row is looked up by parent id AND user id (self-scoped)',
     ];
 
     /**

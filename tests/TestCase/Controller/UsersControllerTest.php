@@ -11,6 +11,7 @@ use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\Http\Cookie\CookieCollection;
 use Cake\Http\Exception\BadRequestException;
+use Cake\Http\Exception\NotFoundException;
 use Cake\Mailer\Message;
 use Cake\ORM\TableRegistry;
 use Laminas\Diactoros\UploadedFile;
@@ -35,11 +36,6 @@ class UsersControllerTest extends IntegrationTestCase
         @rmdir($dir);
     }
 
-    private function lsDir(string $dir): array
-    {
-        $files = glob(rtrim($dir, '/') . '/*') ?: [];
-        return array_values(array_filter($files, fn($f) => !str_starts_with(basename($f), '.')));
-    }
 
     public array $fixtures = [
         'app.Category',
@@ -577,43 +573,6 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertRedirectLogin($url);
     }
 
-    /**
-     * Assert the paginated `users` view variable is monotonically ordered by
-     * $field/$direction. Monotonicity (not full-sequence equality) is asserted
-     * so the check is robust to the arbitrary order of ties and to DB-vs-PHP
-     * collation differences.
-     */
-    private function assertUsersSortedBy(string $field, string $direction): void
-    {
-        // Normalize each value to a comparable scalar matching the DB's order:
-        // NULL sorts first in ASC / last in DESC (MySQL) -> smallest; dates ->
-        // timestamp; bool -> int; strings compared case-insensitively.
-        $norm = function ($v) {
-            if ($v === null) {
-                return PHP_INT_MIN;
-            }
-            if ($v instanceof \DateTimeInterface) {
-                return $v->getTimestamp();
-            }
-            if (is_bool($v)) {
-                return (int)$v;
-            }
-            return is_string($v) ? strtolower($v) : $v;
-        };
-
-        // items() first: `users` is a PaginatedResultSet, and calling ResultSet
-        // methods (extract) on it directly is deprecated since CakePHP 5.1.
-        $values = array_map($norm, $this->viewVariable('users')->items()->extract($field)->toList());
-        for ($i = 0, $n = count($values) - 1; $i < $n; $i++) {
-            $cmp = $values[$i] <=> $values[$i + 1];
-            $message = sprintf('User list is not ordered by %s %s (at index %d).', $field, $direction, $i);
-            if ($direction === 'asc') {
-                $this->assertLessThanOrEqual(0, $cmp, $message);
-            } else {
-                $this->assertGreaterThanOrEqual(0, $cmp, $message);
-            }
-        }
-    }
 
     public function testIgnore()
     {
@@ -775,5 +734,52 @@ class UsersControllerTest extends IntegrationTestCase
         // '/' rather than '/entries/htmx-index': the root route points at that
         // action, so the router builds the shorter address for it.
         $this->assertRedirect('/');
+    }
+
+    /**
+     * Bookmark notes were rendered but unwritable after the SPA went: the only
+     * thing that could set one was the REST endpoint its client called.
+     *
+     * @return void
+     */
+    public function testHtmxBookmarkCommentSavesTheNote(): void
+    {
+        $this->_loginUser(3);
+        $this->post('/users/htmx-bookmark-comment/1', ['comment' => 'read this later']);
+
+        $this->assertResponseOk();
+        $stored = TableRegistry::getTableLocator()->get('Bookmarks.Bookmarks')
+            ->find()->where(['user_id' => 3, 'entry_id' => 1])->first();
+        $this->assertSame('read this later', $stored->get('comment'));
+    }
+
+    /**
+     * The bookmark is found by posting id *and* current user, so there is no id
+     * here that could address somebody else's row. Bookmark 3 belongs to user 1
+     * on the same posting; user 3 must not reach it.
+     *
+     * @return void
+     */
+    public function testHtmxBookmarkCommentTouchesOnlyTheCurrentUsersBookmark(): void
+    {
+        $this->_loginUser(3);
+        $this->post('/users/htmx-bookmark-comment/1', ['comment' => 'mine']);
+
+        $this->assertResponseOk();
+        $other = TableRegistry::getTableLocator()->get('Bookmarks.Bookmarks')->get(3);
+        $this->assertSame('Comment 3', $other->get('comment'));
+    }
+
+    /**
+     * A posting the member has not bookmarked is not a note they may write.
+     *
+     * @return void
+     */
+    public function testHtmxBookmarkCommentRefusesAPostingWithoutABookmark(): void
+    {
+        $this->expectException(NotFoundException::class);
+
+        $this->_loginUser(3);
+        $this->post('/users/htmx-bookmark-comment/2', ['comment' => 'nope']);
     }
 }

@@ -26,15 +26,6 @@ module.exports = function (grunt) {
             src: '*',
             dest: './webroot/css/stylesheets/fonts/'
           },
-          /// Assets for plugins/SprectrumColorpicker
-          {
-            src: './node_modules/spectrum-colorpicker/spectrum.js',
-            dest: './plugins/SpectrumColorpicker/webroot/js/spectrum.js',
-          },
-          {
-            src: './node_modules/spectrum-colorpicker/spectrum.css',
-            dest: './plugins/SpectrumColorpicker/webroot/css/spectrum.css',
-          },
           /// Assets Cabin font
           {
             expand: true,
@@ -55,15 +46,25 @@ module.exports = function (grunt) {
             src: './node_modules/typeface-fenix/files/fenix-latin-400.woff*',
             dest: './plugins/Bota/webroot/fonts/',
           },
+          /// The licence those two fonts are under. The SIL Open Font License
+          /// requires its text to be distributed with the font, and the npm
+          /// packages carry only their own packaging licence — so it is kept in
+          /// the repository and copied next to the files it covers. Both theme
+          /// font directories get a copy, because either can be deployed alone.
+          {
+            expand: true,
+            flatten: true,
+            src: './webroot/css/src/fonts/OFL.txt',
+            dest: './plugins/Bota/webroot/fonts/',
+          },
+          {
+            expand: true,
+            flatten: true,
+            src: './webroot/css/src/fonts/OFL.txt',
+            dest: './plugins/Macnemo/webroot/fonts/',
+          },
         ]
       },
-    },
-    uglify: {
-      release: {
-        files: {
-          // './webroot/dist/main.min.js': ['./webroot/dist/main.min.js']
-        }
-      }
     },
     clean: {
       devsetup: [
@@ -123,8 +124,10 @@ module.exports = function (grunt) {
           // the macnemo theme silently drifted away from its own source.
           'plugins/Macnemo/webroot/css/night.css': 'plugins/Macnemo/webroot/css/src/night.scss',
           'plugins/Macnemo/webroot/css/theme.css': 'plugins/Macnemo/webroot/css/src/theme.scss',
-          // Macfix imports Nova as well, so it is compiled from the same task
-          // and rebuilt whenever Nova or Bota's partials change.
+          // Macfix imports Nova as well. It exists only on this branch — the
+          // theme belongs to one installation and is deliberately kept out of
+          // the releases — so this entry is part of what makes the branch build
+          // on its own. A merge from develop drops it; put it back.
           'plugins/Macfix/webroot/css/night.css': 'plugins/Macfix/webroot/css/src/night.scss',
           'plugins/Macfix/webroot/css/theme.css': 'plugins/Macfix/webroot/css/src/theme.scss',
         }
@@ -140,6 +143,7 @@ module.exports = function (grunt) {
             'plugins/Bota/webroot/css/src/**/*.scss',
             'plugins/Nova/webroot/css/src/**/*.scss',
             'plugins/Macnemo/webroot/css/src/**/*.scss',
+            'plugins/Macfix/webroot/css/src/**/*.scss',
           ],
         tasks: ['dart-sass:theme'],
       },
@@ -154,7 +158,10 @@ module.exports = function (grunt) {
         },
         */
         processors: [
-          require('autoprefixer')({ browsers: 'last 2 versions' }), // add vendor prefixes
+          // The target browsers live in package.json's `browserslist` now:
+          // autoprefixer dropped the inline `browsers` option in v10, and a
+          // shared list is what cssnano and every other tool reads as well.
+          require('autoprefixer')(), // add vendor prefixes
           //// minify the result
           require('cssnano')({
             //// prevents shortening and namespace collision on keyframes names
@@ -176,7 +183,12 @@ module.exports = function (grunt) {
           'plugins/Nova/webroot/css/*.css',
           // Macnemo is compiled by dart-sass:theme but was missing here, so it
           // was the one theme released unprefixed and unminified.
-          'plugins/Macnemo/webroot/css/*.css'
+          'plugins/Macnemo/webroot/css/*.css',
+          // Macfix had the same gap Macnemo had above: compiled by
+          // dart-sass:theme, absent here, and therefore shipped to its
+          // installation unprefixed and unminified — 224 kB where the other
+          // themes send about 133 kB.
+          'plugins/Macfix/webroot/css/*.css'
         ]
       },
     },
@@ -185,12 +197,14 @@ module.exports = function (grunt) {
   grunt.initConfig(gruntConfig);
 
   grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-uglify-es');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-dart-sass');
-  grunt.loadNpmTasks('grunt-postcss');
+  // The maintained fork: `grunt-postcss` was last released in 2018 and speaks
+  // only the PostCSS 7 plugin API, so autoprefixer 10 and cssnano 7 arrive as
+  // "[object Object] is not a PostCSS plugin".
+  grunt.loadNpmTasks('@lodder/grunt-postcss');
 
   // dev-setup
   grunt.registerTask(
@@ -210,7 +224,6 @@ module.exports = function (grunt) {
     'shell:bundle',
     // JS
     'copy:nonmin',
-    'uglify:release',
     // l10n
     // cleanup
     'clean:releasePost'

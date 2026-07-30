@@ -11,15 +11,68 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: two migrations
+### The database: four migrations
 
-Between 5.7.0 and 8.x there are **two** schema changes, and the second exists
-only to repair the first:
+Between 5.7.0 and 8.3.x there are **four** schema changes. The second exists only
+to repair the first; the last two arrived in 8.3.0 and are the ones that take
+time on a grown installation.
 
 | Migration | What it does |
 |---|---|
 | `20260604090000_ConvertLegacyTablesToUtf8mb4` | Converts `useronline` and the single column `users.user_category_custom` from utf8mb3 to utf8mb4 |
 | `20260727190000_RestoreUserCategoryCustomWidth` | Restores `users.user_category_custom` to its full 1024 characters |
+| `20260730000000_ConvertCoreTablesToInnodb` | Moves the core tables off MyISAM — **the expensive one, read below** |
+| `20260730010000_DropLegacySaito5UserColumns` | Drops six `users` columns dead since 2012 |
+
+#### The InnoDB conversion is the one to plan for
+
+MyISAM has no transactions and does not object to being asked for one: it accepts
+`BEGIN` and `COMMIT` and ignores them. Every safeguard that groups several writes
+together is therefore correct on InnoDB and silently unprotected on MyISAM —
+merging two threads is five dependent writes, and a failure part-way through used
+to leave a thread half-merged and unrepairable through the interface.
+
+A 5.7 installation created before the 2018 schema almost certainly still has
+MyISAM tables. The figures below were measured on a copy of a live table with
+679,910 postings taking 321 MB, converted for real rather than estimated:
+
+- **5 minutes 31 seconds**, with the table locked throughout, so the forum is
+  unavailable for that long. `entries` carries a full-text index and InnoDB needs
+  a hidden column for one that cannot be added afterwards, so the table is
+  rewritten in full — there is no incremental path.
+- **Keep room for a second copy.** The rebuild writes the new table beside the old
+  one. The result came out *smaller* — 279 MB against 321 — but you need roughly
+  double the table size in transit. This is the likeliest way the upgrade fails.
+- **Run migrations from the command line**, `bin/cake migrations migrate`. Through
+  the web updater PHP's execution limit will cut a five-minute conversion short;
+  the server finishes it regardless, but it may then not be recorded as applied.
+- **The search finds more afterwards.** MyISAM ignores words shorter than four
+  characters and carries some 500 stopwords; InnoDB's limits are three characters
+  and 36. On the measured copy the three-letter term `mac` went from **0 hits to
+  16,384**, while a longer term returned exactly the same count. Nothing is lost —
+  Saito searches in boolean mode, so MyISAM's "ignore words in over half the rows"
+  rule never applied — but a forum whose members search for short words will
+  notice.
+
+Check what you are in for before you start:
+
+```sql
+SELECT table_name, engine, table_rows,
+       ROUND((data_length + index_length) / 1024 / 1024) AS mb
+FROM information_schema.tables
+WHERE table_schema = DATABASE() AND engine = 'MyISAM';
+```
+
+Nothing listed means the conversion is a no-op for you.
+
+#### The dropped columns
+
+`user_font_size`, `show_about`, `show_donate` and three `flattr_*` exist only on
+installations grown from Saito 5 — upstream removed them around 2012, as a manual
+SQL step printed in a changelog rather than as a migration, so nobody ran it.
+They are dropped rather than carried over: `user_font_size` holds a Saito 5
+scaling *factor*, not the percentage today's settings page works in, so the stored
+values no longer mean what they say.
 
 That is the whole schema delta. Older installations kept two stragglers on the
 3-byte character set, so they could not store 4-byte characters — emoji, mostly.
@@ -45,8 +98,32 @@ SELECT COUNT(*) FROM users WHERE CHAR_LENGTH(user_category_custom) = 512;
 
 Zero means nothing was truncated.
 
-No table is added, dropped or restructured. **Your postings, users, categories
-and settings are untouched.**
+No table is added or restructured, and no posting, user, category or setting is
+altered — the two 8.3.0 migrations change how tables are stored and remove columns
+nothing has read since 2012. **Your content is untouched.**
+
+#### Clear the schema cache afterwards, or the forum will not come back
+
+```shell
+bin/cake schema_cache clear
+```
+
+This is not optional and it is not tidiness. CakePHP remembers each table's
+column list on disk, and dropping six columns from `users` does not tell it. The
+next request builds its query from the remembered list, asks for a column that no
+longer exists, and the database refuses it:
+
+```
+Unknown column 'Users.user_font_size' in 'SELECT'
+```
+
+Every page that looks at a user — which is every page for anyone logged in —
+answers 500 until the cache is cleared. Nothing is damaged and nothing is lost;
+the forum simply stays down for as long as it takes to notice. Run the clear
+immediately after `migrations migrate`, before you go looking at the site, and
+reload PHP-FPM after it.
+
+Found the hard way on the beta installation while preparing 8.3.0.
 
 Every setting Saito 8 reads already exists in a 5.7 database — the newest of
 them was introduced before 5.0. Nothing has to be inserted by hand.
@@ -129,7 +206,7 @@ already installed and the frontend assets already built — no Composer, no Node
 no build step on your server.
 
 ```bash
-V=8.0.9
+V=8.2.0
 curl -LO "https://github.com/Panxatony/Saito/releases/download/$V/saito-$V.tar.gz"
 curl -LO "https://github.com/Panxatony/Saito/releases/download/$V/saito-$V.tar.gz.sha256"
 
@@ -157,7 +234,7 @@ rsync -a --delete \
   --exclude 'logs/' \
   --exclude 'tmp/' \
   --exclude 'webroot/useruploads/' \
-  saito-8.0.9/ /path/to/forum/
+  saito-8.2.0/ /path/to/forum/
 ```
 
 > **Careful with `config/`.** The tarball contains a placeholder `app.php`.
@@ -173,8 +250,8 @@ Both files are commented; nothing here is required for the forum to start, but
 it is the moment where you would notice a new option.
 
 ```bash
-diff -u /path/to/forum/config/saito_config.php saito-8.0.9/config/saito_config.php
-diff -u /path/to/forum/config/app.php          saito-8.0.9/config/app.php
+diff -u /path/to/forum/config/saito_config.php saito-8.2.0/config/saito_config.php
+diff -u /path/to/forum/config/app.php          saito-8.2.0/config/app.php
 ```
 
 Do **not** replace the files — read the diff and copy individual keys.

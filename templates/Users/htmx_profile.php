@@ -236,6 +236,39 @@ if ($user->get('signature')) {
             </div>
         </div>
     <?php endif; ?>
+
+    <?php // Somebody else's profile, seen by an admin: their upload archive.
+          // `saito.plugin.uploader.view` has granted admins this all along, but
+          // the only action honouring it was the token-authed REST controller —
+          // so moderating an upload meant leaving the app. The delete control is
+          // the same one the owner gets; `saito.plugin.uploader.delete` grants it
+          // to admins too. ?>
+    <?php if (
+        $CurrentUser->isLoggedIn()
+        && !$CurrentUser->isUser($user)
+        && $CurrentUser->permission('saito.core.admin.backend')
+    ) : ?>
+        <?php $webroot = $this->request->getAttribute('webroot'); ?>
+        <div class="card mb-3">
+            <div class="card-header">
+                <?= $this->Layout->panelHeading(__('upl.title.pl')) ?>
+            </div>
+            <div class="card-body">
+                <div class="upload-grid js-uploadManageGrid"
+                     hx-get="<?= $webroot ?>entries/htmx-uploads?manage=1&amp;id=<?= (int)$user->get('id') ?>"
+                     hx-trigger="load" hx-swap="innerHTML">
+                    <p class="text-muted"><?= h(__('Loading …')) ?></p>
+                </div>
+                <div class="upload-actions">
+                    <button type="button" class="btn btn-outline-danger js-uploadsDeleteSelected"
+                            data-label="<?= h(__('upl.delete.selected')) ?>"
+                            data-confirm="<?= h(__('upl.delete.confirm')) ?>" disabled>
+                        <i class="fa fa-trash-o"></i> <?= h(__('upl.delete.selected')) ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php

@@ -1,70 +1,16 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 1
-			path: plugins/Admin/src/Controller/AdminsController.php
-
-		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 1
-			path: plugins/Admin/src/Controller/CategoriesController.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: plugins/Admin/src/Controller/CategoriesController.php
-
-		-
-			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.renderMustBeUsed
-			count: 1
-			path: plugins/Admin/src/Controller/SettingsController.php
-
-		-
 			message: '#^Variable \$setting in empty\(\) always exists and is not falsy\.$#'
 			identifier: empty.variable
 			count: 1
 			path: plugins/Admin/src/Controller/SettingsController.php
 
 		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 5
-			path: plugins/Admin/src/Controller/SmileyCodesController.php
-
-		-
 			message: '#^Parameter \#1 \$smiley of method Admin\\Controller\\SmileyCodesController\:\:_addEditCommon\(\) expects Cake\\ORM\\Entity, Cake\\Datasource\\EntityInterface given\.$#'
 			identifier: argument.type
 			count: 2
 			path: plugins/Admin/src/Controller/SmileyCodesController.php
-
-		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 4
-			path: plugins/Admin/src/Controller/SmiliesController.php
-
-		-
-			message: '#^Result of \|\| is always true\.$#'
-			identifier: booleanOr.alwaysTrue
-			count: 1
-			path: plugins/Admin/src/Controller/SmiliesController.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: plugins/Admin/src/Controller/SmiliesController.php
-
-		-
-			message: '#^Variable \$id in empty\(\) always exists and is always falsy\.$#'
-			identifier: empty.variable
-			count: 2
-			path: plugins/Admin/src/Controller/SmiliesController.php
 
 		-
 			message: '#^Variable \$user in empty\(\) always exists and is not falsy\.$#'
@@ -108,29 +54,6 @@ parameters:
 			count: 1
 			path: plugins/Installer/src/Lib/InstallerState.php
 
-		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 1
-			path: plugins/SaitoHelp/src/Controller/SaitoHelpsController.php
-
-		-
-			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
-			identifier: cake.entity.arrayAccess
-			count: 4
-			path: plugins/Sitemap/src/Lib/SitemapEntries.php
-
-		-
-			message: '#^Variable \$entries in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: plugins/Sitemap/src/Lib/SitemapEntries.php
-
-		-
-			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.renderMustBeUsed
-			count: 1
-			path: src/Controller/AppController.php
 
 		-
 			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
@@ -169,30 +92,6 @@ parameters:
 			path: src/Controller/Component/ThreadsComponent.php
 
 		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 2
-			path: src/Controller/EntriesController.php
-
-		-
-			message: '#^Variable \$posting in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: src/Controller/EntriesController.php
-
-		-
-			message: '#^Method `render\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>render\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.renderMustBeUsed
-			count: 1
-			path: src/Controller/PagesController.php
-
-		-
-			message: '#^Method `redirect\(\)` must be used to prevent unreachable code\. Use `return \$this\-\>redirect\(\)` or assign it to a variable\.$#'
-			identifier: cake.controller.redirectMustBeUsed
-			count: 5
-			path: src/Controller/UsersController.php
-
-		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
 			count: 1
@@ -209,18 +108,6 @@ parameters:
 			identifier: empty.property
 			count: 1
 			path: src/Lib/Model/Table/AppTable.php
-
-		-
-			message: '#^Array access to entity Cake\\Datasource\\EntityInterface is not allowed, access as object instead$#'
-			identifier: cake.entity.arrayAccess
-			count: 11
-			path: src/Lib/Saito/Smiley/SmileyLoader.php
-
-		-
-			message: '#^Parameter \#1 \$smiley of method Saito\\Smiley\\SmileyLoader\:\:_getType\(\) expects array, Cake\\Datasource\\EntityInterface given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Lib/Saito/Smiley/SmileyLoader.php
 
 		-
 			message: '#^Result of method PHPUnit\\Framework\\Assert\:\:assertEquals\(\) \(void\) is used\.$#'
@@ -265,12 +152,6 @@ parameters:
 			path: src/Lib/Saito/User/ReadPostings/ReadPostingsCookie.php
 
 		-
-			message: '#^Call to App\\Model\\Table\\EntriesTable\:\:hasMany could not find the class for "Bookmarks"$#'
-			identifier: cake.addAssociation.existClass
-			count: 1
-			path: src/Model/Table/EntriesTable.php
-
-		-
 			message: '#^Parameter \#1 \$entry of method App\\Model\\Table\\DraftsTable\:\:deleteDraftForPosting\(\) expects App\\Model\\Entity\\Entry, Cake\\ORM\\Entity given\.$#'
 			identifier: argument.type
 			count: 1
@@ -295,22 +176,10 @@ parameters:
 			path: src/Model/Table/EntriesTable.php
 
 		-
-			message: '#^Variable \$settings in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: src/Model/Table/SettingsTable.php
-
-		-
 			message: '#^Dead catch \- PDOException is never thrown in the try block\.$#'
 			identifier: catch.neverThrown
 			count: 1
 			path: src/Model/Table/UserOnlineTable.php
-
-		-
-			message: '#^Call to App\\Model\\Table\\UsersTable\:\:hasMany could not find the class for "Bookmarks"$#'
-			identifier: cake.addAssociation.existClass
-			count: 1
-			path: src/Model/Table/UsersTable.php
 
 		-
 			message: '#^Variable \$user in empty\(\) always exists and is not falsy\.$#'

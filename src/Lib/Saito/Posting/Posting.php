@@ -90,6 +90,14 @@ class Posting implements PostingInterface
     /**
      * {@inheritDoc}
      */
+    public function has(string $var): bool
+    {
+        return array_key_exists($var, $this->_rawData);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function withCurrentUser(CurrentUserInterface $CU): self
     {
         $this->setCurrentUser($CU);

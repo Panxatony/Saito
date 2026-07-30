@@ -371,51 +371,64 @@ class PostingBehavior extends Behavior
             return false;
         }
 
-        // set target entry as new parent entry
-        $table->patchEntity(
-            $sourcePosting,
-            ['pid' => $targetPosting->get('id')]
+        // Read once, before anything moves: after the source root is re-parented
+        // its own `tid` is what the subtree must still be found by, and reading
+        // it back off a saved entity invites the two to disagree.
+        $sourceTid = (int)$sourcePosting->get('tid');
+        $targetTid = (int)$targetPosting->get('tid');
+
+        // Five dependent writes. Without a transaction, a failure after the first
+        // leaves the source root pointing into the target thread while its whole
+        // subtree still carries the old `tid` — and the merge cannot be retried,
+        // because isRoot() is false by then and this method refuses at its first
+        // check. That state is unrepairable through the interface.
+        $merged = $table->getConnection()->transactional(
+            function () use ($table, $sourcePosting, $targetPosting, $sourceTid, $targetTid): bool {
+                // set target entry as new parent entry
+                $table->patchEntity($sourcePosting, ['pid' => $targetPosting->get('id')]);
+                if (!$table->save($sourcePosting)) {
+                    return false;
+                }
+
+                // associate all entries in source thread to target thread
+                $table->updateAll(['tid' => $targetTid], ['tid' => $sourceTid]);
+
+                // appended source entries get category of target thread
+                $this->threadChangeCategory($targetTid, $targetPosting->get('category_id'));
+
+                // Update the target thread's last answer if the source is newer,
+                // comparing against the target *root*. Only the root carries a
+                // current `last_answer` — EntriesTable::afterSave() bumps the root
+                // alone, so every reply keeps whatever it was created with.
+                // Comparing against a reply in the middle of an active thread
+                // overwrote the root with an older date, and the thread sank down
+                // a front page sorted by exactly that column although it had been
+                // answered that day.
+                $targetRoot = $table->get($targetTid);
+                $sourceLastAnswer = $sourcePosting->get('last_answer');
+                if ($sourceLastAnswer > $targetRoot->get('last_answer')) {
+                    $table->save(
+                        $table->patchEntity($targetRoot, ['last_answer' => $sourceLastAnswer])
+                    );
+                }
+
+                // propagate pinned property from target to source
+                $isTargetPinned = $targetPosting->isLocked();
+                if ($sourcePosting->isLocked() !== $isTargetPinned) {
+                    $this->lockThread($targetTid, $isTargetPinned);
+                }
+
+                return true;
+            }
         );
-        if ($table->save($sourcePosting)) {
-            // associate all entries in source thread to target thread
-            $table->updateAll(
-                ['tid' => $targetPosting->get('tid')],
-                ['tid' => $sourcePosting->get('tid')]
-            );
 
-            // appended source entries get category of target thread
-            $this->threadChangeCategory(
-                $targetPosting->get('tid'),
-                $targetPosting->get('category_id')
-            );
-
-            // update target thread last answer if source is newer
-            $sourceLastAnswer = $sourcePosting->get('last_answer');
-            $targetLastAnswer = $targetPosting->get('last_answer');
-            if ($sourceLastAnswer > $targetLastAnswer) {
-                $targetRoot = $table->get($targetPosting->get('tid'));
-                $targetRoot = $table->patchEntity(
-                    $targetRoot,
-                    ['last_answer' => $sourceLastAnswer]
-                );
-                $table->save($targetRoot);
-            }
-
-            // propagate pinned property from target to source
-            $isTargetPinned = $targetPosting->isLocked();
-            $isSourcePinned = $sourcePosting->isLocked();
-            if ($isSourcePinned !== $isTargetPinned) {
-                $this->lockThread($targetPosting->get('tid'), $isTargetPinned);
-            }
-
-            $table->dispatchDbEvent(
-                'Model.Thread.change',
-                ['subject' => $targetPosting->get('tid')]
-            );
-
-            return true;
+        // Announced only once the merge is actually committed: listeners on this
+        // event clear caches, and a rolled-back merge that had already said
+        // "this thread changed" would leave them rebuilt from the old state.
+        if ($merged) {
+            $table->dispatchDbEvent('Model.Thread.change', ['subject' => $targetTid]);
         }
 
-        return false;
+        return $merged;
     }
 }

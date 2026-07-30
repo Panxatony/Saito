@@ -14,7 +14,20 @@
  */
 ?>
 <!DOCTYPE html>
-<html>
+<?php
+// The theme's two stylesheets, handed to the pre-paint script on the root
+// element. That script is a static file and cannot carry values the server
+// computes, and an inline block is what dropping 'unsafe-inline' from the
+// content-security policy forbids. `getTheme()` is set by ThemesComponent in
+// AppController::beforeRender().
+$theme = $this->getTheme();
+$themeAttrs = '';
+if ($theme) {
+    $themeAttrs = ' data-theme-css="' . h($this->Url->assetUrl($theme . '.css/theme.css')) . '"'
+        . ' data-night-css="' . h($this->Url->assetUrl($theme . '.css/night.css')) . '"';
+}
+?>
+<html<?= $themeAttrs ?>>
 <head>
     <title><?= h($titleForLayout ?? '') ?></title>
     <?php if (\Cake\Core\Configure::read('Saito.noindex')) : ?>
@@ -33,42 +46,22 @@
     <?= $this->fetch('css') ?>
 
     <?php
-    // Theme look. The theme's own layout/default.php loads this via a
-    // SaitoApp-dependent `document.write`; replicate it here without the SPA
-    // global so migrated pages keep the operator's theme (incl. the night
-    // preset toggled via localStorage). $this->getTheme() is the active theme
-    // set by ThemesComponent in AppController::beforeRender().
-    $theme = $this->getTheme();
-    if ($theme) {
-        $themeCss = $this->Url->assetUrl($theme . '.css/theme.css');
-        $nightCss = $this->Url->assetUrl($theme . '.css/night.css');
-        ?>
-        <script>
-            (function () {
-                var css = <?= json_encode($themeCss) ?>;
-                try {
-                    if (localStorage.theme === 'night') { css = <?= json_encode($nightCss) ?>; }
-                } catch (e) { /* localStorage unavailable */ }
-                document.write('<link id="js-themeCss" rel="stylesheet" type="text/css" href="' + css + '">');
-            })();
-        </script>
-        <noscript><?= $this->Html->css($theme . '.theme.css') ?></noscript>
-        <?php
-    }
+    // Before anything is painted: which theme stylesheet to load and the reader's
+    // font scale, both per-device preferences out of localStorage. Deliberately
+    // *not* deferred — a synchronous external script still runs before the first
+    // paint, which is the whole point; `defer` would bring back the flash of the
+    // wrong theme these lines exist to prevent.
+    //
+    // It used to be two inline blocks. External so the content-security policy can
+    // drop 'unsafe-inline' without the application having to take the policy over
+    // from the edge and hand out a nonce per request.
     ?>
+    <script src="<?= h($this->Url->assetUrl('boot.bundle.js', ['pathPrefix' => 'js/'])) ?>"></script>
+    <?php if ($theme) : ?>
+        <noscript><?= $this->Html->css($theme . '.theme.css') ?></noscript>
+    <?php endif; ?>
 
-    <?php // User font-size preference (set in settings, stored per device like the
-          // night/day theme). Applied here before paint to avoid a size flash. ?>
-    <script>
-        (function () {
-            try {
-                var s = localStorage.islandFontScale;
-                if (s) { document.documentElement.style.fontSize = s + '%'; }
-            } catch (e) { /* localStorage unavailable */ }
-        })();
-    </script>
-
-    <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
+        <?= \Cake\Core\Configure::read('Saito.headHtml') ?>
     <?php // RSS feed autodiscovery (public feeds) so browsers/readers find them. ?>
     <?php $webrootFeed = $this->request->getAttribute('webroot'); ?>
     <link rel="alternate" type="application/rss+xml"
@@ -79,7 +72,24 @@
     <?= $this->Html->css('htmx-island') ?>
     <meta name="viewport" content="width=device-width"/>
 </head>
-<body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>" data-threads-collapsed="<?= !empty($CurrentUser) && $CurrentUser->get('user_show_thread_collapsed') ? '1' : '0' ?>">
+<?php
+// The unread accent rail is drawn by two stylesheets — the island's and the
+// theme's — so it is switched off here, on the one element both can see, rather
+// than in either of them.
+$noUnreadRail = \Cake\Core\Configure::read('Saito.unreadRail') === false ? ' no-unread-rail' : '';
+
+// A member's own thread-line colours, handed to the island as plain values; it
+// applies them (userColors.ts). Empty for guests and for anyone who left the
+// setting on "use the theme's colour".
+$userColors = !empty($CurrentUser) && $CurrentUser->isLoggedIn()
+    ? $this->User->colors($CurrentUser->getSettings())
+    : [];
+?>
+<body class="htmx-island<?= !empty($CurrentUser) && $CurrentUser->isLoggedIn() ? ' is-member' : '' ?><?= $noUnreadRail ?>" data-inline-on-click="<?= !empty($CurrentUser) && $CurrentUser->get('inline_view_on_click') ? '1' : '0' ?>" data-threads-collapsed="<?= !empty($CurrentUser) && $CurrentUser->get('user_show_thread_collapsed') ? '1' : '0' ?>"<?php
+    foreach ($userColors as $key => $value) {
+        echo ' data-color-' . h($key) . '="' . h($value) . '"';
+    }
+?>>
     <div id="site">
         <?php
         // The corner ribbon marks a test deployment and must not survive the
@@ -190,6 +200,16 @@
             <div class="input js-insertTextRow" hidden>
                 <label for="js-insertText"><?= h(__('insert_text_optional')) ?></label>
                 <input type="text" id="js-insertText" class="form-control" autocomplete="off">
+            </div>
+            <?php // Only offered for an ordinary link: an image or a video is
+                  // already shown, and a card about it would say the same thing
+                  // twice. ?>
+            <div class="input js-insertCardRow" hidden>
+                <label style="font-weight: normal;">
+                    <input type="checkbox" id="js-insertCard">
+                    <?= h(__('insert_as_card')) ?>
+                </label>
+                <small class="text-muted" style="display: block;"><?= h(__('insert_as_card.exp')) ?></small>
             </div>
             <div class="js-insertType" style="font-size: .85rem; color: #777; margin: .25rem 0 .5rem;"></div>
             <div class="js-insertPreview" style="min-height: 1px;"></div>

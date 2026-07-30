@@ -138,7 +138,11 @@ function storeArrangement(): void {
     const body = new URLSearchParams();
     minimised.forEach((id) => body.append('widgets[]', id));
     order.forEach((id) => body.append('order[]', id));
-    void fetch('/users/htmx-widget-state', {
+    // Deliberately not awaited — the rail has already moved on screen and the
+    // request only records it. `.catch` rather than `void`: the latter silences
+    // the linter but still leaves a failed request as an unhandled rejection,
+    // and losing an arrangement is not worth an error in anyone's console.
+    fetch('/users/htmx-widget-state', {
         method: 'POST',
         headers: {
             'X-CSRF-Token': csrfToken(),
@@ -147,7 +151,7 @@ function storeArrangement(): void {
         },
         credentials: 'same-origin',
         body: body.toString(),
-    });
+    }).catch(() => undefined);
 }
 
 /* Reordering ---------------------------------------------------------------- */

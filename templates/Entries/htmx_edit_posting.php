@@ -26,6 +26,7 @@ $backUrl = $this->request->getAttribute('webroot') . 'entries/htmx-thread/' . (i
             <?= $this->Layout->textWithIcon(h(__('Back')), 'arrow-left') ?>
         </a>
     </p>
+    <?= $this->element('entry/htmx_editor_preview') ?>
     <div class="panel panel-form panel-center">
         <?= $this->Layout->panelHeading(__('edit_linkname')) ?>
         <div class="panel-content">
@@ -36,7 +37,13 @@ $backUrl = $this->request->getAttribute('webroot') . 'entries/htmx-thread/' . (i
                 <div class="alert alert-error"><?= h(__('Please check your entry.')) ?></div>
             <?php endif; ?>
             <?php
-            echo $this->Form->create(null, ['url' => ['action' => 'htmxEdit', $id], 'type' => 'post']);
+            // Datenattribute für die Vorschau: beim Bearbeiten sind Kategorie und
+            // Aufrufzahl die des vorhandenen Beitrags, nicht die eines neuen.
+            echo $this->Form->create(null, [
+                'url' => ['action' => 'htmxEdit', $id], 'type' => 'post',
+                'data-preview-category' => (int)$posting->get('category_id'),
+                'data-preview-views' => (int)$posting->get('views'),
+            ]);
 
             if (!empty($isRoot)) {
                 echo $this->Form->control('category_id', [
@@ -45,8 +52,14 @@ $backUrl = $this->request->getAttribute('webroot') . 'entries/htmx-thread/' . (i
                     'value' => $posting->get('category_id'),
                 ]);
             }
+            // Same limit as the add and reply forms. Without it, editing was the
+            // one place where the subject could be typed past the maximum and
+            // the writer only found out when the save came back rejected.
+            $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100);
             echo $this->Form->control('subject', [
-                'class' => 'form-control', 'label' => __('subject'),
+                'class' => 'form-control js-subject', 'label' => __('subject'),
+                'maxlength' => $subjectMax,
+                'style' => '--subject-max: ' . $subjectMax,
                 'value' => $posting->get('subject'),
             ]);
             echo $this->element('entry/htmx_editor_toolbar');

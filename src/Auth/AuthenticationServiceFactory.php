@@ -39,8 +39,11 @@ class AuthenticationServiceFactory
             'returnPayload' => true,
             // Do not accept the JWT via a `?token=` query parameter (the Cake
             // default): bearer tokens in URLs leak into access logs, browser
-            // history and Referer headers. The token travels in the header or
-            // the Saito-JWT cookie only.
+            // history and Referer headers. The token travels in the
+            // Authorization header, and only there — TokenAuthenticator::
+            // getToken() reads the header and the query parameter, never a
+            // cookie, so the `<Session.cookie>-JWT` cookie Saito used to mint
+            // was never an authentication path on this side.
             'queryParam' => null,
             'secretKey' => Configure::read('Security.jwtSalt')
                 ?: Configure::read('Security.cookieSalt'),

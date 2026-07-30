@@ -36,6 +36,15 @@ $icons = [
         . '<path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 '
         . '1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>',
     'code' => '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+    'list' => '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>'
+        . '<line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>'
+        . '<line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+    'spoiler' => '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>'
+        . '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>'
+        . '<path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>'
+        . '<line x1="2" y1="2" x2="22" y2="22"/>',
+    'help' => '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>'
+        . '<line x1="12" y1="17" x2="12.01" y2="17"/>',
     'link' => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
         . '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
     'image' => '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>'
@@ -64,12 +73,19 @@ foreach ((new \Saito\Smiley\SmileyLoader())->get() as $s) {
     $smilies[] = $s;
 }
 
+// [list] and [spoiler] parse and render correctly and always have, but the
+// island's toolbar was built with five buttons and never got them back — so for
+// two releases they were reachable only by typing the tags by hand, which no
+// reader would guess. The insert strings are the ones the old editor used, minus
+// its trailing empty `[*]` (the parser turned that into a blank list item).
 $buttons = [
     ['[b]', '[/b]', $icon($icons['bold']), __('Bold')],
     ['[i]', '[/i]', $icon($icons['italic']), __('Italic')],
     ['[s]', '[/s]', $icon($icons['strike']), __('Strikethrough')],
     ['[quote]', '[/quote]', $icon($icons['quote']), __('Quote')],
     ['[code]', '[/code]', $icon($icons['code']), __('Code')],
+    ["[list]\n[*] ", "\n[/list]", $icon($icons['list']), __('Bullet List')],
+    ['[spoiler]', '[/spoiler]', $icon($icons['spoiler']), __('Spoiler')],
 ];
 ?>
 <div class="js-editor-toolbar btn-toolbar" style="margin-bottom: .4em; gap: .3em;">
@@ -80,13 +96,17 @@ $buttons = [
                     title="<?= h($title) ?>" aria-label="<?= h($title) ?>"><?= $label ?></button>
         <?php endforeach; ?>
     </div>
-    <?php // Link + Media both open the smart insert overlay (auto-detects type). ?>
+    <?php
+    // One button, not two. There used to be a "Link" and a "Media" button side
+    // by side, identical in every respect — same class, same overlay, same
+    // behaviour. What is inserted has never depended on which one was pressed
+    // but on the address typed into it: a YouTube link becomes a frame, an image
+    // address an [img], a media file a [video] or [audio], anything else a link.
+    // Two buttons offered a choice that did not exist.
+    ?>
     <button type="button" class="btn btn-secondary btn-sm js-insertOpen"
             data-preview-url="<?= h($previewUrl) ?>"
-            title="<?= h(__('Link')) ?>" aria-label="<?= h(__('Link')) ?>"><?= $icon($icons['link']) ?></button>
-    <button type="button" class="btn btn-secondary btn-sm js-insertOpen"
-            data-preview-url="<?= h($previewUrl) ?>"
-            title="<?= h(__('Media')) ?>" aria-label="<?= h(__('Media')) ?>"><?= $icon($icons['media']) ?></button>
+            title="<?= h(__('insert.title')) ?>" aria-label="<?= h(__('insert.title')) ?>"><?= $icon($icons['link']) ?></button>
     <button type="button" class="btn btn-sm btn-link js-bb-upload" title="<?= h(__('upl.title.pl')) ?>">
         <?= $icon($icons['upload']) ?> <?= h(__('upl.title.pl')) ?>
     </button>
@@ -97,6 +117,18 @@ $buttons = [
     <button type="button" class="btn btn-sm btn-link js-bb-preview"
             data-preview-url="<?= h($previewUrl) ?>">
         <?= $icon($icons['eye']) ?> <?= h(__('Preview')) ?>
+    </button>
+    <?php
+    // Help for the editor itself, which links on to the full BBCode reference.
+    // That reference has existed for years (BbcodeParser/docs/help/*/1-bbcodes.md)
+    // but nothing pointed at it, so the only way to learn that e.g. [spoiler]
+    // exists was to read the source. Opens in the help overlay rather than a new
+    // tab: a reader mid-post should not lose the form to look up a tag.
+    ?>
+    <button type="button" class="btn btn-sm btn-link js-helpOpen"
+            data-modal-url="<?= h($this->Url->build('/help/11')) ?>"
+            title="<?= h(__('editor.help.title')) ?>" aria-label="<?= h(__('editor.help.title')) ?>">
+        <?= $icon($icons['help']) ?>
     </button>
     <?php if (!empty($smilies)) : ?>
         <?php // Smiley picker — hidden until toggled; each button inserts its code. ?>
@@ -113,5 +145,4 @@ $buttons = [
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
-    <div class="js-editor-preview"></div>
 </div>

@@ -92,6 +92,28 @@ database with the version of the code; if they differ it routes you to the
 updater instead of the front page. Confirm, and it applies any pending
 migrations and records the new version.
 
+> **Check what is pending first if you are crossing 8.3.0.** That release carries
+> a migration that moves the core tables to InnoDB, and on an installation whose
+> `entries` is still MyISAM it rewrites the table — measured at five and a half
+> minutes for 680,000 postings, with the table locked throughout. PHP's execution
+> limit will cut that short through the browser: the server finishes the
+> conversion anyway, but it may then not be recorded as applied. Run it from the
+> command line instead, and read the database section of
+> [upgrade.md](upgrade.md) for what to expect.
+>
+> ```bash
+> cd /path/to/forum
+> php bin/cake.php migrations status   # what is pending
+> php bin/cake.php migrations migrate
+> php bin/cake.php schema_cache clear  # not optional -- see below
+> ```
+>
+> **The cache clear belongs to the migration, not after it.** 8.3.0 drops six
+> columns from `users`, and CakePHP keeps each table's column list in
+> `tmp/cache/models`. Until that is cleared, every request still asks the
+> database for a column that no longer exists and gets a 500 — on every page,
+> for everyone logged in. Reload PHP-FPM afterwards.
+
 **This is expected, not an error.** If you deploy without the updater — from a
 configuration-management tool, say — remember that the database version has to
 be set as well, or every request keeps landing on the updater.

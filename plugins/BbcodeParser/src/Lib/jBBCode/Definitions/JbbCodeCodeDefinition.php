@@ -41,6 +41,19 @@ class CodeWithoutAttributes extends CodeDefinition
             self::$highlighter = new Highlighter(new InlineTheme(__DIR__ . '/code-theme.css'));
         }
 
+        // The text arrives HTML-escaped: BbcodePreparePreprocessor runs h() over
+        // the whole posting before anything is parsed. The highlighter escapes
+        // again — see below — so without undoing that first escape the reader is
+        // shown the entities themselves. `[code]<button>[/code]` came out as
+        // `&lt;button&gt;` on screen, and `a & b` as `a &amp; b`, which made code
+        // blocks useless for markup of any kind.
+        //
+        // Undone here rather than by not escaping earlier: h() over the whole
+        // posting is what keeps every other tag safe, and a code block is the one
+        // place that needs the raw characters back. What follows re-escapes them,
+        // so the text is escaped exactly once by the time it is emitted.
+        $content = htmlspecialchars_decode($content, ENT_QUOTES);
+
         // SECURITY: tempest/highlight does NOT escape via htmlspecialchars. Its
         // Escape::html() first entity-escapes real <, >, ", & and then
         // reverse-maps its internal placeholder glyphs U+2776–U+277F back into

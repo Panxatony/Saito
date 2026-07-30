@@ -56,6 +56,18 @@ cache:
     - vendor/
     - /tmp/composer-cache/
 
+# Is this release described? The version, the tag and the tarball all come out
+# of the pipeline by themselves; the CHANGELOG entry does not, and nothing used
+# to notice when it was missing. Runs only on a tag, needs no PHP setup, and
+# fails in seconds instead of after the suite and the build.
+changelog:
+  stage: test
+  before_script: []
+  script:
+    - sh dev/check-changelog.sh "$CI_COMMIT_TAG"
+  rules:
+    - if: $CI_COMMIT_TAG
+
 test:
   stage: test
   services:
@@ -84,6 +96,21 @@ test:
 # vulnerable contrib/cssgen.php is additionally deleted on every composer
 # install/update by the `remove-insecure-vendor-files` script, so the ignore
 # only silences the version-pinned advisory for a file we no longer ship).
+# The frontend type-checker and linter. `tsconfig.json` has had `strict: true`
+# for years while nothing ever checked against it — vite builds with esbuild,
+# which strips types without looking at them, so the setting was enforced by
+# whichever editor happened to be open. In the `test` stage rather than `build`:
+# a type error should stop a release before the tarball is made, not while it is
+# being made.
+frontend:
+  stage: test
+  image: node:20
+  before_script:
+    - npm install -g --silent yarn
+    - yarn install --frozen-lockfile --non-interactive --no-progress
+  script:
+    - npm run lint
+
 security:composer-audit:
   stage: security
   before_script:
@@ -199,7 +226,7 @@ build:
       --exclude='./phpstan.neon'
       --exclude='./phpunit.xml.dist'
       --exclude='./tsconfig.json'
-      --exclude='./.eslintrc.json'
+      --exclude='./eslint.config.mjs'
       --exclude='./yarn.lock'
       --exclude='*/tests'
       .

@@ -14,19 +14,37 @@ view* beside it shows all postings of a thread in one run instead. With *expand
 posting on click* switched on this happens in place, without changing page;
 another click restores the tree.
 
+Held open with Command or Ctrl, a posting opens in a new tab as usual.
+
 <!-- icon: pencil -->
 ### Writing
 
-*New posting* opens the editor in place. The toolbar formats text, inserts
-smilies and shows a preview. Your own postings can be changed with *edit*; they
-carry a note afterwards saying so.
+*New posting* opens the editor in place. The toolbar formats text and inserts
+smilies. A paragraph copied from a web page keeps its links and emphasis when
+pasted; paste without formatting if you would rather it did not. *Preview* shows the posting as it will look — subject and heading line
+included — in a panel above the editor. The text box grows as you write. Your
+own postings can be changed with *edit*; they carry a note afterwards saying so.
+
+When replying, the subject of the posting being answered stands pale in the
+field with *Re:* in front. It is used as it is when nothing is typed, and gets
+out of the way as soon as you write.
 
 <!-- icon: image -->
 ### Images and media
 
-*Insert media* takes an address and works out for itself whether it is an
-image, a video or a YouTube clip. The area beside it uploads files of your own
-into an archive to pick from later.
+*Link/Embed* takes an address and works out for itself what it becomes: an
+image, a video, a YouTube clip or an ordinary link. If text was selected in the
+editor it is already filled in — an address as the address, anything else as the
+link's label — and the selection is replaced rather than left standing beside
+it.
+
+An ordinary link can additionally be ticked as *Insert as preview card*: the
+forum then fetches the title, teaser and picture from the linked page and shows
+a card instead of a bare address. Images and videos are not offered this — they
+already show as themselves.
+
+The area beside it uploads files of your own into an archive to pick from
+later.
 
 <!-- icon: filter -->
 ### Filtering categories

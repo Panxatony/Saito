@@ -14,19 +14,40 @@ Threads voreinstellen. Die *Mix-Ansicht* daneben zeigt stattdessen alle Beiträg
 des Threads am Stück. Ist *Posting aufklappen* eingeschaltet, geschieht das
 ohne Seitenwechsel; ein weiterer Klick stellt den Baum wieder her.
 
+Mit gedrückter Befehls- bzw. Strg-Taste geöffnet, landet ein Beitrag wie gewohnt
+in einem neuen Tab.
+
 <!-- icon: pencil -->
 ### Beiträge schreiben
 
 *Neuer Beitrag* öffnet den Editor an Ort und Stelle. Die Werkzeugleiste
-formatiert Text, fügt Smilies ein und zeigt eine Vorschau. Eigene Beiträge
+formatiert Text und fügt Smilies ein. Aus einer Webseite kopierte Absätze
+behalten beim Einfügen ihre Links und Hervorhebungen; wer das nicht möchte,
+fügt ohne Formatierung ein. *Vorschau* zeigt den Beitrag so, wie er
+später aussieht — mit Betreff und Kopfzeile — in einem Feld oberhalb des
+Editors. Das Textfeld wächst mit, wenn mehr geschrieben wird. Eigene Beiträge
 lassen sich über *Bearbeiten* ändern; sie tragen danach einen Hinweis darauf.
+
+Beim Antworten steht der Betreff des Beitrags blass im Feld, mit *Re:* davor. Er
+wird übernommen, wenn nichts eingetippt wird; sobald man schreibt, verschwindet
+er.
 
 <!-- icon: image -->
 ### Bilder und Medien
 
-*Medien einfügen* nimmt eine Adresse entgegen und erkennt selbst, ob Bild,
-Video oder YouTube-Clip. Eigene Dateien lädt der Bereich daneben hoch und legt
-sie in ein Archiv, aus dem sich später auswählen lässt.
+*Verweis/Einbinden* nimmt eine Adresse entgegen und erkennt selbst, was daraus
+wird: ein Bild, ein Video, ein YouTube-Clip oder ein gewöhnlicher Verweis. War
+im Editor Text markiert, ist er schon eingetragen — eine Adresse als Adresse,
+alles andere als Beschriftung des Verweises. Der markierte Text wird dabei
+ersetzt, steht also nicht doppelt da.
+
+Bei einem gewöhnlichen Verweis lässt sich zusätzlich *Als Vorschaukarte
+einbinden* ankreuzen: Das Forum holt dann Titel, Kurztext und Bild von der
+verlinkten Seite und zeigt statt der nackten Adresse eine Karte. Bei Bildern und
+Videos wird das nicht angeboten — die zeigen sich ohnehin selbst.
+
+Eigene Dateien lädt der Bereich daneben hoch und legt sie in ein Archiv, aus dem
+sich später auswählen lässt.
 
 <!-- icon: filter -->
 ### Kategorien filtern

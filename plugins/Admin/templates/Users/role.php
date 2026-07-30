@@ -32,6 +32,24 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
         ) ?>
     </div>
     <div class="form-group">
+        <?php
+        // Your own password, not the account being changed. A role lasts beyond
+        // the session that granted it, so this asks for something a hijacked
+        // browser does not carry.
+        echo $this->Form->control(
+            'confirm_password',
+            [
+                'autocomplete' => 'off',
+                'label' => __('user.role.set.confirm.label'),
+                'required' => true,
+                'type' => 'password',
+                'value' => '',
+            ]
+        );
+        ?>
+        <small class="text-muted"><?= h(__('user.role.set.confirm.exp')) ?></small>
+    </div>
+    <div class="form-group">
         <?= $this->Form->submit(__('user.role.set.btn'), ['class' => 'btn btn-primary']) ?>
         <?= $this->Html->link(__d('admin', 'cancel'), ['action' => 'index'], ['class' => 'btn btn-link']) ?>
     </div>

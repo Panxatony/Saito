@@ -32,7 +32,9 @@ function enhancePosting(core: HTMLElement): void {
     if (!id || !dataEl) {
         return;
     }
-    let data: { isBookmarked?: boolean; showSolvedBtn?: boolean; solves?: number; pid?: number } = {};
+    // No initialiser: the parse either assigns or the function returns, so an
+    // empty object here would only ever be overwritten unread.
+    let data: { isBookmarked?: boolean; showSolvedBtn?: boolean; solves?: number; pid?: number };
     try {
         data = JSON.parse(dataEl.getAttribute('data-entry') ?? '{}');
     } catch {
@@ -133,7 +135,11 @@ document.addEventListener('click', (event: MouseEvent) => {
     if (toggle?.closest('.js-thread-island')) {
         event.preventDefault();
         const menu = toggle.parentElement?.querySelector<HTMLElement>('.dropdown-menu') ?? null;
-        const willOpen = Boolean(menu) && !menu.classList.contains('show');
+        // `menu !== null` rather than `Boolean(menu)`: both are the same at
+        // runtime, but only the comparison narrows the type, so the reader of the
+        // next line does not have to work out for themselves that it cannot be
+        // null there.
+        const willOpen = menu !== null && !menu.classList.contains('show');
         closeIslandDropdowns();
         if (willOpen && menu) {
             menu.classList.add('show');
@@ -164,8 +170,10 @@ document.body.addEventListener('htmx:afterSwap', (event: Event) => {
     }, 5000);
 });
 
-// Tool menu — pin / lock (moderators). ajaxToggle is an ajax GET (no CSRF needed
-// on GET); on success reopen the posting so its state reflects the change.
+// Tool menu — pin / lock (moderators). Posts with the CSRF token like its
+// neighbours; it used to travel by GET, protected only by the X-Requested-With
+// header the controller insists on, which is a side effect rather than a
+// defence.
 document.addEventListener('click', (event: MouseEvent) => {
     const link = (event.target as HTMLElement).closest<HTMLElement>(
         '.js-btn-toggle-fixed, .js-btn-toggle-locked'
@@ -181,14 +189,20 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
     fetch(`/entries/ajaxToggle/${id}/${toggle}`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'same-origin',
     })
         .then((r) => {
             if (r.ok && leaf) {
-                const icon = leaf.querySelector<HTMLElement>('.btn_show_thread');
-                icon?.click(); // close
-                icon?.click(); // reopen with fresh state
+                // Throw the cached fragment away before reopening. Two clicks on
+                // the icon only hid and re-showed it — toggleInlinePosting takes
+                // the fetch path solely when no slider exists, so the moderator
+                // was looking at the state from before their own change and
+                // clicked again, setting the flag back.
+                leaf.querySelector('.threadInline-slider')?.remove();
+                leaf.classList.remove('is-inline-open');
+                leaf.querySelector<HTMLElement>('.btn_show_thread')?.click();
             }
         })
         .catch(() => undefined);

@@ -48,7 +48,10 @@ class SettingsController extends AdminAppController
         'forum_name' => 1,
         'quote_symbol' => 1,
         'signature_separator' => 1,
-        'stopwatch_get' => ['type' => 'bool'],
+        // stopwatch_get is gone from here: the index template dropped its
+        // section when the profiler chart died with the SPA, but leaving the key
+        // listed kept /admin/settings/edit/stopwatch_get loading and saving a
+        // switch that controls nothing. The database row stays, inert.
         'store_ip' => ['type' => 'bool'],
         'store_ip_anonymized' => ['type' => 'bool'],
         'subject_maxlength' => 1,
@@ -127,7 +130,9 @@ class SettingsController extends AdminAppController
         $this->set('setting', $setting);
 
         if ($id === 'timezone') {
-            $this->render('timezone');
+            return $this->render('timezone');
         }
+
+        return null;
     }
 }

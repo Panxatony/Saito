@@ -26,7 +26,7 @@ msgid "validation.error.fileExists"
 msgstr "Error: File with same name already uploaded."
 
 msgid "validation.error.maxNumberOfItems"
-msgstr "Error: Reached the maximal number of {0} uploads."
+msgstr "Error: Reached the maximal number of {0} uploads. Delete something in the archive below to make room."
 
 msgid "validation.error.fileSize"
 msgstr "Error: File size exceeds allowed limit of {0}."

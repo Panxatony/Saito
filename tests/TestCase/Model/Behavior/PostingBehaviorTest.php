@@ -294,6 +294,111 @@ class PostingBehaviorTest extends SaitoTableTestCase
         $this->assertFalse($result);
     }
 
+    /**
+     * Merging onto a reply must not drag the target thread's last answer
+     * backwards.
+     *
+     * Only a thread's root carries a current `last_answer` — afterSave() bumps
+     * the root alone, so every reply keeps whatever it held when it was written.
+     * Comparing the source against the *reply* therefore compared against a
+     * stale date, and any source newer than that reply overwrote the root even
+     * when the root was newer still. The thread then sank down a front page
+     * sorted by exactly that column although it had just been answered.
+     *
+     * Fixture: root 1 last answered 2000-01-04, its reply 2 stale at
+     * 2000-01-01 20:01. The source is put between the two.
+     *
+     * @return void
+     */
+    public function testThreadMergeDoesNotAgeTheTargetThread()
+    {
+        $source = $this->Table->get(6);
+        $this->Table->save($this->Table->patchEntity(
+            $source,
+            ['last_answer' => '2000-01-02 12:00:00']
+        ));
+        $before = $this->Table->get(1)->get('last_answer');
+
+        $this->assertTrue($this->Table->threadMerge(6, 2));
+
+        $this->assertEquals(
+            $before,
+            $this->Table->get(1)->get('last_answer'),
+            'the target root kept its own, newer last answer'
+        );
+    }
+
+    /**
+     * The other half: a source that really is newer than the target *root* does
+     * move it forward.
+     *
+     * @return void
+     */
+    public function testThreadMergeCarriesOverANewerLastAnswer()
+    {
+        $source = $this->Table->get(6);
+        $this->Table->save($this->Table->patchEntity(
+            $source,
+            ['last_answer' => '2000-01-09 12:00:00']
+        ));
+
+        $this->assertTrue($this->Table->threadMerge(6, 2));
+
+        $this->assertEquals(
+            '2000-01-09 12:00:00',
+            $this->Table->get(1)->get('last_answer')->format('Y-m-d H:i:s')
+        );
+    }
+
+    /**
+     * A failure part-way through leaves nothing behind.
+     *
+     * The merge is five dependent writes. Before they were wrapped in a
+     * transaction, an exception after the first one left the source root
+     * re-parented into the target thread while its whole subtree still carried
+     * the old `tid` — and it could not be retried, because isRoot() is false by
+     * then and threadMerge() refuses at its first check.
+     *
+     * The listener throws while the target root's last answer is being written,
+     * which is the fourth write; by then the re-parenting and the subtree's tid
+     * update have already happened.
+     *
+     * @return void
+     */
+    public function testThreadMergeLeavesNothingBehindWhenItFailsMidway()
+    {
+        $source = $this->Table->get(6);
+        $this->Table->save($this->Table->patchEntity(
+            $source,
+            ['last_answer' => '2000-01-09 12:00:00']
+        ));
+
+        $this->Table->getEventManager()->on(
+            'Model.afterSave',
+            function ($event, $entity): void {
+                if ((int)$entity->get('id') === 1) {
+                    throw new \RuntimeException('failure part-way through the merge');
+                }
+            }
+        );
+
+        try {
+            $this->Table->threadMerge(6, 2);
+            $this->fail('the listener should have aborted the merge');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('failure part-way through the merge', $e->getMessage());
+        }
+
+        $source = $this->Table->get(6);
+        $this->assertTrue($source->isRoot(), 'the source root was not re-parented');
+        $this->assertEquals(6, (int)$source->get('tid'), 'the source thread still exists');
+        $this->assertEquals(
+            0,
+            $this->Table->find()->where(['tid' => 6, 'pid' => 2])->count(),
+            'nothing was appended to the target'
+        );
+    }
+
     public function testChangeThreadCategoryNotAnExistingCategory()
     {
         $newCategory = 9999;

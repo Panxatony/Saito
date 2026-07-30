@@ -23,20 +23,61 @@ $actionUrl = $this->Url->build(
     ['controller' => 'Entries', 'action' => 'htmxReply', $parentId],
     ['escape' => false]
 );
+// What was typed survives a rejected submission. The parent's subject is *not*
+// filled in as a value but offered as a placeholder — see the field below.
 $subject = $submitted['subject'] ?? '';
 $text = $submitted['text'] ?? '';
+
+// A saved draft fills the empty form. Only when nothing was submitted: a rejected
+// submission is newer than a draft stored seconds earlier, and overwriting it
+// would throw away what the writer had just typed. The controller only looks the
+// draft up on a GET for the same reason.
+$restored = false;
+if (!isset($submitted) && !empty($draft)) {
+    $subject = $draft['subject'];
+    $text = $draft['text'];
+    $restored = true;
+}
 ?>
+<?= $this->element('entry/htmx_editor_preview') ?>
+<?php // Datenattribute für die Vorschau: eine Antwort erbt die Kategorie des
+      // Elternbeitrags, und ein neuer Beitrag hat naturgemäß null Aufrufe. ?>
 <form class="htmx-reply-form" style="margin-top: 0.75em;"
+      data-preview-category="<?= (int)($parentCategoryId ?? 0) ?>" data-preview-views="0"
       hx-post="<?= h($actionUrl) ?>"
       hx-target="closest .js-replySlot"
       hx-swap="innerHTML">
     <?php if (!empty($errors)) : ?>
         <div class="alert alert-error"><?= h(__('Please check your entry.')) ?></div>
     <?php endif; ?>
+    <?php if ($restored) : ?>
+        <?php // Say why there is text in a box the writer just opened. Without
+              // this the draft looks like the forum inventing content. ?>
+        <p class="draft-restored exp">
+            <?= h(__('draft.restored')) ?>
+            <button type="button" class="btn btn-sm btn-link js-draftDiscard">
+                <?= h(__('draft.discard')) ?>
+            </button>
+        </p>
+    <?php endif; ?>
     <div class="form-group">
         <?php $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100); ?>
-        <input type="text" name="subject" class="form-control" maxlength="<?= $subjectMax ?>"
-               placeholder="<?= h(__('subject')) ?>" value="<?= h($subject) ?>">
+        <?php
+        // The parent's subject is a placeholder, not a value: it shows what will
+        // be used, in pale text, and gets out of the way the moment anything is
+        // typed. Filling it in as a value would mean every reply starts by
+        // deleting a line nobody asked for.
+        //
+        // Leaving it empty is the normal case, so the server puts the same
+        // subject in — EntriesController::htmxReply() uses replySubject() for
+        // exactly the text shown here. The two must not drift apart, or the
+        // field would promise one thing and the posting carry another.
+        $subjectPlaceholder = ($replySubject ?? '') !== '' ? $replySubject : __('subject');
+        ?>
+        <input type="text" name="subject" class="form-control js-subject" maxlength="<?= $subjectMax ?>"
+               style="--subject-max: <?= $subjectMax ?>"
+               placeholder="<?= h($subjectPlaceholder) ?>" value="<?= h($subject) ?>"
+               autofocus>
     </div>
     <?= $this->element('entry/htmx_editor_toolbar') ?>
     <div class="form-group">

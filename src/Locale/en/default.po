@@ -16,9 +16,7 @@ msgstr ""
 "X-Generator: Poedit 2.2.4\n"
 "X-Poedit-SearchPath-0: src\n"
 "X-Poedit-SearchPath-1: plugins\n"
-"X-Poedit-SearchPathExcluded-0: plugins/SpectrumColorpicker/webroot/js/"
-"spectrum.js\n"
-"X-Poedit-SearchPathExcluded-1: tmp\n"
+"X-Poedit-SearchPathExcluded-0: tmp\n"
 
 #: plugins/Admin/src/Controller/AdminsController.php:52
 msgid "Caches cleared."
@@ -1693,6 +1691,22 @@ msgstr "Text"
 msgid "bkm.title.pl"
 msgstr "Bookmarks"
 
+#: templates/element/users/bookmark_comment.php
+msgid "bkm.comment.t"
+msgstr "Note on this bookmark"
+
+#: templates/element/users/bookmark_comment.php
+msgid "bkm.comment.exp"
+msgstr "What did you keep this for?"
+
+#: templates/element/users/bookmark_comment.php
+msgid "bkm.comment.add"
+msgstr "Add a note"
+
+#: templates/element/users/bookmark_comment.php
+msgid "Save"
+msgstr "Save"
+
 msgid "upl.title.pl"
 msgstr "Uploads"
 
@@ -1830,3 +1844,43 @@ msgstr "Ignored by"
 #: templates/Users/htmx_profile.php
 msgid "user.ignoring.t"
 msgstr "You ignore"
+
+#: plugins/Admin/src/Controller/UsersController.php
+msgid "user.role.set.confirm.label"
+msgstr "Your own password"
+
+#: plugins/Admin/src/Controller/UsersController.php
+msgid "user.role.set.confirm.exp"
+msgstr "Confirms the change is coming from you — not the password of the account being changed."
+
+#: plugins/Admin/src/Controller/UsersController.php
+msgid "user.role.set.confirm.error"
+msgstr "Wrong password. The role was not changed."
+
+#: templates/element/entry/htmx_editor_toolbar.php
+msgid "insert.title"
+msgstr "Link/Embed"
+
+#: templates/element/entry/htmx_editor_toolbar.php
+msgid "editor.help.title"
+msgstr "Formatting help"
+
+#: templates/layout/htmx_island.php
+msgid "insert_as_card"
+msgstr "Insert as preview card"
+
+#: templates/layout/htmx_island.php
+msgid "insert_as_card.exp"
+msgstr "Fetches title, teaser and picture from the linked page."
+
+#: src/Controller/EntriesController.php
+msgid "reply.subject.prefix"
+msgstr "Re:"
+
+#: templates/Entries/htmx_reply_form.php
+msgid "draft.restored"
+msgstr "A saved draft was put back in."
+
+#: templates/Entries/htmx_reply_form.php
+msgid "draft.discard"
+msgstr "Discard"

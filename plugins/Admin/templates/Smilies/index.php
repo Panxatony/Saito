@@ -79,19 +79,24 @@ $this->Breadcrumbs->add(__('Smilies'), false);
                         );
                         ?>
                         <?php
-                        echo $this->Html->link(
+                        // postLink, not link: deleting over GET means any image
+                        // tag in a posting can delete a smiley from under an
+                        // admin who merely reads the page, and CSRF protection
+                        // never sees a GET. The confirm text also only works
+                        // here — link() ignored the fourth argument entirely.
+                        echo $this->Form->postLink(
                             __('Delete'),
                             [
                                 'action' => 'delete',
                                 $smiley->get('id'),
                             ],
-                            ['class' => 'btn btn-danger'],
-                            sprintf(
-                                __(
-                                    'Are you sure you want to delete # %s?'
+                            [
+                                'class' => 'btn btn-danger',
+                                'confirm' => sprintf(
+                                    __('Are you sure you want to delete # %s?'),
+                                    $smiley->get('id')
                                 ),
-                                $smiley->get('id')
-                            )
+                            ]
                         );
                         ?>
                     </td>

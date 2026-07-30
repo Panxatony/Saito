@@ -19,12 +19,15 @@
                 <?= $this->element('generic/no-content-yet', ['message' => __('No bookmarks yet.')]) ?>
             <?php else : ?>
                 <?php foreach ($bookmarkPostings as $posting) : ?>
-                    <?php $comment = $bookmarkComments[$posting->get('id')] ?? ''; ?>
-                    <?php if (!empty($comment)) : ?>
-                        <div class="bookmarkComment infoText">
-                            <i class="fa fa-bookmark"></i> <?= h($comment) ?>
-                        </div>
-                    <?php endif; ?>
+                    <?php // The note, with its edit control. It used to be shown
+                          // only when set and could not be changed at all: the
+                          // one thing able to write it was the REST endpoint the
+                          // SPA called, so notes were readable but frozen. ?>
+                    <?= $this->element('users/bookmark_comment', [
+                        'entryId' => (int)$posting->get('id'),
+                        'comment' => (string)($bookmarkComments[$posting->get('id')] ?? ''),
+                        'editing' => false,
+                    ]) ?>
                     <?= $this->Html->nestedList(
                         [$this->Posting->renderThread($posting, ['rootWrap' => true])],
                         ['class' => 'threadCollection-node root']

@@ -39,8 +39,6 @@ class ItemCacheTest extends SaitoTestCase
     {
         parent::setUp();
         $this->_setupItemCache();
-
-        $this->time = time();
     }
 
     public function tearDown(): void
@@ -79,6 +77,14 @@ class ItemCacheTest extends SaitoTestCase
             ->onlyMethods(['read', 'write'])
             ->getMock();
         $this->ItemCache->setCacheEngine($this->CacheEngine);
+
+        // Take the time from the cache that was just built, rather than reading
+        // the wall clock a second time. The expiry test puts an item exactly on
+        // the boundary, and two readings a second apart drop it on the wrong
+        // side — a test that failed roughly one run in twelve. Tests that build
+        // a second cache of their own get its clock, not the first one's.
+        $this->time = (new \ReflectionProperty($this->ItemCache, '_now'))
+            ->getValue($this->ItemCache);
     }
 
     protected function _cleanUp()

@@ -24,6 +24,13 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 
 - PHP 8.4+ (extensions: gd, exif, intl, mbstring, pdo, simplexml)
 - Database (MySQL/MariaDB tested, [others untested](https://book.cakephp.org/5/en/orm/database-basics.html#supported-databases)).
+  **Transactional tables are required.** Operations that touch several rows at
+  once — merging two threads, for one — rely on a transaction to keep them
+  together, and MyISAM accepts the request without honouring it, silently. Since
+  8.3.0 a migration converts the core tables to InnoDB; an installation older
+  than the 2018 schema should read the 8.3.0 entry in the
+  [changelog](CHANGELOG.md) before upgrading, because converting a large
+  `entries` table takes minutes and holds a lock.
 
 ## Get Started
 
@@ -52,6 +59,11 @@ Every theme variable must be declared with `!default` — without it a child the
 cannot override the value, and the override fails silently.
 
 ## Development
+
+Larger work that is known and scheduled but not yet done is collected in
+[todo.md](todo.md), filed under the release it is meant for. Worth a look before starting anything structural: the
+reasoning, the measurements and the reasons something was *not* done are there
+rather than in the commit history.
 
 ### Set-Up Environment
 
@@ -82,7 +94,11 @@ Run all test cases:
 composer test-all
 ```
 
-`composer test-all` runs PHPUnit, PHPStan and ESLint. Code style is checked
+`composer test-all` runs PHPUnit, PHPStan, the TypeScript type-checker and
+ESLint — `yarn lint` is `tsc --noEmit && eslint`, and both pipelines run it as
+their own job. Until 8.3.0 nothing ever type-checked: `tsconfig.json` has asked
+for strict checking for years while the build went through esbuild, which strips
+types without looking at them. Code style is checked
 separately with `composer cs-check`, and is not part of `test-all`: the code
 base is some 270 violations away from its own PHPCS standard, so wiring it in
 would mean a command that can only ever fail. `composer cs-fix` applies what
@@ -100,21 +116,53 @@ To generate all the minimized assets for production:
 grunt release
 ```
 
+That builds the theme stylesheets and three JavaScript bundles:
+`htmx-threads.bundle.js` (the forum), `admin.bundle.js` (the backend) and
+`boot.bundle.js` — a few hundred bytes loaded synchronously in `<head>` that pick
+the theme stylesheet and the font scale before the first paint. It is a separate
+bundle because it has to run first, and because it exists at all so that no page
+carries an inline `<script>`; see the content-security policy note in
+[docs/deployment-debian.md](docs/deployment-debian.md).
+
 ### Create A Release
 
-Push a version tag. CI runs the test suite, builds the tarball from a clean
-checkout and publishes it on the release page with its checksum:
+Write the CHANGELOG section first, then push a version tag. CI runs the test
+suite, builds the tarball from a clean checkout and publishes it on the release
+page with its checksum, using that section as the release notes:
 
 ```shell
-git tag 8.0.13 && git push github 8.0.13
+sh dev/check-changelog.sh 8.2.5        # does CHANGELOG.md describe it yet?
+git tag 8.2.5 && git push github 8.2.5 # substitute the version you are releasing
 ```
+
+The same check runs as the first job of both pipelines and fails the release
+before anything is built. It exists because the description is the one part of a
+release nothing else produces: version, tag and tarball all appear by
+themselves, so a missing section used to go out unnoticed — the release job
+simply published the bare version number as its own notes.
+
+Do not create the GitHub release by hand. The release job calls `gh release
+create` itself, with the tarball and its checksum attached; an already-existing
+release makes it fail with *a release with the same tag name already exists*,
+and the assets never get built. Push the tag and let it run.
+
+One thing outside this repository has to follow a release: the project page at
+<https://saito.macnemo.de> names the current version in both languages
+(`index.html` and `en/index.html`, the paragraph marked `class="release"`). It
+is deliberately a plain sentence rather than something generated — the page is
+four static files and makes no request of its own — so it only stays true if it
+is edited along with the release.
 
 ## Credits
 
-Saito was created and, for well over a decade, carried by **Schlaefer**. The
-threading model, the performance work that lets a shared-hosting account serve
-hundreds of postings on one page, and the test suite that still makes changes
-safe today are all his. This fork stands on that work — thank you.
+Saito was created and, from 2012 to 2020, carried by **Schlaefer** — 4154 of the
+commits in this repository are his. The threading model, the performance work
+that lets a shared-hosting account serve hundreds of postings on one page, and
+the test suite that still makes changes safe today all came from him. This fork
+stands on that work — thank you.
+
+**Gert Dietrich** and **kt007** contributed in those early years as well, and
+their work is still in here.
 
 ## FAQ
 

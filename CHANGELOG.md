@@ -7,7 +7,628 @@
 
 ## [next] -
 
+- Δ Changed: **the 8.3.0 upgrade now says to clear the schema cache**, because
+  without it the forum does not come back. CakePHP keeps each table's column list
+  in `tmp/cache/models`, and the migration that drops six `users` columns has no
+  way to tell it. The next request asks for a column that no longer exists and the
+  database refuses: `Unknown column 'Users.user_font_size' in 'SELECT'`. Every
+  page that reads a user answers 500 — which is every page, for anyone logged in.
+
+  Nothing is damaged and nothing is lost; the forum is simply down until someone
+  runs `bin/cake schema_cache clear`. This applies to 8.3.0-alpha as released:
+  the step is missing from the package's own notes, and it is now in
+  [docs/upgrade.md](docs/upgrade.md) and [docs/update.md](docs/update.md).
+
+  Found by upgrading the beta installation and watching it fall over.
+
+- ✓ Fixed: **thread lines sit in the middle of their boxes again.** They were
+  pinned to the top edge with a full spacer of empty room underneath: the box
+  inherits padding on all four sides and only the top one had been taken away.
+  Invisible while the box had no border, obvious once it grew one. The boxes keep
+  their height, so a page of threads is no taller than before.
+
+  Written after 8.3.0-alpha was tagged, so it is not in that package. Released
+  for the live forum as 8.2.9 in the meantime.
+
+## [8.3.0-alpha] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.8...8.3.0-alpha)
+
+**A pre-release.** It is meant for a test installation, not a live forum. The
+database changes below are the reason: they are not reversible by downgrading,
+and they have been exercised on a copy of one production forum, which is not the
+same as having been in service.
+
+**Upgrading needs more than a code deploy.** Two new migrations run — an
+installation older than 8.2.8 will have others to catch up on as well, listed in
+[docs/upgrade.md](docs/upgrade.md). One of the two rewrites the `entries` table
+to convert it from MyISAM to InnoDB — five and a
+half minutes on a 320 MB table, with the forum unavailable throughout. Run
+`bin/cake migrations migrate` **from the command line**, not through the web
+updater, which PHP's execution limit will cut short. Read the 8.3.0 notes in
+[docs/upgrade.md](docs/upgrade.md) first; the details are under the InnoDB entry
+below.
+
+- ＋ Added: **what you are writing is kept.** A few seconds after you stop typing,
+  the reply is stored as a draft; open the same reply again — after closing the tab,
+  after the browser crashed, tomorrow — and it is waiting for you, with a note
+  saying where it came from and a button to throw it away. One draft per posting
+  you are answering, cleared the moment you post, and forgotten after thirty days.
+
+  Nothing is said when a draft is saved, on purpose: you did not ask for it, the
+  text is in front of you either way, and a message about a background request is
+  noise. A submission that came back rejected always wins over a stored draft —
+  what you just typed is newer than what was saved seconds before.
+
+  The storage for this has been in Saito since version 5 — the table, the
+  validation, the daily clean-up, the removal after a posting is saved — with
+  nothing to write to it: the part that did went with the old frontend. Two things
+  turned up while connecting it, and both are fixed below.
+
+- ✓ Fixed: **the subject length an administrator sets is the one the forum
+  enforces.** It never was: the setting fed the input field's own limit, while the
+  server went on validating against a built-in 100. Set it higher and the field
+  accepted a subject the server then refused, with nothing said about why. The
+  live forum sits at 101, so exactly one character was affected — long enough to
+  be baffling, short enough never to be reported.
+
+- ✓ Fixed: **a draft with a subject could not have been saved at all.** Its length
+  limit was read from a setting that the removed frontend's controller used to
+  provide, so it came out as zero and refused every subject. Nobody had noticed,
+  because nothing wrote drafts.
+
+- Δ Changed: **nothing in Saito is an inline script any more**, so a
+  content-security policy can forbid them. That is the strongest single measure
+  against stored cross-site scripting: with inline script refused, a payload that
+  reaches the page still does not run — the hole closed in 8.2.3 would have been
+  inert. Four things had to move: the two blocks that pick the theme and the font
+  scale before the page is painted, the feed copy button, and the settings
+  sidebar's scroll-spy. `[spoiler]` was the fifth and moved in 8.2.8.
+
+  A per-request nonce turned out not to be needed. Those blocks were inline only
+  in order to run early, and a plain external script loaded synchronously does
+  that just as well — so the policy can stay where it is instead of the
+  application taking it over.
+
+  **This does not switch itself on.** The policy is a web-server header, one
+  installation at a time; `config/nginx/saito.conf.example` carries it, still
+  commented out, because anything you embed has to be added to it first.
+  `'unsafe-eval'` has to stay — Alpine evaluates its expressions as strings — but
+  that is the far less dangerous of the two, since it does not enable an injected
+  event handler.
+
+- ✓ Fixed: **a member at the upload limit can make room.** Reaching the
+  per-member ceiling was a dead end: the editor's upload area said the limit was
+  reached and offered no way to delete anything, and nothing mentioned that
+  deleting lives in the profile. So the member could neither add nor remove — from
+  where they were standing, the archive was simply stuck. Every tile in that area
+  now carries the same delete control the profile has, and the message says so.
+
+- ✓ Fixed: **pinning and unpinning a thread works again.** It has been dead since
+  the frontend rewrite and failed in complete silence: the island posts the
+  request with a token in the header and no form behind it, and the form-tampering
+  guard — which had this one endpoint outside its exemption list — rejected every
+  attempt before it reached the code. Nothing appeared on screen; the only trace
+  was a line in the server log.
+
+  The whole test suite passed throughout, because the integration test harness
+  attaches a form token to every request it makes. Every test therefore looked
+  like a form submission, which a browser's `fetch` is not — the harness was more
+  permissive than the thing it stands in for. The regression test switches that
+  token off, which is the only way it could have caught this.
+
+- ✓ Fixed: **merging two threads is atomic, and no longer ages the thread it is
+  merged into.** Two faults in one operation.
+
+  The last-answer date was taken from the posting that was merged onto, but only
+  a thread's root carries a current one — every reply keeps whatever it held when
+  it was written. Merging an older thread onto a reply in the middle of an active
+  thread therefore overwrote the root with the older date, and the thread sank
+  down a front page sorted by exactly that column although it had just been
+  answered.
+
+  And the operation is five dependent writes that ran without a transaction. A
+  failure part-way through left the merged thread's root attached to its new
+  parent while all of its replies still belonged to the old thread — a state that
+  could not be repaired, or even retried, from the interface.
+
+- Δ Changed: **the frontend is type-checked, for the first time.**
+  `tsconfig.json` has asked for strict checking for years and nothing ever ran it:
+  the build uses esbuild, which strips types without looking at them, so the
+  setting was enforced by whichever editor happened to be open. TypeScript is on
+  5.9 now, the check runs as part of linting, and both pipelines run it — a type
+  error stops a release instead of waiting to be noticed.
+
+  The first run found seven errors in code that ships. None of them was a live
+  fault, but two were worth having: a delete button was typed as a plain element,
+  so the line that disables it during the deletion would have been accepted and
+  done nothing; and Alpine's own properties were undeclared, which is why every
+  component that reads `this.$el` counted as an error.
+
+- Δ Changed: **the image library that handles uploads is current again**
+  (claviska/simpleimage 3.7.2 to 4.4.0). It parses what members upload, so an
+  unmaintained line was the wrong place to sit. Every call the forum makes —
+  orient, best-fit, thumbnail, convert — was exercised against a real image
+  before and after; the results are identical.
+
+- − Removed: **a dependency nothing used.** `mobiledetect/mobiledetectlib` was
+  declared but never called: Saito detects mobile clients with its own check,
+  because the library was too slow, and nothing else asked for it either.
+
+- Δ Changed: **the build tools are current again.** TypeScript, ESLint,
+  typescript-eslint, Vite, autoprefixer and cssnano were all past their support
+  windows — the CSS chain dated from 2018 and was still adding vendor prefixes for
+  browsers that no longer exist. Together with the Bootstrap change below, the
+  theme stylesheet is **36% smaller** than at the start of this release, and the
+  island bundle a little smaller too. Bootstrap itself moves to 4.6.2, the last
+  of its line, which carries fixes 4.4.1 did not.
+
+- Δ Changed: **the themes stop shipping the Bootstrap they do not use.** The
+  theme stylesheet imported all thirty-eight Bootstrap modules; nineteen of them
+  styled components the forum does not have — modals, carousels, spinners,
+  tooltips, pagination, breadcrumbs and the rest. Bootstrap's JavaScript has not
+  been loaded since 8.1.0 and the island brings its own overlay, so those rules
+  could not have been doing anything. All six stylesheets are **23% smaller**;
+  nothing in any template changes and no derived theme breaks.
+
+  The list was derived rather than guessed: every class used in the frontend was
+  collected, each module compiled on its own, and the two compared. Three classes
+  looked needed and were not — they come from the administration templates, which
+  get their Bootstrap from a separate file this does not touch.
+
+- ✓ Fixed: **a code block shows the characters that were typed.** The posting
+  text is HTML-escaped before it is parsed, and the syntax highlighter escaped it
+  a second time, so `<button>` reached the reader as the literal `&lt;button&gt;`
+  and `a & b` as `a &amp; b`. A code block could not show markup at all — which
+  is most of what a code block is for. Escaped once now, and the checks that
+  prove nothing became live markup are made against the parsed document rather
+  than by searching the text, which finds `onerror=` in the escaped form too and
+  reports a hole that is not there.
+
+- ✓ Fixed: **a pasted code block keeps its shape.** Copying code out of a
+  documentation page used to deliver it as one unindented line — and because the
+  conversion had "added something", the browser's own paste was suppressed in
+  order to produce it, so the writer lost the formatting they would have got by
+  doing nothing. `<pre><code>…</code></pre>`, which is what those pages almost
+  always ship, no longer arrives wrapped twice either.
+
+- ✓ Fixed: **an admin-only help topic stays admin-only in every language.** Which
+  topics are for administrators was read from the file being served, so it was a
+  property of the translation: a translated topic that omitted the marker would
+  have been readable by anyone. Nothing was wrong in practice — both German admin
+  topics carry it — and nothing would have caught the day one did not. The
+  English topic decides now.
+
+- − Removed: **six columns in `users` that have been dead since 2012.**
+  `user_font_size`, `show_about`, `show_donate` and three `flattr_*` — the last
+  belonging to a payment service that shut down in 2018. Upstream removed them
+  as a manual SQL step printed in a changelog rather than as a migration, so
+  nobody ran it and every grown installation still carries them. Dropped rather
+  than revived: `user_font_size` holds a Saito 5 scaling *factor*, not the
+  percentage the settings page works in, so the stored values no longer mean what
+  they say. An installation that never had the columns is left alone.
+
+- Δ Changed: **the core tables are moved to InnoDB.** MyISAM has no transactions
+  and does not object to being asked for one; it accepts the request and ignores
+  it. Every safeguard that groups several writes together — the thread merge
+  above among them — was therefore doing nothing at all on a MyISAM
+  installation, with no error and no way to tell from inside the application.
+
+  **What this means for a grown installation.** The live forums are already
+  InnoDB and the migration finds almost nothing to do. An installation whose
+  `entries` is still MyISAM should read on — the figures below were measured by
+  converting a copy of the live table (679,910 postings, 321 MB) back to MyISAM
+  and migrating it for real, not estimated:
+
+  - The table is **rewritten in full**, unavoidably: `entries` carries a
+    full-text index, and InnoDB needs a hidden column for one that cannot be
+    added afterwards. The measured conversion took **5 minutes 31 seconds** and
+    holds a lock throughout, so the forum is unavailable for that long. The
+    full-text index survives it.
+  - **Keep disk space free for a second copy** — the rebuild writes the new table
+    beside the old one. The result, though, came out *smaller*: 279 MB against the
+    321 MB it occupied as MyISAM. Expect to need roughly double the table size in
+    transit and slightly less than before afterwards.
+  - **Migrate from the command line** (`bin/cake migrations migrate`). Through
+    the web updater, PHP's execution limit will cut a five-minute conversion
+    short; the server finishes it regardless, but it may then not be recorded as
+    applied.
+  - **The search will find more than before**, and the difference is larger than
+    it sounds. MyISAM ignores words shorter than four characters and carries some
+    500 stopwords; InnoDB's limits are three characters and 36. On the measured
+    copy, the three-letter search `mac` went from **0 hits to 16,384**, while a
+    longer term returned exactly the same count as before. Nothing is lost —
+    Saito searches in boolean mode, so MyISAM's "ignore words in over half the
+    rows" rule never applied — but a forum whose members search for short words
+    will notice, and it is better expected than discovered.
+
+  Index lengths are not a concern: `users.username` has been capped at 191
+  characters for exactly this reason since the schema was written.
+
+- ＋ Added: **the subject field says how many characters are left.** The limit is
+  an admin setting and has always been on the field, so it could not be
+  exceeded — the field simply stopped accepting input once it was reached, with
+  nothing to say the end was near. The count sits at the right-hand edge of the
+  field and turns red for the last stretch.
+
+  Deployed to the live forum ahead of this release, as two static files (the
+  island bundle and its stylesheet); it carries no server-side change.
+
+## [8.2.9] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.8...8.2.9)
+
+No migration and no new configuration; upgrading from 8.2.8 is a code deploy.
+
+Two of the four below have been running on the macnemo forum as hand-applied
+patches since they were written. This release is what makes them a version you
+can name — an installation patched by hand is one nobody can reproduce.
+
+- ✓ Fixed: **pinning and unpinning a thread works again.** It has been dead since
+  the frontend rewrite and failed in complete silence: the island posts the
+  request with a token in the header and no form behind it, and the
+  form-tampering guard — which had this one endpoint outside its exemption
+  list — rejected every attempt before it reached the code. Nothing appeared on
+  screen; the only trace was a line in the server log.
+
+  The whole test suite passed throughout, because the integration test harness
+  attaches a form token to every request it makes. Every test therefore looked
+  like a form submission, which a browser's `fetch` is not — the harness was more
+  permissive than the thing it stands in for. The regression test switches that
+  token off, which is the only way it could have caught this. A second test now
+  walks the island's write endpoints and fails if any of them is left out of the
+  exemption list, so the next one cannot be added silently.
+
+- ✓ Fixed: **a member at the upload limit can make room.** Reaching the
+  per-member ceiling was a dead end: the editor's upload area said the limit was
+  reached and offered no way to delete anything, and nothing mentioned that
+  deleting lives in the profile. So the member could neither add nor remove — from
+  where they were standing, the archive was simply stuck. Every tile in that area
+  now carries the same delete control the profile has, and the message says so.
+
+- ✓ Fixed: **thread lines sit in the middle of their boxes again.** They were
+  pinned to the top edge with a full spacer of empty room underneath: the box
+  inherits padding on all four sides and only the top one had been taken away.
+  Invisible while the box had no border, obvious once it grew one. The boxes keep
+  their height, so a page of threads is no taller than before.
+
+- ＋ Added: **the subject field says how many characters are left.** The limit is
+  an admin setting and has always been on the field, so it could not be
+  exceeded — the field simply stopped accepting input once it was reached, with
+  nothing to say the end was near. The count sits at the right-hand edge of the
+  field and turns red for the last stretch.
+
+## [8.2.8] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.7...8.2.8)
+
+No migration and no new configuration; upgrading from 8.2.7 is a code deploy.
+
+This release comes out of one question — *what else does the backend still do
+that the frontend no longer uses?* — asked after the link previews in 8.2.7
+turned out to have been working on the server for months with nothing to show
+them. The answer was eight more cases. Two of them were taking members' input
+and quietly throwing it away.
+
+### Changes
+
+- ✓ Fixed: **thread colours work again.** A member could set their own colours
+  for unread, read and current thread lines; the form saved them and the page
+  ignored them. The one line joining the two ends was lost when the old layout
+  went, and nothing noticed, because everything on either side of it kept
+  working. The colours are now applied through the stylesheet rather than an
+  inline `<style>` block, which also means they survive the tightening of the
+  content-security policy planned for 8.3.
+- − Removed: **the "reload the forum every N minutes" setting.** It was offered
+  in the profile, validated and stored — and read by nothing. What used to read
+  it was removed as unreachable even before the frontend rewrite. A switch that
+  does nothing is worse than no switch; the database column stays, so nothing
+  needs migrating.
+- ＋ Added: **list and spoiler buttons in the editor.** Both markups have always
+  worked and always rendered; neither had a button, so the only way to find them
+  was to read the source. `[spoiler]` in particular hid its content behind an
+  inline click handler — it would have broken silently under a stricter security
+  policy, with nobody able to connect the two.
+- ＋ Added: **formatting help in the editor.** A question mark in the toolbar
+  opens a guide to writing postings, which links on to the complete markup
+  reference. That reference was written years ago and has been in the help all
+  along, with nothing pointing at it.
+- ＋ Added: **notes on bookmarks can be edited again.** The bookmarks page showed
+  them, but the only thing able to write one was the interface the old frontend
+  used. Anyone who had annotated a bookmark could read the note and never change
+  it, and no new one could be made.
+- ＋ Added: **administrators can see a member's uploads again.** The permission
+  has been granted the whole time; the page serving it was fixed to the current
+  user, so acting on it meant leaving the forum. A member's profile now shows
+  their archive to an administrator, with the same delete control.
+- − Removed: **the token cookie the old frontend read.** Saito minted a
+  deliberately script-readable authentication token on every signed-in request,
+  for a client that no longer exists — and the server never accepted it in the
+  first place. Existing cookies are cleared on the next visit. Two API addresses
+  that pointed at code that was never written now answer as not-found instead of
+  erroring.
+- − Removed: a status endpoint, an orphaned page duplicating the profile, nine
+  unused helper methods, the editor's obsolete second button definition, and
+  seven settings that nothing reads. All verified unreachable by reading, not by
+  a failed search.
+
+### Notes
+
+Three further findings were deliberately left alone rather than guessed at, and
+draft autosave — whose storage layer is intact but whose feature is gone —
+needs a release of its own. The reasoning for each is in `todo.md`.
+
+## [8.2.7] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.6...8.2.7)
+
+No migration and no new configuration; upgrading from 8.2.6 is a code deploy.
+Mostly editor work, plus one feature that turns out to have been half-built all
+along.
+
+### Changes
+
+- ＋ Added: **link previews**. Pasting an article address can now show a card —
+  title, teaser and picture from the linked page — instead of a bare URL. Tick
+  *insert as preview card* in the insert dialogue; images and videos are not
+  offered it, being already visible as themselves.
+
+  The server side of this has existed and worked the whole time: `[embed]`
+  fetched the page and read its data, and then handed the result to a frontend
+  that had been removed. The forum has been fetching previews and showing nobody
+  anything. What the far end supplies as ready-made markup is deliberately still
+  ignored — the card is built from the individual fields, so a link in a posting
+  cannot become script on the forum.
+- Δ Change: **one insert button instead of two.** *Link* and *Media* were the
+  same button twice — same dialogue, same behaviour, different icon. What gets
+  inserted has never depended on which was pressed but on the address given:
+  a YouTube link becomes a frame, an image address an image, anything else a
+  link. The one that remains says *Link/Embed*.
+- ＋ Added: **the insert dialogue starts from the selection.** Select a word,
+  press the button, and it is already in place — an address as the address,
+  anything else as the link's label. The selected text is replaced by the
+  result rather than left standing beside it.
+- ＋ Added: **replies offer the thread's subject.** It stands pale in the field
+  with *Re:* in front, is used as it is when nothing is typed, and gets out of
+  the way as soon as you write. The prefix does not stack, and it is
+  translatable for installations that write it differently.
+
+### Under the hood
+
+- The paste-to-BBCode converter was one function of cyclomatic complexity 55,
+  rated critical — the project's own note says to act at that point, so it was
+  taken apart into four. Verified against the previous version over eighteen
+  paste cases with identical output. Expect the *count* of complexity findings
+  to rise rather than fall: splitting one function into four turns one
+  occurrence into four.
+- Two queries that deliberately return arrays rather than entities now say so,
+  which retires fifteen suppressed findings that were reporting correct code.
+
+## [8.2.6] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.5...8.2.6)
+
+One stylesheet line. Upgrading from 8.2.5 is a code deploy; browsers pick the
+change up by themselves, the stylesheet is served with a cache-busting stamp.
+
+### Changes
+
+- ✓ Fix: **the subject field was still wider than its own limit.** 8.2.5 capped
+  it at one `ch` per allowed character, but `ch` is the width of a zero and
+  prose is narrower — a hundred characters of ordinary text measure 713px where
+  `100ch` is 891px, so a fifth of the box stayed empty and it still invited more
+  than it takes. Now sized by the measured ratio: 899px before, 751px after, for
+  733px of text and padding.
+
+## [8.2.5] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.4...8.2.5)
+
+Fixes only; no migration and no new configuration. Upgrading from 8.2.4 is a
+code deploy.
+
+One thing to check before deploying, if your installation sets upload sizes as
+text: a value the parser cannot read is now refused instead of being silently
+replaced by the built-in default (see below). `'8MB'` and `'650kB'` are fine;
+`'8 Megabytes'` is not, and would now stop the application at start-up rather
+than quietly meaning 2 MB.
+
+### Changes
+
+- ✓ Fix: **bookmarks were saved past their own validation.** `UsersTable` and
+  `EntriesTable` declared the association without the plugin prefix, so CakePHP
+  quietly bound a generic table to the same rows — without the duplicate check,
+  the "posting exists" and "user exists" checks, or the timestamps. Only the
+  deletion path went through it, which is why nothing had noticed.
+- ✓ Fix: **editing a smiley without an id answered with a server error**
+  instead of "Invalid smiley." The guard combined two conditions with `and`
+  where it needed `or`; the deletion path had it right.
+- ✓ Fix: **a mistyped upload size silently became the default.** `'8 Megabytes'`
+  in `config/saito_config.php` meant 2 MB and said nothing. It is now refused,
+  naming the value.
+- ✓ Fix: **the who's-online list could go permanently empty with nothing in the
+  log.** A database error during the online-ping was caught and discarded — the
+  suppression was meant for one specific race and applied to everything.
+  Anything else is raised again.
+- ✓ Fix: an installation whose settings table is empty got an empty
+  configuration rather than the intended error, and that empty configuration was
+  then cached.
+- ✓ Fix: deleting a smiley code showed its success message in the error styling.
+- Δ Change: **the subject field is no longer wider than the subject may be
+  long.** It spanned the whole form, so it invited a headline several times what
+  the forum accepts. The width follows the admin setting for subject length.
+  Editing a posting also had no length limit at all, while adding and replying
+  did — so that was the one place where the limit was only discovered on saving.
+- − Removed: the Spectrum colour picker. Nothing had called it since the profile
+  moved to the browser's own colour input, and it could not have worked anyway —
+  it needs jQuery, which left with the old frontend.
+
+### Under the hood
+
+- Static analysis: eight suppressed findings turned out to be real defects (six
+  of them above). The suppression list is down from 52 entries to 36, and the
+  rule that catches a redirect whose result is dropped — the shape behind two of
+  this week's bugs — is no longer switched off for the files that need it.
+- A release whose CHANGELOG section is missing is now refused before it is
+  built, rather than published with its version number as the only note.
+
+## [8.2.4] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.3...8.2.4)
+
+Fixes only; no migration and no new configuration. **One change is visible to
+admins:** changing a member's role now asks for your own password.
+
+### Changes
+
+- Δ Change: **granting a role asks for the acting admin's password.** A role
+  outlives the session that handed it out, which made it the one action worth
+  hijacking a session for — and a session is exactly what a cross-site scripting
+  flaw gives away. Everything else an admin can do can be undone by an admin who
+  still has access; this could not, so it is the only place that gained a
+  confirmation rather than the backend gaining a re-authentication step.
+- ✓ Fix: **pinning or locking a posting appeared to do nothing.** The posting was
+  reloaded with two synthetic clicks, but that only hid and re-showed the version
+  from before the change — so a moderator saw no effect, clicked again, and set
+  the flag back on the server.
+- ✓ Fix: **undo works after the toolbar and after inserting an upload.** Both
+  still wrote into the text box in a way that discards the browser's undo
+  history, which the smiley button had already been fixed for. The upload path
+  additionally never told the editor to grow to fit what it had inserted.
+- ✓ Fix: saving a setting from the console or the updater left the old values in
+  place — the settings cache was cleared under a key it is never stored under,
+  and only a side effect of the surrounding cache clear covered that up during a
+  web request.
+- ✓ Fix: a refused "mark as solution" was reported as a malformed request
+  instead of as forbidden, and the underlying cause was discarded.
+- ✓ Fix: a failed save of the widget arrangement was still written into the
+  session, so it looked like it had worked until the next sign-in put the old
+  arrangement back.
+- Δ Change: pinning and locking travels by POST like its neighbours. It was
+  reachable by GET, kept out of reach cross-site only by a header requirement
+  that happens to be hard to forge rather than by a token.
+- − Removed: two retired action names left in the form-protection list, and a
+  debug timer that was started but never stopped when a visitor has no readable
+  category.
+
+## [8.2.3] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.2...8.2.3)
+
+**Security release. Upgrading is strongly recommended for every installation.**
+No migration and no new configuration; upgrading from 8.2.2 is a code deploy.
+
+One change needs attention on an installation that has never set
+`SECURITY_SALT`: see the first entry below.
+
+### Changes
+
+- ✓ Fix: **stored cross-site scripting through a member's profile homepage
+  address.** The address was written into the link without being escaped, so
+  content placed there ran in the browser of anyone opening that profile —
+  including a moderator reviewing a reported account. Any signed-in member could
+  set it. Present since 2018 and in every release up to 8.2.2.
+- ✓ Fix: **a thread could be moved into any category at all.** Editing a thread's
+  first posting accepted whatever category the request named; the permission
+  check ran against the category the thread was already in and never looked at
+  the destination. Since moving the first posting moves the whole thread, this
+  could carry other people's replies out of a closed category — or hide a thread
+  in one nobody can read.
+- ✓ Fix: **`config/app.php` shipped a real-looking default for `SECURITY_SALT`**
+  instead of the `__SALT__` placeholder, in 8.1.0 through 8.2.2. This repository
+  is public, so an installation that never set the value encrypted its login
+  cookie and signed its API tokens with a key anyone could read — and was told it
+  was configured correctly, because both the installer's key generation and its
+  own check look for exactly that placeholder. **If your installation runs 8.1.0
+  – 8.2.2 and has no `SECURITY_SALT` in `config/.env`, set one now.** Doing so
+  signs everybody out; that is the intended effect. Installations on 8.0.x or
+  earlier, and any that set the value themselves, are unaffected.
+- ✓ Fix: **"forum closed" did not close the forum.** The notice was rendered but
+  the request carried on, so postings were still served to visitors and members
+  could still write, delete and upload while the forum was supposedly switched
+  off.
+- ✓ Fix: **the contact form could send mail to any address.** Ticking "send me a
+  copy" delivered to whatever address the sender had typed in, which for an
+  anonymous visitor is not their address in any verified sense — so the form
+  could be used to send arbitrary text to arbitrary recipients from the forum's
+  own domain. The copy now goes only to a signed-in member, whose address comes
+  from their account. A per-address limit of five messages an hour joins it.
+- ✓ Fix: `[iframe]`, `[video]` and `[audio]` accepted URL schemes that `[img]`
+  and `[url]` had been rejecting for a while. For frames this mattered on an
+  installation that had widened `video_domains_allowed` to `*`.
+- Δ Change: deleting a smiley or a smiley code, emptying the caches and lifting a
+  block now require a POST. Over GET they sat outside the cross-site request
+  protection entirely, so a lured admin's browser could trigger them by loading
+  an image. Their confirmation dialogs start working as a side effect — the
+  previous markup passed the confirmation text in a position that was ignored.
+- ✓ Fix: lifting a block reported success even when it had failed, and answered a
+  second click with a server error instead of a message.
+
+## [8.2.2] - 2026-07-29
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.1...8.2.2)
+
+No migration. One new optional key in `config/saito_config.php`; leaving it out
+keeps 8.2.1's behaviour.
+
+### Changes
+
+- ＋ Added: **pasting from a web page keeps its links and emphasis.** A copied
+  passage arrives as BBCode — links, bold, italic, strikethrough, lists, quotes
+  and images — instead of losing all of it to plain text. Word's and Google
+  Docs' habit of saying the same thing twice, in a tag and again in a style, is
+  handled; anything unrecognised contributes its text and nothing else. When the
+  conversion would add nothing, the browser's own paste is left alone.
+- ＋ Added: `Saito.unreadRail`. Unread thread lines carry the accent colour, bold
+  weight and a short vertical bar; `false` drops the bar and keeps the other two.
+  Meant for forums whose readers have always gone by colour, where the bar reads
+  as clutter. The space it occupied stays transparent, so switching it does not
+  shift the thread list sideways.
+- ✓ Fix: **undo stopped working after inserting a smiley, a link or a pasted
+  passage.** Text was written into the box in a way that discards the browser's
+  undo history — so Ctrl-Z did nothing, and could not recover what had been typed
+  before it either.
+- ＋ Added: the two admin help topics that existed only in English are now
+  translated, so `docs/help/de` and `docs/help/en` hold the same eleven topics.
+- Δ Changed: `docs/license.md` names the web fonts and the frontend libraries
+  that ship with the forum, and the font licence travels next to the fonts it
+  covers, as its terms require.
+- ＋ Added: a `.mailmap`, so contribution counts show people rather than
+  addresses. The README credits **Gert Dietrich** and **kt007** alongside
+  Schlaefer.
+- Δ Changed: static-analysis cleanups, and CI takes Node from the distribution
+  and pins its container image.
+
+## [8.2.1] - 2026-07-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.0...8.2.1)
+
+Fixes only; no migration and no new configuration. Upgrading from 8.2.0 is a code deploy.
+
+### Changes
+
+- ✓ Fix: **Command-click on a posting stopped opening a new tab.** It had not worked since the island frontend arrived: the thread list intercepted every click and navigated by hand, doing what the browser does anyway while removing everything else it can do with a link. Ctrl-, Shift-, Alt- and middle-click were lost the same way. The mix button had the same flaw.
+- ✓ Fix: **the editor preview appeared between the toolbar and the text box** instead of above the form, and showed only the body. It is now a panel of its own above the editor, shaped like the posting it previews — heading, then category, author (linked to their profile), place, time and views, then the text. A subject with no text previews as "… n/t", which is what the forum will render.
+- ✓ Fix: **the text box no longer stays small.** Four rows is right for a one-line answer and wrong from the first paragraph on; it grows with what is written, capped so the buttons underneath stay reachable.
+- ✓ Fix: the CHANGELOG lost the 8.0.12 and 8.0.13 sections when the release line branched off, so 8.1.0's "go to 8.0.12 first — [8.0.13](#8013---2026-07-27) explains why" pointed at an anchor that did not exist. The fixes themselves had all arrived; only their record was missing.
+- ✓ Fix: `htmxWidgets()` documented itself as returning nothing while returning a response, which the static analysis caught only once it reached the mainline.
+- Δ Static analysis: two dead test helpers and an unused import removed, and a deliberately un-awaited request now catches its own rejection instead of leaving one for the console.
+
+## [8.2.0] - 2026-07-28
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.1.0...8.2.0)
+
+Nothing in the database changes and no migration runs; upgrading from 8.1.0 is a code deploy. Three new keys appear in `config/saito_config.php` — all optional, and leaving them out keeps 8.1.0's behaviour. See [docs/customizing.md](docs/customizing.md).
+
+### Changes
+
 - ＋ The widget rail can be arranged again: drag a widget by the handle beside its heading, or move it with the arrow keys once the handle has focus. Saito 5 could do this and the island frontend could not. The order goes back into `users.slidetab_order` — the column that held it all along — so nothing in the database changes.
+- ＋ `Saito.bannerHtml` places operator-supplied markup between the header bar and the page, in a `div.ads_top` — the slot forums have traditionally used for a banner. Empty renders no container at all.
+- ＋ `Saito.widgetsForGuests` makes the widget rail a members-only feature. Enforced in the controller, not only in the markup: with it off the fragment endpoint answers a guest with nothing, so the online list cannot be read by requesting it directly.
+- ＋ `Saito.notice` switches off the "modernised frontend" bar, which earns its place in the weeks around a switch and not for ever after.
+- ✓ Fix: the header hard-coded `forum_logo.svg`, so a theme whose wordmark existed only as a bitmap got a broken image and no explanation. It now takes whichever of `svg`, `png`, `webp` or `jpg` the theme ships, preferring the vector.
+- ✓ Fix: `docs/customizing.md` told theme authors to register their plugin in `src/Application.php`. Nothing there has to know about a theme — setting `Saito.themes.default` is enough. The help overlay also promised "a coloured bar marks unread", which a theme is free to leave out; it now leads with the colour, which always holds.
+- Δ TypeScript's standard library followed `target: es6`, so `Array.prototype.includes` type-checked as an error in island code that has always shipped. The build never noticed — esbuild strips types without checking them.
 
 ## [8.1.0] - 2026-07-28
 
@@ -93,6 +714,30 @@ Two controls in the backend that the previous release left dead. Neither raised 
 ### Upgrading
 
 Members with a page open across the upgrade should reload once — a tab keeps running the JavaScript it loaded. 8.0.x remains a working intermediate stop for anyone who would rather move the platform and the interface on different days; see `docs/upgrade.md`.
+
+## [8.0.13] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.12...8.0.13)
+
+Three things that failed quietly: broken smiley images on the default theme, and two ways a page could silently lose its ability to send anything.
+
+### Changes
+
+- ✓ Fix: image smilies were broken on Nova, the default theme. The forum emits `/img/smilies/<name>.svg`, which CakePHP resolves against the active theme and then falls back to the application webroot — but that directory did not exist, and Nova carries no images of its own. Members saw broken images. The 23 pictures now ship in `webroot/img/smilies/` as the base every theme falls back to. A theme keeps its own copy only if it wants different ones; Macnemo's is identical, so nothing changes visually there.
+- ✓ Fix: the CSRF meta tag was rendered by nine templates individually, and the ones written later did not have it. On those pages every scripted write request was answered with 403 — the editor preview, uploads and the widget state, each failing without a word. It is emitted by the island layout now, where a new page cannot forget it.
+- ✓ Fix: reading a member's minimised widgets suppressed errors with `@`, which hides more than the one warning it meant to. Narrowed to a handler scoped to that single call.
+- Δ `docs/upgrade.md` names both migrations and says plainly to upgrade to 8.0.12 or later, with the query that shows whether an earlier 8.0.x truncated anything.
+
+## [8.0.12] - 2026-07-27
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.0.11...8.0.12)
+
+**Recommended for anyone still to upgrade from Saito 5.x.** A migration shipped since 8.0.0 narrowed a column instead of only converting its character set, which can destroy data on forums with many categories.
+
+### Changes
+
+- ✓ Fix: the utf8mb4 migration restated `users.user_category_custom` as `VARCHAR(512)`, undoing the widening to 1024 that Saito 5.0.0 made — while its description promised a character-set conversion and nothing else. The column holds a serialized map of the categories a member chose to see: 512 characters run out at roughly 40 categories, 1024 at roughly 75. Outside MySQL's strict mode the value is cut silently, and a cut serialized array cannot be read back at all.
+- ✓ Fix: a second migration widens the column again on installations that already ran the narrowing version — Migrations never replays a recorded version, so they cannot be repaired any other way. Widening never truncates and is safe to run at any current width.
 
 ## [8.0.11] - 2026-07-27
 

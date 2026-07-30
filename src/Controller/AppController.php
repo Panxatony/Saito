@@ -107,6 +107,24 @@ class AppController extends Controller
 
         Registry::get('Permissions')->buildCategories(TableRegistry::getTableLocator()->get('Categories'));
 
+        // "Forum closed" gates the whole request, so it gets its own listener
+        // rather than a branch in beforeFilter().
+        //
+        // Dispatch stops only when the `Controller.initialize` event *result* is
+        // a response. beforeFilter() is that event's listener — but eleven
+        // controllers override it and call `parent::beforeFilter($event)`
+        // without returning what it gives back, so a response returned from
+        // there was silently dropped and the action ran regardless. A listener
+        // of its own owns its return value, and the priority puts it ahead of
+        // every beforeFilter() so nothing else runs first.
+        $this->getEventManager()->on(
+            'Controller.initialize',
+            ['priority' => 1],
+            function (\Cake\Event\EventInterface $event): ?Response {
+                return $this->denyWhileForumIsClosed($event);
+            }
+        );
+
         // Leave in front to have it available in all Components
         $this->loadComponent('Detectors.Detectors');
         // CookieComponent was removed in Cake 4; cookies go through
@@ -132,25 +150,41 @@ class AppController extends Controller
     }
 
     /**
+     * Serves the "forum is closed" page instead of the request, for everyone
+     * but an admin.
+     *
+     * Returning the rendered response — and stopping the event — is what ends
+     * the request. Rendering alone left the action running behind the page.
+     *
+     * @param \Cake\Event\EventInterface $event the initialize event
+     * @return Response|null the 503 page, or null to let the request proceed
+     */
+    protected function denyWhileForumIsClosed(\Cake\Event\EventInterface $event): ?Response
+    {
+        $isClosed = Configure::read('Saito.Settings.forum_disabled')
+            // Without this an admin could not sign in to reopen the forum.
+            && $this->request->getParam('action') !== 'login'
+            && !$this->CurrentUser->permission('saito.core.admin.backend');
+
+        if (!$isClosed) {
+            return null;
+        }
+
+        $this->Themes->setDefault();
+        $this->viewBuilder()->enableAutoLayout(false);
+        $body = $this->render('/Pages/forum_disabled');
+        $event->stopPropagation();
+
+        return $body->withStatus(503);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function beforeFilter(\Cake\Event\EventInterface $event)
     {
         Stopwatch::start('App->beforeFilter()');
 
-        // disable forum with admin pref
-        if (
-            Configure::read('Saito.Settings.forum_disabled') &&
-            $this->request->getParam('action') !== 'login' &&
-            !$this->CurrentUser->permission('saito.core.admin.backend')
-        ) {
-            $this->Themes->setDefault();
-            $this->viewBuilder()->enableAutoLayout(false);
-            $this->render('/Pages/forum_disabled');
-            $this->response = $this->response->withStatus(503);
-
-            return;
-        }
 
         // allow sql explain for DebugKit toolbar
         if ($this->request->getParam('plugin') === 'debug_kit') {

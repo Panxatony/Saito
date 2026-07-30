@@ -65,53 +65,6 @@ class ParserHelper extends AppHelper
     }
 
     /**
-     * cite text
-     *
-     * @param string $string string
-     * @return string
-     */
-    public function citeText($string)
-    {
-        return $this->Markup->citeText($string);
-    }
-
-    /**
-     * get editor help
-     *
-     * @return mixed
-     */
-    public function editorHelp()
-    {
-        return $this->Markup->getEditorHelp($this);
-    }
-
-    /**
-     * get button set
-     *
-     * @return mixed
-     */
-    public function getButtonSet()
-    {
-        $buttons = $this->Markup->getMarkupSet();
-        $smilies = $this->_View->get('smiliesData')->get();
-
-        if (!empty($smilies)) {
-            $buttons[] = [
-                'type' => 'separator',
-            ];
-            $buttons[] = [
-                'name' => "<i class='fa fa-s-smile-o'></i>",
-                'title' => __('Smilies'),
-                'className' => 'btn-markup-Smilies',
-                'type' => 'saito-smilies',
-                'handler' => 'smilies',
-            ];
-        }
-
-        return compact('buttons', 'smilies');
-    }
-
-    /**
      * parse
      *
      * @param string $string string

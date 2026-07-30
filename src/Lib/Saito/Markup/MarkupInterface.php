@@ -24,21 +24,6 @@ interface MarkupInterface
     public function __construct(MarkupSettings $settings);
 
     /**
-     * Get editor help.
-     *
-     * @param ParserHelper $helper ParserHelper
-     * @return string HTML-escaped content
-     */
-    public function getEditorHelp(ParserHelper $helper): string;
-
-    /**
-     * Get markup set.
-     *
-     * @return array
-     */
-    public function getMarkupSet(): array;
-
-    /**
      * Cite text
      *
      * @param string $string string

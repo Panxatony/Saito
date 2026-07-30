@@ -214,6 +214,119 @@
 
 /* Editor toolbar: modern ghost icon-buttons instead of solid grey Bootstrap
    buttons. Transparent with a soft border; accent tint on hover/focus. */
+/* Subject field: as wide as the subject may be long, no wider.
+
+   A `form-control` spans the whole form, so on a desktop the box invited a
+   headline several times longer than the forum accepts — the writer types on,
+   hits the maxlength, and the field simply stops responding with no explanation.
+   The limit is an admin setting, so the templates pass it in as `--subject-max`
+   and the width follows it.
+
+   `ch` is the width of the digit zero, and running text is narrower than that:
+   measured against this theme's font, a hundred characters of ordinary prose
+   come to 713px while `100ch` is 891px. A plain `1ch` per character therefore
+   still left a fifth of the box empty — which is the complaint this rule exists
+   to answer, so the measured 0.8 goes in rather than the round number.
+
+   The 2rem covers the field's own padding and border plus a little slack, so a
+   subject of wide characters is not clipped at the last letter. `max-width`
+   keeps it from overflowing a narrow screen, where 100% is the smaller value. */
+.htmx-island .js-subject {
+    max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
+}
+
+/* The remaining-characters count, inside the field at its right edge.
+   subjectCount.ts wraps the field so the number can be pinned to the field
+   rather than to the wider row it sits in; the width rule therefore moves to the
+   wrapper and the field goes back to filling what it is given. The right padding
+   is what keeps a long subject from running under the number. */
+.htmx-island .subject-field {
+    position: relative;
+    display: block;
+    max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
+}
+.htmx-island .subject-field .js-subject {
+    max-width: none;
+    width: 100%;
+    padding-right: 3.2rem;
+}
+.htmx-island .subject-count {
+    position: absolute;
+    right: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    line-height: 1;
+    color: var(--isl-text-muted, #6b6560);
+    font-variant-numeric: tabular-nums;
+    /* Decorative twin of the field's own maxlength: clicking it should put the
+       cursor in the field, not select a number. */
+    pointer-events: none;
+    user-select: none;
+}
+.htmx-island .subject-count.is-low { color: var(--isl-danger, #b3261e); }
+
+/* Preview card for an [embed] link — image beside title, description and source.
+   Falls to a stacked layout on a phone, where a picture and two columns of text
+   leave no room for either. */
+.htmx-island .embed-card {
+    display: flex;
+    gap: 0.75rem;
+    align-items: stretch;
+    max-width: 34rem;
+    margin: 0.5rem 0;
+    border: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.2));
+    border-radius: 0.5rem;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    background: var(--nova-surface, #fff);
+    transition: border-color .12s, box-shadow .12s;
+}
+.htmx-island .embed-card:hover,
+.htmx-island .embed-card:focus-visible {
+    border-color: var(--isl-accent, #fe5603);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+}
+.htmx-island .embed-card-image {
+    width: 10rem;
+    flex: 0 0 10rem;
+    object-fit: cover;
+    align-self: stretch;
+}
+.htmx-island .embed-card-body {
+    padding: 0.6rem 0.75rem;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.htmx-island .embed-card-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+.htmx-island .embed-card-description {
+    color: var(--nova-text-muted, #6b6357);
+    font-size: 0.9em;
+    line-height: 1.4;
+    /* Three lines, then stop — a long teaser must not out-shout the posting it
+       sits in. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.htmx-island .embed-card-provider {
+    font-size: 0.8em;
+    color: var(--nova-text-muted, #6b6357);
+    margin-top: auto;
+}
+@media (max-width: 480px) {
+    .htmx-island .embed-card { flex-direction: column; }
+    .htmx-island .embed-card-image { width: 100%; flex: 0 0 auto; height: 9rem; }
+}
+
 .htmx-island .js-editor-toolbar { align-items: center; }
 .htmx-island .js-editor-toolbar .btn-group { gap: 0.3rem; }
 .htmx-island .js-editor-toolbar .js-bb-btn,
@@ -622,8 +735,11 @@
     padding-left: 0.5rem;
 }
 /* Unread marking only makes sense for logged-in members (a guest has no
-   persistent read state), so the accent rail + bold are gated on .is-member. */
-.htmx-island.is-member .threadLeaf.et-new .threadLine {
+   persistent read state), so the accent rail + bold are gated on .is-member.
+   The rail additionally answers to Saito.unreadRail: `false` puts
+   .no-unread-rail on the body and the bar stays transparent, while colour and
+   weight below carry on marking what is unread. */
+.htmx-island.is-member:not(.no-unread-rail) .threadLeaf.et-new .threadLine {
     border-left-color: var(--isl-accent, #fe5603);
 }
 .htmx-island.is-member .threadLeaf.et-new .link_show_thread {
@@ -937,28 +1053,61 @@
 
 /* Thread-line colour pickers: swatch, what it applies to, and the "use the
    theme's colour" opt-out on one row. */
+/* A grid, not a flex row. Form->control() wraps the colour input in a
+   `div.input` of its own, so the row holds three boxes of unequal natural
+   height; flex centring then left the checkbox label and the swatch sitting
+   visibly above the text they belong to. Grid tracks with one shared
+   line-height make the three baselines identical by construction. */
 .htmx-island .settings-colour-row {
+    display: grid;
+    grid-template-columns: 11rem auto auto;
+    align-items: center;
+    justify-content: start;
+    gap: 0.6rem;
+    margin: 0.3rem 0;
+    line-height: 1.5;
+}
+/* Sized to sit on the line of text beside it rather than to stand out from it:
+   a swatch is a sample, not a button. */
+.htmx-island .settings-colour-input {
+    width: 2.75rem;
+    height: 1.4rem;
+    padding: 2px;
+    margin: 0;
+    display: block;
+}
+.htmx-island .settings-colour-row .input {
+    margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    margin: 0.35rem 0;
 }
-.htmx-island .settings-colour-input {
-    width: 3rem;
-    height: 2rem;
-    padding: 2px;
-    flex: 0 0 auto;
-}
-.htmx-island .settings-colour-label { flex: 1 1 12rem; }
+.htmx-island .settings-colour-label { margin: 0; }
+/* Same colour and weight as the rest of the form: this is a choice the reader
+   makes, not a hint about one. Muted, it read as disabled. */
 .htmx-island .settings-colour-default {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     margin: 0;
     font-weight: 400;
-    color: var(--isl-text-muted, #6b6560);
     white-space: nowrap;
+}
+/* Bootstrap ships a `.form-check-input` variant with `position: absolute` and a
+   negative left margin, meant for its own `.form-check` wrapper. Out of flow it
+   ignores the gap and lands on top of the word beside it, so it is put back into
+   the flex line explicitly. */
+.htmx-island .settings-colour-default .form-check-input {
+    position: static;
+    flex: 0 0 auto;
+    margin: 0;
+}
+/* Ticked means the theme decides, so the swatch does not apply. Saying that
+   visually saves explaining it: a colour field sitting there fully lit next to
+   "use the theme's colour" invites the reader to set it and wonder why nothing
+   happens. CSS only — no state to keep in sync. */
+.htmx-island .settings-colour-row:has(.form-check-input:checked) .settings-colour-input {
+    opacity: 0.35;
+    filter: grayscale(1);
 }
 
 /* Settings: the "which categories to show" picker ---------------------------- */
@@ -1025,6 +1174,14 @@
     margin-top: 1.5rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--isl-border-soft);
+    /* Line up with the posting above. `.viewEntry` is a panel and carries a
+       spacer of padding on all four sides; this block is its sibling, not its
+       child, so it started flush against the page edge — the heading and the
+       whole tree sat a spacer to the left of the article they belong to.
+       Measured at 16px in both the Nova and the macfix themes, which is the
+       Bootstrap spacer they both inherit. */
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 .htmx-island .viewEntry-threadHeading {
@@ -1092,3 +1249,74 @@
 .htmx-island .island-help-topics li { margin-bottom: .25rem; }
 
 .htmx-island .island-help-back { padding-left: 0; margin-bottom: .5rem; }
+
+/* Editor preview -----------------------------------------------------------
+   The panel above the form, shaped like the posting it is previewing. Its body
+   carries `.postingBody`, so the theme styles the heading, the info line and
+   the parsed text exactly as it would once the posting exists — which is the
+   point of a preview. */
+.htmx-island .htmx-editor-previewPanel {
+    margin: 0 0 0.75rem;
+}
+.htmx-island .htmx-editor-previewPanel[hidden] { display: none; }
+.htmx-island .htmx-editor-previewPanel-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    margin: -1rem -1rem 0.75rem;   /* out of .panel's own padding */
+}
+.htmx-island .htmx-editor-previewPanel-title {
+    flex: 1 1 auto;
+    text-align: center;
+    font-weight: 700;
+}
+.htmx-island .js-editorPreviewClose {
+    padding: 0 0.35rem;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--nova-text-muted, #777);
+}
+.htmx-island .js-editorPreviewClose:hover { color: var(--nova-text, #000); }
+
+/* The text box grows with its content (see editor.ts); no drag handle, because
+   the height is no longer the writer's problem to solve. */
+.htmx-island textarea[name="text"] {
+    resize: vertical;
+    min-height: 6rem;
+    overflow-y: hidden;
+}
+
+/* [spoiler]: the covering block sits in the flow of the sentence it interrupts.
+   This used to be a `style="display: inline"` attribute written by the parser,
+   moved here so the tag survives dropping 'unsafe-inline' from the CSP. */
+.richtext-spoiler { display: inline; }
+.richtext-spoiler-link { cursor: pointer; }
+
+/* A member's own thread-line colours. The values arrive as custom properties set
+   by userColors.ts; the classes say which ones the member actually chose, so an
+   unset colour stays the theme's rather than being reset to `inherit`.
+   Order is deliberate — a posting can be read *and* the current one at once, and
+   the last matching rule of equal specificity is the one meant to win. */
+body.has-color-old .et-root .et,
+body.has-color-old .et-reply .et { color: var(--saito-color-old); }
+body.has-color-new .et-new .et { color: var(--saito-color-new); }
+body.has-color-current .et-current .et { color: var(--saito-color-current); }
+
+/* The note on a bookmark, and its inline edit form. The display state shows its
+   edit control only on hover/focus so a list of bookmarks stays a list. */
+.bookmarkComment { display: flex; align-items: center; gap: .4rem; }
+.bookmarkComment .btn-link { opacity: 0; padding: 0 .25rem; }
+.bookmarkComment:hover .btn-link,
+.bookmarkComment .btn-link:focus { opacity: 1; }
+.bookmarkComment-form { display: flex; align-items: center; gap: .4rem; margin: .2rem 0; }
+.bookmarkComment-form .form-control { flex: 1 1 auto; max-width: 32rem; }
+
+/* "A saved draft was put back in" — a note, not an alert: the writer has lost
+   nothing, they are being told where the text came from. */
+.htmx-island .draft-restored {
+    margin: 0 0 .5rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}

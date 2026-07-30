@@ -1,0 +1,165 @@
+/**
+ * Saito - The Threaded Web Forum
+ *
+ * @copyright Copyright (c) the Saito Project Developers
+ * @link https://github.com/Schlaefer/Saito
+ * @license http://opensource.org/licenses/MIT
+ */
+
+/**
+ * Keep what is being written, so a closed tab does not lose it.
+ *
+ * Saved a few seconds after typing stops, not on every keystroke: a request per
+ * character would be pointless traffic, and the value of this feature is measured
+ * in minutes of lost work, not in seconds. One draft per parent posting, upserted
+ * server-side.
+ *
+ * Deliberately quiet. Nobody asked for the save, so nothing is reported when it
+ * happens and nothing is reported when it fails — the text is still in front of
+ * the writer either way, and a warning about a background request they did not
+ * make would be noise. The one thing that *is* said out loud is when a draft is
+ * put back into an empty form, because otherwise the forum looks like it invented
+ * content.
+ */
+
+import { csrfToken } from '../lib/dom';
+
+/** How long to wait after the last keystroke. */
+const QUIET_MS = 4000;
+
+const timers = new WeakMap<HTMLFormElement, number>();
+/** What was last sent, so an unchanged form is not saved again. */
+const sent = new WeakMap<HTMLFormElement, string>();
+
+/**
+ * The parent posting a form is answering, or 0 for a new thread.
+ *
+ * Read off the form's own action rather than a data attribute: that URL already
+ * carries the id, and two sources for one fact drift apart.
+ */
+function parentId(form: HTMLFormElement): number {
+    const action = form.getAttribute('hx-post') ?? '';
+    const match = /htmx-reply\/(\d+)/.exec(action);
+
+    return match ? Number(match[1]) : 0;
+}
+
+/**
+ * What stands in the form's two fields right now.
+ *
+ * @param form the editor form
+ * @returns subject and text, empty strings if a field is absent
+ */
+function fieldValues(form: HTMLFormElement): { subject: string; text: string } {
+    return {
+        subject: form.querySelector<HTMLInputElement>('input[name="subject"]')?.value ?? '',
+        text: form.querySelector<HTMLTextAreaElement>('textarea[name="text"]')?.value ?? '',
+    };
+}
+
+function saveDraft(form: HTMLFormElement): void {
+    const { subject, text } = fieldValues(form);
+
+    const state = `${subject}\u0000${text}`;
+    if (sent.get(form) === state) {
+        return;
+    }
+    sent.set(form, state);
+
+    const body = new FormData();
+    body.append('pid', String(parentId(form)));
+    body.append('subject', subject);
+    body.append('text', text);
+
+    fetch('/entries/htmx-draft', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+        body,
+        credentials: 'same-origin',
+    }).catch(() => {
+        // Let the next keystroke try again rather than reporting a failure the
+        // writer can do nothing about.
+        sent.delete(form);
+    });
+}
+
+/** Typing in an editor form arms the save. */
+document.addEventListener('input', (event: Event) => {
+    const field = event.target as HTMLElement | null;
+    if (!field || !field.matches('input[name="subject"], textarea[name="text"]')) {
+        return;
+    }
+    const form = field.closest<HTMLFormElement>('form');
+    if (!form || !form.hasAttribute('hx-post')) {
+        return;
+    }
+
+    window.clearTimeout(timers.get(form));
+    timers.set(form, window.setTimeout(() => saveDraft(form), QUIET_MS));
+});
+
+/**
+ * Submitting cancels the pending save.
+ *
+ * The server deletes the draft when the posting is created, so a save that landed
+ * after the submit would put back what had just been cleaned up — and the next
+ * time the writer opened a reply, their already-published text would be waiting
+ * for them.
+ */
+document.body.addEventListener('htmx:beforeRequest', (event: Event) => {
+    const form = (event.target as HTMLElement)?.closest<HTMLFormElement>('form');
+    if (form) {
+        window.clearTimeout(timers.get(form));
+    }
+});
+
+/**
+ * Empty a form's subject and text.
+ *
+ * @param form the editor form
+ * @returns its first field, to put the cursor back into
+ */
+function clearEditorFields(form: HTMLFormElement): HTMLElement | null {
+    const fields = Array.from(
+        form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+            'input[name="subject"], textarea[name="text"]'
+        )
+    );
+    for (const field of fields) {
+        field.value = '';
+    }
+
+    return fields[0] ?? null;
+}
+
+/**
+ * Throw the draft away: empty the form and tell the server, which reads "nothing
+ * at all" as the instruction to delete.
+ *
+ * @param btn the discard button that was pressed
+ */
+function discardDraft(btn: HTMLElement): void {
+    const form = btn.closest<HTMLFormElement>('form');
+    if (!form) {
+        return;
+    }
+
+    const first = clearEditorFields(form);
+    // Cancel the pending save and forget what was last sent, so the empty form
+    // counts as a change and actually reaches the server.
+    window.clearTimeout(timers.get(form));
+    sent.delete(form);
+    saveDraft(form);
+
+    btn.closest('.draft-restored')?.remove();
+    first?.focus();
+}
+
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-draftDiscard');
+    if (!btn) {
+        return;
+    }
+    event.preventDefault();
+    discardDraft(btn);
+});

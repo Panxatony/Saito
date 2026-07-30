@@ -27,7 +27,6 @@
     "cakephp/migrations": "^4.0",
     "cakephp/plugin-installer": "*",
     "josegonzalez/dotenv": "^4",
-    "mobiledetect/mobiledetectlib": "^2",
 
     "aura/di": "^4.0",
     "jbbcode/jbbcode": "~1.4",
@@ -36,7 +35,7 @@
     "suin/php-rss-writer": "^1.6",
     "friendsofcake/bootstrap-ui": "^5.0",
     "friendsofcake/search": "^7",
-    "claviska/simpleimage": "^3.3",
+    "claviska/simpleimage": "^4",
     "embed/embed": "^4",
     "jeremykendall/php-domain-parser": "^6.3",
     "cakephp/authentication": "^3",
@@ -91,12 +90,10 @@
       "Installer\\Test\\": "plugins/Installer/tests",
       "Macnemo\\": "./plugins/Macnemo/src/",
       "Macnemo\\Test\\": "./plugins/Macnemo/tests/",
-      "Macfix\\": "./plugins/Macfix/src/",
       "SaitoHelp\\": "./plugins/SaitoHelp/src",
       "SaitoSearch\\": "./plugins/SaitoSearch/src",
       "Sitemap\\": "./plugins/Sitemap/src",
       "Sitemap\\Test\\": "./plugins/Sitemap/tests",
-      "SpectrumColorpicker\\": "./plugins/SpectrumColorpicker/src",
       "Stopwatch\\": "./plugins/Stopwatch/src"
     }
   },

@@ -1,15 +1,127 @@
-# TODO — after the SPA teardown
+# TODO
 
-The Backbone/Marionette frontend is gone. Steps 1–5 of the teardown are done;
-what follows is what the work uncovered and deliberately did not fix along the
-way.
+Work that is known, understood, and deliberately not done yet. Items are filed
+under the release they are meant for; anything without a release is waiting on a
+decision rather than on time.
+
+Findings that turn out to be already fixed get deleted from here rather than
+ticked off — this file should describe the present, not the past.
 
 ---
 
-## Timezones: the database holds local time, the framework believes in UTC
+## Release 8.3
 
-Found on 2026-07-26 while chasing something else. **Not caused by the teardown**
-— it has been like this for years and affected the old frontend just the same.
+### Get out from under Bootstrap 4
+
+Bootstrap has been unmaintained since January 2023. The exposure is smaller than
+the version number suggests: **Bootstrap's JavaScript is not loaded anywhere in
+the project**, and the known Bootstrap 4 vulnerabilities are all in its JS
+components. What is left is a stylesheet. So this is a weight and maintenance
+question, not a security one.
+
+The weight is the argument. Measured on 2026-07-29:
+
+| | |
+|---|---|
+| What `templates/` actually uses | ~46 distinct Bootstrap classes |
+| Grid usage in the frontend | `container`, `row`, `col-md-8`, `col-lg-6` — that is all |
+| What is imported for it | the complete Bootstrap SCSS, 484 KB of source |
+| What falls out | `theme.css`, 11,033 lines, 199 KB |
+
+Essentially: `btn`, `card`, `modal`, `alert`, `form-control` and a handful of
+spacing utilities, paid for with a full framework. Modern CSS covers the rest —
+`<dialog>` replaces the modal component including backdrop and focus trap, grid
+and flexbox replace `col-*`, and Nova already carries its own custom properties.
+
+**Two separate fronts, and they are not equally hard:**
+
+1. **The themes.** `plugins/Bota/webroot/css/src/partials/__theme.scss` imports
+   Bootstrap wholesale, and Nova extends Bota, and Macnemo and Macfix extend
+   Nova. Pulling Bootstrap out of Bota breaks *every* derived theme at once —
+   including the ones on other installations. That is a break of the theme
+   interface and belongs in a major version with notice to theme authors, not in
+   a point release.
+2. **Admin and installer.** These do not merely use Bootstrap's classes, they
+   have BootstrapUI *generate* the markup
+   (`plugins/Admin/src/Controller/AdminAppController.php` — Form, Flash,
+   Paginator, Breadcrumbs). Dropping Bootstrap here means dropping BootstrapUI
+   and writing form templates. The frontend is unaffected by this half; it uses
+   the plain Cake helpers.
+
+**The first step is done.** `__theme.scss` imports the nineteen modules actually
+in use rather than all thirty-eight, which took 23% off all six stylesheets
+without changing a class in any template. The measurement it was supposed to
+produce: what remains is `reboot`, `type`, `grid`, `tables`, `forms`, `buttons`,
+`dropdown`, `button-group`, `input-group`, `card`, `badge`, `alert` and
+`utilities` — and `utilities` alone accounts for forty of the classes in use,
+mostly spacing and display helpers that modern CSS covers directly. So the
+remaining question is no longer "how much is Bootstrap carrying" but "is a
+framework worth it for buttons, cards, form controls and a spacing scale".
+
+The admin area is worth reworking in the same pass, and only then. It has
+already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
+on Alpine now — so its markup is the one thing still tying it to Bootstrap.
+Doing it separately means paying for it twice.
+
+### `'unsafe-inline'`: the application side is done, the header is per install
+
+Saito no longer emits inline script of any kind — no `<script>` with a body, no
+event attributes, anywhere in the repository. Verified in a browser rather than by
+reading: with `script-src 'self' 'unsafe-eval'` in force, four pages load with
+zero policy violations, zero JavaScript errors, and the island visibly enhancing
+the DOM.
+
+What moved, in 8.3.0: the two pre-paint blocks (theme stylesheet, font scale) into
+a synchronous external `boot.bundle.js` — synchronous because that still runs
+before the first paint, which is the whole reason they were inline; the feed copy
+button and its select-on-click into the island bundle; the settings scroll-spy
+into the admin bundle. `[spoiler]` was the fourth and went in 8.2.8.
+
+**A nonce turned out to be unnecessary**, which is why this is smaller than the
+plan said. The blocks were inline only to run early, and a synchronous external
+script does that too — so the application never had to take the policy over from
+the edge, and there is no per-request secret to get wrong.
+
+`'unsafe-eval'` stays: Alpine evaluates `x-data`/`x-show` expressions as strings.
+It is the far less dangerous of the two — it does not enable an injected event
+handler, which is what the stored XSS of 8.2.3 actually used.
+
+**What is left is deployment, not code.** The policy lives at the edge, one web
+server at a time:
+
+- `config/nginx/saito.conf.example` carries the strict policy, still commented
+  out, because anything an installation embeds has to be added first.
+- The test system runs it. Prod and beta do not yet — their header still allows
+  `'unsafe-inline'`, so the protection is not in place there until the header is
+  changed on hosting02.
+- `style-src` keeps `'unsafe-inline'`: templates still set `style` attributes, and
+  inline style is not a route to code execution.
+
+### Residue deliberately left in place
+
+Three things the same sweep turned up that look dead and were kept, so the next
+reader does not re-derive the reasoning:
+
+- **`UsersTable::setCategory()`** has no caller in the application but five
+  tests. Tested behaviour with no caller is as likely to be public API for a
+  site-specific plugin as it is to be residue, and the cost of keeping it is
+  nothing.
+- **`UserOnlineTable::setOnlinePeriod()`** is called only by tests, which use it
+  to make the online-period deterministic. That is a legitimate use.
+- **`$SaitoSettings`**, set on every request in `AppController`, is read by no
+  template *in this repository*. Saito runs on installations whose themes are not
+  tracked here and cannot be checked, and removing a view variable would fail
+  there silently. Not worth the risk for one `set()` call.
+
+---
+
+## No release assigned
+
+### Timezones: the database holds local time, the framework believes in UTC
+
+Found on 2026-07-26 while chasing something else, and **not** caused by the SPA
+teardown — it has been like this for years and affected the old frontend just
+the same.
 
 **The finding**, measured on one posting:
 
@@ -37,7 +149,7 @@ value is printed unchanged and happens to be right.
   Its correctness rests on the server timezone and a display setting happening to
   agree.
 
-**Why it is not fixed here:** setting `APP_DEFAULT_TIMEZONE` to `Europe/Berlin`
+**Why it is not fixed yet:** setting `APP_DEFAULT_TIMEZONE` to `Europe/Berlin`
 shifts *every* time at once, including 2006, and those old rows may have been
 written under changing assumptions. It needs:
 
@@ -47,18 +159,95 @@ written under changing assumptions. It needs:
    teach the framework the right timezone (cheaper, but keeps local time in the
    database),
 3. a pass over every output path: `TimeHHelper`, `<time>` elements, feeds,
-   sorting, "unread since".
+   sorting, "unread since", and `UsersController::_failedLoginMessage()`, which
+   feeds the database-local block `ends` through `timeAgoInWords` as if it were
+   UTC — so "your block ends in N hours" is off by the server offset.
 
-## Still pointing at the old world
+### Video uploads
 
-- **`webroot/js/exports.bundle.js`** exists only because the administration
-  backend needs `$`, `_` and Bootstrap on `window`. That is not the forum's
-  frontend; it is one page's dependency. Worth revisiting when the admin area is
-  modernised.
-- **DeepSource JS-0067 / JS-0052** — 24 knowingly accepted reports, ignored in
-  the dashboard. The reasoning is in `.deepsource.toml`.
+`video/mp4` and `video/webm` are already in the allowed types and `[video]`
+already exists in the parser, so the feature is not missing — it is unusable.
+The limits are far too small for any real recording, and nothing converts what
+arrives.
 
-## Not part of this, but adjacent
+**There is no single open format that plays everywhere**, and it is worth
+saying plainly rather than discovering it halfway through. H.264/AAC in MP4 runs
+on every phone and browser with hardware decoding, and is patent-encumbered.
+VP9 in WebM is open and at home on Android, but Safari's support arrived late
+and is not dependable. AV1 is open and modern, and older devices decode it in
+software — a flat battery and a stuttering picture, when it plays at all. The
+usual way out is to ship two encodings and let `<video>` pick, at the cost of
+double the storage and double the encoding time.
 
-- The **admin area** was never part of the SPA and is unchanged. It is the last
-  place still rendering with jQuery and Bootstrap components.
+**The cheap step, if the goal is "members can post a clip":** raise the limits
+and accept only what already plays. Check the uploaded file with `ffprobe` and
+refuse anything that is not H.264/AAC in MP4, with a message saying so. Phones
+record exactly that, so it covers nearly everyone, and it needs no queue, no
+migration and no new state. Someone with an exotic file has to convert it
+themselves — that is the whole cost.
+
+Four limits have to move together or it fails at the smallest one: Saito's own
+`setDefaultMaxFileSize` (16 MB on the live install), PHP's `upload_max_filesize`
+and `post_max_size` (30 MB each), and nginx's `client_max_body_size`. A minute
+of phone video is easily 100 MB.
+
+**The full version is a project, not a feature.** Converting cannot happen in
+the request — a transcode takes minutes and would block a PHP worker into its
+timeout — so it needs a queue and a real background worker. The `Cron` plugin
+does not qualify; it is a poor man's cron that runs off page views. From the
+queue follows a state model (an upload is "in progress", then ready), which
+means a column on `uploads` and a migration, and a posting that can render both
+states. `ffmpeg` is **not installed** on the live install, and encoding to H.264
+carries its own licensing question.
+
+Two things not to skip when it happens: storage — the live install holds 2.5 GB
+of uploads today and video plus two encodings changes the order of magnitude,
+not the percentage — and the fact that a video is a complex file handed to a
+very large parser. Saito checks images for decompression bombs; video would need
+ceilings on duration, resolution and bitrate, and `ffmpeg` should not run as the
+same user as the forum.
+
+### What the jBBCode PHPStan exclusion hides
+
+`phpstan.neon` excludes `plugins/BbcodeParser/src/Lib/jBBCode/Definitions/*`,
+which is the code that parses untrusted markup — so the one place most worth
+analysing gets none. Measured on 2026-07-30 by removing the exclusion: **16
+errors**, and they come from three causes rather than sixteen.
+
+- **One wrong property type, six symptoms.** `CodeDefinition::$_sOptions` is
+  declared `array` and holds a `MarkupSettings`, so every `->get()` on it reports
+  "cannot call method get() on array". Fix the declaration and six of the sixteen
+  go.
+- **Four `??` fallbacks that can never fire.** The `embed` library declares
+  `$favicon`, `$providerName`, `$providerUrl` and `$url` as non-nullable, so the
+  defaults behind `??` are unreachable. Harmless, but they promise a robustness
+  that is not there — worth knowing before someone relies on it.
+- **`$node->getParent()->getTagName()`** in the `[img]` definition. `getParent()`
+  is typed as returning `Node`, which has no `getTagName()`; only `ElementNode`
+  does. Not reachable today — the parser wraps everything in a document root, so
+  an `[img]` always has an element parent — but the code depends on an invariant
+  the types do not state, and `getParent()` returning null would be fatal.
+
+The rest are Cake's magic helper properties (`$this->Html`) needing `@property`
+annotations.
+
+None of it is a live fault, which is why this is a to-do and not a fix. But
+"untrusted markup, no static analysis" is the wrong place to leave a gap, and the
+work is now quantified rather than guessed at.
+
+### Psalm: it does earn something — the note here was wrong
+
+An earlier version of this file said Psalm "duplicates PHPStan at lower
+strictness" and should be raised or dropped. That was wrong about how it is used.
+Nothing runs Psalm's general analysis; the pipeline runs
+`psalm --taint-analysis`, which follows user input through to dangerous sinks —
+something PHPStan does not do without its paid extension. Measured on
+2026-07-30: 30 seconds, no findings, types inferred for 83.6% of the codebase.
+
+So `errorLevel="8"` and `findUnusedCode="false"` describe a mode nobody invokes,
+and changing them would change nothing. Left alone deliberately.
+
+### DeepSource JS-0067 / JS-0052
+
+Knowingly accepted reports, ignored in the dashboard. The reasoning is in
+`.deepsource.toml`; revisit it there rather than here.

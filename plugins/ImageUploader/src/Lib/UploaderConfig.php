@@ -106,7 +106,7 @@ class UploaderConfig
     public function setDefaultMaxResize($size): self
     {
         if (is_string($size)) {
-            $size = (int)Text::parseFileSize($size, $this->defaultResize);
+            $size = self::parseSize($size, 'Default max resize', 1596199482);
         }
         if (!is_int($size)) {
             throw new \InvalidArgumentException(
@@ -191,7 +191,7 @@ class UploaderConfig
     public function setDefaultMaxFileSize($number): self
     {
         if (is_string($number)) {
-            $number = (int)Text::parseFileSize($number, $this->defaultSize);
+            $number = self::parseSize($number, 'Max upload size', 1561364890);
         }
         if (!is_int($number)) {
             throw new \InvalidArgumentException(
@@ -217,7 +217,7 @@ class UploaderConfig
         if ($size === null) {
             $size = $this->defaultSize;
         } elseif (is_string($size)) {
-            $size = (int)Text::parseFileSize($size, $this->defaultSize);
+            $size = self::parseSize($size, 'Upload size', 1561364891);
         }
         if (!is_int($size)) {
             throw new \InvalidArgumentException(
@@ -278,5 +278,34 @@ class UploaderConfig
     public function hasType(string $type): bool
     {
         return !empty($this->types[$type]);
+    }
+
+    /**
+     * Turn a size written as text ("8MB") into bytes, or say so when it is not one.
+     *
+     * `Text::parseFileSize()` takes a fallback and returns it instead of
+     * complaining when it cannot read the value — so `'8 Megabytes'` in
+     * `config/saito_config.php` quietly became the built-in default and the
+     * `is_int()` checks below never saw anything wrong. An operator who mistypes
+     * an upload limit should hear about it, not silently get 2 MB.
+     *
+     * @param string $size size as text, e.g. "8MB"
+     * @param string $what what is being configured, for the message
+     * @param int $code error code of the caller
+     * @return int size in bytes
+     * @throws \InvalidArgumentException if the value cannot be read
+     */
+    private static function parseSize(string $size, string $what, int $code): int
+    {
+        try {
+            // `false` as the fallback makes it throw rather than substitute.
+            return (int)Text::parseFileSize($size, false);
+        } catch (\InvalidArgumentException $e) {
+            throw new \InvalidArgumentException(
+                sprintf('%s "%s" is not a readable size.', $what, $size),
+                $code,
+                $e
+            );
+        }
     }
 }

@@ -29,7 +29,7 @@ msgid "validation.error.fileSize"
 msgstr "Fehler: Datei überschreitet maximale Größe von {0}."
 
 msgid "validation.error.maxNumberOfItems"
-msgstr "Fehler: Maximale Anzahl an {0} Uploads erreicht."
+msgstr "Fehler: Maximale Anzahl an {0} Uploads erreicht. Lösche im Archiv unten etwas, um Platz zu machen."
 
 msgid "validation.error.mimeType"
 msgstr "Fehler: Dieser Dateityp kann nicht hochgeladen werden."

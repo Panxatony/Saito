@@ -61,7 +61,9 @@ class EntriesController extends AppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->viewBuilder()->addHelpers(['Posting', 'Text']);
+        // `User` draws the author's profile link — used by the posting views and
+        // by the editor preview, which reproduces the same info line.
+        $this->viewBuilder()->addHelpers(['Posting', 'Text', 'User']);
 
         $this->loadComponent('Posting');
         $this->loadComponent('MarkAsRead');
@@ -175,10 +177,13 @@ class EntriesController extends AppController
     /**
      * The right-rail widgets for the island front page: who's online, recent
      * posts, and — for members — the user's own recent posts. Rendered as a
-     * fragment the sidebar htmx-refreshes on a poll and after new posts. Public
-     * (guests see online + recent).
+     * fragment the sidebar htmx-refreshes on a poll and after new posts.
      *
-     * @return void
+     * Public by default; an installation can keep it for members only, in which
+     * case a guest gets an empty response instead of a rendered view — hence
+     * the two possible returns.
+     *
+     * @return \Cake\Http\Response|void
      */
     public function htmxWidgets()
     {
@@ -558,7 +563,42 @@ class EntriesController extends AppController
      */
     public function htmxPreview()
     {
-        $this->set('previewText', (string)$this->getRequest()->getData('text'));
+        $request = $this->getRequest();
+        $this->set('previewText', (string)$request->getData('text'));
+        $this->set('previewSubject', (string)$request->getData('subject'));
+
+        // The preview shows the posting the way the forum will: heading, the
+        // author/category line, then the text. Author and time are the ones it
+        // would actually get, so what is shown is not a mock-up of the layout
+        // but the posting itself, one step early.
+        //
+        // The whole user entity, not just the name: the info line links the
+        // author to their profile exactly as a real posting does, and the
+        // helper that draws that link needs the record, not a string.
+        $this->set('previewAuthor', $this->fetchTable('Users')->get((int)$this->CurrentUser->getId()));
+
+        // The category is whatever the form knows — the parent's for a reply,
+        // the chooser's for a new thread. Absent is fine: the line simply drops
+        // that part rather than inventing one.
+        $categoryId = (int)$request->getData('categoryId');
+        $category = null;
+        if ($categoryId > 0) {
+            $found = $this->Entries->Categories->find()
+                ->where(['id' => $categoryId])
+                ->first();
+            // Only categories the member may read — the preview must not become
+            // a way to learn the name of a category they cannot see.
+            $readable = $this->CurrentUser->getCategories()->getAll('read');
+            if ($found !== null && in_array($categoryId, $readable, true)) {
+                $category = $found;
+            }
+        }
+        // Views: nought for a posting that does not exist yet, the real count
+        // when an existing one is being edited. The form says which.
+        $this->set('previewViews', (int)$request->getData('views'));
+
+        $this->set('previewCategory', $category);
+
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_preview');
     }
 
@@ -611,9 +651,15 @@ class EntriesController extends AppController
     }
 
     /**
-     * The current user's upload archive for the editor upload overlay — a page
-     * of thumbnail tiles (20 per page, newest first) plus a "load more" control.
+     * An upload archive for the editor upload overlay — a page of thumbnail
+     * tiles (20 per page, newest first) plus a "load more" control.
      * Session-based (the REST uploads API is token-auth). Login required.
+     *
+     * Defaults to the current user's own uploads. `?id=` asks for somebody
+     * else's and is checked against `saito.plugin.uploader.view`, which grants
+     * admins exactly that — the permission has been declared all along, but this
+     * action hard-coded the current user, so the admin half of it had no way to
+     * be exercised outside the token-authed REST controller.
      *
      * @return void
      */
@@ -623,6 +669,24 @@ class EntriesController extends AppController
         if (!$userId) {
             throw new BadRequestException();
         }
+
+        $requested = (int)$this->getRequest()->getQuery('id');
+        if ($requested > 0 && $requested !== (int)$userId) {
+            /** @var \App\Model\Entity\User $owner */
+            $owner = $this->fetchTable('Users')->get($requested);
+            $allowed = $this->CurrentUser->permission(
+                'saito.plugin.uploader.view',
+                (new ResourceAI())->onRole($owner->getRole())->onOwner($owner->getId()),
+            );
+            if (!$allowed) {
+                throw new SaitoForbiddenException(
+                    sprintf('Attempt to index uploads of "%s".', $requested),
+                    ['CurrentUser' => $this->CurrentUser]
+                );
+            }
+            $userId = $requested;
+        }
+
         $perPage = 20;
         $page = max(1, (int)$this->getRequest()->getQuery('page'));
 
@@ -634,6 +698,9 @@ class EntriesController extends AppController
         $this->set('uploads', $uploads);
         $this->set('page', $page);
         $this->set('hasMore', ($page * $perPage) < $total);
+        // Only set when looking at somebody else's archive, so "load more" keeps
+        // asking about the same member instead of falling back to the admin's own.
+        $this->set('ownerId', $requested > 0 && $requested !== (int)$this->CurrentUser->getId() ? $userId : null);
         // `?manage=1` (the profile view) renders a delete control per tile.
         $this->set('manage', (bool)$this->getRequest()->getQuery('manage'));
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_uploads');
@@ -700,6 +767,10 @@ class EntriesController extends AppController
 
         $this->viewBuilder()->disableAutoLayout();
         $this->set('parentId', $parent->get('id'));
+        // For the preview: a reply inherits its parent's category, and there is
+        // no chooser in this form to read it from.
+        $this->set('parentCategoryId', (int)$parent->get('category_id'));
+        $this->set('replySubject', $this->replySubject((string)$parent->get('subject')));
 
         if ($parentPosting->isAnsweringForbidden()) {
             $this->set('forbidden', true);
@@ -709,9 +780,19 @@ class EntriesController extends AppController
         }
 
         if ($this->getRequest()->is('post')) {
+            // An empty subject means "the one the placeholder offered". The form
+            // shows it in pale text rather than filling it in, so nothing is
+            // submitted when the writer leaves it alone — and without this the
+            // posting would get the parent's subject *without* the "Re:" the
+            // field had just promised.
+            $subject = trim((string)$this->getRequest()->getData('subject'));
+            if ($subject === '') {
+                $subject = $this->replySubject((string)$parent->get('subject'));
+            }
+
             $data = [
                 'pid' => $parent->get('id'),
-                'subject' => (string)$this->getRequest()->getData('subject'),
+                'subject' => $subject,
                 'text' => (string)$this->getRequest()->getData('text'),
                 // Required by validation and set the same way as the REST add().
                 'name' => $this->CurrentUser->get('username'),
@@ -734,6 +815,10 @@ class EntriesController extends AppController
             $this->set('submitted', $data);
         }
 
+        if (!$this->getRequest()->is('post')) {
+            $this->set('draft', $this->draftFor((int)$parent->get('id')));
+        }
+
         $this->viewBuilder()->setTemplate('htmx_reply_form');
     }
 
@@ -753,14 +838,14 @@ class EntriesController extends AppController
             return $this->response->withStatus(204)->withHeader('HX-Trigger', 'refresh-recent');
         }
 
-        $this->redirect('/entries/index');
+        return $this->redirect('/entries/index');
     }
 
     /**
      * Delete posting
      *
      * @param string $id posting-ID
-     * @return void
+     * @return \Cake\Http\Response|null
      * @throws NotFoundException
      * @throws MethodNotAllowedException
      */
@@ -786,7 +871,7 @@ class EntriesController extends AppController
         if (!$this->request->is(['post', 'delete'])) {
             $this->set('posting', $posting);
 
-            return;
+            return null;
         }
 
         $success = $this->Entries->deletePosting($id);
@@ -806,7 +891,8 @@ class EntriesController extends AppController
             $redirect = $this->referer();
         }
         $this->Flash->set($message, ['element' => $flashType]);
-        $this->redirect($redirect);
+
+        return $this->redirect($redirect);
     }
 
     /**
@@ -820,11 +906,10 @@ class EntriesController extends AppController
     {
         $this->autoRender = false;
         try {
+            // get() raises RecordNotFoundException for an unknown id; it never
+            // returns an empty value, so the check that used to stand here could
+            // not fire.
             $posting = $this->Entries->get($id);
-
-            if (empty($posting)) {
-                throw new \InvalidArgumentException('Posting to mark solved not found.');
-            }
 
             $rootId = $posting->get('tid');
             $rootPosting = $this->Entries->get($rootId);
@@ -846,9 +931,111 @@ class EntriesController extends AppController
             if (!$success) {
                 throw new BadRequestException();
             }
+        } catch (SaitoForbiddenException $e) {
+            // Let it through: it is a 403 and it logs who tried what. Turning it
+            // into an anonymous 400 threw that away, so a refused attempt read
+            // like a malformed request.
+            throw $e;
         } catch (\Exception $e) {
+            // Keep the cause rather than discarding it — a failure here used to
+            // be indistinguishable from a typo in the id.
+            throw new BadRequestException(null, null, $e);
+        }
+    }
+
+    /**
+     * The current member's saved draft for one parent posting, if any.
+     *
+     * Handed to the form as `draft`, which fills the fields when nothing was
+     * submitted. A rejected submission must win over it — what the writer just
+     * typed is newer than what was stored seconds ago — so the caller only asks
+     * for this on a GET.
+     *
+     * @param int $pid parent posting id, 0 for a new thread
+     * @return array{subject: string, text: string}|null
+     */
+    private function draftFor(int $pid): ?array
+    {
+        $userId = $this->CurrentUser->getId();
+        if (!$userId) {
+            return null;
+        }
+        /** @var \Cake\Datasource\EntityInterface|null $draft */
+        $draft = $this->fetchTable('Drafts')->find()
+            ->where(['pid' => $pid, 'user_id' => $userId])
+            ->first();
+        if ($draft === null) {
+            return null;
+        }
+
+        return [
+            'subject' => (string)$draft->get('subject'),
+            'text' => (string)$draft->get('text'),
+        ];
+    }
+
+    /**
+     * Keep what is being written, so closing the tab does not lose it.
+     *
+     * Posted by the editor a few seconds after typing stops. There is one draft
+     * per (parent posting, member) — `pid = 0` for a new thread — which the
+     * storage layer enforces with a uniqueness rule, so this is an upsert rather
+     * than a log of versions.
+     *
+     * Submitting nothing at all removes the draft. That is the discard button and
+     * also what happens when the writer empties the box themselves: the table
+     * refuses a draft with neither subject nor text, and keeping an empty row to
+     * restore from would offer the writer their own blank page back.
+     *
+     * The whole storage layer for this — table, validation, uniqueness rule, the
+     * daily garbage collection, the clean-up after a posting is saved — has been
+     * in the code since Saito 5 with nothing to write to it. This is the writer
+     * that was missing.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function htmxDraft(): Response
+    {
+        $this->request->allowMethod(['post']);
+        $this->autoRender = false;
+
+        $userId = $this->CurrentUser->getId();
+        if (!$userId) {
             throw new BadRequestException();
         }
+
+        $pid = (int)$this->getRequest()->getData('pid');
+        $subject = trim((string)$this->getRequest()->getData('subject'));
+        $text = trim((string)$this->getRequest()->getData('text'));
+
+        $Drafts = $this->fetchTable('Drafts');
+        /** @var \Cake\Datasource\EntityInterface|null $draft */
+        $draft = $Drafts->find()
+            ->where(['pid' => $pid, 'user_id' => $userId])
+            ->first();
+
+        if ($subject === '' && $text === '') {
+            if ($draft !== null) {
+                $Drafts->delete($draft);
+            }
+
+            return $this->response->withStatus(204);
+        }
+
+        $data = ['subject' => $subject, 'text' => $text];
+        if ($draft === null) {
+            $draft = $Drafts->newEntity($data + ['pid' => $pid, 'user_id' => $userId]);
+        } else {
+            $Drafts->patchEntity($draft, $data);
+        }
+
+        // A failure is not worth telling the writer about: they did not ask for
+        // this to happen, and the text is still in front of them. The subject is
+        // the one thing that can be refused — it has a maximum length — and the
+        // editor caps it at the same number anyway.
+        $Drafts->save($draft);
+
+        return $this->response->withStatus(204);
     }
 
     /**
@@ -901,6 +1088,12 @@ class EntriesController extends AppController
      */
     public function ajaxToggle($id = null, $toggle = null)
     {
+        // POST only. The ajax check below is a header test, not a token — it
+        // happens to keep a cross-origin request out because no <img> or <form>
+        // can set the header, but that is a side effect. CSRF protection only
+        // looks at POST/PUT/PATCH/DELETE, so this action was outside it.
+        $this->request->allowMethod(['post']);
+
         $allowed = ['fixed', 'locked'];
         if (
             !$id
@@ -939,8 +1132,13 @@ class EntriesController extends AppController
             // htmxReply/htmxAdd/htmxPreview/htmxUpload rely on CSRF (island header
             // / FormHelper token) instead of a FormProtection token, like the REST
             // posting endpoints.
-            ['solve', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
-                'htmxEdit', 'htmxMerge', 'htmxUploadDelete']
+            // ajaxToggle is pin/lock. It is posted by the island with a CSRF
+            // token in the header and no form behind it, so FormProtection had
+            // nothing to validate and blackholed every attempt — pinning and
+            // unpinning a thread simply did nothing, silently, with the failure
+            // visible only in the server log.
+            ['solve', 'ajaxToggle', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload',
+                'htmxBookmark', 'htmxEdit', 'htmxMerge', 'htmxUploadDelete', 'htmxDraft']
         );
         $this->Authentication->allowUnauthenticated(
             ['update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxPosting', 'htmxWidgets']
@@ -999,5 +1197,38 @@ class EntriesController extends AppController
             $root = $posting;
         }
         $this->set('rootEntry', $root);
+    }
+
+    /**
+     * What a reply's subject field starts out holding.
+     *
+     * The parent's subject with "Re:" in front, which is what the writer would
+     * have typed anyway. Leaving it empty is still allowed and still works —
+     * `PostingComponent::prepareChildPosting()` then takes the parent's subject
+     * verbatim — but an empty box gave no hint that this was so.
+     *
+     * The prefix does not stack. Answering the third posting in a thread should
+     * read "Re: Question" and not "Re: Re: Re: Question", so a subject that
+     * already carries one is left as it is. The prefix itself is translatable
+     * because not every language writes it the same way.
+     *
+     * @param string $parentSubject the subject being replied to
+     * @return string the subject to offer, empty when the parent has none
+     */
+    private function replySubject(string $parentSubject): string
+    {
+        $subject = trim($parentSubject);
+        if ($subject === '') {
+            return '';
+        }
+
+        $prefix = trim((string)__('reply.subject.prefix'));
+        // Case-insensitive, and tolerant of the space being there or not — the
+        // subject may have come from a mail gateway or another forum.
+        if ($prefix !== '' && preg_match('/^' . preg_quote($prefix, '/') . '\s*/iu', $subject)) {
+            return $subject;
+        }
+
+        return $prefix === '' ? $subject : $prefix . ' ' . $subject;
     }
 }

@@ -46,7 +46,7 @@ class SmileyCodesController extends AdminAppController
     /**
      * Add smiley-code.
      *
-     * @return void
+     * @return \Cake\Http\Response|void
      */
     public function add()
     {
@@ -58,7 +58,7 @@ class SmileyCodesController extends AdminAppController
      * Edit smiley-code.
      *
      * @param string $id smiley-code-ID
-     * @return void
+     * @return \Cake\Http\Response|void
      */
     public function edit($id)
     {
@@ -67,9 +67,7 @@ class SmileyCodesController extends AdminAppController
                 __('Invalid smiley code'),
                 ['element' => 'error']
             );
-            $this->redirect(['action' => 'index']);
-
-            return;
+            return $this->redirect(['action' => 'index']);
         }
         $smiley = $this->SmileyCodes->get($id);
         $this->_addEditCommon($smiley);
@@ -79,7 +77,7 @@ class SmileyCodesController extends AdminAppController
      * Code shared between add and edit.
      *
      * @param Entity $smiley smiley
-     * @return void
+     * @return \Cake\Http\Response|void
      */
     protected function _addEditCommon(Entity $smiley)
     {
@@ -93,7 +91,7 @@ class SmileyCodesController extends AdminAppController
                     __('The smiley code has been saved'),
                     ['element' => 'success']
                 );
-                $this->redirect(['action' => 'index']);
+                return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->set(
                     __('The smiley code could not be saved. Please, try again.'),
@@ -116,33 +114,32 @@ class SmileyCodesController extends AdminAppController
      * Delete smiley-code.
      *
      * @param string $id smiley-code-ID
-     * @return void
+     * @return \Cake\Http\Response|void
      */
     public function delete($id)
     {
+        // See SmiliesController::delete().
+        $this->request->allowMethod(['post', 'delete']);
+
         if (!$id) {
             $this->Flash->set(
                 __('Invalid id for smiley code'),
                 ['element' => 'error']
             );
-            $this->redirect(['action' => 'index']);
-
-            return;
+            return $this->redirect(['action' => 'index']);
         }
         $smiley = $this->SmileyCodes->get($id);
         if ($this->SmileyCodes->delete($smiley)) {
             $this->Flash->set(
                 __('Smiley code deleted'),
-                ['element' => 'error']
+                ['element' => 'success']
             );
-            $this->redirect(['action' => 'index']);
-
-            return;
+            return $this->redirect(['action' => 'index']);
         }
         $this->Flash->set(
             __('Smiley code was not deleted'),
             ['element' => 'error']
         );
-        $this->redirect(['action' => 'index']);
+        return $this->redirect(['action' => 'index']);
     }
 }

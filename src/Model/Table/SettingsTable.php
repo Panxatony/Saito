@@ -84,7 +84,12 @@ class SettingsTable extends AppSettingTable
     public function getSettings()
     {
         $settings = $this->find()->all();
-        if (empty($settings)) {
+        // isEmpty(), not empty(): a ResultSet is an object and therefore always
+        // truthy, so this never fired. An installation whose settings table is
+        // empty — a half-run migration, a botched install — got no exception but
+        // an empty configuration, which load() then cached under the versioned
+        // key. The broken state survived until somebody cleared the cache.
+        if ($settings->isEmpty()) {
             throw new \RuntimeException(
                 'No settings found in settings table.'
             );
@@ -134,7 +139,12 @@ class SettingsTable extends AppSettingTable
     public function clearCache()
     {
         parent::clearCache();
-        Cache::delete('Saito.appSettings');
+        // The same key load() writes. Deleting the unversioned name removed
+        // nothing; saving a setting only appeared to work because
+        // parent::clearCache() wipes the whole default cache as a side effect —
+        // and it only does that inside a web request, so from console or the
+        // updater the old settings survived.
+        Cache::delete('Saito.appSettings.' . Configure::read('Saito.v'));
     }
 
     /**

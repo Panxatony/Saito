@@ -27,13 +27,14 @@ class SaitoHelpsController extends AppController
      * redirects help/<id> to help/<current language>/id
      *
      * @param string $id help page ID
-     * @return void
+     * @return \Cake\Http\Response
      */
     public function languageRedirect($id)
     {
         $this->autoRender = false;
         $language = Configure::read('Saito.language');
-        $this->redirect("/help/$language/$id");
+
+        return $this->redirect("/help/$language/$id");
     }
 
     /**
@@ -90,7 +91,7 @@ class SaitoHelpsController extends AppController
             // must enforce it too — otherwise anyone guessing the id could read
             // an admin topic directly. Treat it as not-found for non-admins.
             if (
-                str_contains((string)$help->get('text'), '<!-- admin -->')
+                $this->isAdminTopic($id, $lang)
                 && !$this->CurrentUser->permission('saito.core.admin.backend')
             ) {
                 $this->Flash->set(__('sh.nf'), ['element' => 'error']);
@@ -192,6 +193,38 @@ class SaitoHelpsController extends AppController
     }
 
     /**
+     * Whether a topic is for administrators only.
+     *
+     * Decided from the **English** file, whatever language is being served. The
+     * marker used to be read off whichever file had been found, which made the
+     * visibility of a topic a property of its translation: leave the
+     * `<!-- admin -->` line out of a new translation and that topic quietly
+     * became public in that language. Nothing would have failed, and the mistake
+     * is invisible in the file that contains it.
+     *
+     * English is the baseline everywhere else too — findAll() collects it first
+     * and view() falls back to it — so it is the one place a topic exists
+     * exactly once. The requested language is consulted only when there is no
+     * English file at all, which a plugin shipping a single language may do.
+     *
+     * @param string $id help page id, optionally `<Plugin>.<id>`
+     * @param string $lang language being served, used only as a fallback
+     * @return bool
+     */
+    private function isAdminTopic(string $id, string $lang): bool
+    {
+        $help = $this->find('en', $id);
+        if ($help === null && $lang !== 'en') {
+            $help = $this->find($lang, $id);
+        }
+        if ($help === null) {
+            return false;
+        }
+
+        return str_contains((string)$help->get('text'), '<!-- admin -->');
+    }
+
+    /**
      * Lists all core help topics for the overview page.
      *
      * Topics available only in English (e.g. admin help) are still listed;
@@ -251,6 +284,15 @@ class SaitoHelpsController extends AppController
                 $fromPlugin = array_replace($fromPlugin, $collect($lang, $plugin));
             }
             $topics += $fromPlugin;
+        }
+
+        // Re-decide "admin only" per topic instead of keeping whatever the
+        // collected file happened to say. A localized topic replaces the English
+        // baseline entry wholesale above, so a translation that omitted the
+        // `<!-- admin -->` line made that topic public in that language — with no
+        // test or lint to notice, and no way to tell from the outside.
+        foreach ($topics as $id => $topic) {
+            $topics[$id]['admin'] = $this->isAdminTopic((string)$id, $lang);
         }
 
         if (!$isAdmin) {

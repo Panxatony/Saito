@@ -17,9 +17,29 @@ permissions:
 
 jobs:
   # --------------------------------------------------------------------
+  # Is this release described? Everything else about a release happens by
+  # itself — the version, the tag, the tarball — but the description does
+  # not, and nothing noticed when it was missing: the release job below
+  # falls back to the bare version string as its own notes. 8.2.2, 8.2.3
+  # and 8.2.4 were published that way, and 8.0.12/8.0.13 before them.
+  #
+  # A job of its own so it fails in seconds rather than after the suite and
+  # the build, and because a missing CHANGELOG section is worth fixing
+  # before anything is published, not after.
+  # --------------------------------------------------------------------
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: CHANGELOG describes this version
+        run: sh dev/check-changelog.sh "${GITHUB_REF_NAME}"
+
+  # --------------------------------------------------------------------
   # Run the PHPUnit suite against MariaDB before building a release.
   # --------------------------------------------------------------------
   test:
+    needs: changelog
     runs-on: ubuntu-latest
     container: php:8.4-cli-trixie
     services:
@@ -165,7 +185,7 @@ jobs:
             --exclude='./phpstan.neon' \
             --exclude='./phpunit.xml.dist' \
             --exclude='./tsconfig.json' \
-            --exclude='./.eslintrc.json' \
+            --exclude='./eslint.config.mjs' \
             --exclude='./vite.config.ts' \
             --exclude='./yarn.lock' \
             --exclude='*/tests' \
@@ -208,14 +228,20 @@ jobs:
           set -eu
           VERSION="${GITHUB_REF_NAME}"
           # Pull the "## [<version>] …" block (up to the next "## [") out of the
-          # CHANGELOG; fall back to a generic note if the section is missing.
+          # CHANGELOG.
           awk -v v="$VERSION" '
             $0 ~ "^## \\[" v "\\]" {grab=1; print; next}
             grab && /^## \[/ {exit}
             grab {print}
           ' CHANGELOG.md > release-notes.md
+          # No fallback. There used to be one — it wrote "Saito <version>" and
+          # published, which is how three releases went out with no notes and
+          # nobody noticed. The `changelog` job ahead of this one makes an empty
+          # file impossible, so reaching this point means something else broke
+          # and the release should stop rather than paper over it.
           if [ ! -s release-notes.md ]; then
-            echo "Saito ${VERSION}" > release-notes.md
+            echo "No CHANGELOG section for ${VERSION} — refusing to publish an undescribed release." >&2
+            exit 1
           fi
 
       - name: Create GitHub Release

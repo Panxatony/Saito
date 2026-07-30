@@ -16,6 +16,7 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
 ?>
 <div class="js-addForm-wrap">
     <?php
+    echo $this->element('entry/htmx_editor_preview');
     echo $this->Form->create(null, [
         'url' => ['action' => 'htmxAdd'],
         'type' => 'post',
@@ -47,7 +48,9 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
     // erfahren.
     $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100);
     echo $this->Form->control('subject', [
-        'class' => 'form-control', 'label' => __('subject'), 'maxlength' => $subjectMax,
+        'class' => 'form-control js-subject', 'label' => __('subject'),
+        'maxlength' => $subjectMax,
+        'style' => '--subject-max: ' . $subjectMax,
     ]);
     echo $this->element('entry/htmx_editor_toolbar');
     // Der Platzhalter ist der einzige Hinweis darauf, dass das Feld leer bleiben

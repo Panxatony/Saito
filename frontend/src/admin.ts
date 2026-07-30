@@ -11,6 +11,7 @@
  * — they are just less convenient.
  */
 import Alpine from 'alpinejs';
+import { initAdminScrollSpy } from './adminScrollSpy';
 
 /** A table row reduced to what sorting and filtering need. */
 interface Row {
@@ -37,6 +38,118 @@ function compare(a: string, b: string): number {
 }
 
 /**
+ * Read a table body into the row model the component sorts and filters on.
+ *
+ * The haystack is built once: filtering runs on every keystroke, and lowercasing
+ * every cell each time is the one part of this that would be felt.
+ *
+ * @param table the table to read
+ * @returns one entry per body row
+ */
+function readRows(table: HTMLTableElement): Row[] {
+    return Array.from(table.tBodies[0]?.rows ?? []).map((el) => {
+        const cells = Array.from(el.cells).map((c) => (c.textContent ?? '').trim());
+
+        return { el, cells, haystack: cells.join(' ').toLowerCase() };
+    });
+}
+
+/**
+ * Make the headings operable, by mouse and by keyboard.
+ *
+ * Only the columns with a heading are sortable; the trailing actions column has
+ * none, and sorting buttons by their label is meaningless.
+ *
+ * @param table the table whose headings to wire up
+ * @param onSort called with the column index to sort by
+ */
+function makeSortable(table: HTMLTableElement, onSort: (index: number) => void): void {
+    Array.from(table.tHead?.rows[0]?.cells ?? []).forEach((th, index) => {
+        if ((th.textContent ?? '').trim() === '') {
+            return;
+        }
+        th.classList.add('is-sortable');
+        th.setAttribute('role', 'button');
+        th.setAttribute('tabindex', '0');
+        const activate = () => onSort(index);
+        th.addEventListener('click', activate);
+        th.addEventListener('keydown', (event) => {
+            const key = (event as KeyboardEvent).key;
+            if (key === 'Enter' || key === ' ') {
+                event.preventDefault();
+                activate();
+            }
+        });
+    });
+}
+
+/**
+ * The sort the markup asks for: `data-sort="3:desc"`.
+ *
+ * DataTables took the same argument and ignored it; here it is honoured.
+ *
+ * @param el the element carrying the attribute
+ * @returns the column and direction, or null if none was given
+ */
+function initialSort(el: HTMLElement): { index: number; asc: boolean } | null {
+    const parts = (el.dataset.sort ?? '').split(':');
+    if (parts[0] === undefined || parts[0] === '') {
+        return null;
+    }
+
+    return { index: Number(parts[0]), asc: parts[1] !== 'desc' };
+}
+
+/**
+ * Hide the rows that do not match.
+ *
+ * @param rows all rows
+ * @param needle the search term, already lowercased and trimmed
+ * @returns how many rows remain visible
+ */
+function filterRows(rows: Row[], needle: string): number {
+    let shown = 0;
+    rows.forEach((row) => {
+        const match = needle === '' || row.haystack.includes(needle);
+        row.el.hidden = !match;
+        if (match) {
+            shown += 1;
+        }
+    });
+
+    return shown;
+}
+
+/**
+ * Reorder the rows in the document by one column.
+ *
+ * @param body the table body to append into
+ * @param rows all rows
+ * @param index the column to sort by
+ * @param asc ascending when true
+ */
+function sortRows(body: HTMLTableSectionElement, rows: Row[], index: number, asc: boolean): void {
+    const dir = asc ? 1 : -1;
+    [...rows]
+        .sort((a, b) => compare(a.cells[index] ?? '', b.cells[index] ?? '') * dir)
+        .forEach((row) => body.appendChild(row.el));
+}
+
+/**
+ * Mark the sorted column for the arrow the stylesheet draws.
+ *
+ * @param table the table
+ * @param index the sorted column, -1 for none
+ * @param asc the current direction
+ */
+function markSortedColumn(table: HTMLTableElement, index: number, asc: boolean): void {
+    Array.from(table.tHead?.rows[0]?.cells ?? []).forEach((th, i) => {
+        th.classList.toggle('is-sorted-asc', i === index && asc);
+        th.classList.toggle('is-sorted-desc', i === index && !asc);
+    });
+}
+
+/**
  * Sortable, filterable table.
  *
  * `<div x-data="adminTable" data-sort="3:desc">` wrapping a filter input and a
@@ -57,36 +170,13 @@ Alpine.data('adminTable', () => ({
             return;
         }
         this.table = table;
-        this.rows = Array.from(table.tBodies[0]?.rows ?? []).map((el) => {
-            const cells = Array.from(el.cells).map((c) => (c.textContent ?? '').trim());
+        this.rows = readRows(table);
+        makeSortable(table, (index) => this.sortBy(index));
 
-            return { el, cells, haystack: cells.join(' ').toLowerCase() };
-        });
-
-        // Only the columns with a heading are sortable; the trailing actions
-        // column has none, and sorting buttons by their label is meaningless.
-        const heads = Array.from(table.tHead?.rows[0]?.cells ?? []);
-        heads.forEach((th, index) => {
-            if ((th.textContent ?? '').trim() === '') {
-                return;
-            }
-            th.classList.add('is-sortable');
-            th.setAttribute('role', 'button');
-            th.setAttribute('tabindex', '0');
-            const activate = () => this.sortBy(index);
-            th.addEventListener('click', activate);
-            th.addEventListener('keydown', (event) => {
-                if ((event as KeyboardEvent).key === 'Enter' || (event as KeyboardEvent).key === ' ') {
-                    event.preventDefault();
-                    activate();
-                }
-            });
-        });
-
-        const initial = ((this.$el as HTMLElement).dataset.sort ?? '').split(':');
-        if (initial[0] !== undefined && initial[0] !== '') {
-            this.sortIndex = Number(initial[0]);
-            this.sortAsc = initial[1] !== 'desc';
+        const initial = initialSort(this.$el as HTMLElement);
+        if (initial) {
+            this.sortIndex = initial.index;
+            this.sortAsc = initial.asc;
             this.apply();
         }
     },
@@ -104,28 +194,11 @@ Alpine.data('adminTable', () => ({
             return;
         }
 
-        const needle = this.query.trim().toLowerCase();
-        let shown = 0;
-        this.rows.forEach((row) => {
-            const match = needle === '' || row.haystack.includes(needle);
-            row.el.hidden = !match;
-            if (match) {
-                shown += 1;
-            }
-        });
-
+        const shown = filterRows(this.rows, this.query.trim().toLowerCase());
         if (this.sortIndex >= 0) {
-            const dir = this.sortAsc ? 1 : -1;
-            [...this.rows]
-                .sort((a, b) => compare(a.cells[this.sortIndex] ?? '', b.cells[this.sortIndex] ?? '') * dir)
-                .forEach((row) => body.appendChild(row.el));
+            sortRows(body, this.rows, this.sortIndex, this.sortAsc);
         }
-
-        // Mark the sorted column for the arrow the stylesheet draws.
-        Array.from(table.tHead?.rows[0]?.cells ?? []).forEach((th, i) => {
-            th.classList.toggle('is-sorted-asc', i === this.sortIndex && this.sortAsc);
-            th.classList.toggle('is-sorted-desc', i === this.sortIndex && !this.sortAsc);
-        });
+        markSortedColumn(table, this.sortIndex, this.sortAsc);
 
         this.$dispatch('admintable-filtered', { shown, total: this.rows.length });
     },
@@ -172,3 +245,8 @@ Alpine.data('adminNav', () => ({
 }));
 
 Alpine.start();
+
+// The settings sidebar's scroll-spy. Was an inline <script> in the settings
+// template, which is what a content-security policy without 'unsafe-inline'
+// refuses; it belongs in this bundle, which every backend page loads.
+initAdminScrollSpy();

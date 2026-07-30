@@ -150,14 +150,23 @@ class UserOnlineTable extends Table
             // Since the first request did the necessary work of marking the
             // user online, we suppress this error, assuming it will only happen
             // in this particular situation. *knocks on wood*
-            if ($e->getCode() == 23000 && strstr($e->getMessage(), 'uuid')) {
-                if (Configure::read('Saito.debug.logInfo')) {
-                    $this->log(
-                        sprintf('Cought duplicate uuid-key %s exception in UserOnline::setOnline.', $id),
-                        LogLevel::INFO,
-                        'saito.info'
-                    );
-                }
+            $isDuplicateUuid = $e->getCode() == 23000 && strstr($e->getMessage(), 'uuid');
+            if (!$isDuplicateUuid) {
+                // The assumption above — "it will only happen in this particular
+                // situation" — was stated but never enforced, so every other
+                // database error was caught and dropped with no log and no
+                // trace. A missing table, a changed column, a dropped
+                // connection: the who's-online list would simply stay empty,
+                // permanently and silently. Anything that is not the race this
+                // block exists for goes back up.
+                throw $e;
+            }
+            if (Configure::read('Saito.debug.logInfo')) {
+                $this->log(
+                    sprintf('Cought duplicate uuid-key %s exception in UserOnline::setOnline.', $id),
+                    LogLevel::INFO,
+                    'saito.info'
+                );
             }
         }
     }

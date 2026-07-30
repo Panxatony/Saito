@@ -1,16 +1,20 @@
 import { defineConfig } from 'vite';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const SRC = path.resolve(__dirname, 'frontend/src');
 
-// One entry per build (ENTRY=htmx-threads|admin); the npm script runs it once
+// One entry per build (ENTRY=htmx-threads|admin|boot); the npm script runs it once
 // per entry. `htmx-threads` is the forum's frontend — the htmx/Alpine islands.
 // `admin` is the administration backend's behaviour, built from the same Alpine
 // rather than a second stack.
 const entryFiles: Record<string, string> = {
     'htmx-threads': 'islands/htmxThreadList.ts',
     admin: 'admin.ts',
+    // Loaded synchronously in <head>, before anything is painted: the theme
+    // stylesheet choice and the font scale. Its own entry rather than part of the
+    // island bundle because it has to run *first*, while the island bundle sits at
+    // the end of <body> where it belongs.
+    boot: 'islands/boot.ts',
 };
 const requested = process.env.ENTRY ?? 'htmx-threads';
 const entry = entryFiles[requested] ? requested : 'htmx-threads';

@@ -12,6 +12,7 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Controller\Exception\InvalidParameterException;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
+use Cake\Http\Exception\MethodNotAllowedException;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
 
@@ -46,6 +47,8 @@ class EntriesControllerTest extends IntegrationTestCase
 
     public array $fixtures = [
         'plugin.Bookmarks.Bookmark',
+        'plugin.ImageUploader.Uploads',
+        'app.Draft',
         'app.Category',
         'app.Entry',
         'app.Setting',
@@ -359,11 +362,203 @@ class EntriesControllerTest extends IntegrationTestCase
         // Mitch (role mod): has pinAndLock but not edit.unrestricted.
         $this->_loginUser(2);
         $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
-        $this->get('/entries/ajaxToggle/10/fixed');
+        $this->post('/entries/ajaxToggle/10/fixed');
 
         $this->assertResponseOk();
         $this->assertResponseContains('OK');
         $this->assertTrue((bool)$this->Table->get(10)->get('fixed'));
+    }
+
+    /**
+     * Regression: pin/unpin from the browser, which sends no form token.
+     *
+     * The island posts this with a CSRF token in the header and nothing else —
+     * there is no form behind it. FormProtection had `ajaxToggle` outside its
+     * unlocked list, found no `_Token` field to validate, and blackholed every
+     * attempt: pinning and unpinning did nothing at all, silently, with the
+     * failure visible only in the server log.
+     *
+     * It has to be tested with the form token switched **off**. IntegrationTestCase
+     * turns it on for every request by default, which is why the whole suite —
+     * including the moderator test above — passed while the feature was dead in
+     * every browser. The harness was more permissive than the thing it stands in
+     * for.
+     *
+     * @return void
+     */
+    public function testAjaxToggleWorksWithoutAFormToken()
+    {
+        $this->Table->updateAll(['fixed' => 1], ['id' => 10]);
+
+        // What a browser actually sends: session, CSRF header, no form token.
+        $this->_securityToken = false;
+
+        $this->_loginUser(1);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->post('/entries/ajaxToggle/10/fixed');
+
+        $this->assertResponseOk();
+        $this->assertFalse(
+            (bool)$this->Table->get(10)->get('fixed'),
+            'the thread was unpinned'
+        );
+    }
+
+    /**
+     * Autosave: the editor stores what is being written.
+     *
+     * The whole storage layer for this has been in the code since Saito 5 with
+     * nothing to write to it — the controller that did was removed with the old
+     * frontend. This is that writer.
+     *
+     * @return void
+     */
+    public function testHtmxDraftSavesWhatIsBeingWritten()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $this->_securityToken = false;
+        $this->_loginUser(3);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+
+        $this->post('/entries/htmx-draft', ['pid' => 1, 'subject' => 'halb fertig', 'text' => 'noch am Tippen']);
+
+        $this->assertResponseCode(204);
+        $draft = $Drafts->find()->where(['pid' => 1, 'user_id' => 3])->first();
+        $this->assertNotNull($draft);
+        $this->assertSame('halb fertig', $draft->get('subject'));
+        $this->assertSame('noch am Tippen', $draft->get('text'));
+    }
+
+    /**
+     * One draft per parent posting, updated rather than piled up — the table has
+     * a uniqueness rule on (pid, user_id), so a second save must patch the first.
+     *
+     * @return void
+     */
+    public function testHtmxDraftUpdatesInsteadOfAccumulating()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        // Fixture draft 1: user 3, pid 4.
+        $before = $Drafts->find()->count();
+
+        $this->_securityToken = false;
+        $this->_loginUser(3);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->post('/entries/htmx-draft', ['pid' => 4, 'subject' => 'neuer Betreff', 'text' => 'neuer Text']);
+
+        $this->assertResponseCode(204);
+        $this->assertSame($before, $Drafts->find()->count(), 'no second row for the same parent');
+        $this->assertSame('neuer Betreff', $Drafts->get(1)->get('subject'));
+    }
+
+    /**
+     * Emptying the form is how a draft is discarded — the table refuses one with
+     * neither subject nor text, and an empty row would offer the writer their own
+     * blank page back.
+     *
+     * @return void
+     */
+    public function testHtmxDraftDeletesWhenEmptied()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $this->assertNotNull($Drafts->find()->where(['id' => 1])->first());
+
+        $this->_securityToken = false;
+        $this->_loginUser(3);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->post('/entries/htmx-draft', ['pid' => 4, 'subject' => '', 'text' => '   ']);
+
+        $this->assertResponseCode(204);
+        $this->assertNull($Drafts->find()->where(['id' => 1])->first());
+    }
+
+    /**
+     * A member's draft is their own: the row is found by parent id *and* user id,
+     * so there is no id here that could reach somebody else's.
+     *
+     * @return void
+     */
+    public function testHtmxDraftTouchesOnlyTheCurrentUsersDraft()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        // Draft 1 belongs to user 3 on parent 4.
+        $this->_securityToken = false;
+        $this->_loginUser(1);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+        $this->post('/entries/htmx-draft', ['pid' => 4, 'subject' => 'von jemand anderem', 'text' => 'x']);
+
+        $this->assertResponseCode(204);
+        $this->assertSame('Draft Subject 1', $Drafts->get(1)->get('subject'), "user 3's draft is untouched");
+    }
+
+    /**
+     * The reply form offers a saved draft when it is opened.
+     *
+     * @return void
+     */
+    public function testReplyFormRestoresADraft()
+    {
+        // Posting 1, not 4: the fixture locks 4, so answering it is forbidden and
+        // the form returns before there is anywhere to put a draft.
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $Drafts->saveOrFail($Drafts->newEntity(
+            ['pid' => 1, 'user_id' => 3, 'subject' => 'halb getippt', 'text' => 'und weiter']
+        ));
+
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-reply/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('halb getippt');
+        $this->assertResponseContains('und weiter');
+    }
+
+    /**
+     * But a rejected submission wins over it. What the writer just typed is newer
+     * than what was stored seconds earlier, and putting the draft back would throw
+     * it away — the worst possible moment to do that, since the form is being
+     * redisplayed precisely because something needs fixing.
+     *
+     * @return void
+     */
+    public function testARejectedSubmissionIsNotOverwrittenByTheDraft()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $Drafts->saveOrFail($Drafts->newEntity(
+            ['pid' => 1, 'user_id' => 3, 'subject' => 'aus dem Entwurf', 'text' => 'aus dem Entwurf']
+        ));
+
+        $this->_loginUser(3);
+        // Over the 40-character subject limit of the test settings, so the posting
+        // is refused and the form comes back carrying what was submitted.
+        $tooLong = str_repeat('a', 60);
+        $this->post('/entries/htmx-reply/1', ['subject' => $tooLong, 'text' => 'gerade getippt']);
+
+        $this->assertResponseContains('gerade getippt');
+        $this->assertResponseNotContains('aus dem Entwurf');
+    }
+
+    /**
+     * Posting successfully clears the draft, so the next reply does not open with
+     * text that has already been published.
+     *
+     * @return void
+     */
+    public function testPostingClearsTheDraft()
+    {
+        $Drafts = TableRegistry::getTableLocator()->get('Drafts');
+        $Drafts->saveOrFail($Drafts->newEntity(
+            ['pid' => 1, 'user_id' => 3, 'subject' => 'fast fertig', 'text' => 'fast fertig']
+        ));
+        $this->assertNotNull($Drafts->find()->where(['pid' => 1, 'user_id' => 3])->first());
+
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-reply/1', ['subject' => 'fertig', 'text' => 'abgeschickt']);
+
+        $this->assertNull(
+            $Drafts->find()->where(['pid' => 1, 'user_id' => 3])->first(),
+            'the draft went with the posting'
+        );
     }
 
     /**
@@ -515,10 +710,27 @@ class EntriesControllerTest extends IntegrationTestCase
     public function testSolveNotRootEntryDoesntBelongToCurrentUser()
     {
         $this->_loginUser(2);
-        $this->expectException(
-            'Cake\Http\Exception\BadRequestException'
-        );
+        // A refused attempt is a 403 and gets logged with who tried what. It
+        // used to be caught and re-thrown as an anonymous 400, which threw that
+        // away and made a forbidden action look like a malformed request.
+        $this->expectException(SaitoForbiddenException::class);
         $this->get('/entries/solve/2');
+    }
+
+    /**
+     * Pinning changes state, so it does not answer to a GET — the ajax header
+     * the action insists on keeps a cross-origin request out by accident, but
+     * CSRF protection never sees a GET at all.
+     *
+     * @return void
+     */
+    public function testAjaxToggleRejectsGet()
+    {
+        $this->_loginUser(2);
+        $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+
+        $this->expectException(MethodNotAllowedException::class);
+        $this->get('/entries/ajaxToggle/10/fixed');
     }
 
     public function testSolveIsRootEntry()
@@ -700,6 +912,346 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertNotNull($this->viewVariable('recentEntries'));
     }
 
+
+    /**
+     * Replying starts from the parent's subject, so the writer does not retype
+     * what the thread is already called.
+     *
+     * @return void
+     */
+    public function testReplyFormPrefillsTheSubject(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-reply/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('placeholder="Re: First_Subject"');
+        // As a placeholder, not a value — the writer must not have to delete
+        // a line to type their own.
+        $this->assertResponseNotContains('value="Re: First_Subject"');
+    }
+
+    /**
+     * …but the prefix does not stack. Three replies deep the subject should
+     * still read "Re: X", not "Re: Re: Re: X".
+     *
+     * @return void
+     */
+    public function testReplyFormDoesNotStackThePrefix(): void
+    {
+        $table = $this->getTableLocator()->get('Entries');
+        $table->updateAll(['subject' => 'Re: First_Subject'], ['id' => 1]);
+
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-reply/1');
+
+        $this->assertResponseContains('placeholder="Re: First_Subject"');
+        $this->assertResponseNotContains('Re: Re:');
+    }
+
+    /**
+     * A parent with no subject leaves the field empty rather than offering a
+     * bare "Re:".
+     *
+     * @return void
+     */
+    public function testReplyFormLeavesAnEmptySubjectEmpty(): void
+    {
+        $table = $this->getTableLocator()->get('Entries');
+        $table->updateAll(['subject' => ''], ['id' => 1]);
+
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-reply/1');
+
+        $this->assertResponseNotContains('placeholder="Re:');
+    }
+
+
+    /**
+     * Submitting without touching the subject stores exactly what the
+     * placeholder offered.
+     *
+     * This is the half that is easy to miss: the field sends nothing when it is
+     * left alone, and the fallback further down used to take the parent's
+     * subject *without* the "Re:" the writer had just been shown.
+     *
+     * @return void
+     */
+    public function testReplyWithoutASubjectStoresThePlaceholder(): void
+    {
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-reply/1', ['subject' => '', 'text' => 'Antwort']);
+
+        $posting = $this->getTableLocator()->get('Entries')
+            ->find()->orderByDesc('id')->first();
+        $this->assertSame('Re: First_Subject', $posting->get('subject'));
+    }
+    /**
+     * What was typed survives a rejected submission — the prefill must not
+     * overwrite it.
+     *
+     * @return void
+     */
+    public function testReplyFormKeepsWhatWasTyped(): void
+    {
+        $this->_loginUser(3);
+        // The form only comes back when the save failed, so this has to fail:
+        // a subject past the allowed length does it without needing a fixture.
+        $tooLong = str_repeat('a', 400) . ' Etwas ganz anderes';
+        $this->post('/entries/htmx-reply/1', ['subject' => $tooLong, 'text' => 'x']);
+
+        $this->assertResponseContains('Etwas ganz anderes', 'the typed subject was replaced by the prefill');
+    }
+    /**
+     * A disabled forum must not serve postings.
+     *
+     * The 503 page alone was never enough: rendering it in beforeFilter left
+     * the action to run afterwards, so the content was produced and — for any
+     * action returning its own response — sent instead of the 503.
+     *
+     * @return void
+     */
+    public function testForumDisabledDoesNotServePostings(): void
+    {
+        Configure::write('Saito.Settings.forum_disabled', true);
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseCode(503);
+        $this->assertResponseNotContains('postingBody');
+    }
+
+    /**
+     * …and must not accept new ones either.
+     *
+     * @return void
+     */
+    public function testForumDisabledDoesNotAcceptPostings(): void
+    {
+        $table = $this->getTableLocator()->get('Entries');
+        $before = $table->find()->count();
+
+        Configure::write('Saito.Settings.forum_disabled', true);
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-add', [
+            'category_id' => 2,
+            'subject' => 'written while closed',
+            'text' => 'should not exist',
+        ]);
+
+        $this->assertSame($before, $table->find()->count(), 'a posting was created');
+    }
+
+    /**
+     * The accent rail beside unread thread lines is drawn unless asked otherwise.
+     *
+     * @return void
+     */
+    public function testUnreadRailIsDrawnByDefault(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('no-unread-rail');
+    }
+
+    /**
+     * Switching it off marks the body, which is what both the island stylesheet
+     * and the theme hang their rail rule on. Asserting on the class rather than
+     * on either stylesheet keeps this honest: the two are built separately and a
+     * grep through compiled CSS has fooled us before.
+     *
+     * @return void
+     */
+    public function testUnreadRailCanBeSwitchedOff(): void
+    {
+        Configure::write('Saito.unreadRail', false);
+        $this->_loginUser(3);
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('no-unread-rail');
+    }
+
+    /**
+     * An installation whose config predates the setting keeps the rail.
+     *
+     * @return void
+     */
+    public function testUnreadRailStaysWithoutTheSetting(): void
+    {
+        Configure::delete('Saito.unreadRail');
+        $this->_loginUser(3);
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('no-unread-rail');
+    }
+
+    /**
+     * The preview shows the posting, not just its body: a writer checking their
+     * work wants to see the heading they typed above the text it belongs to.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewRendersSubjectAndText(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Ein Betreff', 'text' => 'Der Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Ein Betreff');
+        $this->assertResponseContains('Der Text');
+        $this->assertResponseContains('postingBody-heading');
+    }
+
+    /**
+     * A subject with no text is a posting Saito has always allowed, and renders
+     * with " n/t" appended. The preview has to say the same, or it promises a
+     * shape the posting will not have.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewMarksATextlessPostingAsNt(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Nur Betreff', 'text' => '']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Nur Betreff n/t');
+    }
+
+    /**
+     * The info line carries the category, the author, the time and the view
+     * count — the same four the posting itself shows. Category and views come
+     * from the form, because a reply inherits its parent's category and an edit
+     * keeps the count the posting already has.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewShowsCategoryAndViews(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $categories = \Cake\ORM\TableRegistry::getTableLocator()->get('Categories');
+        $readable = $categories->find()->where(['accession' => 0])->first();
+        $this->post('/entries/htmx-preview', [
+            'subject' => 'Betreff', 'text' => 'Text',
+            'categoryId' => $readable->get('id'), 'views' => 42,
+        ]);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains((string)$readable->get('category'));
+        $this->assertResponseContains('42');
+        $this->assertResponseContains('c-category');
+    }
+
+    /**
+     * The author's name links to their profile, as it does on a real posting —
+     * drawn by the same helper, so the markup and the target cannot drift
+     * apart.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewLinksTheAuthorToTheirProfile(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('/users/htmx-profile/3');
+        $this->assertResponseContains('c-username');
+    }
+
+    /**
+     * The member's place sits between their name and the time, when they have
+     * set one — the last piece that separated the preview's info line from the
+     * posting's.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewShowsTheAuthorsPlace(): void
+    {
+        $users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+        $user = $users->get(3);
+        $users->patchEntity($user, ['user_place' => 'Buxtehude']);
+        $users->saveOrFail($user);
+
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Buxtehude');
+    }
+
+    /**
+     * A member without a place gets no stray comma — the posting views leave it
+     * out entirely, and so must this.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewOmitsAnEmptyPlace(): void
+    {
+        $users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+        $user = $users->get(3);
+        $users->patchEntity($user, ['user_place' => '']);
+        $users->saveOrFail($user);
+
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => 'Betreff', 'text' => 'Text']);
+
+        $this->assertResponseOk();
+        $body = preg_replace('/\s+/', ' ', (string)$this->_response->getBody());
+        $this->assertStringNotContainsString('</span>, , ', $body);
+    }
+
+    /**
+     * Nothing written yet means an empty fragment, so the island can keep the
+     * panel shut instead of opening an empty frame above every reply box.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewIsEmptyWhenNothingWasWritten(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $this->post('/entries/htmx-preview', ['subject' => '', 'text' => '  ']);
+
+        $this->assertResponseOk();
+        $this->assertSame('', trim((string)$this->_response->getBody()));
+    }
+
+    /**
+     * The category shown in the preview comes from the form, so it is a value
+     * the member controls. It must be checked against what they may read, or
+     * the preview becomes a way to look up the name of a hidden category.
+     *
+     * @return void
+     */
+    public function testHtmxPreviewRefusesACategoryTheMemberCannotRead(): void
+    {
+        $this->mockSecurity();
+        $this->_loginUser(3);
+        $categories = \Cake\ORM\TableRegistry::getTableLocator()->get('Categories');
+        $unreadable = $categories->find()
+            ->where(['accession >' => 1])
+            ->first();
+        $this->post('/entries/htmx-preview', [
+            'subject' => 'Betreff', 'text' => 'Text',
+            'categoryId' => $unreadable ? $unreadable->get('id') : 9999,
+        ]);
+
+        $this->assertResponseOk();
+        if ($unreadable !== null) {
+            $this->assertResponseNotContains((string)$unreadable->get('category'));
+        }
+    }
+
     /**
      * The order the widgets appear in, as rendered.
      *
@@ -805,5 +1357,48 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->get('/entries/update');
 
         $this->assertRedirect();
+    }
+
+    /**
+     * `saito.plugin.uploader.view` grants admins another member's uploads. The
+     * permission was declared throughout, but this action hard-coded the current
+     * user, so nothing in the island could act on it.
+     *
+     * @return void
+     */
+    public function testHtmxUploadsLetsAnAdminSeeAnotherMembersArchive(): void
+    {
+        $this->_loginUser(1);
+        $this->get('/entries/htmx-uploads?id=3');
+
+        $this->assertResponseOk();
+    }
+
+    /**
+     * The other half of the same permission: an ordinary member asking for
+     * somebody else's archive is refused, not quietly shown their own.
+     *
+     * @return void
+     */
+    public function testHtmxUploadsRefusesAnotherMembersArchiveToAMember(): void
+    {
+        $this->expectException(SaitoForbiddenException::class);
+
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-uploads?id=1');
+    }
+
+    /**
+     * Asking for your own id is the default path, not the permission-checked
+     * one — a member must not be locked out of their own archive.
+     *
+     * @return void
+     */
+    public function testHtmxUploadsAllowsAMembersOwnIdExplicitly(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/entries/htmx-uploads?id=3');
+
+        $this->assertResponseOk();
     }
 }

@@ -12,7 +12,7 @@
  * once.
  */
 import { htmx } from '../runtime';
-import { csrfToken } from '../lib/dom';
+import { csrfToken, insertAtCursor } from '../lib/dom';
 
 // Editor upload overlay: the toolbar button opens an overlay to upload files and
 // browse the user's archive (20 per page + load more); clicking a tile inserts
@@ -23,15 +23,23 @@ function insertUploadTag(textarea: HTMLTextAreaElement, name: string, mime: stri
     const type = mime.split('/')[0];
     const tag = type === 'video' || type === 'audio' ? type : type === 'image' ? 'img' : 'file';
     const bb = `[${tag} src=upload]${name}[/${tag}]\n`;
-    const pos = textarea.selectionStart ?? textarea.value.length;
-    textarea.value = textarea.value.slice(0, pos) + bb + textarea.value.slice(pos);
-    textarea.selectionStart = textarea.selectionEnd = pos + bb.length;
+
+    // Assigning `value` discarded the undo history and fired no `input` event,
+    // so the editor never grew to fit what had just been inserted. Both are what
+    // insertAtCursor exists to get right.
+    insertAtCursor(textarea, bb);
 }
 
 function loadUploadGrid(): void {
     const grid = document.querySelector<HTMLElement>('.js-uploadGrid');
     if (grid) {
-        htmx.ajax('GET', '/entries/htmx-uploads', { target: grid, swap: 'innerHTML' });
+        // `manage=1` so each tile carries its delete control. Without it the
+        // overlay could only add — and a member who had reached the per-member
+        // limit was told so here, in the one place that offered no way to make
+        // room. Deleting lived in the profile, which nothing said. Clicking a
+        // tile still selects it for inserting; the delete button is separate and
+        // asks first.
+        htmx.ajax('GET', '/entries/htmx-uploads?manage=1', { target: grid, swap: 'innerHTML' });
     }
 }
 
@@ -177,7 +185,11 @@ document.addEventListener('click', (event: MouseEvent) => {
 // remove each upload and drop its tile. Deleting is per-upload on the server, so
 // a single failure leaves the rest done and that tile in place.
 document.addEventListener('click', (event: MouseEvent) => {
-    const btn = (event.target as HTMLElement).closest<HTMLElement>('.js-uploadsDeleteSelected');
+    // Typed as the button it is: the handler disables it while the batch runs,
+    // and on a plain HTMLElement that assignment would have been accepted by the
+    // browser and done nothing — leaving the control live during a delete that
+    // cannot be undone.
+    const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.js-uploadsDeleteSelected');
     if (!btn) {
         return;
     }

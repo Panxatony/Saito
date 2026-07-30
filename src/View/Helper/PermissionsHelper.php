@@ -61,21 +61,6 @@ class PermissionsHelper extends AppHelper
     }
 
     /**
-     * Get an array to use as $option in a select field with role-types
-     *
-     * @param bool $includeAnon Include anon-user
-     * @return array
-     */
-    public function rolesSelectType(bool $includeAnon = false): array
-    {
-        $roles = $this->Permissions->getRoles()->getAvailable($includeAnon);
-
-        return array_map(function ($role) {
-            return ['value' => $role['type'], 'text' => $this->roleAsString($role['id'])];
-        }, $roles);
-    }
-
-    /**
      * L10n a role.
      *
      * @param int|string $id Role-ID or role-type.

@@ -83,6 +83,79 @@ class BbcodeParserTest extends SaitoTestCase
         $this->assertHtml($expected, $result);
     }
 
+    /**
+     * A code block shows the characters that were typed.
+     *
+     * The posting text is HTML-escaped before parsing (BbcodePreparePreprocessor)
+     * and the syntax highlighter escapes again, so `<button>` used to reach the
+     * reader as the literal string `&lt;button&gt;` and `a & b` as `a &amp; b`.
+     * Escaped once means the entity renders as the character.
+     *
+     * @return void
+     */
+    public function testCodeBlockShowsTheCharactersTyped()
+    {
+        $result = $this->_Parser->parse('[code]<button hx-post="/x">[/code]');
+
+        $this->assertStringContainsString('&lt;button hx-post=&quot;/x&quot;&gt;', $result);
+        $this->assertStringNotContainsString('&amp;lt;', $result, 'escaped twice');
+
+        $result = $this->_Parser->parse('[code]a & b[/code]');
+        $this->assertStringContainsString('a &amp; b', $result);
+        $this->assertStringNotContainsString('&amp;amp;', $result, 'escaped twice');
+    }
+
+    /**
+     * SECURITY: undoing the first escape must not let markup through.
+     *
+     * This is the spot the stored XSS of 7.2.5 lived in, so the check is made
+     * against the parsed DOM rather than against the string — a search for
+     * `onerror=` in the output finds it in the *escaped* text too and reports a
+     * hole that is not there.
+     *
+     * @return void
+     */
+    public function testCodeBlockNeverProducesLiveMarkup()
+    {
+        $attempts = [
+            '[code]<script>alert(1)</script>[/code]',
+            '[code]<img src=x onerror=alert(1)>[/code]',
+            // The highlighter maps these dingbats back to raw metacharacters
+            // after escaping, which is how the 7.2.5 hole worked; they are
+            // stripped before highlighting.
+            "[code]\u{2776}img src=x onerror=alert(1)\u{2777}[/code]",
+            "[code]\u{2776}script\u{2777}alert(1)\u{2776}/script\u{2777}[/code]",
+        ];
+
+        foreach ($attempts as $attempt) {
+            $html = $this->_Parser->parse($attempt);
+
+            $doc = new \DOMDocument();
+            $doc->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NOERROR);
+
+            foreach (['script', 'img'] as $tag) {
+                $this->assertSame(
+                    0,
+                    $doc->getElementsByTagName($tag)->length,
+                    sprintf('"%s" produced a live <%s>', $attempt, $tag)
+                );
+            }
+        }
+    }
+
+    /**
+     * Highlighting still works, and its own markup survives the change.
+     *
+     * @return void
+     */
+    public function testCodeBlockStillHighlights()
+    {
+        $result = $this->_Parser->parse('[code=php]<?php echo "x"; ?>[/code]');
+
+        $this->assertStringContainsString('<span style="color:', $result);
+        $this->assertStringContainsString('&lt;?php', $result);
+    }
+
     public function testSpoiler()
     {
         $input = 'pre [spoiler] te "\' xt[/spoiler]';
@@ -91,14 +164,15 @@ class BbcodeParserTest extends SaitoTestCase
             [
                 'div' => [
                     'class' => 'richtext-spoiler',
-                    'style' => 'display: inline;',
                 ],
             ],
             [
                 'a' => [
                     'href' => '#',
-                    'class' => 'richtext-spoiler-link',
-                    'onclick' => 'preg:/.*" te &amp;quot;&amp;#039; xt".*/',
+                    'class' => 'richtext-spoiler-link js-spoiler',
+                    // Escaped twice on purpose: once so the revealed text cannot
+                    // introduce markup, once for the attribute it travels in.
+                    'data-spoiler' => ' te &amp;quot;&amp;#039; xt',
                 ],
             ],
             'preg:/.*▇ Spoiler ▇.*?(?=<)/',
@@ -910,6 +984,54 @@ EOF;
     }
 
     /**
+     * SECURITY: a control character inside the scheme must not defeat the
+     * blocklist. parse_url() reports an *empty* scheme for "j\0avascript:",
+     * which the check used to read as "relative URL, therefore safe".
+     *
+     * @return void
+     */
+    public function testUrlWithControlCharacterInSchemeIsRejected()
+    {
+        $result = $this->_Parser->parse("[url]j\x00avascript:alert(1)[/url]");
+        $this->assertStringNotContainsStringIgnoringCase('script:', $result);
+        $this->assertStringNotContainsString('<a ', $result);
+    }
+
+    /**
+     * SECURITY: media tags put the address straight into a src attribute and
+     * had no scheme check at all — [img] and [url] were hardened, these were
+     * missed.
+     *
+     * @return void
+     */
+    public function testMediaTagsRejectUnsafeSchemes()
+    {
+        // A rejected tag is left as the literal BBCode, so the text still reads
+        // "javascript:" — harmless, it is escaped plain text. What must not
+        // exist is the element carrying it as a src.
+        foreach (['video', 'audio'] as $tag) {
+            $result = $this->_Parser->parse("[$tag]javascript:alert(1)[/$tag]");
+            $this->assertStringNotContainsString(
+                "<$tag",
+                $result,
+                "[$tag] rendered an element for a javascript: URL"
+            );
+        }
+    }
+
+    /**
+     * …while an ordinary address still plays.
+     *
+     * @return void
+     */
+    public function testMediaTagsKeepOrdinaryUrls()
+    {
+        $result = $this->_Parser->parse('[video]https://example.com/clip.mp4[/video]');
+        $this->assertStringContainsString('https://example.com/clip.mp4', $result);
+        $this->assertStringContainsString('<video', $result);
+    }
+
+    /**
      * The email autolink regex was linearized to remove a nested quantifier
      * (ReDoS). A bare multi-label email must still autolink.
      *
@@ -1290,9 +1412,14 @@ EOF;
             ['return' => 'html', 'cache' => false],
         );
         $this->assertStringNotContainsString('<b>hi</b>', $normal);
-        // real `<`/`>` survive as inert, escaped text (h() + highlighter escape
-        // it twice — cosmetic, but never a live tag), and are not glyph-stripped.
-        $this->assertStringContainsString('&amp;lt;b&amp;gt;', $normal);
+        // Real `<`/`>` survive as inert, escaped text and are not glyph-stripped.
+        //
+        // This line used to expect `&amp;lt;b&amp;gt;` — the doubly-escaped form —
+        // and called it "cosmetic". It was not: the reader saw `&lt;b&gt;` on
+        // screen, so a code block could not show markup at all, which is most of
+        // what a code block is for. Escaped once is both correct and safe; the
+        // assertions above are what prove the second part.
+        $this->assertStringContainsString('&lt;b&gt;hi&lt;/b&gt;', $normal);
         $this->assertStringContainsString('echo', $normal);
     }
 
