@@ -11,9 +11,9 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: four migrations
+### The database: five migrations
 
-Between 5.7.0 and 8.3.x there are **four** schema changes. The second exists only
+Between 5.7.0 and 8.3.x there are **five** schema changes. The second exists only
 to repair the first; the last two arrived in 8.3.0 and are the ones that take
 time on a grown installation.
 
@@ -23,6 +23,7 @@ time on a grown installation.
 | `20260727190000_RestoreUserCategoryCustomWidth` | Restores `users.user_category_custom` to its full 1024 characters |
 | `20260730000000_ConvertCoreTablesToInnodb` | Moves the core tables off MyISAM — **the expensive one, read below** |
 | `20260730010000_DropLegacySaito5UserColumns` | Drops six `users` columns dead since 2012 |
+| `20260730020000_DropUnusedEcachesTable` | Drops `ecaches`, a cache table nothing has written to since 2014 |
 
 #### The InnoDB conversion is the one to plan for
 
@@ -99,8 +100,8 @@ SELECT COUNT(*) FROM users WHERE CHAR_LENGTH(user_category_custom) = 512;
 Zero means nothing was truncated.
 
 No table is added or restructured, and no posting, user, category or setting is
-altered — the two 8.3.0 migrations change how tables are stored and remove columns
-nothing has read since 2012. **Your content is untouched.**
+altered — the three 8.3.0 migrations change how tables are stored and remove a
+column set and a cache table nothing has read since 2012 and 2014. **Your content is untouched.**
 
 #### Clear the schema cache afterwards, or the forum will not come back
 

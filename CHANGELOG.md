@@ -7,6 +7,20 @@
 
 ## [next] -
 
+- − Removed: **`ecaches`, a cache table Saito stopped writing to in 2014.** The
+  code that used it went in 4.6.0 and the table stayed, which is what happens to
+  a cache nobody reads: on the live forum it still holds a single row, written
+  the day the code was removed, 811 KB of serialized postings from 2014. A
+  guarded migration drops it — an installation built from the migrations never
+  had it, so there it does nothing.
+
+  That makes **three** migrations in 8.3.0 rather than the two the alpha package
+  describes.
+
+  Found the same way as the six `users` columns before it: by comparing a grown
+  database against the schema the migrations describe. Grepping the source can
+  only ever show that nothing *reads* a thing, never that it is residue.
+
 - Δ Changed: **the 8.3.0 upgrade now says to clear the schema cache**, because
   without it the forum does not come back. CakePHP keeps each table's column list
   in `tmp/cache/models`, and the migration that drops six `users` columns has no
