@@ -1033,8 +1033,13 @@ class EntriesController extends AppController
             // htmxReply/htmxAdd/htmxPreview/htmxUpload rely on CSRF (island header
             // / FormHelper token) instead of a FormProtection token, like the REST
             // posting endpoints.
-            ['solve', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload', 'htmxBookmark',
-                'htmxEdit', 'htmxMerge', 'htmxUploadDelete']
+            // ajaxToggle is pin/lock. It is posted by the island with a CSRF
+            // token in the header and no form behind it, so FormProtection had
+            // nothing to validate and blackholed every attempt — pinning and
+            // unpinning a thread simply did nothing, silently, with the failure
+            // visible only in the server log.
+            ['solve', 'ajaxToggle', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload',
+                'htmxBookmark', 'htmxEdit', 'htmxMerge', 'htmxUploadDelete']
         );
         $this->Authentication->allowUnauthenticated(
             ['update', 'htmxIndex', 'htmxNewCount', 'htmxThread', 'htmxPosting', 'htmxWidgets']
