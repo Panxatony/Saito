@@ -5,7 +5,12 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.0-alpha.3] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0-alpha.2...8.3.0-alpha.3)
+
+**Still a pre-release**, same three migrations as alpha.2 and the same upgrade
+notes — command line, then `bin/cake schema_cache clear`.
 
 - Δ Changed: **the markup parser is under static analysis again.** The definitions
   that turn `[code]`, `[img]`, `[url]` and the rest into HTML — the code that
