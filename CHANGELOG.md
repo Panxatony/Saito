@@ -7,6 +7,53 @@
 
 ## [next] -
 
+- ✓ Fixed: **merging two threads is atomic, and no longer ages the thread it is
+  merged into.** Two faults in one operation.
+
+  The last-answer date was taken from the posting that was merged onto, but only
+  a thread's root carries a current one — every reply keeps whatever it held when
+  it was written. Merging an older thread onto a reply in the middle of an active
+  thread therefore overwrote the root with the older date, and the thread sank
+  down a front page sorted by exactly that column although it had just been
+  answered.
+
+  And the operation is five dependent writes that ran without a transaction. A
+  failure part-way through left the merged thread's root attached to its new
+  parent while all of its replies still belonged to the old thread — a state that
+  could not be repaired, or even retried, from the interface.
+
+- Δ Changed: **the core tables are moved to InnoDB.** MyISAM has no transactions
+  and does not object to being asked for one; it accepts the request and ignores
+  it. Every safeguard that groups several writes together — the thread merge
+  above among them — was therefore doing nothing at all on a MyISAM
+  installation, with no error and no way to tell from inside the application.
+
+  **What this means for a grown installation.** The live forums are already
+  InnoDB and the migration finds almost nothing to do. An installation whose
+  `entries` is still MyISAM should read on:
+
+  - The table is **rewritten in full**, unavoidably: `entries` carries a
+    full-text index, and InnoDB needs a hidden column for one that cannot be
+    added afterwards. Expect minutes and a held lock for a few hundred thousand
+    postings, with the forum unavailable meanwhile.
+  - **Keep disk space free.** The rebuild needs room for a second copy, and
+    InnoDB typically occupies 1.5 to 2 times what MyISAM did. A 300 MB table
+    wants roughly a gigabyte in transit. This is the likeliest way the upgrade
+    fails.
+  - **Migrate from the command line** (`bin/cake migrations migrate`). Through
+    the web updater, PHP's execution limit can cut the request short; the server
+    finishes the conversion regardless, but it may then not be recorded as
+    applied.
+  - **The search will find more than before.** MyISAM ignores words shorter than
+    four characters and carries some 500 stopwords; InnoDB's limits are three
+    characters and 36. Nothing is lost — Saito searches in boolean mode, so
+    MyISAM's "ignore words in over half the rows" rule never applied — but
+    three-letter words become findable, which is a change worth expecting rather
+    than discovering.
+
+  Index lengths are not a concern: `users.username` has been capped at 191
+  characters for exactly this reason since the schema was written.
+
 - ＋ Added: **the subject field says how many characters are left.** The limit is
   an admin setting and has always been on the field, so it could not be
   exceeded — the field simply stopped accepting input once it was reached, with

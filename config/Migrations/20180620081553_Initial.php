@@ -1,6 +1,25 @@
 <?php
 use Migrations\BaseMigration;
 
+/**
+ * The tables that were declared MyISAM here now say InnoDB.
+ *
+ * MyISAM has no transactions, and it does not fail when asked for one — it
+ * simply ignores BEGIN and COMMIT. Anything relying on a transaction to keep
+ * several writes together therefore worked on the grown installations, which
+ * are InnoDB, and quietly did not on a fresh one built from this file. Merging
+ * two threads is five dependent writes and is exactly that case.
+ *
+ * Changing an applied migration only reaches installations that have not run it
+ * yet, which here is precisely the ones at risk: a recorded version is never
+ * replayed, so nothing already installed is touched or needs to be. The ones
+ * that did run it are handled by 20260730000000_ConvertCoreTablesToInnodb,
+ * which converts whatever is still MyISAM. Same reasoning as the correction to
+ * 20260604090000_ConvertLegacyTablesToUtf8mb4.
+ *
+ * `shouts` and `useronline` stay MEMORY on purpose: both are volatile by
+ * design and are meant to be lost on a restart.
+ */
 class Initial extends BaseMigration
 {
 
@@ -8,7 +27,7 @@ class Initial extends BaseMigration
 
     public function up()
     {
-        $this->table('bookmarks', ['engine' => 'MyISAM', 'collation' => 'utf8mb4_unicode_ci'])
+        $this->table('bookmarks', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci'])
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -54,7 +73,7 @@ class Initial extends BaseMigration
             )
             ->create();
 
-        $this->table('categories', ['engine' => 'MyISAM', 'collation' => 'utf8mb4_unicode_ci'])
+        $this->table('categories', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci'])
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -89,7 +108,7 @@ class Initial extends BaseMigration
             ])
             ->create();
 
-        $this->table('entries', ['engine' => 'MyISAM', 'collation' => 'utf8mb4_unicode_ci'])
+        $this->table('entries', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci'])
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -240,7 +259,7 @@ class Initial extends BaseMigration
             )
             ->create();
 
-        $this->table('esevents', ['engine' => 'MyISAM', 'collation' => 'utf8mb4_unicode_ci'])
+        $this->table('esevents', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci'])
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -276,7 +295,7 @@ class Initial extends BaseMigration
             )
             ->create();
 
-        $this->table('esnotifications', ['engine' => 'MyISAM', 'collation' => 'utf8mb4_unicode_ci'])
+        $this->table('esnotifications', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci'])
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -329,7 +348,7 @@ class Initial extends BaseMigration
             )
             ->create();
 
-        $this->table('settings', ['engine' => 'MyISAM', 'collation' => 'utf8mb4_unicode_ci'])
+        $this->table('settings', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci'])
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -384,7 +403,7 @@ class Initial extends BaseMigration
             ])
             ->create();
 
-        $this->table('smiley_codes', ['engine' => 'MyISAM', 'collation' => 'utf8mb4_unicode_ci'])
+        $this->table('smiley_codes', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci'])
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -404,7 +423,7 @@ class Initial extends BaseMigration
             ])
             ->create();
 
-        $this->table('smilies', ['engine' => 'MyISAM', 'collation' => 'utf8mb4_unicode_ci'])
+        $this->table('smilies', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci'])
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
