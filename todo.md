@@ -166,9 +166,20 @@ same user as the forum.
 
 
 `phpstan.neon` excludes `plugins/BbcodeParser/src/Lib/jBBCode/Definitions/*`,
-which is the code that parses untrusted markup — so the one place most worth
-analysing gets none. Measured on 2026-07-30 by removing the exclusion: **16
-errors**, and they come from three causes rather than sixteen.
+the code that parses untrusted markup. Measured on 2026-07-30 by removing the
+exclusion: **16 errors**, from three causes rather than sixteen.
+
+**Correcting this entry's own framing**, checked the same day: it said the one
+place most worth analysing gets none, which is not true. `psalm.xml` puts all of
+`plugins/` in scope and excludes only tests and vendor, so
+`psalm --taint-analysis` — the analysis that follows untrusted input to a
+dangerous sink, which is the one that matters here — already covers these files
+and reports nothing. The gap is PHPStan's type checking, not security analysis.
+Worth doing, but as "keep the parser's types honest", not as "close a hole".
+
+The exclusion's stated reason no longer holds either. The comment says the inline
+class definitions "aren't autoloadable for PHPStan"; removing the line produced
+16 ordinary type errors and no autoload failure at all.
 
 - **One wrong property type, six symptoms.** `CodeDefinition::$_sOptions` is
   declared `array` and holds a `MarkupSettings`, so every `->get()` on it reports
