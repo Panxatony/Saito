@@ -48,11 +48,15 @@ and flexbox replace `col-*`, and Nova already carries its own custom properties.
    and writing form templates. The frontend is unaffected by this half; it uses
    the plain Cake helpers.
 
-**The first step is cheap and breaks nothing:** import only the Bootstrap SCSS
-modules actually in use instead of the whole framework. Not one class in any
-template changes, no theme breaks, and the remaining list then shows in numbers
-how much Bootstrap is really carrying — which turns "drop it entirely?" into a
-decision with measurements behind it.
+**The first step is done.** `__theme.scss` imports the nineteen modules actually
+in use rather than all thirty-eight, which took 23% off all six stylesheets
+without changing a class in any template. The measurement it was supposed to
+produce: what remains is `reboot`, `type`, `grid`, `tables`, `forms`, `buttons`,
+`dropdown`, `button-group`, `input-group`, `card`, `badge`, `alert` and
+`utilities` — and `utilities` alone accounts for forty of the classes in use,
+mostly spacing and display helpers that modern CSS covers directly. So the
+remaining question is no longer "how much is Bootstrap carrying" but "is a
+framework worth it for buttons, cards, form controls and a spacing scale".
 
 The admin area is worth reworking in the same pass, and only then. It has
 already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
