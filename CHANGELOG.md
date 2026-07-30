@@ -7,6 +7,20 @@
 
 ## [next] -
 
+- Δ Changed: **the 8.3.0 upgrade now says to clear the schema cache**, because
+  without it the forum does not come back. CakePHP keeps each table's column list
+  in `tmp/cache/models`, and the migration that drops six `users` columns has no
+  way to tell it. The next request asks for a column that no longer exists and the
+  database refuses: `Unknown column 'Users.user_font_size' in 'SELECT'`. Every
+  page that reads a user answers 500 — which is every page, for anyone logged in.
+
+  Nothing is damaged and nothing is lost; the forum is simply down until someone
+  runs `bin/cake schema_cache clear`. This applies to 8.3.0-alpha as released:
+  the step is missing from the package's own notes, and it is now in
+  [docs/upgrade.md](docs/upgrade.md) and [docs/update.md](docs/update.md).
+
+  Found by upgrading the beta installation and watching it fall over.
+
 - ✓ Fixed: **thread lines sit in the middle of their boxes again.** They were
   pinned to the top edge with a full spacer of empty room underneath: the box
   inherits padding on all four sides and only the top one had been taken away.

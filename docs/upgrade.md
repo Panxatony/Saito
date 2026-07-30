@@ -102,6 +102,29 @@ No table is added or restructured, and no posting, user, category or setting is
 altered — the two 8.3.0 migrations change how tables are stored and remove columns
 nothing has read since 2012. **Your content is untouched.**
 
+#### Clear the schema cache afterwards, or the forum will not come back
+
+```shell
+bin/cake schema_cache clear
+```
+
+This is not optional and it is not tidiness. CakePHP remembers each table's
+column list on disk, and dropping six columns from `users` does not tell it. The
+next request builds its query from the remembered list, asks for a column that no
+longer exists, and the database refuses it:
+
+```
+Unknown column 'Users.user_font_size' in 'SELECT'
+```
+
+Every page that looks at a user — which is every page for anyone logged in —
+answers 500 until the cache is cleared. Nothing is damaged and nothing is lost;
+the forum simply stays down for as long as it takes to notice. Run the clear
+immediately after `migrations migrate`, before you go looking at the site, and
+reload PHP-FPM after it.
+
+Found the hard way on the beta installation while preparing 8.3.0.
+
 Every setting Saito 8 reads already exists in a 5.7 database — the newest of
 them was introduced before 5.0. Nothing has to be inserted by hand.
 

@@ -105,7 +105,14 @@ migrations and records the new version.
 > cd /path/to/forum
 > php bin/cake.php migrations status   # what is pending
 > php bin/cake.php migrations migrate
+> php bin/cake.php schema_cache clear  # not optional -- see below
 > ```
+>
+> **The cache clear belongs to the migration, not after it.** 8.3.0 drops six
+> columns from `users`, and CakePHP keeps each table's column list in
+> `tmp/cache/models`. Until that is cleared, every request still asks the
+> database for a column that no longer exists and gets a 500 — on every page,
+> for everyone logged in. Reload PHP-FPM afterwards.
 
 **This is expected, not an error.** If you deploy without the updater — from a
 configuration-management tool, say — remember that the database version has to
