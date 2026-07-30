@@ -5,7 +5,24 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.0-alpha] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.8...8.3.0-alpha)
+
+**A pre-release.** It is meant for a test installation, not a live forum. The
+database changes below are the reason: they are not reversible by downgrading,
+and they have been exercised on a copy of one production forum, which is not the
+same as having been in service.
+
+**Upgrading needs more than a code deploy.** Two new migrations run — an
+installation older than 8.2.8 will have others to catch up on as well, listed in
+[docs/upgrade.md](docs/upgrade.md). One of the two rewrites the `entries` table
+to convert it from MyISAM to InnoDB — five and a
+half minutes on a 320 MB table, with the forum unavailable throughout. Run
+`bin/cake migrations migrate` **from the command line**, not through the web
+updater, which PHP's execution limit will cut short. Read the 8.3.0 notes in
+[docs/upgrade.md](docs/upgrade.md) first; the details are under the InnoDB entry
+below.
 
 - ＋ Added: **what you are writing is kept.** A few seconds after you stop typing,
   the reply is stored as a draft; open the same reply again — after closing the tab,
