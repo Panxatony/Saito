@@ -39,7 +39,16 @@ li.ignored + li:not(.threadLeaf) {
 
 .threadBox-body {
   @extend .panel;
-  padding-top: 0 !important;
+  // The panel brings a full spacer on all four sides. Only the top was taken
+  // away here, which left every thread line sitting on the box's top edge with
+  // a full spacer of empty room underneath it — plainly lopsided once the panel
+  // grew a visible border. Half a spacer, top and bottom, centres the line and
+  // keeps the list close to its old height; a full spacer on top would make a
+  // page of one-line threads noticeably taller.
+  padding-top: 0.5 * $spacer !important;
+  padding-bottom: 0.5 * $spacer !important;
+  // Left stays flush: the thread tree draws its own indent, and the unread rail
+  // is meant to sit against the edge.
   padding-left: 0 !important;
 }
 
