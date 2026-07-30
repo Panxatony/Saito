@@ -5,6 +5,17 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+- ✓ Fixed: **thread lines sit in the middle of their boxes again.** They were
+  pinned to the top edge with a full spacer of empty room underneath: the box
+  inherits padding on all four sides and only the top one had been taken away.
+  Invisible while the box had no border, obvious once it grew one. The boxes keep
+  their height, so a page of threads is no taller than before.
+
+  Written after 8.3.0-alpha was tagged, so it is not in that package. Released
+  for the live forum as 8.2.9 in the meantime.
+
 ## [8.3.0-alpha] - 2026-07-30
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.8...8.3.0-alpha)
