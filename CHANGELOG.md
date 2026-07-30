@@ -7,6 +7,19 @@
 
 ## [next] -
 
+- ✓ Fixed: **pinning and unpinning a thread works again.** It has been dead since
+  the frontend rewrite and failed in complete silence: the island posts the
+  request with a token in the header and no form behind it, and the form-tampering
+  guard — which had this one endpoint outside its exemption list — rejected every
+  attempt before it reached the code. Nothing appeared on screen; the only trace
+  was a line in the server log.
+
+  The whole test suite passed throughout, because the integration test harness
+  attaches a form token to every request it makes. Every test therefore looked
+  like a form submission, which a browser's `fetch` is not — the harness was more
+  permissive than the thing it stands in for. The regression test switches that
+  token off, which is the only way it could have caught this.
+
 - ✓ Fixed: **merging two threads is atomic, and no longer ages the thread it is
   merged into.** Two faults in one operation.
 
