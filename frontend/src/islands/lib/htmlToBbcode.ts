@@ -40,9 +40,18 @@ const WRAPPED: Record<string, [string, string]> = {
     S: ['[s]', '[/s]'],
     DEL: ['[s]', '[/s]'],
     STRIKE: ['[s]', '[/s]'],
-    CODE: ['[code]', '[/code]'],
-    PRE: ['[code]', '[/code]'],
 };
+
+/**
+ * Tags inside which whitespace is content, not layout.
+ *
+ * Handled apart from WRAPPED because they need two things a lookup cannot give:
+ * their text must survive the collapsing every other text node goes through, and
+ * only the outermost of a nest may wrap — documentation sites almost always ship
+ * `<pre><code>…</code></pre>`, which would otherwise arrive as
+ * `[code][code]…[/code][/code]`.
+ */
+const PREFORMATTED = new Set(['PRE', 'CODE']);
 
 /**
  * Tags that carry emphasis rather than markup of their own.
@@ -158,12 +167,33 @@ function convertImage(el: Element): string {
  * @param el the element
  * @param inner its children, converted
  * @param emphasise wraps text in whatever emphasis this element opens
+ * @param insidePre whether an *ancestor* was already preformatted
  */
-function convertElement(el: Element, inner: string, emphasise: (text: string) => string): string {
+function convertElement(
+    el: Element,
+    inner: string,
+    emphasise: (text: string) => string,
+    insidePre: boolean,
+): string {
     const tag = el.tagName;
 
-    // The four table-driven groups first — between them they cover twenty of the
-    // tags and each is one lookup rather than a run of fall-through cases.
+    if (PREFORMATTED.has(tag)) {
+        // Already inside a code block: contribute the text and let the outermost
+        // one do the wrapping.
+        if (insidePre) {
+            return inner;
+        }
+        if (!inner.trim()) {
+            return inner;
+        }
+
+        // A block that spans lines gets lines of its own; `<code>` used inside a
+        // sentence stays in the sentence, which is where it was written.
+        return inner.includes('\n') ? `\n[code]${inner}[/code]\n` : `[code]${inner}[/code]`;
+    }
+
+    // The table-driven groups next — between them they cover twenty of the tags
+    // and each is one lookup rather than a run of fall-through cases.
     if (EMPHASIS.has(tag)) {
         return inner.trim() ? emphasise(inner) : inner;
     }
@@ -197,11 +227,25 @@ function convertElement(el: Element, inner: string, emphasise: (text: string) =>
     }
 }
 
-function convertNode(node: Node, active: Emphasis = { bold: false, italic: false }): string {
+function convertNode(
+    node: Node,
+    active: Emphasis = { bold: false, italic: false },
+    insidePre = false,
+): string {
     if (node.nodeType === Node.TEXT_NODE) {
-        // Collapse runs of whitespace the way HTML rendering would; a newline in
-        // the source is not a newline on screen.
-        return (node.nodeValue ?? '').replace(/\s+/g, ' ');
+        const text = node.nodeValue ?? '';
+
+        // Inside a code block the whitespace *is* the content: a block copied
+        // from a documentation page used to arrive as one unindented line, and
+        // because the conversion had "added something" the browser's own paste
+        // was suppressed to produce it.
+        if (insidePre) {
+            return text;
+        }
+
+        // Everywhere else, collapse runs of whitespace the way HTML rendering
+        // would; a newline in the source is not a newline on screen.
+        return text.replace(/\s+/g, ' ');
     }
     if (node.nodeType !== Node.ELEMENT_NODE) {
         return '';
@@ -217,7 +261,10 @@ function convertNode(node: Node, active: Emphasis = { bold: false, italic: false
         bold: active.bold || opens.bold,
         italic: active.italic || opens.italic,
     };
-    const inner = Array.from(el.childNodes).map((child) => convertNode(child, nested)).join('');
+    const childrenPre = insidePre || PREFORMATTED.has(el.tagName);
+    const inner = Array.from(el.childNodes)
+        .map((child) => convertNode(child, nested, childrenPre))
+        .join('');
 
     /** Wrap in whatever this element is the first to open. */
     const emphasise = (text: string): string => {
@@ -232,7 +279,7 @@ function convertNode(node: Node, active: Emphasis = { bold: false, italic: false
         return out;
     };
 
-    return convertElement(el, inner, emphasise);
+    return convertElement(el, inner, emphasise, insidePre);
 }
 
 /**
@@ -243,12 +290,36 @@ function convertNode(node: Node, active: Emphasis = { bold: false, italic: false
  */
 export function htmlToBbcode(html: string): string {
     const doc = new DOMParser().parseFromString(html, 'text/html');
+    const walked = convertNode(doc.body);
 
-    return convertNode(doc.body)
+    // Hold the code blocks out of the tidy pass. Preserving their text during the
+    // walk is only half the job: the pass below collapses spaces and tabs and
+    // strips the whitespace around every newline, which would take the
+    // indentation straight back out again.
+    //
+    // The marker is an index between two NUL characters: NUL cannot appear in
+    // pasted text, and it carries no whitespace for the pass to act on. They are
+    // put back with split/join rather than a replace — a regular expression with
+    // a control character in it is not something to leave for the next reader.
+    const blocks: string[] = [];
+    const marker = (index: number): string => `\u0000${index}\u0000`;
+    const masked = walked.replace(/\[code\][\s\S]*?\[\/code\]/g, (block) => {
+        blocks.push(block);
+
+        return marker(blocks.length - 1);
+    });
+
+    let tidied = masked
         .replace(/[ \t]+/g, ' ')
         .replace(/ *\n */g, '\n')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
+
+    blocks.forEach((block, index) => {
+        tidied = tidied.split(marker(index)).join(block);
+    });
+
+    return tidied;
 }
 
 /**
