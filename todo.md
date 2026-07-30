@@ -42,20 +42,21 @@ snippet is inline and would not.
 ### Dependencies still a major version behind
 
 Everything that fits inside the constraints already set was taken on
-2026-07-30, CakePHP 5.3.6 → 5.4.1 among them. What is left needs a decision or
-some work, and the difference between the two was measured rather than guessed:
+2026-07-30, CakePHP 5.3.6 → 5.4.1 among them, and on the same day `aura/di`
+4 → 5 and `symfony/dom-crawler`/`css-selector` 6.4 → 8 went through with the
+suite green. What is left needs a decision or some work, and each line below
+was measured, not guessed:
 
 | | |
 |---|---|
 | `cakephp/authentication` 3 → 4 | **Tried. 250 tests fail.** Version 4 changed the shape of the identifier configuration — "Identifier configuration must specify a class name" — so `src/Auth/AuthenticationServiceFactory.php` has to be rewritten, not re-pinned. Reverted. Security-relevant, so worth doing properly. |
-| `cakephp/migrations` 4 → 5 | Blocked only by our own `^4.0`. Untried. |
-| `aura/di` 4 → 5 | Blocked only by our own `^4.0`. Untried. |
-| `symfony/dom-crawler`, `css-selector` 6.4 → 8 | Blocked only by our own `^5.4\|^6.0`. Test-only. Untried. |
-| `phpunit` 11 → 13 | Needs its own dependency chain moved with it (`php-code-coverage` 14, `php-file-iterator` 7). Test-only, so no runtime risk, but two majors at once. |
+| `cakephp/migrations` 4 → 5 | **Tried. 25 errors.** Under 5 the `Initial` migration no longer creates the tables, so the next migration runs against a `users` that is not there. Our migration files need work, not a new constraint. Reverted. |
+| `phpunit` 11 → 13 | **Tried, and closer than it looks: every one of the 647 tests passes with the same 1545 assertions.** The run exits non-zero on 548 *notices*, and they come from vendor code — `suin/php-rss-writer` and `jbbcode` — plus one warning about `apc.enable_cli`, an ini in `phpunit.xml` that already fails to apply today. So this is not a code migration but a decision: should the suite fail on deprecations raised inside dependencies? Answer that first, then this is a short job. Reverted for now. |
 | `squizlabs/php_codesniffer` 3 → 4 | **Not ours to move.** `cakephp/cakephp-codesniffer` and `slevomat/coding-standard` both still require `^3`. Wait for them. |
 
-The four in the middle are one constraint edit and a test run each. Do them one
-at a time — the authentication attempt is what that advice comes from.
+All four remaining were attempted one at a time with the suite as the gate,
+which is the only reason the notes above say anything useful. Two went in, two
+came back out.
 
 ### Timezones: the database holds local time, the framework believes in UTC
 
