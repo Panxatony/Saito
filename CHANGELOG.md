@@ -22,6 +22,15 @@
   parent while all of its replies still belonged to the old thread — a state that
   could not be repaired, or even retried, from the interface.
 
+- ✓ Fixed: **a code block shows the characters that were typed.** The posting
+  text is HTML-escaped before it is parsed, and the syntax highlighter escaped it
+  a second time, so `<button>` reached the reader as the literal `&lt;button&gt;`
+  and `a & b` as `a &amp; b`. A code block could not show markup at all — which
+  is most of what a code block is for. Escaped once now, and the checks that
+  prove nothing became live markup are made against the parsed document rather
+  than by searching the text, which finds `onerror=` in the escaped form too and
+  reports a hole that is not there.
+
 - ✓ Fixed: **a pasted code block keeps its shape.** Copying code out of a
   documentation page used to deliver it as one unindented line — and because the
   conversion had "added something", the browser's own paste was suppressed in
