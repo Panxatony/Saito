@@ -1,123 +1,46 @@
 # TODO
 
-Work that is known, understood, and deliberately not done yet. Items are filed
-under the release they are meant for; anything without a release is waiting on a
-decision rather than on time.
+Work that is known, understood, and deliberately not done yet — nothing else.
+Items are filed under the release they are meant for; anything without a release
+is waiting on a decision rather than on time.
 
-Findings that turn out to be already fixed get deleted from here rather than
-ticked off — this file should describe the present, not the past.
+Two things this file is not: a record of what was decided against, and a record
+of what has been finished. Both belong in the commit that made the decision.
+Anything here that turns out to be done gets deleted rather than ticked off.
 
 ---
 
-## Release 8.3
+## Deployment, not code
 
-### Get out from under Bootstrap 4
+### Turn the strict content-security policy on for prod and beta
 
-Bootstrap has been unmaintained since January 2023. The exposure is smaller than
-the version number suggests: **Bootstrap's JavaScript is not loaded anywhere in
-the project**, and the known Bootstrap 4 vulnerabilities are all in its JS
-components. What is left is a stylesheet. So this is a weight and maintenance
-question, not a security one.
-
-The weight is the argument. Measured on 2026-07-29:
-
-| | |
-|---|---|
-| What `templates/` actually uses | ~46 distinct Bootstrap classes |
-| Grid usage in the frontend | `container`, `row`, `col-md-8`, `col-lg-6` — that is all |
-| What is imported for it | the complete Bootstrap SCSS, 484 KB of source |
-| What falls out | `theme.css`, 11,033 lines, 199 KB |
-
-Essentially: `btn`, `card`, `modal`, `alert`, `form-control` and a handful of
-spacing utilities, paid for with a full framework. Modern CSS covers the rest —
-`<dialog>` replaces the modal component including backdrop and focus trap, grid
-and flexbox replace `col-*`, and Nova already carries its own custom properties.
-
-**Two separate fronts, and they are not equally hard:**
-
-1. **The themes.** `plugins/Bota/webroot/css/src/partials/__theme.scss` imports
-   Bootstrap wholesale, and Nova extends Bota, and Macnemo and Macfix extend
-   Nova. Pulling Bootstrap out of Bota breaks *every* derived theme at once —
-   including the ones on other installations. That is a break of the theme
-   interface and belongs in a major version with notice to theme authors, not in
-   a point release.
-2. **Admin and installer.** These do not merely use Bootstrap's classes, they
-   have BootstrapUI *generate* the markup
-   (`plugins/Admin/src/Controller/AdminAppController.php` — Form, Flash,
-   Paginator, Breadcrumbs). Dropping Bootstrap here means dropping BootstrapUI
-   and writing form templates. The frontend is unaffected by this half; it uses
-   the plain Cake helpers.
-
-**The first step is done.** `__theme.scss` imports the nineteen modules actually
-in use rather than all thirty-eight, which took 23% off all six stylesheets
-without changing a class in any template. The measurement it was supposed to
-produce: what remains is `reboot`, `type`, `grid`, `tables`, `forms`, `buttons`,
-`dropdown`, `button-group`, `input-group`, `card`, `badge`, `alert` and
-`utilities` — and `utilities` alone accounts for forty of the classes in use,
-mostly spacing and display helpers that modern CSS covers directly. So the
-remaining question is no longer "how much is Bootstrap carrying" but "is a
-framework worth it for buttons, cards, form controls and a spacing scale".
-
-The admin area is worth reworking in the same pass, and only then. It has
-already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
-on Alpine now — so its markup is the one thing still tying it to Bootstrap.
-Doing it separately means paying for it twice.
-
-### `'unsafe-inline'`: the application side is done, the header is per install
-
-Saito no longer emits inline script of any kind — no `<script>` with a body, no
-event attributes, anywhere in the repository. Verified in a browser rather than by
-reading: with `script-src 'self' 'unsafe-eval'` in force, four pages load with
-zero policy violations, zero JavaScript errors, and the island visibly enhancing
-the DOM.
-
-What moved, in 8.3.0: the two pre-paint blocks (theme stylesheet, font scale) into
-a synchronous external `boot.bundle.js` — synchronous because that still runs
-before the first paint, which is the whole reason they were inline; the feed copy
-button and its select-on-click into the island bundle; the settings scroll-spy
-into the admin bundle. `[spoiler]` was the fourth and went in 8.2.8.
-
-**A nonce turned out to be unnecessary**, which is why this is smaller than the
-plan said. The blocks were inline only to run early, and a synchronous external
-script does that too — so the application never had to take the policy over from
-the edge, and there is no per-request secret to get wrong.
-
-`'unsafe-eval'` stays: Alpine evaluates `x-data`/`x-show` expressions as strings.
-It is the far less dangerous of the two — it does not enable an injected event
-handler, which is what the stored XSS of 8.2.3 actually used.
-
-**What is left is deployment, not code.** The policy lives at the edge, one web
-server at a time:
+The application side is finished and shipped in 8.3.0 — Saito emits no inline
+script and no event attributes anywhere. What is left is a web-server header,
+one installation at a time:
 
 - `config/nginx/saito.conf.example` carries the strict policy, still commented
-  out, because anything an installation embeds has to be added first.
-- The test system runs it. Prod and beta do not yet — their header still allows
-  `'unsafe-inline'`, so the protection is not in place there until the header is
-  changed on hosting02.
-- `style-src` keeps `'unsafe-inline'`: templates still set `style` attributes, and
-  inline style is not a route to code execution.
+  out, because anything an installation embeds has to be added to it first.
+- **The test system runs it. Prod and beta do not.** Their header still allows
+  `'unsafe-inline'`, so the protection the release was written for is not in
+  place where it matters most. Changing that is a change on hosting02, not in
+  this repository.
+- `'unsafe-eval'` has to stay: Alpine evaluates its expressions as strings. It
+  is the far less dangerous of the two — it does not enable an injected event
+  handler, which is what the stored XSS of 8.2.3 actually used.
+- `style-src` keeps `'unsafe-inline'`: templates still set `style` attributes,
+  and inline style is not a route to code execution.
 
-### Residue deliberately left in place
-
-Three things the same sweep turned up that look dead and were kept, so the next
-reader does not re-derive the reasoning:
-
-- **`UsersTable::setCategory()`** has no caller in the application but five
-  tests. Tested behaviour with no caller is as likely to be public API for a
-  site-specific plugin as it is to be residue, and the cost of keeping it is
-  nothing.
-- **`UserOnlineTable::setOnlinePeriod()`** is called only by tests, which use it
-  to make the online-period deterministic. That is a legitimate use.
-- **`$SaitoSettings`**, set on every request in `AppController`, is read by no
-  template *in this repository*. Saito runs on installations whose themes are not
-  tracked here and cannot be checked, and removing a view variable would fail
-  there silently. Not worth the risk for one `set()` call.
+Anything an installation embeds must be added before the header goes on. The
+macfix installation, for one, carries an ad tag and a Matomo snippet; the ad tag
+is an external script from its own origin and passes `'self'`, the Matomo
+snippet is inline and would not.
 
 ---
 
 ## No release assigned
 
 ### Timezones: the database holds local time, the framework believes in UTC
+
 
 Found on 2026-07-26 while chasing something else, and **not** caused by the SPA
 teardown — it has been like this for years and affected the old frontend just
@@ -165,6 +88,7 @@ written under changing assumptions. It needs:
 
 ### Video uploads
 
+
 `video/mp4` and `video/webm` are already in the allowed types and `[video]`
 already exists in the parser, so the feature is not missing — it is unusable.
 The limits are far too small for any real recording, and nothing converts what
@@ -209,6 +133,7 @@ same user as the forum.
 
 ### What the jBBCode PHPStan exclusion hides
 
+
 `phpstan.neon` excludes `plugins/BbcodeParser/src/Lib/jBBCode/Definitions/*`,
 which is the code that parses untrusted markup — so the one place most worth
 analysing gets none. Measured on 2026-07-30 by removing the exclusion: **16
@@ -235,19 +160,54 @@ None of it is a live fault, which is why this is a to-do and not a fix. But
 "untrusted markup, no static analysis" is the wrong place to leave a gap, and the
 work is now quantified rather than guessed at.
 
-### Psalm: it does earn something — the note here was wrong
+### The rest of the way out from under Bootstrap 4
 
-An earlier version of this file said Psalm "duplicates PHPStan at lower
-strictness" and should be raised or dropped. That was wrong about how it is used.
-Nothing runs Psalm's general analysis; the pipeline runs
-`psalm --taint-analysis`, which follows user input through to dangerous sinks —
-something PHPStan does not do without its paid extension. Measured on
-2026-07-30: 30 seconds, no findings, types inferred for 83.6% of the codebase.
+Bootstrap has been unmaintained since January 2023. The exposure is smaller than
+the version number suggests: **Bootstrap's JavaScript is not loaded anywhere in
+the project**, and the known Bootstrap 4 vulnerabilities are all in its JS
+components. What is left is a stylesheet. So this is a weight and maintenance
+question, not a security one.
 
-So `errorLevel="8"` and `findUnusedCode="false"` describe a mode nobody invokes,
-and changing them would change nothing. Left alone deliberately.
+The weight is the argument. Measured on 2026-07-29:
 
-### DeepSource JS-0067 / JS-0052
+| | |
+|---|---|
+| What `templates/` actually uses | ~46 distinct Bootstrap classes |
+| Grid usage in the frontend | `container`, `row`, `col-md-8`, `col-lg-6` — that is all |
+| What is imported for it | the complete Bootstrap SCSS, 484 KB of source |
+| What falls out | `theme.css`, 11,033 lines, 199 KB — 132 KB since the reduction below |
 
-Knowingly accepted reports, ignored in the dashboard. The reasoning is in
-`.deepsource.toml`; revisit it there rather than here.
+Essentially: `btn`, `card`, `modal`, `alert`, `form-control` and a handful of
+spacing utilities, paid for with a full framework. Modern CSS covers the rest —
+`<dialog>` replaces the modal component including backdrop and focus trap, grid
+and flexbox replace `col-*`, and Nova already carries its own custom properties.
+
+**Two separate fronts, and they are not equally hard:**
+
+1. **The themes.** `plugins/Bota/webroot/css/src/partials/__theme.scss` imports
+   Bootstrap wholesale, and Nova extends Bota, and Macnemo and Macfix extend
+   Nova. Pulling Bootstrap out of Bota breaks *every* derived theme at once —
+   including the ones on other installations. That is a break of the theme
+   interface and belongs in a major version with notice to theme authors, not in
+   a point release.
+2. **Admin and installer.** These do not merely use Bootstrap's classes, they
+   have BootstrapUI *generate* the markup
+   (`plugins/Admin/src/Controller/AdminAppController.php` — Form, Flash,
+   Paginator, Breadcrumbs). Dropping Bootstrap here means dropping BootstrapUI
+   and writing form templates. The frontend is unaffected by this half; it uses
+   the plain Cake helpers.
+
+The first step shipped in 8.3.0: `__theme.scss` imports the nineteen modules
+actually in use rather than all thirty-eight, 23% off every stylesheet without
+changing a class in any template. It was meant to measure what is really being
+paid for, and it did. What remains is `reboot`, `type`, `grid`, `tables`,
+`forms`, `buttons`, `dropdown`, `button-group`, `input-group`, `card`, `badge`,
+`alert` and `utilities` — and `utilities` alone accounts for forty of the classes in use,
+mostly spacing and display helpers that modern CSS covers directly. So the
+remaining question is no longer "how much is Bootstrap carrying" but "is a
+framework worth it for buttons, cards, form controls and a spacing scale".
+
+The admin area is worth reworking in the same pass, and only then. It has
+already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
+on Alpine now — so its markup is the one thing still tying it to Bootstrap.
+Doing it separately means paying for it twice.
