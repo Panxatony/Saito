@@ -26,6 +26,20 @@ interface BasicPostingInterface
     public function get(string $var);
 
     /**
+     * Whether the posting carries a property at all.
+     *
+     * get() throws for anything it does not hold, so a caller that can work
+     * without a field needs a way to ask first. A posting can legitimately be
+     * built from a partial row — a helper that only needs an id and a thread id,
+     * for instance — and asking such a posting whether it is a thread root has
+     * no answer rather than a wrong one.
+     *
+     * @param string $var key
+     * @return bool
+     */
+    public function has(string $var): bool;
+
+    /**
      * Check if posting is locked.
      *
      * @return bool
