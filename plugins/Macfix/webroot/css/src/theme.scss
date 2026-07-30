@@ -66,6 +66,17 @@ $line-height-base: 1.5;
 /// Timestamps and other fine print: 85% (12.24px), not Nova's 87.5%.
 $small-font-size: 85%;
 
+/// 56em, not Bota's 42em. This caps the width of a posting's text — the
+/// reading measure. Measured against the running forum: macfix.de renders
+/// `.postingLayout-body` at 806.4px, which at this theme's 14.4px base is
+/// exactly 56em; the inherited default gives 604.8px. Left at the default the
+/// text wraps a quarter earlier and leaves a band of empty page beside it,
+/// which is what the readers here notice first.
+///
+/// Bota declares the variable with `!default`, so setting it before the import
+/// is all that is needed — and it has to be before, or it does nothing.
+$readingWidth: 56em;
+
 /******************************************************************************
  * Nova base (which pulls in Bota, and with it every Saito partial)
  ******************************************************************************/

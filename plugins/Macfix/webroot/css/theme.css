@@ -10628,11 +10628,11 @@ tt {
  ******************************************************************************/
 .panel-fixedWidth, .preview-wrapper,
 .postingform {
-  max-width: 42em;
+  max-width: 56em;
 }
 
 .panel-center {
-  max-width: 42em;
+  max-width: 56em;
   margin: 0 auto;
 }
 
@@ -10915,7 +10915,7 @@ body {
 
 .postingLayout-body {
   grid-area: content;
-  max-width: 42em;
+  max-width: 56em;
   min-width: 0;
 }
 
@@ -11348,7 +11348,7 @@ body.headerClosed #hero-homeLink {
   --nova-radius-lg: 0.7rem;
   --nova-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   --nova-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.14);
-  --nova-measure: 42em;
+  --nova-measure: 56em;
 }
 
 /******************************************************************************

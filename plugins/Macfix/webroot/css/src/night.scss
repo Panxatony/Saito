@@ -42,6 +42,9 @@ $font-weight-base: 500;
 $line-height-base: 1.5;
 $small-font-size: 85%;
 
+/// Same reading measure as the light preset; see theme.scss for the figures.
+$readingWidth: 56em;
+
 /******************************************************************************
  * Nova's dark base
  ******************************************************************************/
