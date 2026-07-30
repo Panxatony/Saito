@@ -29,36 +29,46 @@
  * theme.
  */
 
-(function bootBeforePaint(): void {
-    const root = document.documentElement;
-
-    // The theme stylesheet. A `<noscript>` in the layout loads the light one for
-    // readers without JavaScript, so there is no need to guess here.
+/**
+ * Load the theme stylesheet the reader last chose.
+ *
+ * Appended rather than written with document.write(): equivalent while the
+ * document is still parsing, and it does not need a method whose whole reputation
+ * is that it should not be used.
+ *
+ * @param root the document element, carrying the two URLs
+ */
+function applyTheme(root: HTMLElement): void {
     const dayCss = root.getAttribute('data-theme-css');
+    if (dayCss === null) {
+        return;
+    }
     const nightCss = root.getAttribute('data-night-css');
-    if (dayCss !== null) {
-        let css = dayCss;
-        try {
-            if (localStorage.getItem('theme') === 'night' && nightCss !== null) {
-                css = nightCss;
-            }
-        } catch {
-            /* localStorage unavailable — private mode, blocked cookies */
-        }
 
-        // Appended rather than written with document.write(): equivalent while the
-        // document is still parsing, and it does not need a method whose whole
-        // reputation is that it should not be used.
-        const link = document.createElement('link');
-        link.id = 'js-themeCss';
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.href = css;
-        document.head.appendChild(link);
+    let css = dayCss;
+    try {
+        if (localStorage.getItem('theme') === 'night' && nightCss !== null) {
+            css = nightCss;
+        }
+    } catch {
+        /* localStorage unavailable — private mode, blocked cookies */
     }
 
-    // The reader's font scale, set in the settings and kept per device like the
-    // theme.
+    const link = document.createElement('link');
+    link.id = 'js-themeCss';
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = css;
+    document.head.appendChild(link);
+}
+
+/**
+ * Apply the reader's font scale, set in the settings and kept per device like the
+ * theme.
+ *
+ * @param root the document element
+ */
+function applyFontScale(root: HTMLElement): void {
     try {
         const scale = localStorage.getItem('islandFontScale');
         if (scale) {
@@ -67,4 +77,7 @@
     } catch {
         /* localStorage unavailable */
     }
-})();
+}
+
+applyTheme(document.documentElement);
+applyFontScale(document.documentElement);

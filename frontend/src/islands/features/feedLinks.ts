@@ -30,45 +30,55 @@ document.addEventListener('click', (event: MouseEvent) => {
 });
 
 /**
- * Copy the address beside the button, and say so on the button itself for a
- * moment — there is nowhere else to put the confirmation.
+ * Say "copied" on the button itself for a moment — there is nowhere else to put
+ * the confirmation.
+ *
+ * @param btn the copy button
  */
-document.addEventListener('click', (event: MouseEvent) => {
-    const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.js-feed-copy');
-    if (!btn) {
-        return;
-    }
-    const field = btn.closest('.feed-links-actions')?.querySelector<HTMLInputElement>('.js-feed-url');
-    if (!field) {
-        return;
-    }
-    field.select();
+function confirmOnButton(btn: HTMLButtonElement): void {
+    const original = btn.textContent ?? '';
+    btn.textContent = btn.getAttribute('data-copied-label') ?? original;
+    window.setTimeout(() => {
+        btn.textContent = original;
+    }, 1500);
+}
 
-    const confirm = (): void => {
-        const original = btn.textContent ?? '';
-        btn.textContent = btn.getAttribute('data-copied-label') ?? original;
-        window.setTimeout(() => {
-            btn.textContent = original;
-        }, 1500);
-    };
-
-    /** The pre-clipboard-API way, and the only one over plain http. */
-    const copyViaSelection = (): void => {
+/**
+ * Put the field's value on the clipboard.
+ *
+ * `navigator.clipboard` exists only in a secure context, so the older path is not
+ * hypothetical — it is what runs on an installation served over plain http. The
+ * text is selected either way, so Ctrl-C still works if both fail.
+ *
+ * @param field the address field, already selected
+ * @param btn the button to confirm on
+ */
+function copyToClipboard(field: HTMLInputElement, btn: HTMLButtonElement): void {
+    const viaSelection = (): void => {
         try {
             // skipcq: JS-0257
             document.execCommand('copy');
-            confirm();
+            confirmOnButton(btn);
         } catch {
-            /* nothing left to try; the text is selected, so Ctrl-C still works */
+            /* nothing left to try */
         }
     };
 
-    // navigator.clipboard exists only in a secure context, so the fallback is not
-    // hypothetical — it is what runs on an installation served over http.
     if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(field.value).then(confirm, copyViaSelection);
+        navigator.clipboard.writeText(field.value).then(() => confirmOnButton(btn), viaSelection);
 
         return;
     }
-    copyViaSelection();
+    viaSelection();
+}
+
+/** The copy button beside a feed address. */
+document.addEventListener('click', (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.js-feed-copy');
+    const field = btn?.closest('.feed-links-actions')?.querySelector<HTMLInputElement>('.js-feed-url');
+    if (!btn || !field) {
+        return;
+    }
+    field.select();
+    copyToClipboard(field, btn);
 });
