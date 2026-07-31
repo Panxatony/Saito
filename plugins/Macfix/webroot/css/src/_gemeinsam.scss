@@ -60,11 +60,14 @@ body.htmx-island #header.htmx-island-header {
   // forum the bar sits inside the page, so it does here too — width and
   // centring both come from the island's own `#header` rule.
   //
-  // No side padding: the running forum reports `0px` on both sides at every
-  // width measured (2121px and 390px), logo flush against the page edge and
-  // the controls flush against the other. The island's gutter would have set
-  // the logo 48px in from a page edge the thread list below already sits at.
-  padding: 0.45rem 0;
+  // No padding at all, on any side: the running forum reports `0px` all round,
+  // at 2121px as at 390px. Sideways because the island's gutter would have set
+  // the logo 48px in from a page edge the thread list below already sits at;
+  // vertically because the bar's height *is* the logo block's height — 40px of
+  // wordmark inside the 1rem that block carries (see `#btn_header_logo` below)
+  // makes the 72px measured on the running forum, and padding here would have
+  // been added on top of it.
+  padding: 0;
 }
 
 /// The logo block is full-width and centred by default, and the theme paints it
@@ -83,9 +86,19 @@ body.htmx-island #hero-homeLink {
   padding: 0 !important; // undoes @extend .p-3
 }
 
+/// The wordmark keeps 1rem of air around it, and that is what gives the bar its
+/// height. Measured on the running forum: the logo link is 169×72 around a
+/// 137×40 image — 16px on every side — and the bar is 72px because nothing else
+/// in it is taller. Zeroed, the logo sat hard in the corner and the bar came out
+/// 56px, which read as a different, thinner forum.
+/// The 1px transparent border is Bootstrap's, from the `.btn` class the island
+/// puts on this link; the running forum's logo is a plain anchor and has none.
+/// Left in, it made the bar 74px against 72 — invisible on its own, but it is
+/// the whole remaining difference, so it goes.
 body.htmx-island #btn_header_logo {
-  padding: 0;
+  padding: 1rem;
   margin: 0;
+  border: 0;
 }
 
 /// The wordmark is supplied as a light image for exactly this ground, so it
