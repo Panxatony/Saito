@@ -230,7 +230,14 @@ class EntriesTable extends AppTable
             $posting = $this->get($entity->get('id'));
             if ($posting->isRoot()) {
                 /// New thread: set thread-ID to posting's own ID.
-                $patched = $this->patchEntity($posting, ['tid' => $entity->get('id')]);
+                // `tid` is not assignable in general (see Entry::$_accessible);
+                // this is the one place that sets it, and it sets it to the
+                // posting's own id rather than to anything a client sent.
+                $patched = $this->patchEntity(
+                    $posting,
+                    ['tid' => $entity->get('id')],
+                    ['accessibleFields' => ['tid' => true]]
+                );
                 if (!$this->save($patched)) {
                     $event->stopPropagation();
                 }
@@ -375,6 +382,9 @@ class EntriesTable extends AppTable
             'Entries.last_answer',
             'Entries.locked',
             'Entries.name',
+            // The badge is drawn on the thread line too, so the flag has to be
+            // loaded there — not only on the posting page.
+            'Entries.nsfw',
             'Entries.pid',
             'Entries.solves',
             'Entries.subject',
@@ -433,7 +443,12 @@ class EntriesTable extends AppTable
     /**
      * creates a new root or child entry for a node
      *
-     * fields in $data are filtered
+     * What may be filled is decided by `Entry::$_accessible`, not by this
+     * method — the docblock used to claim "fields in $data are filtered" here,
+     * which was never true of this method and read as a guarantee that lived
+     * somewhere it did not. `user_id` is named explicitly because creating a
+     * posting is the one moment it is set at all, and the caller takes it from
+     * the current user rather than from the request.
      *
      * @param array $data data
      * @return Entry|null on success, null otherwise
@@ -444,7 +459,7 @@ class EntriesTable extends AppTable
         $data['last_answer'] = bDate();
 
         /** @var Entry */
-        $posting = $this->newEntity($data);
+        $posting = $this->newEntity($data, ['accessibleFields' => ['user_id' => true]]);
         $errors = $posting->getErrors();
         if (!empty($errors)) {
             return $posting;
@@ -465,13 +480,21 @@ class EntriesTable extends AppTable
     /**
      * Updates a posting with new data
      *
+     * What may be filled is decided by `Entry::$_accessible`. Moderation state
+     * (`locked`, `fixed`) is deliberately not among it and cannot be set here —
+     * {@see setPostingState()} exists for that, so a caller cannot reach it by
+     * accident while updating a posting's text.
+     *
      * @param Entry $posting Entity
      * @param array $data data
      * @return Entry|null
      */
     public function updateEntry(Entry $posting, array $data): ?Entry
     {
-        $data['id'] = $posting->get('id');
+        // `id` used to be written into $data here. It never did anything —
+        // patchEntity() works on the entity it is given, which already knows
+        // its id — and now that `id` is not assignable it would be dropped
+        // anyway. Removed rather than left to look meaningful.
 
         /** @var Entry */
         $patched = $this->patchEntity($posting, $data);
@@ -492,6 +515,42 @@ class EntriesTable extends AppTable
         );
 
         return $new;
+    }
+
+    /**
+     * Sets a posting's moderation state: pinned (`fixed`) or closed (`locked`).
+     *
+     * Its own method rather than a call to {@see updateEntry()}, because these
+     * two fields are the ones a request must never be able to set in passing.
+     * They are denied in `Entry::$_accessible` and named only here, where the
+     * caller has already been through
+     * `authorizeAction('ajaxToggle', 'saito.core.posting.pinAndLock')`.
+     *
+     * @param Entry $posting the posting
+     * @param string $field `locked` or `fixed`
+     * @param bool $value the new state
+     * @return Entry|null the saved posting, null on failure
+     */
+    public function setPostingState(Entry $posting, string $field, bool $value): ?Entry
+    {
+        if (!in_array($field, ['locked', 'fixed'], true)) {
+            throw new \InvalidArgumentException(
+                sprintf('Not a moderation state: %s', $field),
+                1785520000
+            );
+        }
+
+        $patched = $this->patchEntity(
+            $posting,
+            [$field => $value],
+            ['accessibleFields' => [$field => true]]
+        );
+        if (!empty($patched->getErrors())) {
+            return null;
+        }
+
+        /** @var Entry|null */
+        return $this->save($patched) ?: null;
     }
 
     /**

@@ -18,9 +18,15 @@ class RecordingMailTransport extends AbstractTransport
     /** @var array<int, string> recipient email of each sent message, in order */
     public static array $recipients = [];
 
+    /** @var array<int, string> the full header block of each sent message */
+    public static array $headers = [];
+
     public function send(Message $message): array
     {
         self::$recipients[] = (string)array_key_first($message->getTo());
+        self::$headers[] = $message->getHeadersString(
+            ['from', 'sender', 'replyTo', 'readReceipt', 'returnPath', 'to', 'cc', 'bcc', 'subject']
+        );
 
         return [];
     }
@@ -182,6 +188,52 @@ class ContactsControllerTest extends IntegrationTestCase
      *
      * @return void
      */
+    /**
+     * A newline in the subject must not be able to start a header of its own.
+     *
+     * The subject reaches the mailer straight from this form, and CakePHP
+     * passes a plain-ASCII header value through unchanged — measured against
+     * `Message::getHeadersString()`, a subject of "Hallo\r\nBcc: …" came out as
+     * two header lines, the second a real Bcc. That is a relay: the forum would
+     * deliver to whoever the sender named, from its own domain and with its SPF
+     * and DKIM behind it.
+     *
+     * @return void
+     */
+    public function testContactSubjectCannotInjectAHeader()
+    {
+        RecordingMailTransport::$recipients = [];
+        RecordingMailTransport::$headers = [];
+        TransportFactory::drop('recording');
+        TransportFactory::setConfig('recording', ['className' => RecordingMailTransport::class]);
+        $profile = (array)Mailer::getConfig('saito');
+        Mailer::drop('saito');
+        Mailer::setConfig('saito', ['transport' => 'recording'] + $profile);
+
+        $this->mockSecurity();
+        $this->_loginUser(2);
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => "Betreff\r\nBcc: opfer@example.com",
+            'text' => 'Nachricht',
+            'cc' => 0,
+        ]);
+
+        // Two layers, and the test wants both. The form validator rejects the
+        // subject, so nothing is sent at all -- and if a caller ever reaches
+        // the mailer past the form, the component still strips the break, so no
+        // message may carry an injected header either way.
+        $this->assertSame([], RecordingMailTransport::$headers, 'nothing may be sent at all');
+
+        foreach (RecordingMailTransport::$headers as $headers) {
+            $this->assertSame(
+                0,
+                preg_match('/^Bcc:/mi', $headers),
+                'a line break in the subject must not become a header'
+            );
+        }
+    }
+
     public function testContactOwnerDoesNotDelaySignedInMembers()
     {
         $this->mockSecurity();

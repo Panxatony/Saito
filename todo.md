@@ -12,40 +12,36 @@ Anything here that turns out to be done gets deleted rather than ticked off.
 
 ## Deployment, not code
 
-### Turn the strict content-security policy on for prod and beta
+### The strict content-security policy on the other installation
 
-The application side is finished and shipped in 8.3.0 — Saito emits no inline
-script and no event attributes anywhere. What is left is a web-server header,
-one installation at a time:
+Done everywhere we control: test and beta on 2026-07-30, **prod on 2026-07-31**
+together with 8.3.1. `script-src` has no `'unsafe-inline'` on any of the three.
 
-- `config/nginx/saito.conf.example` carries the strict policy, still commented
-  out, because anything an installation embeds has to be added to it first.
-- **Test and beta run it.** Beta was switched on at the edge on 2026-07-30 and
-  measured in a browser afterwards: four pages, zero policy violations, zero
-  JavaScript errors, and 209 Alpine/htmx markers in the DOM to show the scripts
-  really did run. The detector was checked against a page that violates on
-  purpose, so the zero means something.
-- **Prod cannot have it yet, and the reason is the version.** macnemo.de runs
-  8.2.9; the change that removed the last inline scripts is in 8.3.0. Its own
-  markup was rendered against the strict policy on 2026-07-30 and produced
-  **four blocks**: the theme-stylesheet picker, the font scale, the Plausible
-  snippet, and the Plausible script itself. The first two run before the page is
-  painted — blocking them is not a console message, it is a visibly wrong page.
+What that took, beyond the header, is worth knowing before the next
+installation follows: the only inline script prod still emitted was Plausible's
+init stub, and it moved to `shared/app/webroot/plausible-init.js` (symlinked
+into `webroot/`, so a code deploy cannot remove it). Anubis needed nothing — its
+inline blocks are `application/json` and `type="ignore"`, which a browser never
+executes.
 
-  So this waits on the 8.3.0 deploy, and needs one addition beyond the example
-  policy: `https://plausible.panxatony.net` in both `script-src` and
-  `connect-src`. Prod's current header already allows it; what has to go is
-  `'unsafe-inline'` from `script-src`, and only after 8.3.0 is live.
-- `'unsafe-eval'` has to stay: Alpine evaluates its expressions as strings. It
-  is the far less dangerous of the two — it does not enable an injected event
-  handler, which is what the stored XSS of 8.2.3 actually used.
-- `style-src` keeps `'unsafe-inline'`: templates still set `style` attributes,
-  and inline style is not a route to code execution.
+**macfix is the one still open**, and not for the same reason. Its ad tag is an
+external script from its own origin and passes `'self'`; its **Matomo snippet is
+inline** and would be blocked. It needs the same treatment as Plausible — the
+snippet in a file — before the header goes on there. kt007 runs 5.7.1, so this
+waits on that upgrade anyway.
 
-Anything an installation embeds must be added before the header goes on. The
-macfix installation, for one, carries an ad tag and a Matomo snippet; the ad tag
-is an external script from its own origin and passes `'self'`, the Matomo
-snippet is inline and would not.
+Also left: `config/nginx/saito.conf.example` still carries the strict policy
+commented out. Now that three installations run it, the comment could come off
+— with a line saying what an installation must check first.
+
+### `session.use_strict_mode` is off on prod
+
+`/usr/local/etc/php.ini` in the macnemo jail has `session.use_strict_mode = 0`,
+so PHP accepts a session id the client made up. It is **not** exploitable today:
+`SessionAuthenticator` calls `$session->renew()` on both login and logout, so an
+id planted before login is not the one that ends up authenticated — checked in
+the vendor source rather than assumed. Setting it to `1` costs nothing and
+removes the need to know that.
 
 ---
 
@@ -213,3 +209,84 @@ The admin area is worth reworking in the same pass, and only then. It has
 already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
 on Alpine now — so its markup is the one thing still tying it to Bootstrap.
 Doing it separately means paying for it twice.
+
+### The schema a fresh install gets is not the schema prod runs
+
+Measured on 2026-07-31 by replaying every migration into an empty database and
+comparing it column by column with a production dump: **125 columns on prod,
+123 from the migrations.**
+
+Careful with the method — the first attempt compared against the *test*
+database and produced sixteen extra differences that were not real. The
+fixtures under `tests/Fixture/` declare their own `$fields`, so that database
+is built from hand-maintained approximations rather than from the migrations.
+Whatever is measured here has to come from a migration replay.
+
+Two columns exist only on prod (`entries.flattr`, `entries.nsfw`; see below).
+The rest are the same columns with different types, and most of it does not
+matter — display widths, `unsigned` on id columns, `tinyint(4)` where the
+migration says `int(11)`. Three do matter:
+
+| | migrations | prod |
+|---|---|---|
+| `entries.text`, `drafts.text`, `users.profile` | `text` — 64 KB | `mediumtext` — 16 MB |
+| `users.username` | `varchar(191)` | `varchar(255)` |
+| `users.last_refresh`, `…_tmp` | `datetime` | `timestamp` |
+
+A posting longer than 64 KB exists on prod and cannot be imported into a fresh
+install. A username longer than 191 characters likewise. And `timestamp` is
+converted by MySQL against the session timezone while `datetime` is not — the
+same stored value means different things on the two, which is the timezone item
+further up wearing a different hat, and `timestamp` additionally ends in 2038.
+
+Either the migrations should state what prod actually runs, or prod should be
+brought to what the migrations say. Not urgent — but a restore of a prod dump
+onto a freshly migrated install is exactly the situation where it would be
+found, and that situation is a bad one to discover it in.
+
+### `bin/cake migrations` does not run where dev dependencies are installed
+
+    PHP Fatal error: Type of Migrations\Command\BakeSimpleMigrationCommand::$args
+    must be Cake\Console\Arguments (as in class Cake\Console\BaseCommand)
+
+`cakephp/migrations` ships a bake command whose signature no longer matches the
+`cakephp/bake` we require, and the console loads every command before running
+any of them. Production is unaffected — it is installed with `--no-dev`, so
+bake is not there, and `php bin/cake.php migrations migrate` ran fine during
+the 8.3.1 deploy.
+
+It still deserves fixing: the upgrade documentation tells operators to run that
+command, and any installation with dev dependencies gets a fatal error instead.
+Related to the `cakephp/migrations` 4 → 5 line above — worth checking whether
+that upgrade settles this too.
+
+### `entries.flattr` can go
+
+A dead payment service from 2014, `tinyint(1) unsigned`, on 16104 postings on
+prod and read by nothing. It only ever mattered as the twin of `entries.nsfw`,
+and that one is in use again — the badge and the cover both hang off it, and a
+migration now creates it where it is missing.
+
+`flattr` has no such story. It stays denied in `Entry::$_accessible` until
+somebody drops it.
+
+### Three permissions that are declared and never checked
+
+`saito.core.user.email.set`, `saito.core.user.name.set` and
+`saito.core.user.lock.view` are defined in `config/permissions.php` and appear
+nowhere else. All three were live in 5.7.1 — the first two on the profile's edit
+page, the third in the forum's own UsersController — and died with
+`98e0a1b48 Step 2: remove the SPA entry points`. They are residue, not a gap:
+there is no path that changes another member's address or name, so nothing runs
+unguarded. Either the features are wanted back, as `password.set` was, or the
+three lines should go.
+
+### Registration tells you whether an address already has an account
+
+`error_email_reserved` on a duplicate address — which is what a registration
+form has to say for the person filling it in, and at the same time an oracle
+for asking whether someone is a member here. The throttle added in 8.3.2 caps
+it at five questions an hour per address, which is the cheap half of the fix.
+The expensive half is accepting the registration silently and saying so only in
+the mail, and that changes what a person sees when they simply mistyped. Worth
+deciding on rather than drifting into.

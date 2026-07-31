@@ -5,11 +5,103 @@
 - Δ Changed
 - − Removed
 
+## [8.3.2] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.1...8.3.2)
+
+### Upgrading
+
+**One migration runs**, and it needs the command line:
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+It adds `entries.nsfw` — and only where it is missing. The column predates
+these migrations by a decade, so a forum that has been running since Saito 4
+already has it and the migration steps aside. The schema-cache clear is what
+makes the new column visible to the ORM; skip it and the badge simply never
+appears.
+
+Coming from 8.2.9 or older, take the 8.3.1 notes with you: three more
+migrations run there.
+
+- ✓ Fixed: **the registration form has a budget now.** It sends a mail to
+  whatever address is typed into it, and it was the only unauthenticated form
+  without a per-client limit — the honeypot and the five-second minimum are bot
+  defences, and both are satisfied by waiting. Five attempts an hour per client,
+  the same shape the contact form already used, counted on the way in so a
+  rejected attempt still costs.
+
+- ✓ Fixed: **a line break in a contact-form subject could add a mail header.**
+  CakePHP passes a plain-ASCII header value through unchanged, so a subject of
+  `Hallo\r\nBcc: …` came out of `Message::getHeadersString()` as two header
+  lines — the second a real `Bcc`, which would have delivered the message to
+  whoever the sender named, from the forum's own domain and with its SPF and
+  DKIM behind it. Nothing suggests it was ever used. Every mail the forum sends
+  now passes its subject through `SaitoEmailComponent::sanitizeHeaderValue()`,
+  so a caller added later cannot forget it, and the contact form rejects the
+  break outright rather than silently altering what someone typed.
+
+- Δ Changed: **postings decide for themselves what may be filled from an
+  array.** `Entry` had no `$_accessible`, so every column was mass-assignable;
+  nothing was exploitable, because all three call sites build their array field
+  by field, but that was a convention held up by three call sites rather than a
+  property of the entity. Authorship (`user_id`), moderation state (`locked`,
+  `fixed`), `tid`, `views`, `ip` and the two Saito 5 residue columns are denied
+  now and named only where they are genuinely set — pinning and locking through
+  a new `EntriesTable::setPostingState()`, which is reachable only from the
+  action that has already checked `saito.core.posting.pinAndLock`.
+
+- ✓ Fixed: **a posting's JSON payload is escaped into its attribute.** The
+  `data-entry` attribute is delimited by single quotes and `json_encode()`
+  emits an apostrophe unescaped. Safe while the array held only numbers and
+  dates; the day a subject or username joined it, the first apostrophe would
+  have ended the attribute.
+
+- ＋ Added: **the NSFW badge is back, and it now covers as well as warns.**
+  Saito 4 marked a posting not-safe-for-work with a red badge; the feature was
+  lost in the Saito 5 rewrite while the column and its data stayed behind — 1928
+  postings on the macnemo install are still marked, and have been showing plainly
+  for years. Ticking the box on a new thread brings back the badge *and* covers
+  every image, video and file in that posting, so the old markings mean something
+  again without anyone's text being rewritten. A reply does not inherit it, which
+  is the call Saito 4 made too.
+
+  A migration adds the column where it is missing — it predates these migrations
+  and exists only on grown installations, so it is added guardedly rather than
+  blindly.
+
+- ＋ Added: **an admin can set a member's password again.** It went with the SPA
+  and left its permission behind, declared and unused. Since the forum has no
+  self-service reset — by design, there is no token to steal — this was the only
+  way back in for somebody who has forgotten theirs, and there was nobody who
+  could help them. The member's current password is not asked for, which is the
+  point; the acting admin re-enters their own, the same as granting a role,
+  because setting someone's password outlives the session that did it.
+
 ## [8.3.1] - 2026-07-31
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0...8.3.1)
 
-No migration runs. Replace the files, clear the cache, done.
+### Upgrading — which path are you on?
+
+**From 8.3.0:** no migration runs. Replace the files, clear the cache, done.
+
+**From 8.2.9 or older:** you are also taking 8.3.0 with you, and that release
+carries three migrations. Run them, and do not skip the schema-cache clear —
+without it every page answers 500, because the cached table description still
+lists a column the migration dropped.
+
+```bash
+php bin/cake.php migrations status     # what is pending
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear    # not optional
+```
+
+Then set `db_version` in the `settings` table to `8.3.1`, or the forum routes
+every request to the updater.
 
 - ✓ Fixed: **a posting's subject was louder than the theme's own scale.** Bota
   sets `.postingBody-heading` to 1.45em and Nova's modern layer sets `h2` to

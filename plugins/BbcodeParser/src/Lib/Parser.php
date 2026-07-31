@@ -244,6 +244,7 @@ class Parser
         $options += [
             'embed' => true,
             'multimedia' => true,
+            'nsfw' => false,
             'return' => 'html',
         ];
 
@@ -304,15 +305,26 @@ class Parser
             return;
         }
 
+        // A posting marked not-safe-for-work covers all of its media, whatever
+        // the individual tags say. The flag travels as a *per-parse* setting on
+        // a copy — `$this->_cSettings` is built once for the request and shared
+        // by every posting rendered in it, so setting it there would spill onto
+        // the next one. The parser cache above is keyed on $options, which
+        // includes this flag, so the two variants get their own cached parsers.
+        $settings = $this->_cSettings;
+        if (!empty($options['nsfw'])) {
+            $settings = new MarkupSettings($this->_cSettings->toArray() + ['nsfw' => true]);
+        }
+
         $this->_Parser = new \JBBCode\Parser();
-        $this->_addDefinitionSet('basic', $this->_cSettings);
+        $this->_addDefinitionSet('basic', $settings);
 
         if ($this->_cSettings->get('bbcode_img') && $options['multimedia']) {
-            $this->_addDefinitionSet('multimedia', $this->_cSettings);
+            $this->_addDefinitionSet('multimedia', $settings);
         }
 
         if ($this->_cSettings->get('bbcode_img') && $options['embed']) {
-            $this->_addDefinitionSet('embed', $this->_cSettings);
+            $this->_addDefinitionSet('embed', $settings);
         }
 
         $this->_Preprocessors = new Processors\BbcodeProcessorCollection();

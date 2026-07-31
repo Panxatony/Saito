@@ -239,6 +239,43 @@ class UsersController extends AppController
         ]);
     }
 
+    /** @var int max registration attempts per client and window */
+    private const REGISTER_MAX_ATTEMPTS = 5;
+
+    /** @var int registration throttle window in seconds */
+    private const REGISTER_THROTTLE_WINDOW = 3600;
+
+    /**
+     * Whether the client has used up its registration budget for this window.
+     *
+     * Registering sends a mail to whatever address was typed into the form, so
+     * an unthrottled form is a way to have the forum send mail to third parties
+     * on demand -- from its own domain, with its SPF and DKIM behind it. The
+     * honeypot and the five-second minimum the form already had are bot
+     * defences, not a budget: both are satisfied by waiting, and the wait is per
+     * session rather than per client.
+     *
+     * The same shape as the contact form's throttle, and for the same reason.
+     * Counts on the way in, so an attempt that fails validation still costs --
+     * an attempt is an attempt, and a failed one still tells the sender whether
+     * the address is already registered.
+     *
+     * @return bool true when the client should be turned away
+     */
+    private function isRegisterThrottled(): bool
+    {
+        $key = 'register-throttle-' . $this->getRequest()->clientIp();
+        $record = Cache::read($key);
+
+        if (!is_array($record) || (time() - $record['first']) >= self::REGISTER_THROTTLE_WINDOW) {
+            $record = ['count' => 0, 'first' => time()];
+        }
+        $record['count']++;
+        Cache::write($key, $record);
+
+        return $record['count'] > self::REGISTER_MAX_ATTEMPTS;
+    }
+
     /** @var int max failed login attempts per client and window */
     private const LOGIN_MAX_ATTEMPTS = 10;
 
@@ -518,6 +555,12 @@ class UsersController extends AppController
         $session = $this->request->getSession();
         if (!$this->request->is('post')) {
             $session->write('Register.formLoadTime', time());
+
+            return;
+        }
+
+        if ($this->isRegisterThrottled()) {
+            $this->Flash->set(__('user.authe.throttled'), ['element' => 'error']);
 
             return;
         }

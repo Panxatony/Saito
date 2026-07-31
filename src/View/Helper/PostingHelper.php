@@ -113,6 +113,20 @@ class PostingHelper extends AppHelper
         if ($entry->isPinned()) {
             $out .= '<i class="fa fa-thumb-tack" title="' . __('fixed') . '"></i> ';
         }
+        // Not-safe-for-work: a label, next to the pin, on the thread line. It
+        // warns; the cover over the media is what hides. Saito 4 drew the same
+        // badge until the flag was lost with the Saito 5 rewrite — the column
+        // and its data survived, so the postings marked back then get their
+        // badge back with it.
+        // has() before get(): Posting::get() throws on a field that was not
+        // selected, and not every caller renders a thread with the full
+        // fieldset. A badge is not worth a 500 — a posting whose flag was not
+        // loaded simply shows none.
+        if ($entry->has('nsfw') && $entry->get('nsfw')) {
+            $out .= '<span class="postingBadge postingBadge-nsfw" title="'
+                . h(__('posting.badge.nsfw.exp')) . '">'
+                . h(__('posting.badge.nsfw')) . '</span> ';
+        }
         // anchor for inserting solve-icon via FE-JS
         $out .= '<span class="solves ' . $entry->get('id') . '">';
         if ($entry->get('solves')) {

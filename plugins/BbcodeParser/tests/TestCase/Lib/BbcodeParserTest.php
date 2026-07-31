@@ -1403,6 +1403,37 @@ EOF;
         }
     }
 
+    /**
+     * A posting marked not-safe-for-work covers its media without the tags
+     * saying so — that is what gives the postings carrying the flag from
+     * Saito 4 their cover back without rewriting anyone's text.
+     *
+     * @return void
+     */
+    public function testNsfwPostingCoversMediaWithoutTagAttribute()
+    {
+        $result = $this->_Parser->parse('[img src=upload]test.png[/img]', ['nsfw' => true]);
+
+        $this->assertStringContainsString('class="nsfwShield"', $result);
+        $this->assertStringContainsString('/useruploads/test.png', $result);
+    }
+
+    /**
+     * And the flag must not leak into the next posting. The markup settings are
+     * built once per request and shared by everything rendered in it, so the
+     * per-parse flag lives on a copy — if it did not, one marked posting would
+     * cover every posting after it on the page.
+     *
+     * @return void
+     */
+    public function testNsfwDoesNotLeakIntoTheNextPosting()
+    {
+        $this->_Parser->parse('[img src=upload]marked.png[/img]', ['nsfw' => true]);
+        $plain = $this->_Parser->parse('[img src=upload]plain.png[/img]');
+
+        $this->assertStringNotContainsString('nsfwShield', $plain);
+    }
+
     public function testUploadTypeFileSrcNotValid()
     {
         $input = '[file src=foo]test.txt[/file]';

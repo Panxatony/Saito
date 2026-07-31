@@ -60,6 +60,16 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
         'placeholder' => __('entry.text.ph.nt'),
     ]);
 
+    // Not-safe-for-work: offered when starting a thread, not when answering
+    // one. A reply is its author's own posting and gets marked on its own
+    // merits — Saito 4 made the same call, and the comment it made about it
+    // ("we assume that an answer to a nsfw posting isn't nsfw itself") still
+    // reads correctly.
+    echo $this->Form->control('nsfw', [
+        'type' => 'checkbox',
+        'label' => __('posting.badge.nsfw.exp'),
+    ]);
+
     if ($inline) {
         echo $this->Form->hidden('inline', ['value' => 1]);
     }

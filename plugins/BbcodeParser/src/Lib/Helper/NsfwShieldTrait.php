@@ -59,6 +59,15 @@ trait NsfwShieldTrait
      */
     protected function _isNsfw(?array $attributes): bool
     {
+        // The whole posting can be marked instead of each tag: an author who
+        // ticks the box on a posting covers everything in it, and the eleven
+        // hundred postings that carry the flag from Saito 4 get the cover
+        // without their text being rewritten. Set per parse, never on the
+        // shared settings object — see Parser::_initParser().
+        if ($this->_sOptions->get('nsfw')) {
+            return true;
+        }
+
         if ($attributes === null || !array_key_exists('nsfw', $attributes)) {
             return false;
         }

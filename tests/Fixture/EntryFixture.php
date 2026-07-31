@@ -111,6 +111,15 @@ class EntryFixture extends TestFixture
             'default' => null,
             'comment' => '',
         ],
+        // The fixtures declare their own schema rather than reading the
+        // migrations, so a new column has to be named here too or the field
+        // list asks for something the test table does not have.
+        'nsfw' => [
+            'type' => 'boolean',
+            'null' => true,
+            'default' => false,
+            'comment' => '',
+        ],
         'views' => [
             'type' => 'integer',
             'null' => false,

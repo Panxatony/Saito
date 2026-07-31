@@ -41,6 +41,17 @@ class ContactForm extends Form
      */
     public function validationDefault(Validator $validator): Validator
     {
+        // No line breaks in a subject. It becomes a mail header, and a header
+        // ends at the first CRLF -- everything after would be read as a header
+        // of its own (see SaitoEmailComponent::sanitizeHeaderValue(), which
+        // removes them regardless; this is here so a person gets an error
+        // rather than having their text silently altered).
+        $validator->add('subject', 'noLineBreaks', [
+            'rule' => fn($value) => is_string($value)
+                && preg_match('/[\r\n\0]/', $value) !== 1,
+            'message' => __('error_subject_linebreak'),
+        ]);
+
         return $validator->notEmptyString('subject', __('error_subject_empty'));
     }
 }

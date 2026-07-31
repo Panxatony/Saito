@@ -163,3 +163,28 @@
     transition: none;
   }
 }
+
+/******************************************************************************
+ * NSFW badge
+ *
+ * The label beside a subject, in the thread list and on the posting page. It
+ * warns; the cover above hides. Saito 4 drew this in white on #F00 — kept,
+ * because it is what the readers who marked those postings recognise, and a
+ * warning that blends in is not one.
+ ******************************************************************************/
+
+.postingBadge {
+  display: inline-block;
+  padding: 0 0.45em;
+  border-radius: 3px;
+  font-size: 0.75em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.postingBadge-nsfw {
+  color: #ffffff;
+  background-color: #c62828; // #F00 was Saito 4's; this passes contrast on white
+}

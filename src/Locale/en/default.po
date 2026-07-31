@@ -425,6 +425,9 @@ msgid "user.pw.set.s"
 msgstr "Password was changed."
 
 #: src/Form/ContactForm.php:44
+msgid "error_subject_linebreak"
+msgstr "The subject must not contain line breaks."
+
 msgid "error_subject_empty"
 msgstr "Error: Subject is empty."
 
@@ -904,6 +907,12 @@ msgid "delete_tree_link"
 msgstr "Delete"
 
 #: src/Template/Element/layout/disclaimer.ctp:11
+msgid "posting.badge.nsfw"
+msgstr "NSFW"
+
+msgid "posting.badge.nsfw.exp"
+msgstr "Not safe for work (NSFW)"
+
 msgid "saito.nsfw.reveal"
 msgstr "Content hidden – click to show"
 
@@ -1864,6 +1873,33 @@ msgid "user.ignoring.t"
 msgstr "You ignore"
 
 #: plugins/Admin/src/Controller/UsersController.php
+msgid "user.pw.set.t"
+msgstr "Set a password for {0}"
+
+msgid "user.pw.set.btn"
+msgstr "Set password"
+
+msgid "user.pw.set.s"
+msgstr "{0}'s password has been set."
+
+msgid "user.pw.set.error"
+msgstr "The password could not be set."
+
+msgid "user.pw.set.new.label"
+msgstr "New password"
+
+msgid "user.pw.set.repeat.label"
+msgstr "Repeat the new password"
+
+msgid "user.pw.set.confirm.error"
+msgstr "That was not your password. Nothing was changed."
+
+msgid "user.pw.set.confirm.exp"
+msgstr "Your own password, to confirm — not the member’s."
+
+msgid "user.pw.set.exp"
+msgstr "The member’s current password is not needed — not having it is why they are here. Pass the new one on by some route other than this forum."
+
 msgid "user.role.set.confirm.label"
 msgstr "Your own password"
 
