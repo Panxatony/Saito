@@ -5,7 +5,27 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.2] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.1...8.3.2)
+
+### Upgrading
+
+**One migration runs**, and it needs the command line:
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+It adds `entries.nsfw` — and only where it is missing. The column predates
+these migrations by a decade, so a forum that has been running since Saito 4
+already has it and the migration steps aside. The schema-cache clear is what
+makes the new column visible to the ORM; skip it and the badge simply never
+appears.
+
+Coming from 8.2.9 or older, take the 8.3.1 notes with you: three more
+migrations run there.
 
 - ✓ Fixed: **the registration form has a budget now.** It sends a mail to
   whatever address is typed into it, and it was the only unauthenticated form
