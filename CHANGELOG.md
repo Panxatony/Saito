@@ -5,7 +5,13 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.5] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.4...8.3.5)
+
+**Upgrade from 8.3.2, 8.3.3 or 8.3.4 without waiting.** No migration runs, but
+those releases wrote replies without their thread id — see below for how to
+find and repair them.
 
 - ✓ Fixed: **replies were saved without their thread.** The mass-assignment
   guard added in 8.3.2 denied `tid` on the posting entity — correctly, so a
