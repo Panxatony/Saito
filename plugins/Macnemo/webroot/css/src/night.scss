@@ -37,6 +37,22 @@ $font-color-current: #ffc866;
  * Nova base (dark)
  ******************************************************************************/
 
+/// 50em, not Bota's 42em. This caps the width of a posting's text — the reading
+/// measure, not the card around it. Measured on the running forum before the
+/// change: 672px of running text inside 1800px of available content, which is
+/// typographically correct and *looks* like the page is not using its room.
+///
+/// 50em is about 95 characters a line against 80. The usual recommendation is
+/// 45–75, so both numbers are already past it and this walks a little further
+/// on purpose: the complaint was about the empty band beside the text, and 50em
+/// answers it without the line getting long enough that the eye starts missing
+/// its way back. macfix runs 56em, but that is an imitation of a forum that
+/// already looked that way — not a reason for this one.
+///
+/// Bota declares the variable with `!default`, so this has to stand *before*
+/// the import below or it does nothing at all.
+$readingWidth: 50em;
+
 @import "../../../../Nova/webroot/css/src/night";
 
 /******************************************************************************

@@ -5,6 +5,15 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+- Δ Changed: **macnemo's postings read a little wider.** The text column was
+  672px inside 1800px of available content — typographically sound and, on a
+  wide screen, looking as though the page were not using its room. Its theme now
+  sets `$readingWidth: 50em`, about 95 characters a line against 80. Only the
+  macnemo theme: Bota and Nova keep 42em, and macfix keeps the 56em it needs to
+  match the forum it is imitating.
+
 ## [8.3.3] - 2026-07-31
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.2...8.3.3)
