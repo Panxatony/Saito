@@ -9,7 +9,23 @@
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0...8.3.1)
 
-No migration runs. Replace the files, clear the cache, done.
+### Upgrading — which path are you on?
+
+**From 8.3.0:** no migration runs. Replace the files, clear the cache, done.
+
+**From 8.2.9 or older:** you are also taking 8.3.0 with you, and that release
+carries three migrations. Run them, and do not skip the schema-cache clear —
+without it every page answers 500, because the cached table description still
+lists a column the migration dropped.
+
+```bash
+php bin/cake.php migrations status     # what is pending
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear    # not optional
+```
+
+Then set `db_version` in the `settings` table to `8.3.1`, or the forum routes
+every request to the updater.
 
 - ✓ Fixed: **a posting's subject was louder than the theme's own scale.** Bota
   sets `.postingBody-heading` to 1.45em and Nova's modern layer sets `h2` to
