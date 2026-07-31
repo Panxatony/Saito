@@ -5,7 +5,11 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.4] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.3...8.3.4)
+
+No migration runs. A stylesheet change — replace the files and clear the cache.
 
 - Δ Changed: **macnemo's postings read a little wider.** The text column was
   672px inside 1800px of available content — typographically sound and, on a

@@ -13,7 +13,7 @@ declare(strict_types=1);
 $config = [
     'Saito' =>
         [
-            'v' => '8.3.3',
+            'v' => '8.3.4',
             'saitoHomepage' => 'https://github.com/Panxatony/Saito',
         ],
 ];
