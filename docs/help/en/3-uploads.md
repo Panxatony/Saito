@@ -46,6 +46,22 @@ viewer. The file itself sits on the server unchanged and can be fetched by its
 address at any time. It guards against something appearing unexpectedly in an
 open-plan office; it is not access control.
 
+### Marking a posting NSFW
+
+Starting a new thread offers a tick box, **Not safe for work (NSFW)**. With it
+set the posting carries a red badge — in the thread list and on the posting page
+— and **every image, video and file in it arrives covered**, without anything
+having to change about the individual insertions.
+
+It is the easier route than the tick box in the upload overlay: once for the
+posting instead of once per picture. Both work, and both uncover on a click.
+
+A **reply does not inherit the marking**. It is its author's own posting and is
+judged on its own.
+
+Saito had this badge once and lost it in a rewrite — the old markings sat in the
+database the whole time, and they are visible again with it.
+
 ### Managing
 
 Your profile holds the full archive. Files can be selected there and deleted

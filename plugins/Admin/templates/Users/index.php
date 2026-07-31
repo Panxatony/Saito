@@ -63,6 +63,10 @@ $this->Breadcrumbs->add(__('Users'), false);
                     ['action' => 'role', $user->get('id')],
                     ['class' => 'btn btn-sm btn-outline-secondary']
                 ) . ' ' . $this->Html->link(
+                    __('user.pw.set.btn'),
+                    ['action' => 'password', $user->get('id')],
+                    ['class' => 'btn btn-sm btn-outline-secondary']
+                ) . ' ' . $this->Html->link(
                     __('user.del.btn.t'),
                     ['action' => 'delete', $user->get('id')],
                     ['class' => 'btn btn-sm btn-outline-danger']

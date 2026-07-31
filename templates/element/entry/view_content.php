@@ -31,6 +31,16 @@ $schemaMeta = [];
                 );
             }
             echo $subject;
+
+            // The same badge the thread line carries, so the marking does not
+            // disappear the moment somebody opens the posting.
+            // has() first: this element also renders a preview, where the
+            // posting is built from form data rather than from a full row.
+            if ($entry->has('nsfw') && $entry->get('nsfw')) {
+                echo ' <span class="postingBadge postingBadge-nsfw" title="'
+                    . h(__('posting.badge.nsfw.exp')) . '">'
+                    . h(__('posting.badge.nsfw')) . '</span>';
+            }
             ?>
         </h2>
     </header>
@@ -98,7 +108,14 @@ $schemaMeta = [];
     </aside>
 
     <div itemprop="articleBody text" class='postingBody-text'>
-        <?= $this->Parser->parse($entry->get('text')) ?>
+        <?php // A posting marked not-safe-for-work covers its media, whatever
+              // the individual tags say — one tick by the author instead of an
+              // attribute per image, and the postings that carry the flag from
+              // Saito 4 are covered without their text being touched. ?>
+        <?= $this->Parser->parse(
+            $entry->get('text'),
+            ['nsfw' => $entry->has('nsfw') && (bool)$entry->get('nsfw')]
+        ) ?>
     </div>
 
     <?php if ($signature) : ?>

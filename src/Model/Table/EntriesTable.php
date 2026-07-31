@@ -382,6 +382,9 @@ class EntriesTable extends AppTable
             'Entries.last_answer',
             'Entries.locked',
             'Entries.name',
+            // The badge is drawn on the thread line too, so the flag has to be
+            // loaded there — not only on the posting page.
+            'Entries.nsfw',
             'Entries.pid',
             'Entries.solves',
             'Entries.subject',

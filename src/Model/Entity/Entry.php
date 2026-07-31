@@ -44,9 +44,9 @@ class Entry extends Entity implements BasicPostingInterface
      * - `locked` / `fixed` — {@see EntriesTable::setPostingState()}
      *
      * `views`, `ip`, `created` and `modified` are set by the application and by
-     * nobody else. `flattr` and `nsfw` are residue from Saito 5 that only grown
-     * installations carry — no code reads them, and an assignable column no
-     * code reads is exactly the kind of thing that goes unnoticed.
+     * nobody else. `flattr` is residue from Saito 4 that only grown
+     * installations carry — no code reads it, and an assignable column no code
+     * reads is exactly the kind of thing that goes unnoticed.
      *
      * @var array<string, bool>
      */
@@ -63,6 +63,10 @@ class Entry extends Entity implements BasicPostingInterface
         'edited' => true,
         'edited_by' => true,
         'solves' => true,
+        // Set by the author on their own posting, like the subject — not a
+        // moderation state. `flattr` next to it in the database stays denied:
+        // nothing reads it.
+        'nsfw' => true,
     ];
 
     /**

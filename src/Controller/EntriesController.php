@@ -398,6 +398,10 @@ class EntriesController extends AppController
                 'text' => (string)$this->getRequest()->getData('text'),
                 'name' => $this->CurrentUser->get('username'),
                 'user_id' => $this->CurrentUser->getId(),
+                // Offered when starting a thread only. A reply is its author's
+                // own posting and gets marked on its own merits — the same call
+                // Saito 4 made, and for the same reason.
+                'nsfw' => (bool)$this->getRequest()->getData('nsfw'),
             ];
             try {
                 $posting = $this->Posting->create($data, $this->CurrentUser);

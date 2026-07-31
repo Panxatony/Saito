@@ -260,36 +260,26 @@ command, and any installation with dev dependencies gets a fatal error instead.
 Related to the `cakephp/migrations` 4 → 5 line above — worth checking whether
 that upgrade settles this too.
 
-### Two more residue columns in `entries`
+### `entries.flattr` can go
 
-`flattr` and `nsfw`, both `tinyint(1) unsigned`, on the same footing as the six
-`users` columns dropped in 8.3.0: they exist only on grown installations, no
-code reads them, and the migrations never created them. Found on 2026-07-31
-while writing `Entry::$_accessible` — which is the reason they matter at all, an
-assignable column nothing reads being exactly the kind of thing that goes
-unnoticed. They are denied there now.
+A dead payment service from 2014, `tinyint(1) unsigned`, on 16104 postings on
+prod and read by nothing. It only ever mattered as the twin of `entries.nsfw`,
+and that one is in use again — the badge and the cover both hang off it, and a
+migration now creates it where it is missing.
 
-They are not empty, and that is the part to decide before dropping: on prod
-**1928 postings carry `nsfw = 1`** and **16104 carry `flattr = 1`**, out of
-680253. The nsfw flag is a per-posting marker from Saito 5 that this forum's
-members actually used. The cover added in 8.3.1 is per *insertion* and lives in
-the BBCode, so the old flag has no path into it — but 1928 postings were once
-marked and are now shown plainly, and somebody should decide whether that is
-fine before the column goes. `flattr` is a dead payment service and can go
-without ceremony.
+`flattr` has no such story. It stays denied in `Entry::$_accessible` until
+somebody drops it.
 
-### Four permissions that are declared and never checked
+### Three permissions that are declared and never checked
 
-`saito.core.user.email.set`, `saito.core.user.name.set`,
-`saito.core.user.password.set` and `saito.core.user.lock.view` are defined in
-`config/permissions.php` and appear nowhere else — grepped across `src/`,
-`plugins/` and `templates/` on 2026-07-31.
-
-This is not a hole: there is no admin path that changes another member's
-address, name or password, so nothing is running unguarded. It is the opposite
-problem — the file reads as though admins can do those things, and a reader
-checking what an admin may reach would believe it. Either the features are
-wanted, or the four lines should go.
+`saito.core.user.email.set`, `saito.core.user.name.set` and
+`saito.core.user.lock.view` are defined in `config/permissions.php` and appear
+nowhere else. All three were live in 5.7.1 — the first two on the profile's edit
+page, the third in the forum's own UsersController — and died with
+`98e0a1b48 Step 2: remove the SPA entry points`. They are residue, not a gap:
+there is no path that changes another member's address or name, so nothing runs
+unguarded. Either the features are wanted back, as `password.set` was, or the
+three lines should go.
 
 ### Registration tells you whether an address already has an account
 
@@ -300,17 +290,3 @@ it at five questions an hour per address, which is the cheap half of the fix.
 The expensive half is accepting the registration silently and saying so only in
 the mail, and that changes what a person sees when they simply mistyped. Worth
 deciding on rather than drifting into.
-
-### There is no way back in without a password
-
-No "forgot password" exists anywhere — no action, no route, no link, no token,
-not even a translated string; grepped on 2026-07-31. Changing a password
-requires the old one (`validateCheckOldPassword`), and no admin path sets
-another member's password either — `saito.core.user.password.set` is declared
-and never checked, see below.
-
-As a security property this is unusually good: no reset token to steal, guess
-or race, and a stolen session cannot lock the owner out because it cannot
-change the password without knowing it. As an operational property it means a
-member who forgets theirs cannot be helped by anybody, and the only remedy is a
-new account. Somebody should decide which of the two that is.

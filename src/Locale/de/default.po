@@ -932,6 +932,12 @@ msgid "delete_tree_link"
 msgstr "Löschen"
 
 #: src/Template/Element/layout/disclaimer.ctp:11
+msgid "posting.badge.nsfw"
+msgstr "NBS"
+
+msgid "posting.badge.nsfw.exp"
+msgstr "Nicht bürosicher (NBS)"
+
 msgid "saito.nsfw.reveal"
 msgstr "Inhalt ausgeblendet – zum Anzeigen klicken"
 
@@ -2706,6 +2712,33 @@ msgid "user.ignoring.t"
 msgstr "Von dir ignoriert"
 
 #: plugins/Admin/src/Controller/UsersController.php
+msgid "user.pw.set.t"
+msgstr "Passwort für {0} setzen"
+
+msgid "user.pw.set.btn"
+msgstr "Passwort setzen"
+
+msgid "user.pw.set.s"
+msgstr "Das Passwort für {0} wurde gesetzt."
+
+msgid "user.pw.set.error"
+msgstr "Das Passwort konnte nicht gesetzt werden."
+
+msgid "user.pw.set.new.label"
+msgstr "Neues Passwort"
+
+msgid "user.pw.set.repeat.label"
+msgstr "Neues Passwort wiederholen"
+
+msgid "user.pw.set.confirm.error"
+msgstr "Dein Passwort war nicht korrekt. Es wurde nichts geändert."
+
+msgid "user.pw.set.confirm.exp"
+msgstr "Zur Bestätigung dein eigenes Passwort, nicht das des Mitglieds."
+
+msgid "user.pw.set.exp"
+msgstr "Das bisherige Passwort des Mitglieds wird nicht gebraucht — es ist ja gerade das, was fehlt. Teile das neue auf einem anderen Weg mit als über das Forum."
+
 msgid "user.role.set.confirm.label"
 msgstr "Dein eigenes Passwort"
 

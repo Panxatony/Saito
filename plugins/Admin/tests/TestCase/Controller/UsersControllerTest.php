@@ -121,6 +121,106 @@ class UsersControllerTest extends IntegrationTestCase
      *
      * @return void
      */
+    /**
+     * The forum has no self-service password reset, by design. That makes this
+     * the only way back in for a member who has forgotten theirs — it was lost
+     * with the SPA and is back.
+     *
+     * @return void
+     */
+    public function testPasswordIsSetForAMember()
+    {
+        $this->_loginUser(1);
+        $before = $this->Users->get(3, fields: ['password'])->get('password');
+
+        $this->post('/admin/users/password/3', [
+            'password' => 'EinNeuesPasswort123!',
+            'password_confirm' => 'EinNeuesPasswort123!',
+            'confirm_password' => 'test',
+        ]);
+
+        $this->assertRedirect('/admin/users');
+        $after = $this->Users->get(3, fields: ['password'])->get('password');
+        $this->assertNotSame($before, $after, 'the password was not changed');
+        $this->assertTrue(
+            $this->Users->getPasswordHasher()->check('EinNeuesPasswort123!', (string)$after),
+            'the new password does not verify'
+        );
+    }
+
+    /**
+     * The member's own current password is deliberately not asked for — not
+     * having it is the reason this action exists. `password_old` must not creep
+     * back in as a requirement.
+     *
+     * @return void
+     */
+    public function testPasswordDoesNotAskForTheMembersOldOne()
+    {
+        $this->_loginUser(1);
+
+        $this->post('/admin/users/password/3', [
+            'password' => 'EinNeuesPasswort123!',
+            'password_confirm' => 'EinNeuesPasswort123!',
+            'confirm_password' => 'test',
+        ]);
+
+        $this->assertRedirect('/admin/users');
+    }
+
+    /**
+     * Setting someone's password is account takeover with the forum's blessing,
+     * and it outlives the session doing it. So it asks for the acting admin's
+     * own password, the same as granting a role.
+     *
+     * @return void
+     */
+    public function testPasswordNeedsTheActingAdminsPassword()
+    {
+        $this->_loginUser(1);
+        $before = $this->Users->get(3, fields: ['password'])->get('password');
+
+        $this->post('/admin/users/password/3', [
+            'password' => 'EinNeuesPasswort123!',
+            'password_confirm' => 'EinNeuesPasswort123!',
+            'confirm_password' => 'not-the-password',
+        ]);
+
+        $this->assertSame($before, $this->Users->get(3, fields: ['password'])->get('password'));
+        $this->assertNoRedirect();
+    }
+
+    /**
+     * A typo in the repetition must not become a lockout: the member cannot
+     * tell us it went wrong, because they cannot get in either way.
+     *
+     * @return void
+     */
+    public function testPasswordRejectsAMismatchedRepetition()
+    {
+        $this->_loginUser(1);
+        $before = $this->Users->get(3, fields: ['password'])->get('password');
+
+        $this->post('/admin/users/password/3', [
+            'password' => 'EinNeuesPasswort123!',
+            'password_confirm' => 'etwas-anderes',
+            'confirm_password' => 'test',
+        ]);
+
+        $this->assertSame($before, $this->Users->get(3, fields: ['password'])->get('password'));
+        $this->assertNoRedirect();
+    }
+
+    /**
+     * The backend gate covers it like every other admin action.
+     *
+     * @return void
+     */
+    public function testPasswordRequiresTheBackend()
+    {
+        $this->assertRouteForRole('/admin/users/password/3', 'admin');
+    }
+
     public function testRoleIsChanged()
     {
         $this->_loginUser(1);

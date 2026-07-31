@@ -166,6 +166,91 @@ class UsersController extends AdminAppController
     }
 
     /**
+     * Set a member's password for them.
+     *
+     * Saito had this until the SPA was retired: `UsersController::setpassword()`
+     * went with the SPA profile page it hung off, and the permission it checked
+     * stayed behind in `permissions.php`, declared and unused. What went with it
+     * is the only way back in for a member who has forgotten their password —
+     * the forum has no self-service reset, by design, so without this there is
+     * nobody who can help them.
+     *
+     * Two guards, both deliberate:
+     *
+     * The permission is the original one, `saito.core.user.password.set`,
+     * scoped to the target's role — an admin may set a moderator's or a member's
+     * password, and only the owner may set an admin's.
+     *
+     * And the acting admin re-enters their *own* password, the same as
+     * {@see role()}. Setting someone else's password is account takeover with
+     * the forum's blessing: it is the one act here that survives the session
+     * that performed it, so it asks for something a hijacked browser does not
+     * carry.
+     *
+     * Note what is *not* asked for: the member's current password. That is the
+     * whole point — they do not have it. `patchEntity()` with an explicit
+     * `fields` list keeps `password_old` out of the picture, while the
+     * confirmation field still guards against a typo becoming a lockout.
+     *
+     * @param string $id user-ID
+     * @return \Cake\Http\Response|null
+     */
+    public function password($id)
+    {
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->get($id);
+
+        if (
+            !$this->CurrentUser->permission(
+                'saito.core.user.password.set',
+                (new ResourceAI())->onRole($user->getRole())
+            )
+        ) {
+            throw new SaitoForbiddenException(
+                sprintf('Attempt to set password for user %s.', $id),
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        if ($this->getRequest()->is(['put', 'post'])) {
+            if (!$this->isCurrentPassword($this->getRequest()->getData('confirm_password'))) {
+                $this->Flash->set(__('user.pw.set.confirm.error'), ['element' => 'error']);
+                $this->set(compact('user'));
+
+                return null;
+            }
+
+            $data = [
+                'password' => $this->getRequest()->getData('password'),
+                'password_confirm' => $this->getRequest()->getData('password_confirm'),
+            ];
+            // `fields` names only `password`: `password_confirm` still has to be
+            // in the data for the validator to compare against, but it is not a
+            // column and must not be assigned.
+            $patched = $this->Users->patchEntity($user, $data, ['fields' => ['password']]);
+
+            $errors = $patched->getErrors();
+            if (empty($errors) && $this->Users->save($patched)) {
+                $this->Flash->set(
+                    __('user.pw.set.s', $user->get('username')),
+                    ['element' => 'success']
+                );
+
+                return $this->redirect(['action' => 'index']);
+            }
+
+            $message = empty($errors)
+                ? __('user.pw.set.error')
+                : __d('nondynamic', (string)current(array_pop($errors)));
+            $this->Flash->set($message, ['element' => 'error']);
+        }
+
+        $this->set(compact('user'));
+
+        return null;
+    }
+
+    /**
      * Delete a user account, keeping their postings.
      *
      * Moved here with `role()` for the same reason. Admins and the owner only —

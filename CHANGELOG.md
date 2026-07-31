@@ -40,6 +40,27 @@
   dates; the day a subject or username joined it, the first apostrophe would
   have ended the attribute.
 
+- ＋ Added: **the NSFW badge is back, and it now covers as well as warns.**
+  Saito 4 marked a posting not-safe-for-work with a red badge; the feature was
+  lost in the Saito 5 rewrite while the column and its data stayed behind — 1928
+  postings on the macnemo install are still marked, and have been showing plainly
+  for years. Ticking the box on a new thread brings back the badge *and* covers
+  every image, video and file in that posting, so the old markings mean something
+  again without anyone's text being rewritten. A reply does not inherit it, which
+  is the call Saito 4 made too.
+
+  A migration adds the column where it is missing — it predates these migrations
+  and exists only on grown installations, so it is added guardedly rather than
+  blindly.
+
+- ＋ Added: **an admin can set a member's password again.** It went with the SPA
+  and left its permission behind, declared and unused. Since the forum has no
+  self-service reset — by design, there is no token to steal — this was the only
+  way back in for somebody who has forgotten theirs, and there was nobody who
+  could help them. The member's current password is not asked for, which is the
+  point; the acting admin re-enters their own, the same as granting a role,
+  because setting someone's password outlives the session that did it.
+
 ## [8.3.1] - 2026-07-31
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0...8.3.1)

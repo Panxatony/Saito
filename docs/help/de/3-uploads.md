@@ -49,6 +49,24 @@ Betrachter. Die Datei selbst liegt unverändert auf dem Server und ist über ihr
 Adresse jederzeit erreichbar. Sie schützt davor, dass etwas unverhofft im
 Großraumbüro auftaucht — sie ist kein Zugriffsschutz.
 
+### Als NBS kennzeichnen
+
+Beim Eröffnen eines neuen Themas gibt es ein Häkchen **Nicht bürosicher (NBS)**.
+Ist es gesetzt, trägt der Beitrag ein rotes Abzeichen — in der Themenliste und
+auf der Beitragsseite — und **alle Bilder, Videos und Dateien darin erscheinen
+verdeckt**, ohne dass an den einzelnen Einfügungen etwas geändert werden muss.
+
+Das ist der bequemere Weg als das Häkchen im Upload-Dialog: einmal am Beitrag
+statt einmal pro Bild. Beides greift, und beides lässt sich mit einem Klick
+aufdecken.
+
+Eine **Antwort erbt die Kennzeichnung nicht**. Sie ist ein eigener Beitrag und
+wird für sich beurteilt.
+
+Das Abzeichen gab es in Saito schon einmal und ging bei einem Umbau verloren —
+die alten Kennzeichnungen lagen die ganze Zeit in der Datenbank und sind damit
+wieder sichtbar.
+
 ### Verwalten
 
 Im eigenen Profil liegt das vollständige Archiv. Dort lassen sich Dateien
