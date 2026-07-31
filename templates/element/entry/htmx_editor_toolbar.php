@@ -43,6 +43,9 @@ $icons = [
         . '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>'
         . '<path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>'
         . '<line x1="2" y1="2" x2="22" y2="22"/>',
+    'warn' => '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 '
+        . '3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/>'
+        . '<line x1="12" y1="17" x2="12.01" y2="17"/>',
     'help' => '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>'
         . '<line x1="12" y1="17" x2="12.01" y2="17"/>',
     'link' => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
@@ -114,6 +117,27 @@ $buttons = [
         <button type="button" class="btn btn-secondary btn-sm js-smiley-toggle"
                 title="<?= h(__('Smilies')) ?>" aria-label="<?= h(__('Smilies')) ?>"><?= $icon($icons['smile']) ?></button>
     <?php endif; ?>
+    <?php
+    // Not-safe-for-work. A form field, not an insert button — so it is a
+    // checkbox with a label styled as one of the buttons beside it, and the
+    // `:checked` state does the highlighting. No JavaScript, nothing for the
+    // content-security policy to object to, and it keeps working in a form that
+    // is re-rendered with validation errors because the browser carries the
+    // state, not a script.
+    //
+    // Offered wherever the toolbar is: starting a thread, answering one, and
+    // editing. It used to be a tick box under the text field on the new-thread
+    // form only, where nobody found it — and where an answer carrying the
+    // picture had no way to say so at all. Nothing is inherited: a reply is
+    // marked on its own merits or not at all.
+    $nsfwChecked = !empty($nsfwValue);
+    ?>
+    <input type="checkbox" name="nsfw" value="1" id="js-nsfwToggle"
+           class="editorToolbar-nsfwInput"<?= $nsfwChecked ? ' checked' : '' ?>>
+    <label for="js-nsfwToggle" class="btn btn-sm btn-link editorToolbar-nsfw"
+           title="<?= h(__('posting.badge.nsfw.exp')) ?>">
+        <?= $icon($icons['warn']) ?> <?= h(__('posting.badge.nsfw')) ?>
+    </label>
     <button type="button" class="btn btn-sm btn-link js-bb-preview"
             data-preview-url="<?= h($previewUrl) ?>">
         <?= $icon($icons['eye']) ?> <?= h(__('Preview')) ?>

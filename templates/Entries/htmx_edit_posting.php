@@ -62,7 +62,11 @@ $backUrl = $this->request->getAttribute('webroot') . 'entries/htmx-thread/' . (i
                 'style' => '--subject-max: ' . $subjectMax,
                 'value' => $posting->get('subject'),
             ]);
-            echo $this->element('entry/htmx_editor_toolbar');
+            // Editing keeps whatever the posting already says, so the toggle
+            // starts from the stored value rather than from nothing.
+            echo $this->element('entry/htmx_editor_toolbar', [
+                'nsfwValue' => $posting->has('nsfw') && (bool)$posting->get('nsfw'),
+            ]);
             echo $this->Form->control('text', [
                 'class' => 'form-control', 'type' => 'textarea', 'rows' => 10, 'label' => __('text'),
                 'value' => $posting->get('text'),

@@ -52,22 +52,16 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
         'maxlength' => $subjectMax,
         'style' => '--subject-max: ' . $subjectMax,
     ]);
-    echo $this->element('entry/htmx_editor_toolbar');
+    // The NSFW toggle lives in the toolbar; hand it what was submitted so a
+    // form re-rendered with validation errors does not lose the tick.
+    echo $this->element('entry/htmx_editor_toolbar', [
+        'nsfwValue' => (bool)($this->getRequest()->getData('nsfw')),
+    ]);
     // Der Platzhalter ist der einzige Hinweis darauf, dass das Feld leer bleiben
     // darf — ohne ihn ist "n/t" zwar moeglich, aber unauffindbar.
     echo $this->Form->control('text', [
         'class' => 'form-control', 'type' => 'textarea', 'rows' => 6, 'label' => __('text'),
         'placeholder' => __('entry.text.ph.nt'),
-    ]);
-
-    // Not-safe-for-work: offered when starting a thread, not when answering
-    // one. A reply is its author's own posting and gets marked on its own
-    // merits — Saito 4 made the same call, and the comment it made about it
-    // ("we assume that an answer to a nsfw posting isn't nsfw itself") still
-    // reads correctly.
-    echo $this->Form->control('nsfw', [
-        'type' => 'checkbox',
-        'label' => __('posting.badge.nsfw.exp'),
     ]);
 
     if ($inline) {

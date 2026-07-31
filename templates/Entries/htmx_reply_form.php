@@ -79,7 +79,11 @@ if (!isset($submitted) && !empty($draft)) {
                placeholder="<?= h($subjectPlaceholder) ?>" value="<?= h($subject) ?>"
                autofocus>
     </div>
-    <?= $this->element('entry/htmx_editor_toolbar') ?>
+    <?php // An answer can be marked too — it is its own posting. Nothing is
+          // inherited from the thread it hangs under. ?>
+    <?= $this->element('entry/htmx_editor_toolbar', [
+        'nsfwValue' => (bool)($submitted['nsfw'] ?? false),
+    ]) ?>
     <div class="form-group">
         <?php // Bewusst ohne `required`: ein Beitrag ohne Text ist gewollt. Saito
               // kennt das seit jeher als "n/t" (no text) — isNt() ist schlicht

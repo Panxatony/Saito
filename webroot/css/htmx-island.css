@@ -201,17 +201,6 @@
     border-top: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.15));
     background: var(--nova-surface, #fff);
 }
-/* The NSFW tick sits with the insert button because it describes that action,
-   not the selection: it says how the tags about to be written should render. */
-.htmx-island .upload-nsfw {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin: 0;
-    font-size: 0.85rem;
-    font-weight: 400;
-    cursor: pointer;
-}
 
 /* Phones: the overlays fill the screen (less wasted chrome), and the upload
    dialog gives its scrolling grid the room so the bottom action stays reachable. */
@@ -1334,4 +1323,37 @@ body.has-color-current .et-current .et { color: var(--saito-color-current); }
     display: flex;
     align-items: center;
     gap: .4rem;
+}
+
+/* NSFW toggle in the editor toolbar ---------------------------------------- */
+/* A checkbox and a label dressed as one of the buttons beside it. The input is
+   the state and stays focusable — `display: none` would drop it out of the tab
+   order and leave the toggle unreachable without a mouse. */
+.htmx-island .editorToolbar-nsfwInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
+.htmx-island .editorToolbar-nsfw {
+    cursor: pointer;
+    margin: 0;
+    border: 1px solid transparent;
+    border-radius: 0.3rem;
+}
+/* Checked reads as pressed: a warning colour, because that is what it says. */
+.htmx-island .editorToolbar-nsfwInput:checked + .editorToolbar-nsfw {
+    color: #fff;
+    background: #c62828;
+    border-color: #c62828;
+}
+.htmx-island .editorToolbar-nsfwInput:focus-visible + .editorToolbar-nsfw {
+    outline: 2px solid var(--isl-accent, #fe5603);
+    outline-offset: 1px;
 }

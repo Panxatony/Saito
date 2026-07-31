@@ -26,46 +26,30 @@ Bild also als Bild und ein Video als abspielbares Video.
 
 ### Heikles verdecken
 
-Neben *Auswahl einfügen* steht ein Häkchen **Als NSFW einfügen**. Ist es gesetzt,
-erscheint das Eingefügte im Beitrag zunächst verdeckt: unscharf, mit einem
-Hinweis darüber. Erst ein Klick zeigt es, ein weiterer verdeckt es wieder. Bei
-Videos bleibt auch der Abspielknopf gesperrt, solange die Decke liegt.
+In der Editor-Leiste — neben Fett, Uploads und Vorschau — steht ein Knopf
+**NBS**. Ist er eingerastet, erscheint der ganze Beitrag verdeckt: Bilder,
+Videos und Dateien unscharf mit einem Hinweis darüber, dazu ein rotes Abzeichen
+am Betreff. Erst ein Klick zeigt das Verdeckte, ein weiterer verdeckt es wieder.
+Bei Videos bleibt auch der Abspielknopf gesperrt, solange die Decke liegt.
 
-Das Häkchen gilt für **diese Einfügung**, nicht für die Datei. Dasselbe Bild kann
-also in einem Beitrag verdeckt und in einem anderen offen stehen. Umgekehrt
-heißt das: eine Datei nachträglich zu kennzeichnen ändert nichts an Beiträgen,
-die schon geschrieben sind — dort muss die Auszeichnung im Text ergänzt werden.
+Der Knopf steht in **jedem** Editor: beim Eröffnen eines Themas, beim Antworten
+und beim Bearbeiten. Eine Antwort **erbt** die Kennzeichnung aber nicht — sie
+ist ein eigener Beitrag und wird für sich beurteilt.
 
-Wer den Beitragstext direkt bearbeitet, schreibt es selbst:
+Wer den Beitragstext direkt bearbeitet, kann einzelne Einfügungen auch von Hand
+kennzeichnen:
 
 ```
 [img src=upload nsfw=1]dateiname.jpg[/img]
 ```
 
-Das funktioniert genauso für `[video]`, `[audio]` und `[file]`.
+Das funktioniert genauso für `[video]`, `[audio]` und `[file]` und ist der
+feinere Weg, wenn nur ein Bild von mehreren verdeckt werden soll.
 
 Ein Wort zur Ehrlichkeit: die Decke hält das Bild vom Bildschirm fern, nicht vom
 Betrachter. Die Datei selbst liegt unverändert auf dem Server und ist über ihre
 Adresse jederzeit erreichbar. Sie schützt davor, dass etwas unverhofft im
 Großraumbüro auftaucht — sie ist kein Zugriffsschutz.
-
-### Als NBS kennzeichnen
-
-Beim Eröffnen eines neuen Themas gibt es ein Häkchen **Nicht bürosicher (NBS)**.
-Ist es gesetzt, trägt der Beitrag ein rotes Abzeichen — in der Themenliste und
-auf der Beitragsseite — und **alle Bilder, Videos und Dateien darin erscheinen
-verdeckt**, ohne dass an den einzelnen Einfügungen etwas geändert werden muss.
-
-Das ist der bequemere Weg als das Häkchen im Upload-Dialog: einmal am Beitrag
-statt einmal pro Bild. Beides greift, und beides lässt sich mit einem Klick
-aufdecken.
-
-Eine **Antwort erbt die Kennzeichnung nicht**. Sie ist ein eigener Beitrag und
-wird für sich beurteilt.
-
-Das Abzeichen gab es in Saito schon einmal und ging bei einem Umbau verloren —
-die alten Kennzeichnungen lagen die ganze Zeit in der Datenbank und sind damit
-wieder sichtbar.
 
 ### Verwalten
 

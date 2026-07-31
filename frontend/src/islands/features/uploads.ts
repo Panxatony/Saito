@@ -19,14 +19,14 @@ import { csrfToken, insertAtCursor } from '../lib/dom';
 // its [tag src=upload]name[/tag] into the editor that opened it.
 let uploadTarget: HTMLTextAreaElement | null = null;
 
-function insertUploadTag(textarea: HTMLTextAreaElement, name: string, mime: string, nsfw = false): void {
+function insertUploadTag(textarea: HTMLTextAreaElement, name: string, mime: string): void {
     const type = mime.split('/')[0];
     const tag = type === 'video' || type === 'audio' ? type : type === 'image' ? 'img' : 'file';
-    // The marker lives in the tag, not in the uploads table: it says how *this*
-    // insertion should be shown, so the same file can be covered here and plain
-    // in the next posting. See NsfwShieldTrait for why it is not a column.
-    const flag = nsfw ? ' nsfw=1' : '';
-    const bb = `[${tag} src=upload${flag}]${name}[/${tag}]\n`;
+    // No nsfw attribute is written any more — the editor toolbar carries the
+    // marking for the whole posting, which is one place instead of two and the
+    // place people actually look. The parser still *reads* the attribute, so
+    // postings written while the tick box existed keep their cover.
+    const bb = `[${tag} src=upload]${name}[/${tag}]\n`;
 
     // Assigning `value` discarded the undo history and fired no `input` event,
     // so the editor never grew to fit what had just been inserted. Both are what
@@ -236,16 +236,8 @@ document.addEventListener('click', (event: MouseEvent) => {
         return;
     }
     event.preventDefault();
-    const nsfwBox = document.querySelector<HTMLInputElement>('.js-uploadNsfw');
-    const nsfw = nsfwBox?.checked ?? false;
     document.querySelectorAll<HTMLElement>('.js-uploadTile.is-selected').forEach((tile) => {
-        insertUploadTag(uploadTarget as HTMLTextAreaElement, tile.getAttribute('data-name') ?? '', tile.getAttribute('data-mime') ?? '', nsfw);
+        insertUploadTag(uploadTarget as HTMLTextAreaElement, tile.getAttribute('data-name') ?? '', tile.getAttribute('data-mime') ?? '');
     });
-    // Cleared here rather than on open: the overlay is shown by removing an
-    // attribute from several places, and a tick left standing would quietly
-    // cover the next thing inserted.
-    if (nsfwBox) {
-        nsfwBox.checked = false;
-    }
     document.getElementById('js-uploadModal')?.setAttribute('hidden', '');
 });
