@@ -52,13 +52,19 @@ body.htmx-island #header.htmx-island-header {
 
   background: $macfix-red;
   border-bottom: 0;
-  max-width: none;
 
-  // Full-bleed: pull out of the inset wrapper, then put the inset back as
-  // padding so the *content* still lines up with the page below.
-  margin-left: #{"calc(50% - 50vw)"};
-  margin-right: #{"calc(50% - 50vw)"};
-  padding: #{"0.45rem max(var(--isl-gutter), calc((100vw - var(--isl-maxw)) / 2))"};
+  // The bar ends where the page ends. It used to be pulled out to the viewport
+  // edges with `margin: calc(50% - 50vw)`, which was right while the page had
+  // no width of its own; now that `#site` stops at 1440px a full-bleed bar
+  // would be the one element still growing with the screen. On the running
+  // forum the bar sits inside the page, so it does here too — width and
+  // centring both come from the island's own `#header` rule.
+  //
+  // No side padding: the running forum reports `0px` on both sides at every
+  // width measured (2121px and 390px), logo flush against the page edge and
+  // the controls flush against the other. The island's gutter would have set
+  // the logo 48px in from a page edge the thread list below already sits at.
+  padding: 0.45rem 0;
 }
 
 /// The logo block is full-width and centred by default, and the theme paints it
