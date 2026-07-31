@@ -5,7 +5,12 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.3] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.2...8.3.3)
+
+No migration runs. Replace the files, clear the cache, done — coming from
+8.3.1 or older, take the 8.3.2 notes with you: one migration runs there.
 
 - Δ Changed: **the NSFW marking moved into the editor toolbar, and works on
   replies.** It was a tick box under the text field of the new-thread form only
