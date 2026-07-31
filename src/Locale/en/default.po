@@ -904,6 +904,12 @@ msgid "delete_tree_link"
 msgstr "Delete"
 
 #: src/Template/Element/layout/disclaimer.ctp:11
+msgid "saito.nsfw.reveal"
+msgstr "Content hidden – click to show"
+
+msgid "saito.nsfw.hide"
+msgstr "hide"
+
 msgid "saito.dscl.links"
 msgstr "Ressources"
 
@@ -1757,6 +1763,9 @@ msgstr "Choose files"
 
 msgid "all_categories"
 msgstr "All categories"
+
+msgid "upload_insert_nsfw"
+msgstr "Insert as NSFW (show covered)"
 
 msgid "upload_insert_selected"
 msgstr "Insert selected"

@@ -191,11 +191,26 @@
 }
 .htmx-island .upload-actions {
     flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.9rem;
     margin-top: 0.6rem;
     padding-top: 0.6rem;
     text-align: right;
     border-top: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.15));
     background: var(--nova-surface, #fff);
+}
+/* The NSFW tick sits with the insert button because it describes that action,
+   not the selection: it says how the tags about to be written should render. */
+.htmx-island .upload-nsfw {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 400;
+    cursor: pointer;
 }
 
 /* Phones: the overlays fill the screen (less wasted chrome), and the upload

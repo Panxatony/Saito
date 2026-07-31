@@ -21,6 +21,31 @@ once. *Insert selection* places them at the cursor. The right markup is chosen
 by the kind of file, so an image arrives as an image and a video as a playable
 video.
 
+### Covering the delicate
+
+Next to *Insert selection* sits a tick box, **Insert as NSFW**. With it set, what
+you insert arrives covered: blurred, with a note over it. One click shows it,
+another puts it away again. On a video the play button stays out of reach for as
+long as the cover is on.
+
+The tick applies to **this insertion**, not to the file. The same picture can be
+covered in one posting and plain in another. Which also means: marking a file
+afterwards changes nothing about postings already written — there the markup has
+to be added to the text.
+
+Editing a posting by hand, you write it yourself:
+
+```
+[img src=upload nsfw=1]filename.jpg[/img]
+```
+
+The same works for `[video]`, `[audio]` and `[file]`.
+
+One honest word: the cover keeps the picture off the screen, not away from the
+viewer. The file itself sits on the server unchanged and can be fetched by its
+address at any time. It guards against something appearing unexpectedly in an
+open-plan office; it is not access control.
+
 ### Managing
 
 Your profile holds the full archive. Files can be selected there and deleted

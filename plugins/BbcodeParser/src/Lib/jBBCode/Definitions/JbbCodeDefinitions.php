@@ -15,6 +15,7 @@ namespace Plugin\BbcodeParser\src\Lib\jBBCode\Definitions;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Plugin\BbcodeParser\src\Lib\Helper\Message;
+use Plugin\BbcodeParser\src\Lib\Helper\NsfwShieldTrait;
 use Plugin\BbcodeParser\src\Lib\Helper\UrlParserTrait;
 use Plugin\BbcodeParser\src\Lib\Http\SsrfGuard;
 use Plugin\BbcodeParser\src\Lib\Http\SsrfGuardedClient;
@@ -423,6 +424,7 @@ class Flash extends Iframe
 class FileWithAttributes extends CodeDefinition
 //@codingStandardsIgnoreEnd
 {
+    use NsfwShieldTrait;
     use UrlParserTrait;
 
     protected $_sTagName = 'file';
@@ -443,8 +445,16 @@ class FileWithAttributes extends CodeDefinition
         }
 
         $url = $this->_linkToUploadedFile($content);
+        $link = $this->Html->link($content, $url, ['target' => '_blank']);
 
-        return $this->Html->link($content, $url, ['target' => '_blank']);
+        // A file is a link, not a picture, so there is nothing to blur — but
+        // the name alone can be the thing an author would rather not have on
+        // screen, and the cover hides that along with the link itself.
+        if ($this->_isNsfw($attributes)) {
+            $link = $this->_wrapNsfw($link, 'file');
+        }
+
+        return $link;
     }
 }
 
@@ -452,6 +462,7 @@ class FileWithAttributes extends CodeDefinition
 class Image extends CodeDefinition
 //@codingStandardsIgnoreEnd
 {
+    use NsfwShieldTrait;
     use UrlParserTrait;
 
     protected $_sTagName = 'img';
@@ -514,6 +525,12 @@ class Image extends CodeDefinition
                 $url,
                 ['escape' => false, 'target' => '_blank']
             );
+        }
+
+        // After the link, not before: the cover has to sit outside it, or the
+        // click that reveals the picture opens the full-size file instead.
+        if ($this->_isNsfw($attributes)) {
+            $image = $this->_wrapNsfw($image, 'image');
         }
 
         return $image;

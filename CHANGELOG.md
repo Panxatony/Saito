@@ -7,6 +7,20 @@
 
 ## [next] -
 
+- ＋ Added: **media can be inserted covered.** A tick box beside *Insert
+  selection* in the upload overlay marks what is being inserted as
+  not-safe-for-work; in the posting it then arrives blurred under a note, and a
+  click uncovers it — another puts it back. Video keeps its play button out of
+  reach while covered. There is no JavaScript behind it and no schema change:
+  the marker rides in the tag (`[img src=upload nsfw=1]…[/img]`, likewise
+  `[video]`, `[audio]`, `[file]`) and the cover is a checkbox with a `:checked`
+  rule, so it also works with scripting off. Two consequences worth knowing:
+  the marker describes the *insertion*, not the file, so the same upload can be
+  covered in one posting and plain in the next — and marking a file afterwards
+  cannot reach postings already written. The cover keeps a picture off a screen;
+  it is not access control, because the file itself stays reachable at its own
+  address.
+
 - ✓ Fixed: **turning off the "new frontend" notice no longer takes the pointer
   for newcomers with it.** Two messages shared one switch: one describes a
   change that happened and stops being true a few weeks later, the other says

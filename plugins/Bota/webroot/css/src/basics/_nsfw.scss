@@ -1,0 +1,165 @@
+/******************************************************************************
+ * NSFW cover
+ *
+ * Media an author marked `[img src=upload nsfw=1]` arrives wrapped in a
+ * checkbox, the media, and a label sitting over it. There is no JavaScript:
+ * the reveal is `:checked`, so it works with scripting off and gives a content
+ * security policy nothing to object to.
+ *
+ * Two properties do the actual work, and neither is the blur:
+ *
+ * `pointer-events: none` on the covered media. A top-level [img] is wrapped in
+ * a link to the full-size file — without this, the click meant to reveal the
+ * picture would open it instead, which is the one thing the cover exists to
+ * prevent. Same for a video's play button.
+ *
+ * `overflow: hidden` on the wrapper. `filter: blur()` samples beyond the
+ * element's own box, so an unclipped blur leaks a smeared halo of the picture
+ * past its edges — recognisable often enough to matter.
+ ******************************************************************************/
+
+.nsfwShield {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+  vertical-align: bottom;
+}
+
+/// The checkbox is the state, and only the state — the label is what anyone
+/// sees and clicks. `position: absolute` rather than `display: none` so it
+/// keeps taking keyboard focus; hidden inputs are skipped by the tab order,
+/// which would leave the cover unopenable without a mouse.
+.nsfwShield-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.nsfwShield-media {
+  display: block;
+  filter: blur(24px) saturate(0.6);
+  transform: scale(1.06); // hides the soft edge the blur leaves inside the box
+  pointer-events: none;
+  transition: filter 0.15s ease-out;
+
+  img,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+/// The cover itself. Dark rather than a tint of the theme: this has to read the
+/// same on every preset, and on the night one a light veil would be the
+/// brightest thing on the screen.
+.nsfwShield-veil {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.5rem;
+  cursor: pointer;
+  text-align: center;
+  color: #fff;
+  background: rgba(20, 20, 22, 0.55);
+  transition: background 0.15s ease-out;
+}
+
+.nsfwShield-veil:hover {
+  background: rgba(20, 20, 22, 0.68);
+}
+
+.nsfwShield-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 3px;
+}
+
+.nsfwShield-hint {
+  font-size: 0.85rem;
+  line-height: 1.3;
+  max-width: 22em;
+}
+
+.nsfwShield-hint--hide {
+  display: none;
+}
+
+/// Revealed. The cover shrinks to a corner tab instead of disappearing, so the
+/// same control puts the picture away again — and so it stays obvious what the
+/// picture was marked as.
+.nsfwShield-toggle:checked ~ .nsfwShield-media {
+  filter: none;
+  transform: none;
+  pointer-events: auto;
+}
+
+.nsfwShield-toggle:checked ~ .nsfwShield-veil {
+  inset: auto 0 auto auto;
+  flex-direction: row;
+  gap: 0.3rem;
+  padding: 0.15rem 0.4rem;
+  border-bottom-left-radius: 4px;
+  background: rgba(20, 20, 22, 0.62);
+
+  .nsfwShield-hint--show {
+    display: none;
+  }
+
+  .nsfwShield-hint--hide {
+    display: inline;
+  }
+}
+
+/// A focused checkbox is invisible, so the ring has to be drawn on the label.
+.nsfwShield-toggle:focus-visible ~ .nsfwShield-veil {
+  outline: 2px solid #fff;
+  outline-offset: -3px;
+}
+
+/// A file is a link, not a picture: there is no box to fill, so the cover lays
+/// itself out in the line rather than over an area.
+.nsfwShield[data-nsfw-kind="file"] {
+  display: inline-flex;
+  align-items: center;
+  overflow: visible;
+
+  .nsfwShield-media {
+    filter: blur(5px);
+    transform: none;
+  }
+
+  .nsfwShield-veil {
+    position: static;
+    flex-direction: row;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+  }
+
+  .nsfwShield-toggle:checked ~ .nsfwShield-veil {
+    inset: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nsfwShield-media,
+  .nsfwShield-veil {
+    transition: none;
+  }
+}

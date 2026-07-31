@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Plugin\BbcodeParser\src\Lib\jBBCode\Definitions;
 
+use Plugin\BbcodeParser\src\Lib\Helper\NsfwShieldTrait;
 use Plugin\BbcodeParser\src\Lib\Helper\UrlParserTrait;
 use Plugin\BbcodeParser\src\Lib\jBBCode\Definitions\CodeDefinition;
 
@@ -19,6 +20,7 @@ use Plugin\BbcodeParser\src\Lib\jBBCode\Definitions\CodeDefinition;
 class Html5Audio extends CodeDefinition
 //@codingStandardsIgnoreEnd
 {
+    use NsfwShieldTrait;
     use UrlParserTrait;
 
     protected $_sTagName = 'audio';
@@ -42,7 +44,16 @@ class Html5Audio extends CodeDefinition
         }
 
         // Better: preload='metadata'. But Safari 12 doesn't support it.
-        return "<audio src='" . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . "' controls='controls' preload='auto' x-webkit-airplay='allow'></audio>";
+        $media = "<audio src='" . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . "' controls='controls' preload='auto' x-webkit-airplay='allow'></audio>";
+
+        // Audio has nothing to blur, but it has a play button, and the cover's
+        // `pointer-events: none` is what keeps that button out of reach until
+        // someone has said they want to hear it.
+        if ($this->_isNsfw($attributes)) {
+            $media = $this->_wrapNsfw($media, 'audio');
+        }
+
+        return $media;
     }
 }
 
@@ -57,6 +68,7 @@ class Html5AudioWithAttributes extends Html5Audio
 class Html5Video extends CodeDefinition
 //@codingStandardsIgnoreEnd
 {
+    use NsfwShieldTrait;
     use UrlParserTrait;
 
     protected $_sTagName = 'video';
@@ -78,7 +90,15 @@ class Html5Video extends CodeDefinition
 
         // Better: preload='metadata'. But Safari 12 doesn't support it and
         // only shows a blank preview.
-        return "<video src='" . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . "' controls='controls' preload='auto' x-webkit-airplay='allow'></video>";
+        $media = "<video src='" . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . "' controls='controls' preload='auto' x-webkit-airplay='allow'></video>";
+
+        // `preload='auto'` means the browser has already drawn the first frame,
+        // so a video needs the cover more than a still picture does.
+        if ($this->_isNsfw($attributes)) {
+            $media = $this->_wrapNsfw($media, 'video');
+        }
+
+        return $media;
     }
 }
 
