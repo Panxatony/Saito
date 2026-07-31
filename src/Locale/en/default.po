@@ -425,6 +425,9 @@ msgid "user.pw.set.s"
 msgstr "Password was changed."
 
 #: src/Form/ContactForm.php:44
+msgid "error_subject_linebreak"
+msgstr "The subject must not contain line breaks."
+
 msgid "error_subject_empty"
 msgstr "Error: Subject is empty."
 

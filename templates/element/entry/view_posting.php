@@ -179,5 +179,12 @@ $jsEntry = json_encode(
         </div>
     <?php endif; ?>
 
-    <div class='js-data' data-entry='<?= $jsEntry ?>'></div>
+    <?php // h() around the JSON, and not decoration: the attribute is delimited
+          // by single quotes and json_encode() emits an apostrophe unescaped, so
+          // the day someone adds a subject or a username to the array above, the
+          // first apostrophe in it ends the attribute and everything after is
+          // markup. Today the array holds only numbers, booleans and an ISO
+          // date, which is exactly the kind of "safe for now" that stops being
+          // true without anyone noticing. ?>
+    <div class='js-data' data-entry='<?= h($jsEntry) ?>'></div>
 </div>

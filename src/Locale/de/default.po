@@ -438,6 +438,9 @@ msgid "user.pw.set.s"
 msgstr "Passwort erfolgreich geändert."
 
 #: src/Form/ContactForm.php:44
+msgid "error_subject_linebreak"
+msgstr "Der Betreff darf keine Zeilenumbrüche enthalten."
+
 msgid "error_subject_empty"
 msgstr "Fehler: Betreff ist leer."
 

@@ -26,6 +26,30 @@ class SaitoEmailComponent extends Component
     use LogTrait;
 
     /**
+     * Strips anything that could end a header line and start another one.
+     *
+     * A subject reaches this component straight from the contact form, and
+     * CakePHP hands header values through unchanged when they are plain ASCII:
+     * `setSubject("Hallo\r\nBcc: victim@example.com")` produces two header
+     * lines, the second a real Bcc. That turns the forum into a relay that
+     * sends to whoever the attacker names, from the forum's own domain and with
+     * its SPF and DKIM behind it -- measured against
+     * `Message::getHeadersString()`, which emitted the Bcc line verbatim.
+     *
+     * Done here rather than only in the form validator on purpose: this is the
+     * single point every mail the forum sends passes through, so a caller added
+     * later cannot forget it. The validator says the same thing again, to give a
+     * person a proper error instead of silently swallowing what they typed.
+     *
+     * @param string $value the header value
+     * @return string the value with CR, LF and NUL removed
+     */
+    public function sanitizeHeaderValue(string $value): string
+    {
+        return str_replace(["\r", "\n", "\0"], '', $value);
+    }
+
+    /**
      * send email
      *
      * @param array $params params
@@ -69,7 +93,7 @@ class SaitoEmailComponent extends Component
             ->setFrom($fromContact->toCake())
             ->setReplyTo($from->toCake())
             ->setTo($to->toCake())
-            ->setSubject($params['subject'])
+            ->setSubject($this->sanitizeHeaderValue((string)$params['subject']))
             ->viewBuilder()->setTemplate($params['template']);
 
         $params['viewVars']['message'] = $params['message'];

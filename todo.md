@@ -12,40 +12,36 @@ Anything here that turns out to be done gets deleted rather than ticked off.
 
 ## Deployment, not code
 
-### Turn the strict content-security policy on for prod and beta
+### The strict content-security policy on the other installation
 
-The application side is finished and shipped in 8.3.0 — Saito emits no inline
-script and no event attributes anywhere. What is left is a web-server header,
-one installation at a time:
+Done everywhere we control: test and beta on 2026-07-30, **prod on 2026-07-31**
+together with 8.3.1. `script-src` has no `'unsafe-inline'` on any of the three.
 
-- `config/nginx/saito.conf.example` carries the strict policy, still commented
-  out, because anything an installation embeds has to be added to it first.
-- **Test and beta run it.** Beta was switched on at the edge on 2026-07-30 and
-  measured in a browser afterwards: four pages, zero policy violations, zero
-  JavaScript errors, and 209 Alpine/htmx markers in the DOM to show the scripts
-  really did run. The detector was checked against a page that violates on
-  purpose, so the zero means something.
-- **Prod cannot have it yet, and the reason is the version.** macnemo.de runs
-  8.2.9; the change that removed the last inline scripts is in 8.3.0. Its own
-  markup was rendered against the strict policy on 2026-07-30 and produced
-  **four blocks**: the theme-stylesheet picker, the font scale, the Plausible
-  snippet, and the Plausible script itself. The first two run before the page is
-  painted — blocking them is not a console message, it is a visibly wrong page.
+What that took, beyond the header, is worth knowing before the next
+installation follows: the only inline script prod still emitted was Plausible's
+init stub, and it moved to `shared/app/webroot/plausible-init.js` (symlinked
+into `webroot/`, so a code deploy cannot remove it). Anubis needed nothing — its
+inline blocks are `application/json` and `type="ignore"`, which a browser never
+executes.
 
-  So this waits on the 8.3.0 deploy, and needs one addition beyond the example
-  policy: `https://plausible.panxatony.net` in both `script-src` and
-  `connect-src`. Prod's current header already allows it; what has to go is
-  `'unsafe-inline'` from `script-src`, and only after 8.3.0 is live.
-- `'unsafe-eval'` has to stay: Alpine evaluates its expressions as strings. It
-  is the far less dangerous of the two — it does not enable an injected event
-  handler, which is what the stored XSS of 8.2.3 actually used.
-- `style-src` keeps `'unsafe-inline'`: templates still set `style` attributes,
-  and inline style is not a route to code execution.
+**macfix is the one still open**, and not for the same reason. Its ad tag is an
+external script from its own origin and passes `'self'`; its **Matomo snippet is
+inline** and would be blocked. It needs the same treatment as Plausible — the
+snippet in a file — before the header goes on there. kt007 runs 5.7.1, so this
+waits on that upgrade anyway.
 
-Anything an installation embeds must be added before the header goes on. The
-macfix installation, for one, carries an ad tag and a Matomo snippet; the ad tag
-is an external script from its own origin and passes `'self'`, the Matomo
-snippet is inline and would not.
+Also left: `config/nginx/saito.conf.example` still carries the strict policy
+commented out. Now that three installations run it, the comment could come off
+— with a line saying what an installation must check first.
+
+### `session.use_strict_mode` is off on prod
+
+`/usr/local/etc/php.ini` in the macnemo jail has `session.use_strict_mode = 0`,
+so PHP accepts a session id the client made up. It is **not** exploitable today:
+`SessionAuthenticator` calls `$session->renew()` on both login and logout, so an
+id planted before login is not the one that ends up authenticated — checked in
+the vendor source rather than assumed. Setting it to `1` costs nothing and
+removes the need to know that.
 
 ---
 
@@ -213,3 +209,34 @@ The admin area is worth reworking in the same pass, and only then. It has
 already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
 on Alpine now — so its markup is the one thing still tying it to Bootstrap.
 Doing it separately means paying for it twice.
+
+### Two more residue columns in `entries`
+
+`flattr` and `nsfw`, both `tinyint(1) unsigned`, on the same footing as the six
+`users` columns dropped in 8.3.0: they exist only on grown installations, no
+code reads them, and the migrations never created them. Found on 2026-07-31
+while writing `Entry::$_accessible` — which is the reason they matter at all, an
+assignable column nothing reads being exactly the kind of thing that goes
+unnoticed. They are denied there now.
+
+They are not empty, and that is the part to decide before dropping: on prod
+**1928 postings carry `nsfw = 1`** and **16104 carry `flattr = 1`**, out of
+680253. The nsfw flag is a per-posting marker from Saito 5 that this forum's
+members actually used. The cover added in 8.3.1 is per *insertion* and lives in
+the BBCode, so the old flag has no path into it — but 1928 postings were once
+marked and are now shown plainly, and somebody should decide whether that is
+fine before the column goes. `flattr` is a dead payment service and can go
+without ceremony.
+
+### Four permissions that are declared and never checked
+
+`saito.core.user.email.set`, `saito.core.user.name.set`,
+`saito.core.user.password.set` and `saito.core.user.lock.view` are defined in
+`config/permissions.php` and appear nowhere else — grepped across `src/`,
+`plugins/` and `templates/` on 2026-07-31.
+
+This is not a hole: there is no admin path that changes another member's
+address, name or password, so nothing is running unguarded. It is the opposite
+problem — the file reads as though admins can do those things, and a reader
+checking what an admin may reach would believe it. Either the features are
+wanted, or the four lines should go.

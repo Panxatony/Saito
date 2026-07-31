@@ -5,6 +5,34 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+- ✓ Fixed: **a line break in a contact-form subject could add a mail header.**
+  CakePHP passes a plain-ASCII header value through unchanged, so a subject of
+  `Hallo\r\nBcc: …` came out of `Message::getHeadersString()` as two header
+  lines — the second a real `Bcc`, which would have delivered the message to
+  whoever the sender named, from the forum's own domain and with its SPF and
+  DKIM behind it. Nothing suggests it was ever used. Every mail the forum sends
+  now passes its subject through `SaitoEmailComponent::sanitizeHeaderValue()`,
+  so a caller added later cannot forget it, and the contact form rejects the
+  break outright rather than silently altering what someone typed.
+
+- Δ Changed: **postings decide for themselves what may be filled from an
+  array.** `Entry` had no `$_accessible`, so every column was mass-assignable;
+  nothing was exploitable, because all three call sites build their array field
+  by field, but that was a convention held up by three call sites rather than a
+  property of the entity. Authorship (`user_id`), moderation state (`locked`,
+  `fixed`), `tid`, `views`, `ip` and the two Saito 5 residue columns are denied
+  now and named only where they are genuinely set — pinning and locking through
+  a new `EntriesTable::setPostingState()`, which is reachable only from the
+  action that has already checked `saito.core.posting.pinAndLock`.
+
+- ✓ Fixed: **a posting's JSON payload is escaped into its attribute.** The
+  `data-entry` attribute is delimited by single quotes and `json_encode()`
+  emits an apostrophe unescaped. Safe while the array held only numbers and
+  dates; the day a subject or username joined it, the first apostrophe would
+  have ended the attribute.
+
 ## [8.3.1] - 2026-07-31
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0...8.3.1)

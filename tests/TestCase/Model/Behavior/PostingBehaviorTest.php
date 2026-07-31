@@ -85,7 +85,15 @@ class PostingBehaviorTest extends SaitoTableTestCase
         $entity = $this->Table->get(2);
         $this->assertFalse($entity->get('locked'));
 
-        $patched = $this->Table->patchEntity($entity, ['locked' => true]);
+        // `locked` is not assignable from a plain array (Entry::$_accessible);
+        // this test is about the behaviour's rule that only a thread's root may
+        // be locked, so it names the field the way the one authorized path
+        // does.
+        $patched = $this->Table->patchEntity(
+            $entity,
+            ['locked' => true],
+            ['accessibleFields' => ['locked' => true]]
+        );
         $this->Table->save($patched);
 
         $this->assertTrue($patched->hasErrors());
@@ -97,10 +105,62 @@ class PostingBehaviorTest extends SaitoTableTestCase
         $entity = $this->Table->get(1);
         $this->assertEquals(0, $this->Table->find()->where(['tid' => 1, 'locked' => true])->all()->count());
 
-        $patched = $this->Table->patchEntity($entity, ['locked' => true]);
+        $patched = $this->Table->patchEntity(
+            $entity,
+            ['locked' => true],
+            ['accessibleFields' => ['locked' => true]]
+        );
         $this->Table->save($patched);
 
         $this->assertGreaterThan(1, $this->Table->find()->where(['tid' => 1, 'locked' => true])->all()->count());
+    }
+
+    /**
+     * The other half of the two tests above: without naming the field, a plain
+     * array must not be able to set it.
+     *
+     * These four are what a request could otherwise carry into a posting —
+     * authorship, moderation state, and the thread a posting belongs to — and
+     * the protection is a property of the entity, so this is where it is
+     * checked rather than at each call site that happens to be careful today.
+     *
+     * @return void
+     */
+    public function testPrivilegedFieldsAreNotMassAssignable()
+    {
+        $entity = $this->Table->get(1);
+        $before = [
+            'user_id' => $entity->get('user_id'),
+            'locked' => $entity->get('locked'),
+            'fixed' => $entity->get('fixed'),
+            'tid' => $entity->get('tid'),
+        ];
+
+        $this->Table->patchEntity($entity, [
+            'user_id' => 999,
+            'locked' => true,
+            'fixed' => true,
+            'tid' => 4711,
+        ]);
+
+        foreach ($before as $field => $value) {
+            $this->assertSame($value, $entity->get($field), "$field must not be mass-assignable");
+        }
+    }
+
+    /**
+     * And the authorized path still works.
+     *
+     * @return void
+     */
+    public function testSetPostingStatePins()
+    {
+        $entity = $this->Table->get(1);
+        $this->assertFalse((bool)$entity->get('fixed'));
+
+        $this->Table->setPostingState($entity, 'fixed', true);
+
+        $this->assertTrue((bool)$this->Table->get(1)->get('fixed'));
     }
 
     /**
