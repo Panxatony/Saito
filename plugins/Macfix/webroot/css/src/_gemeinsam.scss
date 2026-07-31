@@ -139,6 +139,30 @@ body.htmx-island #content {
   padding-right: 0 !important;
 }
 
+/// macfix stops growing at 1440px. The island layout caps at
+/// `--isl-maxw: min(1800px, 100%)`, so on a wide screen the forum kept
+/// spreading past the width its readers know — measured 1800px against the
+/// 1440px `#site` reports on the running forum.
+///
+/// Capping `#site` is enough for everything inside it: `#content`,
+/// `#js-headerActions` and the header's full-bleed padding all size off
+/// `--isl-maxw`, whose `100%` then resolves against these 1440px rather than
+/// the viewport, so they follow without being named. `.disclaimer` does have
+/// to be named — it is a *sibling* of `#site`, not a child, which is why the
+/// rule on the running forum lists both too.
+///
+/// `margin-left`/`margin-right` rather than the `margin` shorthand: the island
+/// gives `.disclaimer` a `2rem auto 1rem`, and the shorthand would flatten the
+/// vertical part of it.
+$macfix-page-width: 1440px;
+
+body.htmx-island #site,
+body.htmx-island .disclaimer {
+  max-width: $macfix-page-width;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /// Except on a phone. Flush against the screen edge is where full-bleed stops
 /// being the forum's character and starts being hard to read, so the narrow
 /// layout keeps a little room.
