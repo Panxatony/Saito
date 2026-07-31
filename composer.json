@@ -28,7 +28,7 @@
     "cakephp/plugin-installer": "*",
     "josegonzalez/dotenv": "^4",
 
-    "aura/di": "^4.0",
+    "aura/di": "^5",
     "jbbcode/jbbcode": "~1.4",
     "yzalis/identicon": "*",
     "league/commonmark": "^2.8",
@@ -50,8 +50,8 @@
     "phpunit/phpunit": "^11.5",
     "squizlabs/php_codesniffer": "^3.0",
     "phpstan/phpstan": "^2.1",
-    "symfony/css-selector": "^5.4|^6.0",
-    "symfony/dom-crawler": "^5.4|^6.0",
+    "symfony/css-selector": "^8",
+    "symfony/dom-crawler": "^8",
     "doctrine/instantiator": "^1.5",
     "vimeo/psalm": "^6",
     "cakedc/cakephp-phpstan": "^4.3"

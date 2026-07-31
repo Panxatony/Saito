@@ -24,6 +24,31 @@ gleichzeitig sind möglich. *Auswahl einfügen* setzt sie an die Cursorposition 
 Beitrag. Je nach Art der Datei entsteht dabei die passende Auszeichnung, ein
 Bild also als Bild und ein Video als abspielbares Video.
 
+### Heikles verdecken
+
+Neben *Auswahl einfügen* steht ein Häkchen **Als NSFW einfügen**. Ist es gesetzt,
+erscheint das Eingefügte im Beitrag zunächst verdeckt: unscharf, mit einem
+Hinweis darüber. Erst ein Klick zeigt es, ein weiterer verdeckt es wieder. Bei
+Videos bleibt auch der Abspielknopf gesperrt, solange die Decke liegt.
+
+Das Häkchen gilt für **diese Einfügung**, nicht für die Datei. Dasselbe Bild kann
+also in einem Beitrag verdeckt und in einem anderen offen stehen. Umgekehrt
+heißt das: eine Datei nachträglich zu kennzeichnen ändert nichts an Beiträgen,
+die schon geschrieben sind — dort muss die Auszeichnung im Text ergänzt werden.
+
+Wer den Beitragstext direkt bearbeitet, schreibt es selbst:
+
+```
+[img src=upload nsfw=1]dateiname.jpg[/img]
+```
+
+Das funktioniert genauso für `[video]`, `[audio]` und `[file]`.
+
+Ein Wort zur Ehrlichkeit: die Decke hält das Bild vom Bildschirm fern, nicht vom
+Betrachter. Die Datei selbst liegt unverändert auf dem Server und ist über ihre
+Adresse jederzeit erreichbar. Sie schützt davor, dass etwas unverhofft im
+Großraumbüro auftaucht — sie ist kein Zugriffsschutz.
+
 ### Verwalten
 
 Im eigenen Profil liegt das vollständige Archiv. Dort lassen sich Dateien

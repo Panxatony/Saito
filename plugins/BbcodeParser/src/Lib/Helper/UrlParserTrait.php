@@ -188,7 +188,12 @@ trait UrlParserTrait
      */
     protected function _linkToUploadedFile(string $id): string
     {
-        // @bogus, there's an user-config for that
+        // The note that used to sit here said there was a user configuration
+        // for this path. There is not — checked on 2026-07-30, `/useruploads/`
+        // is written out here, in UserHelper::avatar() and in the RSS template,
+        // and nothing reads a setting for it. Worth knowing before someone
+        // tries to honour a configuration that does not exist; worth changing
+        // in all three places at once if one is ever introduced.
         $root = '/useruploads/';
 
         return $this->Url->build($root . $id, ['fullBase' => true]);

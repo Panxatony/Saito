@@ -118,6 +118,19 @@ $config = [
         'notice' => true,
 
         /**
+         * The second line of that notice: "new here? the help icon is up there".
+         *
+         * Kept apart from `notice` above on purpose. That one describes a change
+         * that happened and stops being true; this one has no expiry date, and
+         * when both shared a switch, turning off the stale message took the
+         * pointer for newcomers with it.
+         *
+         * Absent means shown, same as above — leaving the key out is not the
+         * same as setting it to false.
+         */
+        'noticeHelp' => true,
+
+        /**
          * Show the front page's widget rail — who is online, recent postings —
          * to visitors who are not signed in.
          *

@@ -1301,6 +1301,108 @@ EOF;
         $this->assertHtml($expected, $result);
     }
 
+    /**
+     * An image marked NSFW comes back inside its cover, and the cover sits
+     * *outside* the link to the full-size file — put it inside and the click
+     * that is meant to uncover the picture opens it instead.
+     *
+     * @return void
+     */
+    public function testUploadNsfwImageIsCovered()
+    {
+        $result = $this->_Parser->parse('[img src=upload nsfw=1]test.png[/img]');
+
+        $this->assertStringContainsString('class="nsfwShield"', $result);
+        $this->assertStringContainsString('class="nsfwShield-media"', $result);
+        $this->assertStringContainsString('/useruploads/test.png', $result);
+
+        // The wrapper opens before the link and closes after it.
+        $shield = strpos($result, '<span class="nsfwShield"');
+        $link = strpos($result, '<a href="/useruploads/test.png"');
+        $this->assertNotFalse($shield);
+        $this->assertNotFalse($link);
+        $this->assertLessThan($link, $shield, 'the cover has to enclose the link, not sit inside it');
+
+        // The checkbox and its label have to agree on an id, or the cover
+        // cannot be opened at all.
+        $this->assertSame(
+            1,
+            preg_match('/id="(nsfw-[0-9a-f]{16})"/', $result, $m),
+            'the toggle needs a generated id'
+        );
+        $this->assertStringContainsString('for="' . $m[1] . '"', $result);
+    }
+
+    /**
+     * Two covered images on one page must not share an id — a label would then
+     * open the wrong picture, and postings are rendered from a cache that keeps
+     * whatever was generated.
+     *
+     * @return void
+     */
+    public function testUploadNsfwIdsAreUnique()
+    {
+        $result = $this->_Parser->parse(
+            '[img src=upload nsfw=1]a.png[/img][img src=upload nsfw=1]b.png[/img]'
+        );
+
+        preg_match_all('/id="(nsfw-[0-9a-f]{16})"/', $result, $m);
+        $this->assertCount(2, $m[1]);
+        $this->assertNotSame($m[1][0], $m[1][1]);
+    }
+
+    /**
+     * Without the marker nothing changes — the covered rendering must not leak
+     * into the eleven thousand postings that never asked for it.
+     *
+     * @return void
+     */
+    public function testUploadWithoutNsfwIsUnchanged()
+    {
+        $this->assertStringNotContainsString(
+            'nsfwShield',
+            $this->_Parser->parse('[img src=upload]test.png[/img]')
+        );
+    }
+
+    /**
+     * A marker that reads as a denial does not cover. Authors type these by
+     * hand, and `nsfw=0` meaning "yes" would be the worst possible reading.
+     *
+     * @return void
+     */
+    public function testUploadNsfwDeniedValuesDoNotCover()
+    {
+        foreach (['0', 'false', 'no', 'off'] as $value) {
+            $this->assertStringNotContainsString(
+                'nsfwShield',
+                $this->_Parser->parse("[img src=upload nsfw=$value]test.png[/img]"),
+                "nsfw=$value must not cover"
+            );
+        }
+    }
+
+    /**
+     * Video and audio carry the marker too: `preload='auto'` means the browser
+     * has already drawn a video's first frame by the time anyone looks.
+     *
+     * @return void
+     */
+    public function testUploadNsfwCoversMediaAndFiles()
+    {
+        foreach (
+            [
+            '[video src=upload nsfw=1]test.mp4[/video]' => 'video',
+            '[audio src=upload nsfw=1]test.mp3[/audio]' => 'audio',
+            '[file src=upload nsfw=1]test.txt[/file]' => 'file',
+            ] as $input => $kind
+        ) {
+            $result = $this->_Parser->parse($input);
+            $this->assertStringContainsString('class="nsfwShield"', $result, $input);
+            $this->assertStringContainsString('data-nsfw-kind="' . $kind . '"', $result, $input);
+        }
+    }
+
     public function testUploadTypeFileSrcNotValid()
     {
         $input = '[file src=foo]test.txt[/file]';

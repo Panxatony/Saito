@@ -30,7 +30,13 @@ class ParserHelper extends AppHelper
 {
 
     /**
-     * @var array these Helpers are also used in the Parser
+     * These helpers are also used in the Parser.
+     *
+     * No `@var` here on purpose: the property already carries the native
+     * `array` type, and CakePHP 5.4 narrowed the parent's own PHPDoc to
+     * `array<int|string, array<string, mixed>|string>`. A bare `@var array`
+     * restates it more loosely than the parent, which PHPStan reads — rightly —
+     * as widening an inherited type.
      */
     public array $helpers = [
         'MailObfuscator.MailObfuscator',

@@ -16,6 +16,18 @@ use Cake\View\Helper;
 use JBBCode\ElementNode;
 use Saito\Markup\MarkupSettings;
 
+/**
+ * `$this->Html` and friends are not properties of this class — `__get()` below
+ * hands them through to the calling CakePHP helper. Declaring them is what lets
+ * static analysis see the same thing the runtime does; without it every use in
+ * a subclass reads as access to something undefined.
+ *
+ * Only the helpers the definitions actually reach for are listed. Adding one
+ * that is never used would be a claim about the helper's API that nothing here
+ * checks.
+ *
+ * @property \Cake\View\Helper\HtmlHelper $Html
+ */
 abstract class CodeDefinition extends \JBBCode\CodeDefinition
 {
 
@@ -34,7 +46,15 @@ abstract class CodeDefinition extends \JBBCode\CodeDefinition
     protected $_sTagName;
 
     /**
-     * @var array Saito-options
+     * Saito's markup settings.
+     *
+     * Was declared `array` while the constructor has only ever assigned a
+     * `MarkupSettings`. Six of the sixteen findings that surfaced when this
+     * directory was brought back under static analysis were that one word:
+     * every `$this->_sOptions->get(...)` in the definitions read as calling a
+     * method on an array.
+     *
+     * @var MarkupSettings
      */
     protected $_sOptions;
 

@@ -15,6 +15,7 @@ namespace Plugin\BbcodeParser\src\Lib\jBBCode\Definitions;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Plugin\BbcodeParser\src\Lib\Helper\Message;
+use Plugin\BbcodeParser\src\Lib\Helper\NsfwShieldTrait;
 use Plugin\BbcodeParser\src\Lib\Helper\UrlParserTrait;
 use Plugin\BbcodeParser\src\Lib\Http\SsrfGuard;
 use Plugin\BbcodeParser\src\Lib\Http\SsrfGuardedClient;
@@ -113,13 +114,18 @@ class Embed extends CodeDefinition
                 // v4 exposes typed values (EmbedCode / UriInterface); cast to
                 // strings for the JSON payload the front-end consumes.
                 $code = $info->code;
+                // Four of these used to carry a `?? ''` fallback that could
+                // never fire: embed/embed declares favicon, providerName,
+                // providerUrl and url as non-nullable, so the defaults promised
+                // a robustness that was not there. `title` and `description`
+                // keep theirs — those two really can be absent.
                 $embed = [
                     'html' => $code !== null ? $code->html : '',
-                    'providerIcon' => (string)($info->favicon ?? ''),
-                    'providerName' => (string)($info->providerName ?? ''),
-                    'providerUrl' => (string)($info->providerUrl ?? ''),
+                    'providerIcon' => (string)$info->favicon,
+                    'providerName' => (string)$info->providerName,
+                    'providerUrl' => (string)$info->providerUrl,
                     'title' => (string)($info->title ?? ''),
-                    'url' => (string)($info->url ?? $url),
+                    'url' => (string)$info->url,
                 ];
 
                 if ($this->_sOptions->get('content_embed_text')) {
@@ -140,7 +146,7 @@ class Embed extends CodeDefinition
         $uid = 'embed-' . md5($url); // DOM id for the embed, not password hashing skipcq: PHP-A1004
         $info = Cache::remember($uid, $callable, 'bbcodeParserEmbed');
 
-        return $this->_sHelper->Html->div('js-embed', '', ['id' => $uid, 'data-embed' => json_encode($info)]);
+        return $this->Html->div('js-embed', '', ['id' => $uid, 'data-embed' => json_encode($info)]);
     }
 
     /**
@@ -418,6 +424,7 @@ class Flash extends Iframe
 class FileWithAttributes extends CodeDefinition
 //@codingStandardsIgnoreEnd
 {
+    use NsfwShieldTrait;
     use UrlParserTrait;
 
     protected $_sTagName = 'file';
@@ -438,8 +445,16 @@ class FileWithAttributes extends CodeDefinition
         }
 
         $url = $this->_linkToUploadedFile($content);
+        $link = $this->Html->link($content, $url, ['target' => '_blank']);
 
-        return $this->_sHelper->Html->link($content, $url, ['target' => '_blank']);
+        // A file is a link, not a picture, so there is nothing to blur — but
+        // the name alone can be the thing an author would rather not have on
+        // screen, and the cover hides that along with the link itself.
+        if ($this->_isNsfw($attributes)) {
+            $link = $this->_wrapNsfw($link, 'file');
+        }
+
+        return $link;
     }
 }
 
@@ -447,6 +462,7 @@ class FileWithAttributes extends CodeDefinition
 class Image extends CodeDefinition
 //@codingStandardsIgnoreEnd
 {
+    use NsfwShieldTrait;
     use UrlParserTrait;
 
     protected $_sTagName = 'img';
@@ -498,12 +514,23 @@ class Image extends CodeDefinition
 
         $image = $this->Html->image($url, $options);
 
-        if ($node->getParent()->getTagName() === 'Document') {
-            $image = $this->_sHelper->Html->link(
+        // getParent() is typed as returning a Node, and only an ElementNode has
+        // a tag name. In practice the parser wraps everything in a document
+        // root so an [img] always has one — but the code depended on that
+        // without saying so, and a null parent would have been fatal.
+        $parent = $node->getParent();
+        if ($parent instanceof \JBBCode\ElementNode && $parent->getTagName() === 'Document') {
+            $image = $this->Html->link(
                 $image,
                 $url,
                 ['escape' => false, 'target' => '_blank']
             );
+        }
+
+        // After the link, not before: the cover has to sit outside it, or the
+        // click that reveals the picture opens the full-size file instead.
+        if ($this->_isNsfw($attributes)) {
+            $image = $this->_wrapNsfw($image, 'image');
         }
 
         return $image;
@@ -648,9 +675,14 @@ EOF;
 }
 
 /**
- * Hanldes [upload]<image>[/upload]
+ * Handles [upload]<image>[/upload]
  *
- * @deprecated since Saito 5.2; kept for backwards compatability
+ * @deprecated since Saito 5.2 — nothing writes this tag any more. It is not
+ *     removable, though, and "kept for backwards compatibility" undersells why:
+ *     counted on the live forum on 2026-07-30, **10,901 postings** still contain
+ *     `[upload]`, written between 2010 and 2020. Deleting this class does not
+ *     tidy anything up; it stops eleven thousand postings from rendering their
+ *     images.
  */
 //@codingStandardsIgnoreStart
 class Upload extends Image
@@ -676,9 +708,11 @@ class Upload extends Image
 }
 
 /**
- * Hanldes [upload width=<width> height=<height>]<image>[/upload]
+ * Handles [upload width=<width> height=<height>]<image>[/upload]
  *
- * @deprecated since Saito 5.2; kept for backwards compatability
+ * @deprecated since Saito 5.2 — the attribute form of the tag above. Rarer: one
+ *     posting on the live forum carries it. Kept for the same reason, and
+ *     because `Upload` extends it into existence anyway.
  */
 //@codingStandardsIgnoreStart
 class UploadWithAttributes extends Upload

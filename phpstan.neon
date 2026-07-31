@@ -22,7 +22,5 @@ parameters:
         - plugins/*/webroot/*
         # Composer post-install hook, not application code.
         - src/Console/Installer.php
-        # Inline jBBCode class definitions aren't autoloadable for PHPStan.
-        - plugins/BbcodeParser/src/Lib/jBBCode/Definitions/*
     bootstrapFiles:
         - tests/bootstrap.php

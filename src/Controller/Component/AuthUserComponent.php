@@ -52,7 +52,8 @@ class AuthUserComponent extends Component
     /**
      * Component's components
      *
-     * @var array
+     * No `@var` here — see the note in ParserHelper::$helpers: the native type
+     * says `array`, and restating it loosely widens what CakePHP 5.4 declares.
      */
     public array $components = [
         'Authentication.Authentication',

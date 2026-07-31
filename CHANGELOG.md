@@ -5,7 +5,141 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.1] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0...8.3.1)
+
+No migration runs. Replace the files, clear the cache, done.
+
+- ＋ Added: **media can be inserted covered.** A tick box beside *Insert
+  selection* in the upload overlay marks what is being inserted as
+  not-safe-for-work; in the posting it then arrives blurred under a note, and a
+  click uncovers it — another puts it back. Video keeps its play button out of
+  reach while covered. There is no JavaScript behind it and no schema change:
+  the marker rides in the tag (`[img src=upload nsfw=1]…[/img]`, likewise
+  `[video]`, `[audio]`, `[file]`) and the cover is a checkbox with a `:checked`
+  rule, so it also works with scripting off. Two consequences worth knowing:
+  the marker describes the *insertion*, not the file, so the same upload can be
+  covered in one posting and plain in the next — and marking a file afterwards
+  cannot reach postings already written. The cover keeps a picture off a screen;
+  it is not access control, because the file itself stays reachable at its own
+  address.
+
+- ✓ Fixed: **turning off the "new frontend" notice no longer takes the pointer
+  for newcomers with it.** Two messages shared one switch: one describes a
+  change that happened and stops being true a few weeks later, the other says
+  where the help button is and never stops being true. An installation past the
+  switch had to keep a stale message or lose both. They have separate settings
+  now — `Saito.notice` and `Saito.noticeHelp` — and both keep the convention
+  that an absent key means shown.
+
+## [8.3.0] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.2.9...8.3.0)
+
+### Upgrading — read this part
+
+**Three migrations run, and they need the command line.**
+
+```bash
+php bin/cake.php migrations status     # what is pending
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear    # not optional, see below
+```
+
+- **`bin/cake schema_cache clear` is part of the upgrade, not tidying up
+  afterwards.** One migration drops six columns from `users`, and CakePHP keeps
+  each table's column list on disk. Until that cache is cleared, every request
+  asks the database for a column that no longer exists and gets a 500 — on every
+  page, for everyone logged in. Nothing is damaged; the forum simply stays down
+  until someone works out why. Reload PHP-FPM afterwards.
+- **Not through the web updater.** One migration moves the core tables to
+  InnoDB, and on an installation whose `entries` is still MyISAM that rewrites
+  the table — measured at 5 minutes 31 seconds for 680,000 postings, with the
+  table locked throughout. PHP's execution limit cuts that short in a browser:
+  the server finishes anyway, but it may not be recorded as applied. Check
+  first whether it even applies to you:
+
+  ```sql
+  SELECT table_name, engine FROM information_schema.tables
+  WHERE table_schema = DATABASE() AND engine = 'MyISAM';
+  ```
+
+  An empty result means the expensive part does not concern you.
+- The full picture, including what the InnoDB move does to search results, is in
+  [docs/upgrade.md](docs/upgrade.md).
+
+### What is in it
+
+Drafts that keep what you are writing · a subject-length counter · pinning and
+unpinning working again · uploads deletable where you hit the limit · the search
+finding three-letter words · pasted code keeping its shape · thread merging that
+is all-or-nothing · no inline script anywhere, so a content-security policy can
+forbid it · a lighter stylesheet · a modernised build chain · and a good deal of
+residue removed.
+
+The three pre-release entries below carry the reasoning and the measurements
+for each of those; this release is `8.3.0-alpha.3` with the version number
+changed.
+
+## [8.3.0-alpha.3] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0-alpha.2...8.3.0-alpha.3)
+
+**Still a pre-release**, same three migrations as alpha.2 and the same upgrade
+notes — command line, then `bin/cake schema_cache clear`.
+
+- Δ Changed: **the markup parser is under static analysis again.** The definitions
+  that turn `[code]`, `[img]`, `[url]` and the rest into HTML — the code that
+  handles what members type — were excluded from PHPStan. Sixteen findings came
+  out of that exclusion, and one of them was a type the code was telling about
+  itself: the property holding Saito's markup settings was declared an array
+  while it has only ever held an object, so every setting lookup in every
+  definition read as nonsense. Nothing was broken by it; nothing could be
+  checked either.
+
+  Also honest now about two assumptions: an `[img]` asked its parent node for a
+  tag name that only some node types have (safe in practice, fatal if the parser
+  ever changed), and four fallbacks for embed values that the library declares
+  can never be missing are gone rather than left implying otherwise.
+
+  No behaviour changes. Verified by breaking the one branch that had a
+  behavioural choice in it and watching eight tests fail, then putting it back.
+
+## [8.3.0-alpha.2] - 2026-07-30
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0-alpha...8.3.0-alpha.2)
+
+**Still a pre-release**, and it carries one migration more than the first alpha:
+three in total. The upgrade notes are unchanged otherwise — run
+`bin/cake migrations migrate` from the command line and clear the schema cache
+afterwards, or the forum answers 500 on every page. See the entry below.
+
+- ✓ Fixed: **an error page is an error page again.** Any address containing
+  `api/` anywhere in it — the query string counted — was answered as JSON
+  rather than as the error page: asking for something that does not exist with
+  `?x=api/` on the end produced `{"errors":[…]}` for a reader. The API itself is
+  unaffected and still answers JSON where it should.
+
+- Δ Changed: **CakePHP 5.3.6 → 5.4.1**, along with eight other direct
+  dependencies, plus `aura/di` and Symfony's DOM crawler a major version each.
+  Nothing that required a change to the application; the two static-analysis
+  findings the framework's tightened types produced were in our own
+  annotations, which were saying less than the framework already knew.
+
+- − Removed: **`ecaches`, a cache table Saito stopped writing to in 2014.** The
+  code that used it went in 4.6.0 and the table stayed, which is what happens to
+  a cache nobody reads: on the live forum it still holds a single row, written
+  the day the code was removed, 811 KB of serialized postings from 2014. A
+  guarded migration drops it — an installation built from the migrations never
+  had it, so there it does nothing.
+
+  That makes **three** migrations in 8.3.0 rather than the two the alpha package
+  describes.
+
+  Found the same way as the six `users` columns before it: by comparing a grown
+  database against the schema the migrations describe. Grepping the source can
+  only ever show that nothing *reads* a thing, never that it is residue.
 
 - Δ Changed: **the 8.3.0 upgrade now says to clear the schema cache**, because
   without it the forum does not come back. CakePHP keeps each table's column list
