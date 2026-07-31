@@ -29,6 +29,24 @@ h1 { font-size: 1.5em; }
 h2 { font-size: 1.25em; }
 h3 { font-size: 1.1em; }
 
+// A posting's subject is an h2, but the scale above never reached it: Bota sets
+// `.postingBody-heading { font-size: 1.45em }`, and a class outranks an element
+// selector however late this file loads. So the subject came out at 23.2px
+// against the 20px this scale asks for — measured on the running forum, next to
+// 16px body text and the same subject at 16px in the thread list above it. It
+// read as a different, louder page.
+//
+// Named here rather than by loosening Bota's rule: Bota is the classic theme and
+// looks the way it has always looked. This is Nova's scale, applied to the one
+// heading that was out of reach of it.
+.postingBody-heading {
+  font-size: 1.25em;
+
+  .threadInline-slider & {
+    font-size: 1.1em; // keeps Bota's step down for the inline slider
+  }
+}
+
 // Uppercase micro-labels need tracking to stay readable.
 .infoText,
 .text-muted {

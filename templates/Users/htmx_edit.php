@@ -193,9 +193,19 @@
             <?= $this->Layout->panelHeading(__('Font size')) ?>
         </div>
         <div class="card-body">
+            <?php // Four buttons that all say "A", differing only in how big the A
+                  // is — which tells you they are sizes but not *which* size, and
+                  // nothing distinguishes the one that is the normal size. The
+                  // percentage goes in `title` (shown on hover, needs no script and
+                  // nothing the content-security policy could object to) and in
+                  // `aria-label`, which is what a screen reader announces instead of
+                  // four identical letters. ?>
             <div class="btn-group js-font-scale-group" role="group" aria-label="<?= h(__('Font size')) ?>">
                 <?php foreach (['90' => 'A', '100' => 'A', '112' => 'A', '125' => 'A'] as $scale => $glyph) : ?>
+                    <?php $pct = sprintf(__('font_scale_percent'), (int)$scale); ?>
                     <button type="button" class="btn btn-outline-secondary js-font-scale" data-scale="<?= $scale ?>"
+                            title="<?= h($scale === '100' ? sprintf(__('font_scale_normal'), $pct) : $pct) ?>"
+                            aria-label="<?= h(sprintf(__('font_scale_label'), $pct)) ?>"
                             style="font-size: <?= (int)$scale ?>%;"><?= $glyph ?></button>
                 <?php endforeach; ?>
             </div>

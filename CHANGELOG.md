@@ -11,6 +11,19 @@
 
 No migration runs. Replace the files, clear the cache, done.
 
+- ✓ Fixed: **a posting's subject was louder than the theme's own scale.** Bota
+  sets `.postingBody-heading` to 1.45em and Nova's modern layer sets `h2` to
+  1.25em — a class outranks an element selector, so the scale never reached the
+  one heading it was most visible on. Measured on the running forum: 23.2px
+  where the scale asks for 20, beside 16px body text and the same subject at
+  16px in the thread list above it. Nova now names the heading; Bota, the
+  classic theme, is unchanged.
+
+- ✓ Fixed: **the font-size buttons say which size they are.** Four buttons all
+  reading "A" told you they were sizes but not which, and nothing marked the
+  normal one. The percentage is now in `title` (on hover) and in `aria-label`,
+  which a screen reader announces instead of four identical letters.
+
 - ＋ Added: **media can be inserted covered.** A tick box beside *Insert
   selection* in the upload overlay marks what is being inserted as
   not-safe-for-work; in the posting it then arrives blurred under a note, and a

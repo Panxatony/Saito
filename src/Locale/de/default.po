@@ -2603,6 +2603,15 @@ msgstr "Dateien auswählen"
 msgid "all_categories"
 msgstr "Alle Kategorien"
 
+msgid "font_scale_percent"
+msgstr "%d %%"
+
+msgid "font_scale_normal"
+msgstr "%s (normal)"
+
+msgid "font_scale_label"
+msgstr "Schriftgröße %s"
+
 msgid "upload_insert_nsfw"
 msgstr "Als NSFW einfügen (verdeckt anzeigen)"
 
