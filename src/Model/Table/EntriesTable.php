@@ -459,7 +459,17 @@ class EntriesTable extends AppTable
         $data['last_answer'] = bDate();
 
         /** @var Entry */
-        $posting = $this->newEntity($data, ['accessibleFields' => ['user_id' => true]]);
+        // `tid` alongside `user_id`, and this one was learned the hard way: it is
+        // denied on the entity, and denying it here silently dropped it — a
+        // reply was saved with tid 0 and vanished from its own thread. Both are
+        // server-set by the time they arrive: `user_id` from the current user,
+        // `tid` from the parent in PostingComponent::prepareChildPosting(),
+        // which overwrites whatever a request may have sent. A root posting
+        // gets its tid in afterSave() regardless.
+        $posting = $this->newEntity(
+            $data,
+            ['accessibleFields' => ['user_id' => true, 'tid' => true]]
+        );
         $errors = $posting->getErrors();
         if (!empty($errors)) {
             return $posting;

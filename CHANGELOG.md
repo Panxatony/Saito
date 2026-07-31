@@ -5,6 +5,35 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+- ✓ Fixed: **replies were saved without their thread.** The mass-assignment
+  guard added in 8.3.2 denied `tid` on the posting entity — correctly, so a
+  request cannot move a posting between threads — but `createEntry()` needs to
+  set it, because it arrives from the parent. It was dropped silently instead.
+  A reply was written to the database with `tid` 0: present, and absent from its
+  own thread, while the island answered its author with an error. The thread's
+  `last_answer` was not bumped either, so it did not rise in the list.
+
+  `tid` is named explicitly now, next to `user_id` and for the same reason: by
+  the time `createEntry()` sees them both are set by the application, `tid` from
+  the parent in `PostingComponent::prepareChildPosting()`, which overwrites
+  anything a request may have sent. A root posting still gets its own id in
+  `afterSave()`.
+
+  Four replies on the macnemo installation were affected and have been repaired.
+  If you ran 8.3.2 to 8.3.4, look for them:
+
+  ```sql
+  SELECT id, pid, tid FROM entries WHERE pid > 0 AND (tid = 0 OR tid IS NULL);
+  UPDATE entries k JOIN entries e ON e.id = k.pid SET k.tid = e.tid
+    WHERE k.pid > 0 AND (k.tid = 0 OR k.tid IS NULL);
+  ```
+
+  Check `last_answer` on the roots afterwards, and note that a reply whose
+  parent has since been deleted has no thread left to return to — the delete
+  went by `tid` and could not find it.
+
 ## [8.3.4] - 2026-07-31
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.3...8.3.4)
