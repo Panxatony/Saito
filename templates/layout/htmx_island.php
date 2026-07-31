@@ -197,14 +197,6 @@ $userColors = !empty($CurrentUser) && $CurrentUser->isLoggedIn()
             <div class="js-uploadStatus" style="font-size: .85rem; margin: .4rem 0;"></div>
             <div class="upload-grid js-uploadGrid"></div>
             <div class="upload-actions">
-                <?php // Marks what is being inserted, not the file: the flag rides
-                      // in the BBCode tag, so the same upload can be covered in one
-                      // posting and plain in another. Unticked on every open — a
-                      // remembered tick would silently cover the next insertion. ?>
-                <label class="upload-nsfw">
-                    <input type="checkbox" class="js-uploadNsfw">
-                    <?= h(__('upload_insert_nsfw')) ?>
-                </label>
                 <button type="button" class="btn btn-primary js-uploadInsert" disabled>
                     <?= h(__('upload_insert_selected')) ?>
                 </button>

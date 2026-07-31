@@ -23,44 +23,29 @@ video.
 
 ### Covering the delicate
 
-Next to *Insert selection* sits a tick box, **Insert as NSFW**. With it set, what
-you insert arrives covered: blurred, with a note over it. One click shows it,
-another puts it away again. On a video the play button stays out of reach for as
-long as the cover is on.
+The editor toolbar — beside bold, uploads and preview — carries an **NSFW**
+button. With it pressed the whole posting arrives covered: images, video and
+files blurred under a note, plus a red badge beside the subject. One click shows
+what is underneath, another puts it away. On a video the play button stays out
+of reach for as long as the cover is on.
 
-The tick applies to **this insertion**, not to the file. The same picture can be
-covered in one posting and plain in another. Which also means: marking a file
-afterwards changes nothing about postings already written — there the markup has
-to be added to the text.
+The button is in *every* editor: starting a thread, answering one, and editing.
+A reply does not **inherit** the marking, though — it is its author's own posting
+and is judged on its own.
 
-Editing a posting by hand, you write it yourself:
+Editing the text by hand, single insertions can be marked too:
 
 ```
 [img src=upload nsfw=1]filename.jpg[/img]
 ```
 
-The same works for `[video]`, `[audio]` and `[file]`.
+The same works for `[video]`, `[audio]` and `[file]`, and it is the finer
+instrument when only one picture out of several needs covering.
 
 One honest word: the cover keeps the picture off the screen, not away from the
 viewer. The file itself sits on the server unchanged and can be fetched by its
 address at any time. It guards against something appearing unexpectedly in an
 open-plan office; it is not access control.
-
-### Marking a posting NSFW
-
-Starting a new thread offers a tick box, **Not safe for work (NSFW)**. With it
-set the posting carries a red badge — in the thread list and on the posting page
-— and **every image, video and file in it arrives covered**, without anything
-having to change about the individual insertions.
-
-It is the easier route than the tick box in the upload overlay: once for the
-posting instead of once per picture. Both work, and both uncover on a click.
-
-A **reply does not inherit the marking**. It is its author's own posting and is
-judged on its own.
-
-Saito had this badge once and lost it in a rewrite — the old markings sat in the
-database the whole time, and they are visible again with it.
 
 ### Managing
 

@@ -5,6 +5,27 @@
 - Δ Changed
 - − Removed
 
+## [8.3.3] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.2...8.3.3)
+
+No migration runs. Replace the files, clear the cache, done — coming from
+8.3.1 or older, take the 8.3.2 notes with you: one migration runs there.
+
+- Δ Changed: **the NSFW marking moved into the editor toolbar, and works on
+  replies.** It was a tick box under the text field of the new-thread form only
+  — where nobody found it, and where an answer carrying the picture had no way
+  to say so at all. It is now a toggle beside bold and uploads, in every editor:
+  starting a thread, answering one, and editing. Nothing is inherited; a reply
+  is marked on its own merits or not at all. A checkbox and a `:checked` rule,
+  so no JavaScript and nothing for the content-security policy to object to.
+
+- − Removed: **the NSFW tick box in the upload overlay.** One place for the
+  marking instead of two, and the toolbar is the one people look at. The parser
+  still *reads* `nsfw=1` on a tag — postings written while the tick box existed
+  keep their cover, and hand-editing the markup is still the finer instrument
+  when only one picture out of several needs covering.
+
 ## [8.3.2] - 2026-07-31
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.1...8.3.2)

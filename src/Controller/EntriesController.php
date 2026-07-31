@@ -471,6 +471,10 @@ class EntriesController extends AppController
             $data = [
                 'subject' => (string)$this->getRequest()->getData('subject'),
                 'text' => (string)$this->getRequest()->getData('text'),
+                // The toggle is in the toolbar, so it is submitted with every
+                // edit — including an edit that clears it, which is why it is
+                // read unconditionally rather than only when set.
+                'nsfw' => (bool)$this->getRequest()->getData('nsfw'),
             ];
             // Only a thread's root carries the category.
             if ($isRoot) {
@@ -801,6 +805,10 @@ class EntriesController extends AppController
                 // Required by validation and set the same way as the REST add().
                 'name' => $this->CurrentUser->get('username'),
                 'user_id' => $this->CurrentUser->getId(),
+                // An answer is its own posting and can be marked on its own.
+                // Nothing is inherited from the thread it hangs under — that
+                // part of Saito 4's rule still holds.
+                'nsfw' => (bool)$this->getRequest()->getData('nsfw'),
             ];
             try {
                 $posting = $this->Posting->create($data, $this->CurrentUser);
