@@ -153,6 +153,39 @@ class UsersControllerTest extends IntegrationTestCase
     }
 
     /**
+     * Registration sends a mail to whatever address was typed in, so the form
+     * needs a budget of its own — otherwise it is a way to make the forum send
+     * mail to third parties on demand, from its own domain and with its SPF and
+     * DKIM behind it.
+     *
+     * The honeypot and the five-second minimum the form already had are bot
+     * defences and no help here: both are satisfied by waiting, and the wait is
+     * per session rather than per client.
+     *
+     * @return void
+     */
+    public function testRegistrationIsThrottledPerClient()
+    {
+        Cache::clear('default');
+        try {
+            $this->mockSecurity();
+
+            // Exhaust the budget (REGISTER_MAX_ATTEMPTS = 5). The attempts
+            // themselves need not succeed — a rejected one still costs, and
+            // still would have told the sender whether an address is taken.
+            for ($i = 0; $i < 5; $i++) {
+                $this->post('/users/htmx-register', ['username' => 'x', 'user_email' => 'x@example.com']);
+                $this->assertResponseNotContains('user.authe.throttled');
+            }
+
+            $this->post('/users/htmx-register', ['username' => 'x', 'user_email' => 'x@example.com']);
+            $this->assertResponseContains('Too many');
+        } finally {
+            Cache::clear('default');
+        }
+    }
+
+    /**
      * Logging in with "remember me" must set a *persistent* auth cookie.
      *
      * Regression: the Cookie authenticator was configured with the Cake 3

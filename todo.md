@@ -210,6 +210,56 @@ already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
 on Alpine now — so its markup is the one thing still tying it to Bootstrap.
 Doing it separately means paying for it twice.
 
+### The schema a fresh install gets is not the schema prod runs
+
+Measured on 2026-07-31 by replaying every migration into an empty database and
+comparing it column by column with a production dump: **125 columns on prod,
+123 from the migrations.**
+
+Careful with the method — the first attempt compared against the *test*
+database and produced sixteen extra differences that were not real. The
+fixtures under `tests/Fixture/` declare their own `$fields`, so that database
+is built from hand-maintained approximations rather than from the migrations.
+Whatever is measured here has to come from a migration replay.
+
+Two columns exist only on prod (`entries.flattr`, `entries.nsfw`; see below).
+The rest are the same columns with different types, and most of it does not
+matter — display widths, `unsigned` on id columns, `tinyint(4)` where the
+migration says `int(11)`. Three do matter:
+
+| | migrations | prod |
+|---|---|---|
+| `entries.text`, `drafts.text`, `users.profile` | `text` — 64 KB | `mediumtext` — 16 MB |
+| `users.username` | `varchar(191)` | `varchar(255)` |
+| `users.last_refresh`, `…_tmp` | `datetime` | `timestamp` |
+
+A posting longer than 64 KB exists on prod and cannot be imported into a fresh
+install. A username longer than 191 characters likewise. And `timestamp` is
+converted by MySQL against the session timezone while `datetime` is not — the
+same stored value means different things on the two, which is the timezone item
+further up wearing a different hat, and `timestamp` additionally ends in 2038.
+
+Either the migrations should state what prod actually runs, or prod should be
+brought to what the migrations say. Not urgent — but a restore of a prod dump
+onto a freshly migrated install is exactly the situation where it would be
+found, and that situation is a bad one to discover it in.
+
+### `bin/cake migrations` does not run where dev dependencies are installed
+
+    PHP Fatal error: Type of Migrations\Command\BakeSimpleMigrationCommand::$args
+    must be Cake\Console\Arguments (as in class Cake\Console\BaseCommand)
+
+`cakephp/migrations` ships a bake command whose signature no longer matches the
+`cakephp/bake` we require, and the console loads every command before running
+any of them. Production is unaffected — it is installed with `--no-dev`, so
+bake is not there, and `php bin/cake.php migrations migrate` ran fine during
+the 8.3.1 deploy.
+
+It still deserves fixing: the upgrade documentation tells operators to run that
+command, and any installation with dev dependencies gets a fatal error instead.
+Related to the `cakephp/migrations` 4 → 5 line above — worth checking whether
+that upgrade settles this too.
+
 ### Two more residue columns in `entries`
 
 `flattr` and `nsfw`, both `tinyint(1) unsigned`, on the same footing as the six
@@ -240,3 +290,27 @@ address, name or password, so nothing is running unguarded. It is the opposite
 problem — the file reads as though admins can do those things, and a reader
 checking what an admin may reach would believe it. Either the features are
 wanted, or the four lines should go.
+
+### Registration tells you whether an address already has an account
+
+`error_email_reserved` on a duplicate address — which is what a registration
+form has to say for the person filling it in, and at the same time an oracle
+for asking whether someone is a member here. The throttle added in 8.3.2 caps
+it at five questions an hour per address, which is the cheap half of the fix.
+The expensive half is accepting the registration silently and saying so only in
+the mail, and that changes what a person sees when they simply mistyped. Worth
+deciding on rather than drifting into.
+
+### There is no way back in without a password
+
+No "forgot password" exists anywhere — no action, no route, no link, no token,
+not even a translated string; grepped on 2026-07-31. Changing a password
+requires the old one (`validateCheckOldPassword`), and no admin path sets
+another member's password either — `saito.core.user.password.set` is declared
+and never checked, see below.
+
+As a security property this is unusually good: no reset token to steal, guess
+or race, and a stolen session cannot lock the owner out because it cannot
+change the password without knowing it. As an operational property it means a
+member who forgets theirs cannot be helped by anybody, and the only remedy is a
+new account. Somebody should decide which of the two that is.

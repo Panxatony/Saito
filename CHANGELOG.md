@@ -7,6 +7,13 @@
 
 ## [next] -
 
+- ✓ Fixed: **the registration form has a budget now.** It sends a mail to
+  whatever address is typed into it, and it was the only unauthenticated form
+  without a per-client limit — the honeypot and the five-second minimum are bot
+  defences, and both are satisfied by waiting. Five attempts an hour per client,
+  the same shape the contact form already used, counted on the way in so a
+  rejected attempt still costs.
+
 - ✓ Fixed: **a line break in a contact-form subject could add a mail header.**
   CakePHP passes a plain-ASCII header value through unchanged, so a subject of
   `Hallo\r\nBcc: …` came out of `Message::getHeadersString()` as two header
