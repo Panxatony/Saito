@@ -5,7 +5,11 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.1] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.0...8.3.1)
+
+No migration runs. Replace the files, clear the cache, done.
 
 - ＋ Added: **media can be inserted covered.** A tick box beside *Insert
   selection* in the upload overlay marks what is being inserted as
