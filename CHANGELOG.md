@@ -5,7 +5,9 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.7] - 2026-08-01 "daumenkino"
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.6...8.3.7)
 
 No migration runs. **Clear the thumbnail cache after replacing the files** —
 `bin/cake.php cache clear uploadsThumbnails`, or delete `tmp/cache/uploads/`.
@@ -28,6 +30,12 @@ faster for good.
   or plain text, and those never reached the image library only because they
   were usually small. A file the library cannot read is served as it lies rather
   than leaving a hole in the grid.
+
+- Δ Changed: **three build-tooling dependencies moved up**, Dependabot's first
+  three pull requests: `websocket-driver` 0.7.3 → 0.7.5, `qs` 6.9.1 → 6.15.3,
+  `braces` 3.0.2 → 3.0.3. All transitive — `package.json` is untouched, only the
+  lock file moved. The tree's one critical advisory is gone with them; what
+  remains is build tooling that never reaches a browser or a server.
 
 ## [8.3.6] - 2026-08-01 "waffel"
 
