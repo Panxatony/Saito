@@ -5,6 +5,30 @@
 - Δ Changed
 - − Removed
 
+## [8.3.10] - 2026-08-01 "hybi"
+
+No migration. The stylesheet and the island bundle both changed; the parser
+markup changed with them, so the posting cache has to go too.
+
+```bash
+php bin/cake.php cache clear_all
+```
+
+- Δ Changed: **a covered picture covers itself again on the next click.** The
+  cover was one-way in practice: revealing worked, putting it back meant aiming
+  at a small tab in the corner, and a click that missed hit the picture — which
+  is wrapped in a link to the full-size file, so it opened full-size in a new
+  tab. Now a click anywhere on a revealed picture toggles it: blurred, clear,
+  blurred, clear. The trade, deliberately, is that for a marked picture the
+  full-size view is no longer one click away. Video, audio and files keep the
+  corner tab, because their controls — play, seek, download — sit inside the
+  media and a cover over them would take away what the reveal was for.
+
+- ✓ Fixed: **a rejected reply handed the form the subject it had computed**
+  rather than the one that was typed, which turns the pale placeholder into a
+  value that has to be deleted. Not reachable with today's validation rules, and
+  a trap for whoever adds one for the posting text.
+
 ## [8.3.9] - 2026-08-01 "handbreit"
 
 Two things that only show up when the forum is used rather than built. No

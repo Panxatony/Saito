@@ -85,6 +85,12 @@ trait NsfwShieldTrait
      * `[img]` is wrapped in a link to the full-size file, and a click meant to
      * reveal the picture would open it instead.
      *
+     * The badge and its hints sit in their own `nsfwShield-tab` rather than
+     * directly in the label. For a picture the label keeps covering the whole
+     * area after the reveal — invisibly — so that clicking anywhere puts the
+     * cover back; the tab is what is actually drawn in the corner. Two elements
+     * because one cannot both fill the box and be a small tab in it.
+     *
      * @param string $html the rendered media, already escaped by its caller
      * @param string $kind `image`, `video`, `audio` or `file` — only used to
      *     tell the reader what is underneath
@@ -106,9 +112,11 @@ trait NsfwShieldTrait
             . '<input type="checkbox" class="nsfwShield-toggle" id="' . $id . '">'
             . '<span class="nsfwShield-media">' . $html . '</span>'
             . '<label class="nsfwShield-veil" for="' . $id . '">'
+            . '<span class="nsfwShield-tab">'
             . '<span class="nsfwShield-badge" aria-hidden="true">NSFW</span>'
             . '<span class="nsfwShield-hint nsfwShield-hint--show">' . h($label) . '</span>'
             . '<span class="nsfwShield-hint nsfwShield-hint--hide">' . h($hide) . '</span>'
+            . '</span>'
             . '</label>'
             . '</span>';
     }

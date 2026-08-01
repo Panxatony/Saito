@@ -798,10 +798,10 @@ class EntriesController extends AppController
             // submitted when the writer leaves it alone — and without this the
             // posting would get the parent's subject *without* the "Re:" the
             // field had just promised.
-            $subject = trim((string)$this->getRequest()->getData('subject'));
-            if ($subject === '') {
-                $subject = $this->replySubject((string)$parent->get('subject'));
-            }
+            $typedSubject = trim((string)$this->getRequest()->getData('subject'));
+            $subject = $typedSubject !== ''
+                ? $typedSubject
+                : $this->replySubject((string)$parent->get('subject'));
 
             $data = [
                 'pid' => $parent->get('id'),
@@ -829,7 +829,13 @@ class EntriesController extends AppController
             }
 
             $this->set('errors', $posting !== null ? $posting->getErrors() : []);
-            $this->set('submitted', $data);
+            // What the writer typed, not what was made of it. `$data` carries
+            // the filled-in subject because that is what gets saved; putting the
+            // same thing back into the form would turn the pale placeholder into
+            // a real value the writer now has to delete before typing their own
+            // — and it would stay there while they type, which is exactly what a
+            // placeholder must not do.
+            $this->set('submitted', ['subject' => $typedSubject] + $data);
         }
 
         if (!$this->getRequest()->is('post')) {
