@@ -57,7 +57,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "24"
 
       # ----------------------------------------------------------------
       # The two that matter. Both run even if the first one fails, so one

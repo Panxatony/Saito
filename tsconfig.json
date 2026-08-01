@@ -6,7 +6,6 @@
     // as an error in island code that has always shipped and always worked.
     // The build never noticed: esbuild strips types without checking them.
     "lib": ["ES2017", "DOM", "DOM.Iterable"],
-    "baseUrl": ".",
     "allowSyntheticDefaultImports": true,
     "strict": true,
   },

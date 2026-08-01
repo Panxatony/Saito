@@ -53,6 +53,43 @@ All four remaining were attempted one at a time with the suite as the gate,
 which is the only reason the notes above say anything useful. Two went in, two
 came back out.
 
+### The stylesheets compile with 300 deprecation warnings
+
+Surfaced on 2026-08-01 by the Node 24 upgrade. `grunt-dart-sass` declares `sass`
+as a *peer* dependency, which yarn 1 never installs; the old lockfile happened
+to carry sass 1.24.4 from an older resolution. Declaring it properly brought
+1.102, and with it warnings the 2020 compiler never printed:
+
+| Warning | Deadline |
+|---|---|
+| `@import` is deprecated | removed in Dart Sass **3.0** |
+| `lighten()` / `darken()` are deprecated | use `color.adjust()` / `color.scale()` |
+| `/` for division outside `calc()` | removed in Dart Sass **2.0** |
+| global built-ins (`abs()`, `if()`) | removed in Dart Sass **3.0** |
+| the legacy JS API grunt-dart-sass uses | removed in Dart Sass **2.0** |
+
+Nothing is broken: the compiled CSS was checked against the previous compiler by
+rendering the live front page and a posting page and comparing pixel by pixel —
+zero differing pixels out of 2.8 and 2.3 million. The output only *looks*
+different in the file, where `darken()` results now print as
+`rgb(50.67%, 13.72%, 11.08%)` instead of `#8b0404`.
+
+The last row is the awkward one and should be settled first: `grunt-dart-sass`
+was last released in 2021 and calls the API that goes away in Dart Sass 2. The
+partials can be modernised at leisure; that dependency needs a decision — a
+maintained replacement, or compiling sass from a plain script instead of a grunt
+task.
+
+Not urgent, and not the kind of thing to do in the same change that moved Node.
+
+### TypeScript stays on 6 until typescript-eslint catches up
+
+`typescript-eslint` refuses to load against TypeScript 7 — it says so and exits,
+so `yarn lint` produces no lint at all. Tracked upstream as
+typescript-eslint#10940. TS 6.0.3 type-checks the island cleanly, so there is
+nothing to gain from forcing it; this is a note so the next person who sees
+Dependabot offer TypeScript 7 knows it has already been tried.
+
 ### Timezones: the database holds local time, the framework believes in UTC
 
 
