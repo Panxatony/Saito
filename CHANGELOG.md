@@ -5,6 +5,52 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+**Two migrations run.** Both are guarded: they check what is there before
+changing it, because the columns they touch are older than these migrations and
+exist only on installations that have been running for years.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+- − Removed: **the last of Flattr.** `entries.flattr` and three settings rows
+  configuring a micropayment service that no longer exists, read by no code
+  since the Saito 5 rewrite. On a grown forum the column holds marks set between
+  2011 and 2018 — 16,104 of them on the macnemo installation. If you want them,
+  take them out of your backup first; there is no way back afterwards. This is
+  the twin of `entries.nsfw`, which sat in the same state and was answered the
+  other way in 8.3.2, because that marking still meant something a reader wants.
+
+- ✓ Fixed: **a fresh installation could not hold what a grown one does.**
+  `entries.text`, `drafts.text` and `users.profile` were `TEXT` here and
+  `MEDIUMTEXT` on an established forum — 64 KB against 16 MB. The longest
+  posting on the macnemo installation is 294,739 characters, so its dump could
+  not have been restored into an installation built from these migrations, and
+  outside MySQL's strict mode it would have been cut rather than refused.
+
+- ✓ Fixed: **the database now holds the promise the application makes about
+  usernames.** `UsersTable` validates them as unique, case-insensitively. A
+  fresh installation backed that with a UNIQUE index; a grown one had a plain,
+  non-unique one. Nothing had gone wrong — 821 members, 821 distinct names — but
+  two simultaneous registrations could both have passed validation and both been
+  written.
+
+- − Removed: **`cakephp/bake` as a development dependency.** Its base class
+  declares `protected Arguments $args` where `cakephp/migrations` declares the
+  same property nullable, and PHP refuses that outright: `bin/cake migrations`
+  ended in a fatal error on any installation with development dependencies
+  installed — the very command the upgrade documentation tells operators to run.
+  Nothing in this project bakes, and no other package asked for it.
+
+- Δ Changed: **`upgrade.md` says seven migrations, and says why going straight
+  from 5.7 works.** That claim used to be an assertion; it is now a measurement.
+  A database was migrated to the 5.7 level, taken to the current release in one
+  run, and compared column by column with a fresh installation: 124 columns on
+  both sides, no difference.
+
 ## [8.3.7] - 2026-08-01 "daumenkino"
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.6...8.3.7)

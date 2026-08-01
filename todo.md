@@ -34,32 +34,6 @@ Also left: `config/nginx/saito.conf.example` still carries the strict policy
 commented out. Now that three installations run it, the comment could come off
 — with a line saying what an installation must check first.
 
-### Turn on Dependabot alerts in the repository
-
-`.github/dependabot.yml` schedules *version* updates and works as soon as it is
-merged. *Security* updates — the ones that react to an advisory with a pull
-request — need a switch nobody can set from a file:
-
-**github.com/Panxatony/Saito → Settings → Code security → Dependabot alerts**,
-and *Dependabot security updates* directly beneath it.
-
-Without it the weekly updates still arrive, but an advisory published on a
-Tuesday waits until Monday. The nightly `security-audit` workflow reports it
-either way; this is what proposes the fix.
-
-### `session.use_strict_mode` is off on prod
-
-`/usr/local/etc/php.ini` in the macnemo jail has `session.use_strict_mode = 0`,
-so PHP accepts a session id the client made up. It is **not** exploitable today:
-`SessionAuthenticator` calls `$session->renew()` on both login and logout, so an
-id planted before login is not the one that ends up authenticated — checked in
-the vendor source rather than assumed. Setting it to `1` costs nothing and
-removes the need to know that.
-
----
-
-## No release assigned
-
 ### Dependencies still a major version behind
 
 Everything that fits inside the constraints already set was taken on
@@ -223,76 +197,44 @@ already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
 on Alpine now — so its markup is the one thing still tying it to Bootstrap.
 Doing it separately means paying for it twice.
 
-### The schema a fresh install gets is not the schema prod runs
+### The last two schema differences, and why they stay
 
-Measured on 2026-07-31 by replaying every migration into an empty database and
-comparing it column by column with a production dump: **125 columns on prod,
-123 from the migrations.**
+Measured again on 2026-08-01, after the migrations added in 8.3.7 and 8.3.8:
+**21 differences remain between a freshly migrated database and production, and
+19 of them are nothing.**
 
-Careful with the method — the first attempt compared against the *test*
-database and produced sixteen extra differences that were not real. The
-fixtures under `tests/Fixture/` declare their own `$fields`, so that database
-is built from hand-maintained approximations rather than from the migrations.
-Whatever is measured here has to come from a migration replay.
+Display widths (`int(11)` against `int(4)`), `unsigned` on columns that only
+ever hold positive ids and booleans, `char(32)` against `varchar(32)` for a
+fixed-length hash. MySQL stores all of these identically; nothing behaves
+differently. Levelling them would mean an `ALTER TABLE` on every table on a
+forum whose `entries` holds 680,000 rows — real risk, no gain. They stay.
 
-Two columns exist only on prod (`entries.flattr`, `entries.nsfw`; see below).
-The rest are the same columns with different types, and most of it does not
-matter — display widths, `unsigned` on id columns, `tinyint(4)` where the
-migration says `int(11)`. Three do matter:
+The two that are real are `users.last_refresh` and `users.last_refresh_tmp`:
+**`timestamp` on production, `datetime` from the migrations.** Here the
+migrations are the correct side. `timestamp` is converted by the server against
+the session timezone on both write and read, and it runs out in 2038; `datetime`
+does neither.
 
-| | migrations | prod |
-|---|---|---|
-| `entries.text`, `drafts.text`, `users.profile` | `text` — 64 KB | `mediumtext` — 16 MB |
-| `users.username` | `varchar(191)` | `varchar(255)` |
-| `users.last_refresh`, `…_tmp` | `datetime` | `timestamp` |
+Converting production means rewriting two columns whose values were written
+under whatever timezone the server had at the time — which is not a schema
+change, it is the timezone item further up wearing a different hat. It belongs
+with that work, not before it.
 
-A posting longer than 64 KB exists on prod and cannot be imported into a fresh
-install. A username longer than 191 characters likewise. And `timestamp` is
-converted by MySQL against the session timezone while `datetime` is not — the
-same stored value means different things on the two, which is the timezone item
-further up wearing a different hat, and `timestamp` additionally ends in 2038.
+**What was closed instead**, and is now identical on both sides: `entries.nsfw`
+and `entries.flattr` (one added where missing, one dropped), `entries.text`,
+`drafts.text` and `users.profile` (`text` → `mediumtext`, 64 KB → 16 MB), and
+the `users.username` index, which was UNIQUE on a fresh install and a plain
+non-unique prefix on a grown one.
 
-Either the migrations should state what prod actually runs, or prod should be
-brought to what the migrations say. Not urgent — but a restore of a prod dump
-onto a freshly migrated install is exactly the situation where it would be
-found, and that situation is a bad one to discover it in.
+That last one was the find worth having. `UsersTable` validates usernames as
+unique, case-insensitively; production had 821 members and no index enforcing
+it. Nothing had gone wrong — 821 names, 821 distinct lower-cased — but the
+database was not holding a guarantee the application was already making.
 
-### `bin/cake migrations` does not run where dev dependencies are installed
-
-    PHP Fatal error: Type of Migrations\Command\BakeSimpleMigrationCommand::$args
-    must be Cake\Console\Arguments (as in class Cake\Console\BaseCommand)
-
-`cakephp/migrations` ships a bake command whose signature no longer matches the
-`cakephp/bake` we require, and the console loads every command before running
-any of them. Production is unaffected — it is installed with `--no-dev`, so
-bake is not there, and `php bin/cake.php migrations migrate` ran fine during
-the 8.3.1 deploy.
-
-It still deserves fixing: the upgrade documentation tells operators to run that
-command, and any installation with dev dependencies gets a fatal error instead.
-Related to the `cakephp/migrations` 4 → 5 line above — worth checking whether
-that upgrade settles this too.
-
-### `entries.flattr` can go
-
-A dead payment service from 2014, `tinyint(1) unsigned`, on 16104 postings on
-prod and read by nothing. It only ever mattered as the twin of `entries.nsfw`,
-and that one is in use again — the badge and the cover both hang off it, and a
-migration now creates it where it is missing.
-
-`flattr` has no such story. It stays denied in `Entry::$_accessible` until
-somebody drops it.
-
-### Three permissions that are declared and never checked
-
-`saito.core.user.email.set`, `saito.core.user.name.set` and
-`saito.core.user.lock.view` are defined in `config/permissions.php` and appear
-nowhere else. All three were live in 5.7.1 — the first two on the profile's edit
-page, the third in the forum's own UsersController — and died with
-`98e0a1b48 Step 2: remove the SPA entry points`. They are residue, not a gap:
-there is no path that changes another member's address or name, so nothing runs
-unguarded. Either the features are wanted back, as `password.set` was, or the
-three lines should go.
+And the `text` one was not theoretical either: the longest posting on that forum
+is **294,739 characters**, four and a half times what a `TEXT` column holds. A
+dump of it could not have been restored into a freshly migrated install, and
+outside strict mode it would have been cut rather than refused.
 
 ### Registration tells you whether an address already has an account
 

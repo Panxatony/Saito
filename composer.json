@@ -43,7 +43,6 @@
     "tempest/highlight": "^2.27"
   },
   "require-dev": {
-    "cakephp/bake": "^3",
     "cakephp/cakephp-codesniffer": "^5",
     "cakephp/debug_kit": "^5",
     "psy/psysh": "@stable",
