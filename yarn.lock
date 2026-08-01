@@ -2882,10 +2882,10 @@ type-check@^0.4.0, type-check@~0.4.0:
   dependencies:
     prelude-ls "^1.2.1"
 
-typeface-cabin@^0.0.72:
-  version "0.0.72"
-  resolved "https://registry.yarnpkg.com/typeface-cabin/-/typeface-cabin-0.0.72.tgz#33667852f30d574b5136f6cd08d162384b19a0d2"
-  integrity sha512-YN3MG1CaqyGygSekamQ8HnuZEv6hvn4XHITPf1N/v9sp0sCQ3VHM+e9xDjiIVPjsTyScC8s/TZ79xZvcOZYJ+g==
+typeface-cabin@^1.1.13:
+  version "1.1.13"
+  resolved "https://registry.yarnpkg.com/typeface-cabin/-/typeface-cabin-1.1.13.tgz#9c365222b2d0729251715cf43b25e0035d7ab2ef"
+  integrity sha512-Kp4ucB4Vfd95XbLdqAR/2D4YC7EwKbMMKYw0s9agJuj3ubChvK43C3lY9e8piwyO8RzyZipZkUAwbS7FttEYfQ==
 
 typeface-fenix@^0.0.72:
   version "0.0.72"
