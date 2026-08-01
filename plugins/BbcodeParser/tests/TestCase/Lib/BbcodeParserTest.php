@@ -1785,10 +1785,7 @@ EOF;
         $SmileyLoader = new \Saito\Smiley\SmileyLoader();
 
         //= userlist fixture
-        $Userlist = $this->getMockBuilder(UserlistModel::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['get'])
-            ->getMock();
+        $Userlist = $this->createStub(UserlistModel::class);
         $Userlist->method('get')->willReturn(['Alice', 'Bobby Junior', 'Dr. No']);
 
         //= ParserHelper

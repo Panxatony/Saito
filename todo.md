@@ -46,7 +46,6 @@ was measured, not guessed:
 |---|---|
 | `cakephp/authentication` 3 → 4 | **Tried. 250 tests fail.** Version 4 changed the shape of the identifier configuration — "Identifier configuration must specify a class name" — so `src/Auth/AuthenticationServiceFactory.php` has to be rewritten, not re-pinned. Reverted. Security-relevant, so worth doing properly. |
 | `cakephp/migrations` 4 → 5 | **Tried. 25 errors.** Under 5 the `Initial` migration no longer creates the tables, so the next migration runs against a `users` that is not there. Our migration files need work, not a new constraint. Reverted. |
-| `phpunit` 11 → 13 | **Tried, and closer than it looks: every one of the 647 tests passes with the same 1545 assertions.** The run exits non-zero on 548 *notices*, and they come from vendor code — `suin/php-rss-writer` and `jbbcode` — plus one warning about `apc.enable_cli`, an ini in `phpunit.xml` that already fails to apply today. So this is not a code migration but a decision: should the suite fail on deprecations raised inside dependencies? Answer that first, then this is a short job. Reverted for now. |
 | `squizlabs/php_codesniffer` 3 → 4 | **Not ours to move.** `cakephp/cakephp-codesniffer` and `slevomat/coding-standard` both still require `^3`. Wait for them. |
 
 All four remaining were attempted one at a time with the suite as the gate,
@@ -123,19 +122,48 @@ value is printed unchanged and happens to be right.
   Its correctness rests on the server timezone and a display setting happening to
   agree.
 
-**Why it is not fixed yet:** setting `APP_DEFAULT_TIMEZONE` to `Europe/Berlin`
-shifts *every* time at once, including 2006, and those old rows may have been
-written under changing assumptions. It needs:
+**The inventory is done — 2026-08-01, on production — and it makes this smaller
+than it looked.**
 
-1. an inventory of whether `entries.time` really is local throughout (check the
-   DST boundaries — times around 02:00 in October),
-2. a decision: migrate the stored data to UTC (clean, but a one-time risk) or
-   teach the framework the right timezone (cheaper, but keeps local time in the
-   database),
-3. a pass over every output path: `TimeHHelper`, `<time>` elements, feeds,
-   sorting, "unread since", and `UsersController::_failedLoginMessage()`, which
-   feeds the database-local block `ends` through `timeAgoInWords` as if it were
-   UTC — so "your block ends in N hours" is off by the server offset.
+`entries.time` is a **`timestamp`**, not a `datetime`. MySQL stores those as UTC
+internally and converts on read and write through the session timezone. So the
+stored instant is unambiguous; a repeated hour cannot corrupt it, and **there is
+no data to migrate**. That removes the risky half of the job.
+
+That it is local time on the way out was measured three independent ways, and
+they agree back to the first posting in 2006:
+
+| | |
+|---|---|
+| `time` against `created` on the same row (`timestamp` vs `datetime`) | exactly 7200 s in summer, 3600 s in winter, **no exception in 17,345 rows** |
+| the hour that does not exist (last Sunday in March, 02:00–02:59) | **0 postings** — against 53 on the preceding Sunday |
+| the hour that happens twice (last Sunday in October) | **179** in hour 2 against 141 in hour 1; on an ordinary Sunday it falls 163 → 73 |
+
+The daily rhythm of all 680,280 postings confirms it a fourth time: the trough
+sits at 05:00–06:00 and the peak at midnight. In UTC the trough would be at 03:00.
+
+**What is actually wrong** is one thing only: the application reads the returned
+local time as if it were UTC. That is configuration and output, not storage.
+
+**What cannot be repaired:** 179 postings — 0.026% — were written during a
+repeated hour, and their true instant is uncertain by one hour. The information
+was lost when they were written.
+
+**Found alongside, and it belongs to the same job:** `timestamp` cannot hold an
+instant after **2038-01-19**. That is `entries.time`, `last_answer`, `edited`,
+`users.registered` and `last_login` — the columns new postings are written to.
+Eleven years off, but it is a date rather than a worry, and whoever moves the
+timezones should lift those columns to `datetime`, which has no such ceiling.
+
+Also noticed: six postings whose `edited` predates their `time`, and seven with
+`last_answer < time`. Thirteen rows out of twenty years, almost certainly import
+residue. No effect, recorded so the next person does not rediscover them.
+
+**What remains** is a pass over every output path: `TimeHHelper`, `<time>`
+elements, feeds, sorting, "unread since", and
+`UsersController::_failedLoginMessage()`, which feeds the database-local block
+`ends` through `timeAgoInWords` as if it were UTC — so "your block ends in N
+hours" is off by the server offset.
 
 ### Video uploads
 

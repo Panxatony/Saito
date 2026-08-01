@@ -41,10 +41,9 @@ class RefererComponentTest extends SaitoTestCase
         // Setup our component and fake test controller
         $request = new ServerRequest(['url' => '/users/view/5']);
         $response = new Response();
-        $this->controller = $this->getMockBuilder('Cake\Controller\Controller')
-            ->setConstructorArgs([$request])
-            ->onlyMethods([])
-            ->getMock();
+        // A real controller: the double replaced no method at all
+        // (`onlyMethods([])`), so it only ever stood in for `new`.
+        $this->controller = new Controller($request);
         $registry = new ComponentRegistry($this->controller);
         $this->component = new RefererComponent($registry);
     }

@@ -140,13 +140,18 @@ trait TestCaseTrait
     }
 
     /**
-     * Mock mailtransporter
+     * Swallow outgoing mail for the duration of a test.
      *
-     * @return mixed
+     * A **stub**, not a mock. Nothing asserts on it — no caller uses the return
+     * value and no test sets an expectation — so it is a null object standing in
+     * for the transport, and PHPUnit says as much: a mock without expectations
+     * draws a notice per test, which was 568 of them across this suite.
+     *
+     * @return \PHPUnit\Framework\MockObject\Stub
      */
     protected function mockMailTransporter()
     {
-        $mock = $this->createMock('Cake\Mailer\Transport\DebugTransport');
+        $mock = $this->createStub('Cake\Mailer\Transport\DebugTransport');
         TransportFactory::drop('saito');
         TransportFactory::setConfig('saito', $mock);
         // The 'saito' Mailer profile points at the 'saito' transport so

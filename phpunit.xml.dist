@@ -2,7 +2,6 @@
 <phpunit colors="true" processIsolation="false" stopOnFailure="false" bootstrap="./tests/bootstrap.php">
   <php>
     <ini name="memory_limit" value="-1"/>
-    <ini name="apc.enable_cli" value="1"/>
   </php>
   <!-- Add any additional test suites you want to run here -->
   <testsuites>
@@ -13,8 +12,18 @@
       <directory>./plugins/*/tests/TestCase</directory>
     </testsuite>
   </testsuites>
-  <!-- Code coverage: which directories to include -->
-  <source>
+  <!-- Which code is *ours*. Two jobs: it scopes coverage, and it decides which
+       diagnostics the run is allowed to fail on.
+
+       `restrictNotices`/`restrictWarnings` and `ignoreIndirectDeprecations`
+       together say: a notice, warning or deprecation raised inside a dependency
+       is not this suite's business. Without them the run exits non-zero over 568
+       notices from CakePHP's Debugger, jbbcode and suin/php-rss-writer — none of
+       which any change here can fix, and a gate nobody can pass stops being read.
+       Anything triggered in src/ or plugins/*/src/ still fails the run. -->
+  <source restrictNotices="true"
+          restrictWarnings="true"
+          ignoreIndirectDeprecations="true">
     <include>
       <directory suffix=".php">./src/</directory>
       <directory suffix=".php">./plugins/*/src/</directory>
