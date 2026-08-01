@@ -35,6 +35,23 @@ $config['Saito']['Permission']['Roles'] = (new Roles)
  *
  * everbody > owner > role
  */
+/*
+ * Every resource below is checked somewhere. Three were not, and they are gone
+ * as of 8.3.6: `saito.core.user.email.set`, `…name.set` and `…lock.view`. All
+ * three were live in 5.7.1 — the first two on the SPA profile's edit page, the
+ * third in the forum's own UsersController — and were left behind when the SPA
+ * was removed in 98e0a1b48.
+ *
+ * Nothing ran unguarded because of them: there is no path that changes another
+ * member's address or name. The harm was to the reader — this file is where one
+ * looks up what an administrator may do, and it promised three things that were
+ * not there. `saito.core.user.password.set` was in the same state and was
+ * answered the other way, by building the feature back.
+ *
+ * If a permission here stops being checked, delete it or restore what checked
+ * it. A declaration nobody reads is a description of a forum that does not
+ * exist.
+ */
 $config['Saito']['Permission']['Resources'] = (new Resources())
     /***********************************************************
      * Core                                                    *
@@ -83,9 +100,6 @@ $config['Saito']['Permission']['Resources'] = (new Resources())
     ->add((new Resource('saito.core.user.edit'))
         ->allow((new ResourceAC())->onOwn())
         ->allow((new ResourceAC())->asRole('admin')))
-    // Change a user's email address
-    ->add((new Resource('saito.core.user.email.set'))
-        ->allow((new ResourceAC())->asRole('admin')))
     // Show last login date
     ->add((new Resource('saito.core.user.lastLogin.view'))
         ->allow((new ResourceAC())->asRole('admin')))
@@ -94,12 +108,6 @@ $config['Saito']['Permission']['Resources'] = (new Resources())
         ->allow((new ResourceAC())->asRole('mod')->onRole('user'))
         ->allow((new ResourceAC())->asRole('admin')->onRoles('mod', 'user'))
         ->allow((new ResourceAC())->asRole('owner')))
-    // Show a user's blocking status
-    ->add((new Resource('saito.core.user.lock.view'))
-        ->allow((new ResourceAC())->asRole('user')))
-    // Change a user's name
-    ->add((new Resource('saito.core.user.name.set'))
-        ->allow((new ResourceAC())->asRole('admin')))
     // Change a user's password
     ->add((new Resource('saito.core.user.password.set'))
         ->allow((new ResourceAC())->asRole('admin')->onRoles('mod', 'user'))

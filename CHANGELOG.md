@@ -5,7 +5,14 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.6] - 2026-08-01 "waffel"
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.5...8.3.6)
+
+No migration runs. Replace the files and clear the cache.
+
+Named after a member of the forum it was cut for — the one whose thousand-image
+archive made the case for the upload changes in it.
 
 - Δ Changed: **the upload archive loads by itself, sixty at a time.** It came in
   pages of twenty with a "load more" button — a member with 493 uploads pressed
@@ -23,6 +30,20 @@
 - Δ Changed: **the upload archive is the last section of a profile.** A section
   that grows as it is scrolled pushes everything under it out of reach; the RSS
   links used to sit below it.
+
+- − Removed: **three permissions that were declared and never checked.**
+  `saito.core.user.email.set`, `…name.set` and `…lock.view` were live in 5.7.1
+  and were left behind when the SPA went. Nothing ran unguarded because of them
+  — there is no path that changes another member's address or name. The harm was
+  to the reader: `config/permissions.php` is where one looks up what an
+  administrator may do, and it promised three things that were not there. More
+  so since 8.3.3 gave `saito.core.user.password.set` its feature back, leaving
+  four siblings of which one worked. Every permission that remains is checked
+  somewhere; counted, not assumed.
+
+- Δ Changed: **macnemo's guided tour caught up with the forum.** It described a
+  profile whose sections are in a different order now, and said nothing at all
+  about marking a posting NSFW.
 
 ## [8.3.5] - 2026-07-31
 

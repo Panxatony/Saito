@@ -34,8 +34,20 @@ wurde.
 ob es ein Bild, ein Video oder ein YouTube-Clip ist. Noch fauler? Einfach einen
 Link ins Editor-Feld *einfügen* (Strg/Cmd + V), der Rest passiert automatisch.
 Der Upload-Manager zeigt dein Bilderarchiv – aussuchen, „Auswahl einfügen“,
-fertig. Aufräumen geht in deinem Profil: dort liegen alle Uploads, und was weg
-soll, darf weg.
+fertig. Scrollen genügt, das Archiv holt sich den Nachschub selbst; Knöpfchen
+drücken musst du dafür nicht mehr. Aufräumen geht in deinem Profil: dort liegen
+alle Uploads, und was weg soll, darf weg.
+
+Und wenn das Bild eher in den Feierabend gehört als ins Großraumbüro: In der
+Editor-Leiste sitzt ein Knopf **NBS** – *nicht bürosicher*. Eingerastet leuchtet
+er rot, der Beitrag bekommt ein Abzeichen, und alles Bildhafte darin erscheint
+zunächst verdeckt. Ein Klick der Leserschaft holt es hervor, ein zweiter packt
+es wieder ein. Den Knopf gibt es beim neuen Thema, beim Antworten und beim
+Bearbeiten – nur vererbt wird er nicht: Wer unter einem NBS-Beitrag „stimmt“
+schreibt, hat nichts angestellt.
+
+Ehrlichkeitshalber: Die Decke hält das Bild vom Bildschirm fern, nicht vom
+Entschlossenen. Sie ist ein Vorhang, kein Tresor.
 
 <!-- icon: filter -->
 ### Kategorien filtern
@@ -103,9 +115,11 @@ spielen. Bei den Farben gibt es neben dem Farbtopf jeweils ein *„Standard“*-
 falls dir dein eigener Geschmack doch zu bunt wurde. Das Passwort änderst du dort
 ebenfalls – es klappt als Overlay auf, ohne dass du die Seite verlässt.
 
-Auf der Profilseite selbst findest du außerdem deine Lesezeichen, deine Uploads
-und deine persönlichen RSS-Adressen, die auch die Bereiche mitliefern, die nur
-angemeldet sichtbar sind.
+Auf der Profilseite selbst findest du außerdem deine Lesezeichen und deine
+persönlichen RSS-Adressen, die auch die Bereiche mitliefern, die nur angemeldet
+sichtbar sind. Ganz unten liegt dein Upload-Archiv – es steht dort, weil es beim
+Scrollen immer weiter nachwächst und alles unter sich sonst in die Ferne
+schöbe.
 
 <!-- icon: envelope -->
 ### Miteinander reden – oder eben nicht
