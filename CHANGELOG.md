@@ -5,7 +5,7 @@
 - Δ Changed
 - − Removed
 
-## [next] -
+## [8.3.8] - 2026-08-01 "flattrfrei"
 
 **Two migrations run.** Both are guarded: they check what is there before
 changing it, because the columns they touch are older than these migrations and
