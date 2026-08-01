@@ -82,6 +82,15 @@
   background: rgba(20, 20, 22, 0.68);
 }
 
+/// The badge and its hints. While covered this is simply the middle of the
+/// veil; revealed, it is the only part of the veil still drawn.
+.nsfwShield-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .nsfwShield-badge {
   font-size: 0.75rem;
   font-weight: 700;
@@ -118,6 +127,11 @@
   border-bottom-left-radius: 4px;
   background: rgba(20, 20, 22, 0.62);
 
+  .nsfwShield-tab {
+    flex-direction: row;
+    gap: 0.3rem;
+  }
+
   .nsfwShield-hint--show {
     display: none;
   }
@@ -125,6 +139,57 @@
   .nsfwShield-hint--hide {
     display: inline;
   }
+}
+
+/******************************************************************************
+ * A picture covers itself again on the next click
+ *
+ * For a picture — and only a picture — the veil keeps covering the whole area
+ * after the reveal, transparent, with the tab drawn in the corner. So a click
+ * anywhere on it toggles: blurred, clear, blurred, clear.
+ *
+ * The point is what it *stops*. A top-level [img] is wrapped in a link to the
+ * full-size file. Without this the second click opened that link in a new tab,
+ * which is the wrong end of the interaction for something marked NSFW: you had
+ * to put it away by aiming at a tab in the corner, and hitting the picture
+ * instead threw it full-size onto the screen.
+ *
+ * The consequence, deliberately: for marked pictures the full-size view is no
+ * longer reachable by clicking. That is the trade the toggle costs, and it only
+ * applies to media where the author asked for the cover.
+ *
+ * Not for video, audio or files. Their controls — play, seek, download — live
+ * *inside* the media, so a veil over them would take away the thing the reveal
+ * was for. Those keep the corner tab.
+ ******************************************************************************/
+.nsfwShield[data-nsfw-kind="image"] .nsfwShield-toggle:checked ~ .nsfwShield-veil {
+  inset: 0;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 0;
+  background: transparent;
+
+  &:hover {
+    background: transparent;
+  }
+
+  .nsfwShield-tab {
+    padding: 0.15rem 0.4rem;
+    border-bottom-left-radius: 4px;
+    background: rgba(20, 20, 22, 0.62);
+    transition: background 0.15s ease-out;
+  }
+
+  &:hover .nsfwShield-tab {
+    background: rgba(20, 20, 22, 0.78);
+  }
+}
+
+/// The link underneath must stay unreachable, or the click that should re-cover
+/// the picture would open the full-size file instead — the veil is on top, but
+/// a link still answers a middle click and a context menu.
+.nsfwShield[data-nsfw-kind="image"] .nsfwShield-toggle:checked ~ .nsfwShield-media {
+  pointer-events: none;
 }
 
 /// A focused checkbox is invisible, so the ring has to be drawn on the label.
