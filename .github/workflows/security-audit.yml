@@ -1,0 +1,108 @@
+# Nightly: is anything we *ship* known to be vulnerable?
+#
+# The release workflow already refuses to build over a CVE in a production PHP
+# package. That gate only fires when a release is being cut, though, and
+# advisories are published on their own schedule — between two releases nobody
+# would hear anything.
+#
+# ## Why this fails on some things and only reports others
+#
+# A job that cries wolf is read for a week and ignored afterwards. Measured on
+# 2026-08-01, this repository's JavaScript tree carried 65 advisories, one of
+# them critical — every single one in build tooling: grunt's watcher, eslint,
+# autoprefixer. None of it is in the bundle the browser loads, none of it runs
+# on the server, and a red build every night because grunt-contrib-watch has a
+# ReDoS would teach everyone to close the mail unread.
+#
+# So the job is split by what an advisory would actually mean:
+#
+#   * PHP production dependencies — this is the code running on the forum's
+#     server. **Fails.**
+#   * JavaScript runtime dependencies — the six packages that end up in the
+#     bundle (alpinejs, htmx.org, bootstrap, font-awesome, the two typefaces).
+#     **Fails.**
+#   * Everything else, dev and build — printed into the summary so it can be
+#     seen and worked through, but it does not stop anything.
+#
+# A red run therefore means: something that is deployed has a known hole.
+#
+# ## What this catches that Dependabot does not
+#
+# Dependabot opens a pull request when a fixed version exists. When one does not
+# — the advisory is out, the maintainer has not shipped — it stays quiet, and
+# quiet is exactly what an unfixed vulnerability should not be. This says so
+# every night until it is dealt with.
+name: Security audit
+
+on:
+  schedule:
+    # 04:17 UTC. Not on the hour: GitHub queues the whole world's midnight cron
+    # jobs and a run can sit for a long time before it starts.
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ----------------------------------------------------------------
+      # The two that matter. Both run even if the first one fails, so one
+      # report shows the whole picture instead of only its first half.
+      # ----------------------------------------------------------------
+      - name: PHP — production dependencies
+        id: php
+        run: |
+          set -eu
+          # --locked: audit what the lock file pins, not what a fresh
+          # resolve would pick — the lock is what the release installs.
+          composer audit --locked --no-dev --format=plain
+
+      - name: JavaScript — runtime dependencies
+        id: js
+        if: always()
+        run: |
+          set -eu
+          yarn install --frozen-lockfile --ignore-scripts --silent
+          # `--groups dependencies` is the whole point: devDependencies are
+          # the build, and the build is not deployed. yarn's exit code is a
+          # bitmask of the severities it found, so any non-zero means
+          # something was reported.
+          yarn audit --groups dependencies
+
+      # ----------------------------------------------------------------
+      # Everything else: worth seeing, not worth blocking on. `|| true`
+      # is deliberate — see the header.
+      # ----------------------------------------------------------------
+      - name: Build and dev tooling (report only)
+        if: always()
+        run: |
+          {
+            echo "### Build and dev tooling"
+            echo
+            echo "Not deployed — neither in the bundle nor on the server."
+            echo "Listed so it can be worked through, not to block anything."
+            echo
+            echo '```'
+            yarn audit --groups devDependencies --summary 2>&1 | tail -20 || true
+            echo '```'
+            echo
+            echo "#### PHP, including dev"
+            echo
+            echo '```'
+            composer audit --locked --format=plain 2>&1 | tail -20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

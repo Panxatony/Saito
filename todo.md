@@ -34,6 +34,19 @@ Also left: `config/nginx/saito.conf.example` still carries the strict policy
 commented out. Now that three installations run it, the comment could come off
 — with a line saying what an installation must check first.
 
+### Turn on Dependabot alerts in the repository
+
+`.github/dependabot.yml` schedules *version* updates and works as soon as it is
+merged. *Security* updates — the ones that react to an advisory with a pull
+request — need a switch nobody can set from a file:
+
+**github.com/Panxatony/Saito → Settings → Code security → Dependabot alerts**,
+and *Dependabot security updates* directly beneath it.
+
+Without it the weekly updates still arrive, but an advisory published on a
+Tuesday waits until Monday. The nightly `security-audit` workflow reports it
+either way; this is what proposes the fix.
+
 ### `session.use_strict_mode` is off on prod
 
 `/usr/local/etc/php.ini` in the macnemo jail has `session.use_strict_mode = 0`,
