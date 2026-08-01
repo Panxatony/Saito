@@ -281,22 +281,6 @@ msgid "upload_max_number_of_uploads_exp"
 msgstr "Maximale Anzahl von Dateien, die ein einzelner Benutzer gleichzeitig auf dem Server hochgeladen haben kann."
 
 #
-msgid "flattr_enabled"
-msgstr "Flattr aktivieren"
-
-#
-msgid "flattr_enabled_exp"
-msgstr "Ermöglicht es Benutzern flattr zu verwenden."
-
-#
-msgid "flattr_language"
-msgstr "Flattr-Sprache"
-
-#
-msgid "flattr_language_exp"
-msgstr "Sprache, die flattr den hereinzeigenden Verweisen zuordnet. Siehe Doku auf flattr.com für Kürzel."
-
-#
 msgid "stopwatch_get"
 msgstr "Stopuhr"
 
