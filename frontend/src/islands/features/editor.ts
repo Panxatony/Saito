@@ -188,10 +188,16 @@ document.addEventListener('click', (event: MouseEvent) => {
  *
  * Capped at 80vh so a long posting still leaves the buttons below it reachable
  * without scrolling the page to the bottom first.
+ *
+ * Inside a modal the cap is half that. The contact form's message field is also
+ * named `text`, so it grows the same way — but there the heading, the subject
+ * line, the copy-to-me checkbox and the submit button share the same overlay,
+ * and a field at 80vh pushed the button past the bottom edge of the screen.
  */
 function autoGrow(textarea: HTMLTextAreaElement): void {
     textarea.style.height = 'auto';
-    const max = Math.round(window.innerHeight * 0.8);
+    const share = textarea.closest('.island-modal') ? 0.4 : 0.8;
+    const max = Math.round(window.innerHeight * share);
     textarea.style.height = `${Math.min(textarea.scrollHeight, max)}px`;
     textarea.style.overflowY = textarea.scrollHeight > max ? 'auto' : 'hidden';
 }

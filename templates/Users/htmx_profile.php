@@ -174,7 +174,7 @@ if ($user->get('signature')) {
                             'type' => 'select',
                             'options' => $durationLabels,
                             'default' => 86400,
-                            'label' => __('user.block.t'),
+                            'label' => __('user.block.duration'),
                         ]) ?>
                     </div>
                     <?= $this->Form->button(

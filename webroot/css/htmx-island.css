@@ -32,6 +32,13 @@
     align-items: flex-start;
     justify-content: center;
     padding: 6vh 1rem 1rem;
+    /* A dialog taller than the viewport has to be reachable. Without this the
+       overlay clips it and whatever sits at the bottom — in the contact form the
+       submit button — cannot be scrolled to, because the page behind is not what
+       is overflowing. `contain` keeps that scroll from continuing into the page
+       once the dialog's end is reached. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 .htmx-island .island-modal-backdrop {
     position: fixed;
