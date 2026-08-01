@@ -5,6 +5,30 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+No migration runs. **Clear the thumbnail cache after replacing the files** —
+`bin/cake.php cache clear uploadsThumbnails`, or delete `tmp/cache/uploads/`.
+The cache holds the old full-size images, and without clearing it nothing
+changes for anything that has already been looked at once. The first pass
+afterwards is slower while every thumbnail is computed again; after that it is
+faster for good.
+
+- ✓ Fixed: **thumbnails are thumbnails now.** A `size > 150000` threshold meant
+  anything under 150 KB was served at its original resolution and called a
+  preview: measured on the running forum, 2961 of 5542 uploads fell under it,
+  one of them sending 121,874 bytes for a tile drawn at 84 pixels, and a page of
+  sixty came to about 8 MB. The threshold was never a decision about what a
+  thumbnail should be — it was an assumption from a time when uploads were
+  smaller. The largest file in that archive is 57 MB.
+
+  Every image is scaled to 300×300 now. The condition asks whether the upload is
+  an image rather than whether it is large, which also closes something the
+  threshold had been hiding by accident: an upload can be a video, an audio file
+  or plain text, and those never reached the image library only because they
+  were usually small. A file the library cannot read is served as it lies rather
+  than leaving a hole in the grid.
+
 ## [8.3.6] - 2026-08-01 "waffel"
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.5...8.3.6)
