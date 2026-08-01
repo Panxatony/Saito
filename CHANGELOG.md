@@ -5,6 +5,25 @@
 - Δ Changed
 - − Removed
 
+## [next] -
+
+- Δ Changed: **the upload archive loads by itself, sixty at a time.** It came in
+  pages of twenty with a "load more" button — a member with 493 uploads pressed
+  it twenty-four times to see their own archive, and then asked whether it was
+  loading everything at all. It was; the log shows pages 2 to 25, all answered.
+  That question is the bug report. Sixty per page turns 25 pages into 9, the
+  control now fires when it scrolls into view, and the count is stated once at
+  the top so "that is all of them" can be told from "it stopped".
+
+  `intersect once` rather than htmx's `revealed`: the control sits in a grid
+  that scrolls on its own, and `revealed` measures against the window — it would
+  have fired for a control the reader cannot see and pulled the whole archive in
+  one burst. The button stays a button for keyboard use.
+
+- Δ Changed: **the upload archive is the last section of a profile.** A section
+  that grows as it is scrolled pushes everything under it out of reach; the RSS
+  links used to sit below it.
+
 ## [8.3.5] - 2026-07-31
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.4...8.3.5)

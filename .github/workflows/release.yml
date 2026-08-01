@@ -254,9 +254,21 @@ jobs:
           case "$VERSION" in
             *-*) PRERELEASE="--prerelease" ;;
           esac
+          # Releases carry a name from 8.3.6 on. It lives in the CHANGELOG
+          # heading between double quotes -- `## [8.3.6] - 2026-08-01 "waffel"`
+          # -- which is the one place describing the release that already has to
+          # be right, so the title cannot drift away from the notes.
+          #
+          # Absent, the title is what it always was. Older tags have no name and
+          # must keep publishing.
+          TITLE="Saito ${VERSION}"
+          NAME=$(sed -n "1s/^## \[[^]]*\].*\"\(.*\)\".*/\1/p" release-notes.md)
+          if [ -n "$NAME" ]; then
+            TITLE="Saito ${VERSION} \"${NAME}\""
+          fi
           gh release create "$VERSION" \
             build/saito-*.tar.gz \
             build/saito-*.tar.gz.sha256 \
-            --title "Saito ${VERSION}" \
+            --title "$TITLE" \
             --notes-file release-notes.md \
             $PRERELEASE

@@ -938,6 +938,12 @@ msgstr "NBS"
 msgid "posting.badge.nsfw.exp"
 msgstr "Nicht bürosicher (NBS)"
 
+msgid "{0} file"
+msgstr "{0} Datei"
+
+msgid "{0} files"
+msgstr "{0} Dateien"
+
 msgid "saito.nsfw.reveal"
 msgstr "Inhalt ausgeblendet – zum Anzeigen klicken"
 

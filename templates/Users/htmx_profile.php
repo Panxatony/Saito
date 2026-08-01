@@ -197,8 +197,23 @@ if ($user->get('signature')) {
             <p class="text-muted"><?= h(__('Loading …')) ?></p>
         </div>
 
-        <?php // The uploads fragment is bare tiles (the grid normally comes from the
-              // editor overlay), so give it a .upload-grid to lay out in. ?>
+        <?php // Personalized RSS feeds (carry the user's token → include their
+              // readable non-public categories). The Feeds cell builds the links. ?>
+        <div class="card mb-3">
+            <div class="card-header">
+                <?= $this->Layout->panelHeading(__('s.rss.t')) ?>
+            </div>
+            <div class="card-body">
+                <?= $this->cell('Feeds.FeedLinks', [$CurrentUser]) ?>
+            </div>
+        </div>
+        <?php // Last on the page, and that is the whole reason it sits here rather
+              // than after the bookmarks where it used to: the archive loads more
+              // tiles as it is scrolled, so anything below it walks away from the
+              // reader. A section that grows without end belongs at the end.
+              //
+              // The fragment is bare tiles (the grid normally comes from the editor
+              // overlay), so give it a .upload-grid to lay out in. ?>
         <div class="card mb-3">
             <div class="card-header">
                 <?php // "Uploads", not "upload images": this manages the archive. ?>
@@ -225,16 +240,6 @@ if ($user->get('signature')) {
             </div>
         </div>
 
-        <?php // Personalized RSS feeds (carry the user's token → include their
-              // readable non-public categories). The Feeds cell builds the links. ?>
-        <div class="card mb-3">
-            <div class="card-header">
-                <?= $this->Layout->panelHeading(__('s.rss.t')) ?>
-            </div>
-            <div class="card-body">
-                <?= $this->cell('Feeds.FeedLinks', [$CurrentUser]) ?>
-            </div>
-        </div>
     <?php endif; ?>
 
     <?php // Somebody else's profile, seen by an admin: their upload archive.

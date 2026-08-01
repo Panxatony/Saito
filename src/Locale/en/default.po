@@ -913,6 +913,12 @@ msgstr "NSFW"
 msgid "posting.badge.nsfw.exp"
 msgstr "Not safe for work (NSFW)"
 
+msgid "{0} file"
+msgstr "{0} file"
+
+msgid "{0} files"
+msgstr "{0} files"
+
 msgid "saito.nsfw.reveal"
 msgstr "Content hidden – click to show"
 

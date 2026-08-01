@@ -1357,3 +1357,12 @@ body.has-color-current .et-current .et { color: var(--saito-color-current); }
     outline: 2px solid var(--isl-accent, #fe5603);
     outline-offset: 1px;
 }
+
+/* Upload archive: how many there are, said once above the grid. */
+.htmx-island .upload-count {
+    flex: 0 0 auto;
+    grid-column: 1 / -1;
+    margin: 0.4rem 0 0;
+    font-size: 0.85rem;
+    color: var(--nova-text-muted, #777);
+}

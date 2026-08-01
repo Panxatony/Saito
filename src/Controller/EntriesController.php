@@ -695,7 +695,11 @@ class EntriesController extends AppController
             $userId = $requested;
         }
 
-        $perPage = 20;
+        // 60, not 20. The tiles are a grid, and twenty of them do not fill one
+        // screen — a member with 493 uploads had to press "load more" 24 times
+        // to see their own archive, which is what prompted this. The images load
+        // lazily, so the extra rows cost markup and nothing else.
+        $perPage = 60;
         $page = max(1, (int)$this->getRequest()->getQuery('page'));
 
         $Uploads = $this->fetchTable('ImageUploader.Uploads');
@@ -705,6 +709,7 @@ class EntriesController extends AppController
 
         $this->set('uploads', $uploads);
         $this->set('page', $page);
+        $this->set('total', $total);
         $this->set('hasMore', ($page * $perPage) < $total);
         // Only set when looking at somebody else's archive, so "load more" keeps
         // asking about the same member instead of falling back to the admin's own.
