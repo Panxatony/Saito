@@ -5,6 +5,29 @@
 - Δ Changed
 - − Removed
 
+## [8.3.9] - 2026-08-01 "handbreit"
+
+Two things that only show up when the forum is used rather than built. No
+migration; the stylesheet and the island bundle both changed, so deploy them
+together.
+
+- ✓ Fixed: **the submit button of the contact form could not be reached.** Its
+  message field is named `text`, the same as the posting editor's, so the
+  editor's auto-grow applied to it and the box expanded to 80% of the window
+  height. Inside a fixed overlay with no scroll of its own that pushed "send a
+  copy to me" and the submit button past the bottom edge of the screen, and
+  nothing could scroll to them — the page behind was not what was overflowing.
+  `.island-modal` scrolls now, which makes any over-tall dialog reachable rather
+  than just this one, and inside a modal the field grows to 40% instead of 80%
+  so the form fits without scrolling at all.
+
+- ✓ Fixed: **a block-duration select labelled `user.block.t`.** The key was
+  invented when blocking moved to the profile page and never added to a
+  catalogue, so the raw key was what moderators saw. Renamed to
+  `user.block.duration` — `.t` means "title" everywhere else in Saito and this
+  is a field label — and translated in de and en. All 128 dotted keys used in
+  templates were checked against the catalogues; this was the only one missing.
+
 ## [8.3.8] - 2026-08-01 "flattrfrei"
 
 **Two migrations run.** Both are guarded: they check what is there before

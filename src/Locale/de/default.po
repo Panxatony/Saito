@@ -1430,6 +1430,10 @@ msgstr "Nutzer sperren"
 msgid "user.block.hours"
 msgstr "{hours} Stunden"
 
+#: templates/Users/htmx_profile.php:177
+msgid "user.block.duration"
+msgstr "Dauer der Sperre"
+
 #: src/Template/Users/view.ctp:367
 msgid "user.del.exp.1"
 msgstr "Lösche Nutzer \"{0}\""
