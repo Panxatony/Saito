@@ -1,38 +1,37 @@
 # TODO
 
 Work that is known, understood, and deliberately not done yet — nothing else.
-Items are filed under the release they are meant for; anything without a release
-is waiting on a decision rather than on time.
 
 Two things this file is not: a record of what was decided against, and a record
 of what has been finished. Both belong in the commit that made the decision.
-Anything here that turns out to be done gets deleted rather than ticked off.
+Anything here that turns out to be done gets deleted rather than ticked off, and
+anything that turns out to be *wrong* gets corrected with the reason, so nobody
+re-derives the false premise.
+
+Each entry says what was measured. A number without a measurement behind it is a
+guess, and this file has cost time before by carrying one — the timezone entry
+described a database problem that did not exist, because the measurement had
+been taken through a client in the wrong timezone.
+
+Nothing here is ordered by priority. Three are waiting on somebody else:
+**macfix's CSP** on kt007's upgrade, **TypeScript 7** on typescript-eslint, and
+**php_codesniffer 4** on its two dependants. The rest is ours to start whenever
+it is worth it.
 
 ---
 
-## Deployment, not code
-
 ### The strict content-security policy on the other installation
 
-Done everywhere we control: test and beta on 2026-07-30, **prod on 2026-07-31**
-together with 8.3.1. `script-src` has no `'unsafe-inline'` on any of the three.
-
-What that took, beyond the header, is worth knowing before the next
-installation follows: the only inline script prod still emitted was Plausible's
-init stub, and it moved to `shared/app/webroot/plausible-init.js` (symlinked
-into `webroot/`, so a code deploy cannot remove it). Anubis needed nothing — its
-inline blocks are `application/json` and `type="ignore"`, which a browser never
-executes.
-
-**macfix is the one still open**, and not for the same reason. Its ad tag is an
-external script from its own origin and passes `'self'`; its **Matomo snippet is
-inline** and would be blocked. It needs the same treatment as Plausible — the
-snippet in a file — before the header goes on there. kt007 runs 5.7.1, so this
-waits on that upgrade anyway.
+Test, beta and prod run it; `script-src` has no `'unsafe-inline'` on any of the
+three. **macfix is the one still open**, and not for the same reason: its ad tag
+is an external script from its own origin and passes `'self'`, but its **Matomo
+snippet is inline** and would be blocked. It needs what Plausible got here — the
+snippet moved into a file. kt007 runs 5.7.1, so this waits on that upgrade
+anyway.
 
 Also left: `config/nginx/saito.conf.example` still carries the strict policy
-commented out. Now that three installations run it, the comment could come off
-— with a line saying what an installation must check first.
+commented out. Now that three installations run it, the comment could come off —
+with a line saying what an installation must check first.
 
 ### Dependencies still a major version behind
 
@@ -48,9 +47,10 @@ was measured, not guessed:
 | `cakephp/migrations` 4 → 5 | **Tried. 25 errors.** Under 5 the `Initial` migration no longer creates the tables, so the next migration runs against a `users` that is not there. Our migration files need work, not a new constraint. Reverted. |
 | `squizlabs/php_codesniffer` 3 → 4 | **Not ours to move.** `cakephp/cakephp-codesniffer` and `slevomat/coding-standard` both still require `^3`. Wait for them. |
 
-All four remaining were attempted one at a time with the suite as the gate,
-which is the only reason the notes above say anything useful. Two went in, two
-came back out.
+Each was attempted on its own with the suite as the gate, which is the only
+reason the notes above say anything useful. `phpunit` 11 → 13 was the fourth and
+went in with 8.3.12, once the question it was waiting on had an answer: no, the
+suite does not fail on deprecations raised inside dependencies.
 
 ### The stylesheets compile with 300 deprecation warnings
 
@@ -89,90 +89,32 @@ typescript-eslint#10940. TS 6.0.3 type-checks the island cleanly, so there is
 nothing to gain from forcing it; this is a note so the next person who sees
 Dependabot offer TypeScript 7 knows it has already been tried.
 
-### Timezones: what is left after the helper was fixed
+### The 2038 ceiling on the timestamp columns
 
-**Done on 2026-08-02.** `TimeHHelper` renders the stored instant in the forum's
-timezone instead of adding an offset to the epoch, and it has tests now — it had
-none, in fifteen call sites. Three defects went with it, and only the second had
-ever been written down:
+`timestamp` cannot hold an instant after **2038-01-19**, and that is the type of
+`entries.time`, `last_answer`, `edited`, `users.registered` and `last_login` —
+the columns new postings are written to. Eleven years off, but it is a date
+rather than a worry, and `datetime` has no such ceiling.
 
-1. **The offset was computed once from *now*.** So in August every winter
-   posting was shown an hour late and vice versa. On production a posting stored
-   at `16:48 UTC` in January was displayed as **18:48** instead of 17:48. This
-   was the one that actually reached readers, and nobody had noticed it.
-2. The `datetime` attribute carried the shifted value labelled `+00:00`.
-3. "Today" began at midnight **UTC**, because `mktime()` follows PHP's timezone —
-   and this forum's busiest hour is the one right after local midnight.
+Do it in the same pass as `users.last_refresh` below: both are `ALTER`s on the
+same tables, and both convert values written under whatever timezone the server
+had at the time.
 
-`ThreadHtmlRenderer` reaches for the helper outside a view render, so
-`beforeRender()` is not guaranteed; the clock is read lazily now. Before, that
-path silently used an offset of zero and rendered in UTC.
+**The rule that came out of fixing the display, and is worth carrying to any
+other installation:** `App.defaultTimezone` **must be UTC**. CakePHP pins its own
+connection to `+00:00` regardless of the DSN, so what arrives from the database
+is always a correct UTC rendering; PHP's timezone decides whether it gets
+labelled correctly. Set the app to `Europe/Berlin` and every instant read is
+wrong by the offset — which is exactly how the test system was configured until
+2026-08-02.
 
-**The configuration rule, which is the part worth carrying to any other
-installation:** `App.defaultTimezone` **must be UTC**. CakePHP pins its own
-connection to `+00:00` regardless of the DSN, so the value arriving from the
-database is always a correct UTC rendering; PHP's timezone is what decides
-whether it gets labelled correctly. Set the app to `Europe/Berlin` and every
-instant read is wrong by the offset.
-
-That is not hypothetical: **the test system was set that way** —
-`env[APP_DEFAULT_TIMEZONE] = "Europe/Berlin"` in its fpm pool — and read every
-posting an hour off in winter, two in summer. Corrected 2026-08-02, old pool
-kept as `saito.conf.vor-tz-fix`. Production and beta were already on UTC.
-
-It also means the previous version of this entry proposed the exact opposite of
-the fix. Setting the app timezone to `Europe/Berlin` does not correct the
-display; it breaks the reading.
-
-**Checked and *not* broken**, contrary to what this entry used to claim:
-`UsersController::_failedLoginMessage()` takes `ends` as a `Cake\I18n\DateTime`
-off a `datetime` column, not a string, so the instant survives; and the RSS
-`pubDate` was always right.
-
-**What is left is the 2038 ceiling, and it is the only part that touches the
-schema.** `timestamp` cannot hold an instant after **2038-01-19**:
-`entries.time`, `last_answer`, `edited`, `users.registered`, `last_login` — the
-columns new postings are written to. Eleven years off, a date rather than a
-worry, and `datetime` has no such ceiling. Worth doing in the same pass as the
-`last_refresh` difference left over from the schema alignment, since both are
-`ALTER`s on the same tables.
-
-Also noticed while measuring: six postings whose `edited` predates their `time`,
-and seven with `last_answer < time`. Thirteen rows out of twenty years, almost
-certainly import residue.
-
-### Residue found by the probe sweep of 2026-08-02
-
-`dev/audit-probes.sh` runs the comparisons that found everything else this
-cycle. It prints candidates, never verdicts — a `grep` proves a name is absent,
-not that a feature is gone. What it turned up:
-
-**Four settings rows nothing reads** — all four dealt with. `userranks_show`
-and `userranks_ranks` drive the rank in the profile now; `api_enabled` and
-`api_crossdomain` were removed in `20260802140000_DropApiSettings`, because a
-switch that appears to control access to the API and does not is worse than no
-switch.
-
-**A correction, because the first version of this entry was wrong.** The API is
-*not* dead. Probing `/api`, `/api/v2` and `/api/v2/entries` returns 404 and led
-me to say so; the live routes are elsewhere and answer properly:
-
-```
-/api/v2/uploads/thumb/{id}   403      /api/v2/uploads.json   401
-/api/v2/bookmarks            401
-```
-
-401 and 403 are authenticated endpoints working. They are registered by
-**ImageUploader** and **Bookmarks**; the `Api` plugin supplies the base
-controller and the JSON error renderer they share, and the CSRF exemption for
-`/api/v2/` covers real routes. Nothing to revive — only to extend, if there is
-ever a consumer.
+Noticed while measuring, and not worth acting on: six postings whose `edited`
+predates their `time`, seven with `last_answer < time`. Thirteen rows out of
+twenty years, almost certainly import residue.
 
 ### The whole-forum export
 
-The per-member half is done — `/users/export`, GDPR Art. 15 and 20, streamed
-into a spilling buffer because assembling it peaked at 174 MB against a 128M
-limit. What is left is the other half, and it is a different problem:
+The per-member half shipped in 8.3.12. The other half is a different problem:
 
 **66.5 MB of posting text across 680,292 postings, plus 5,540 uploads.** That
 cannot go through a request at all; it belongs in a console command that streams
@@ -185,18 +127,20 @@ turns a row into the shape, and `eachPosting()` already reads in batches.
 
 ### Translation catalogues carrying dead weight
 
-**180 of 535 msgids have no call site**, and both `default.po` files carry
-entries already commented out as obsolete — 293 in German, 72 in English.
+**175 of 535 msgids have no call site a static sweep can find**, and both
+`default.po` files carry entries already commented out as obsolete — 293 in
+German, 72 in English.
 
-Expect false positives among the 180: a key assembled at runtime cannot be seen
-by a static sweep. Which is why this is last on the list — the reward is a
-smaller file, the risk is deleting a string that turns out to be built from
-parts, and there is no test that would catch it.
+Most of the 175 are false positives and the probe says so itself: Saito
+assembles keys at runtime — `permission.role.` plus an id, every admin setting
+label from the setting's own name, every page title from controller and action.
+What is left after discounting those is the English plain-text group ("All
+Categories", "Apply", "Cite", "Media") and one message in CakePHP 2's
+`:placeholder` syntax, which look like the retired frontend's own catalogue.
 
-The reverse direction is the one that matters and it is **clean**: no key is
-used without being declared. That check runs in CI now
-(`dev/check-translations.php`, about a second), so the missing `user.block.t`
-would have failed the build instead of reaching a moderator.
+Last on the list on purpose: the reward is a smaller file, the risk is deleting
+a string that turns out to be built from parts, and no test would catch it. Read
+the candidates rather than scripting the removal.
 
 ### Video uploads
 
@@ -295,44 +239,35 @@ already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
 on Alpine now — so its markup is the one thing still tying it to Bootstrap.
 Doing it separately means paying for it twice.
 
-### The last two schema differences, and why they stay
+### The last schema difference, and the nineteen that stay
 
-Measured again on 2026-08-01, after the migrations added in 8.3.7 and 8.3.8:
-**21 differences remain between a freshly migrated database and production, and
-19 of them are nothing.**
+Measured 2026-08-01 against a freshly migrated database: **21 differences remain
+and 19 of them are nothing** — display widths (`int(11)` against `int(4)`),
+`unsigned` on columns that only ever hold positive ids and booleans, `char(32)`
+against `varchar(32)` for a fixed-length hash. MySQL stores all of these
+identically. Levelling them means an `ALTER TABLE` on every table of a forum
+whose `entries` holds 680,000 rows: real risk, no gain. They stay.
 
-Display widths (`int(11)` against `int(4)`), `unsigned` on columns that only
-ever hold positive ids and booleans, `char(32)` against `varchar(32)` for a
-fixed-length hash. MySQL stores all of these identically; nothing behaves
-differently. Levelling them would mean an `ALTER TABLE` on every table on a
-forum whose `entries` holds 680,000 rows — real risk, no gain. They stay.
+The real one is `users.last_refresh` and `users.last_refresh_tmp` — **`timestamp`
+on production, `datetime` from the migrations** — and here the migrations are the
+correct side. Converting means rewriting two columns whose values were written
+under whatever timezone the server had at the time, so it belongs with the 2038
+work above and not before it.
 
-The two that are real are `users.last_refresh` and `users.last_refresh_tmp`:
-**`timestamp` on production, `datetime` from the migrations.** Here the
-migrations are the correct side. `timestamp` is converted by the server against
-the session timezone on both write and read, and it runs out in 2038; `datetime`
-does neither.
+### A refused metrics scrape writes an error to the log
 
-Converting production means rewriting two columns whose values were written
-under whatever timezone the server had at the time — which is not a schema
-change, it is the timezone item further up wearing a different hat. It belongs
-with that work, not before it.
+`MetricsController` answers a missing or wrong token with a `NotFoundException`,
+and that lands in `error.log` like any other. Right, in the sense that the
+request failed; wrong, in that it is not an application error — it is the guard
+doing its job.
 
-**What was closed instead**, and is now identical on both sides: `entries.nsfw`
-and `entries.flattr` (one added where missing, one dropped), `entries.text`,
-`drafts.text` and `users.profile` (`text` → `mediumtext`, 64 KB → 16 MB), and
-the `users.username` index, which was UNIQUE on a fresh install and a plain
-non-unique prefix on a grown one.
+It costs nothing while the token is correct. The moment it is not — a rotated
+token, a typo in the scrape config — a 60-second interval writes **1,440 entries
+a day**, and the log stops being readable exactly when somebody needs to read it.
+Refuse without raising, or exclude this path from the error logger.
 
-That last one was the find worth having. `UsersTable` validates usernames as
-unique, case-insensitively; production had 821 members and no index enforcing
-it. Nothing had gone wrong — 821 names, 821 distinct lower-cased — but the
-database was not holding a guarantee the application was already making.
-
-And the `text` one was not theoretical either: the longest posting on that forum
-is **294,739 characters**, four and a half times what a `TEXT` column holds. A
-dump of it could not have been restored into a freshly migrated install, and
-outside strict mode it would have been cut rather than refused.
+Seen on the test system, where two of the day's five entries came from probing
+the guard.
 
 ### Registration tells you whether an address already has an account
 
