@@ -125,15 +125,18 @@ jobs:
       - name: composer install (production only)
         run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
 
-      - name: Build frontend assets (Node 20 + yarn + grunt)
+      # Debian 13 ships Node 20, and the build tooling requires >= 22.11 —
+      # `yarn install` refuses below that with an engine error naming cssnano.
+      # So the version comes from upstream rather than from apt, and from
+      # .nvmrc rather than a number repeated here: one place to change it, the
+      # same one the other workflows and a developer's shell read.
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Build frontend assets (yarn + grunt)
         run: |
-          # Node from Debian, not from NodeSource. The container is Debian 13,
-          # for which NodeSource publishes nothing, so its script configured a
-          # repository with no candidate and apt quietly fell back to Debian's
-          # own package — which does not bundle npm, and the build died on
-          # `npm: not found`. Debian ships both, so ask for both and drop the
-          # remote install script (and with it piping a URL into bash as root).
-          apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs npm
+          node --version
           npm install -g --silent yarn grunt-cli
           yarn install --frozen-lockfile --non-interactive
           # `grunt release` still orchestrates CSS, locale JSON and asset copy;
