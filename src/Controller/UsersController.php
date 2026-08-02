@@ -864,6 +864,14 @@ class UsersController extends AppController
         $this->autoRender = false;
 
         $userId = (int)$this->CurrentUser->getId();
+        // A session whose account no longer exists. `getId()` returns 0 then,
+        // and 0 is not "nobody" to a database query — `WHERE user_id = 0` is a
+        // perfectly good condition. Refused explicitly rather than left to fail
+        // somewhere further in, because "what does it do with 0" is exactly the
+        // question nobody wants to answer after the fact.
+        if ($userId < 1) {
+            throw new BadRequestException();
+        }
         $export = new DataExport($userId);
 
         $name = preg_replace('/[^A-Za-z0-9_-]/', '_', (string)$this->CurrentUser->get('username'));
@@ -910,8 +918,18 @@ class UsersController extends AppController
         fwrite($handle, "\n    ]\n}\n");
         rewind($handle);
 
+        // Said here rather than relied upon. PHP's session handling already
+        // emits `no-store` while a session is open, which is why the response
+        // was uncacheable when this was first measured — but that is a side
+        // effect of `session.cache_limiter`, and a personal-data download must
+        // not depend on an ini setting staying where it is. `private` names the
+        // reason as well: this belongs to one person, so no shared cache may
+        // hold it even briefly.
         return $this->response
             ->withType('application/json')
+            ->withHeader('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0')
+            ->withHeader('Pragma', 'no-cache')
+            ->withHeader('Expires', '0')
             ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->withBody(new Stream($handle));
     }

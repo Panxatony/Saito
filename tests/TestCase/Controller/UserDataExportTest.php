@@ -128,6 +128,48 @@ class UserDataExportTest extends IntegrationTestCase
     }
 
     /**
+     * The response says it must not be cached, in its own words.
+     *
+     * PHP emits `no-store` on its own while a session is open, which is why
+     * this was already uncacheable when it was first measured. That is a side
+     * effect of `session.cache_limiter` and not a decision — a 9 MB file of one
+     * person's data must not depend on an ini setting staying where it is.
+     * `private` is the part that names the reason: no shared cache may hold it,
+     * not even briefly.
+     *
+     * @return void
+     */
+    public function testTheResponseForbidsCachingOnItsOwnTerms(): void
+    {
+        $this->_loginUser(3);
+        $this->get('/users/export');
+
+        $this->assertResponseOk();
+        $this->assertHeaderContains('Cache-Control', 'private');
+        $this->assertHeaderContains('Cache-Control', 'no-store');
+    }
+
+    /**
+     * A session whose account is gone gets nothing.
+     *
+     * `getId()` returns 0 for a removed user, and 0 is not "nobody" to a query:
+     * `WHERE user_id = 0` is a perfectly good condition that would quietly
+     * return whatever happens to carry that id. Refused before it gets there.
+     *
+     * @return void
+     */
+    public function testASessionWithoutAnAccountIsRefused(): void
+    {
+        $this->_loginUser(3);
+        // The account disappears while the session lives on — a deletion in
+        // another tab, or a moderator acting between two requests.
+        $this->getTableLocator()->get('Users')->deleteAll(['id' => 3]);
+
+        $this->expectException(\Cake\Http\Exception\BadRequestException::class);
+        $this->get('/users/export');
+    }
+
+    /**
      * Postings the member wrote are in it, with their text.
      *
      * The positive control for every "must not contain" above: without this the
