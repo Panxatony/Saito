@@ -20,7 +20,6 @@
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-watch": "*",
-    "grunt-dart-sass": "*",
     "grunt-shell": "*",
     "load-grunt-tasks": "^5.1.0",
     "sass": "^1",
@@ -36,7 +35,10 @@
     "lint": "tsc --noEmit && eslint \"frontend/src/**/*.ts\"",
     "build": "ENTRY=htmx-threads vite build && ENTRY=admin vite build && ENTRY=boot vite build",
     "dev": "ENTRY=htmx-threads vite build --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "css:static": "sass --no-source-map --style=expanded webroot/css/src/static.scss:webroot/css/stylesheets/static.css",
+    "css:theme": "sass --no-source-map --style=expanded plugins/Bota/webroot/css/src/theme.scss:plugins/Bota/webroot/css/theme.css plugins/Bota/webroot/css/src/night.scss:plugins/Bota/webroot/css/night.css plugins/Nova/webroot/css/src/theme.scss:plugins/Nova/webroot/css/theme.css plugins/Nova/webroot/css/src/night.scss:plugins/Nova/webroot/css/night.css plugins/Macnemo/webroot/css/src/theme.scss:plugins/Macnemo/webroot/css/theme.css plugins/Macnemo/webroot/css/src/night.scss:plugins/Macnemo/webroot/css/night.css",
+    "css": "yarn css:static && yarn css:theme"
   },
   "browserslist": [
     "last 2 versions",

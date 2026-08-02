@@ -41,6 +41,12 @@ die verlinkte Seite eine Vorschau an — Titel, Beschreibung, Bild —, kannst d
 zwischen einem schlichten Verweis und einer Vorschaukarte wählen. Die Vorschau
 zeigt vor dem Einfügen, was daraus wird.
 
+Bei **YouTube und PeerTube** genügt die Adresse aus der Adresszeile — auch die
+kurze `/w/…`-Form, die PeerTube anzeigt. Der Editor macht daraus von selbst die
+Adresse des Abspielers. Ob das Video dann wirklich erscheint, hängt noch daran,
+ob die Betreiberin die Domain freigegeben hat; steht sie nicht auf der Liste,
+erscheint statt des Videos ein Hinweis.
+
 ### Dateien
 
 Der Knopf *Uploads* öffnet dein Archiv und nimmt zugleich neue Dateien auf.

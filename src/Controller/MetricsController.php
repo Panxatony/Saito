@@ -13,7 +13,6 @@ namespace App\Controller;
 
 use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
-use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
 use Cake\ORM\TableRegistry;
 use Saito\App\Registry;
@@ -76,7 +75,7 @@ class MetricsController extends AppController
         $token = (string)Configure::read('Saito.metricsToken');
         if ($token === '') {
             // Never configured: behave like a forum that has no such address.
-            throw new NotFoundException();
+            return $this->refuse();
         }
 
         // hash_equals rather than ===: a plain comparison returns as soon as two
@@ -87,7 +86,7 @@ class MetricsController extends AppController
         if (!hash_equals($token, $offered)) {
             // 404 again, not 401: an installation with a token and one without
             // should be indistinguishable to anybody who does not hold it.
-            throw new NotFoundException();
+            return $this->refuse();
         }
 
         $body = $this->render_(
@@ -104,6 +103,35 @@ class MetricsController extends AppController
             ->withType('text/plain')
             ->withHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
             ->withStringBody($body);
+    }
+
+    /**
+     * Answer 404 without raising.
+     *
+     * This used to throw `NotFoundException`, which is correct about the
+     * request and wrong about the event: the guard doing its job is not an
+     * application error, and it landed in `error.log` like one. That costs
+     * nothing while the token is right and everything when it is not — a
+     * rotated token or a typo in a scrape config writes **1,440 entries a day**
+     * at a 60-second interval, and the log stops being readable exactly when
+     * somebody needs to read it.
+     *
+     * Not solved with `skipLog` in `config/app.php`: that is keyed on the
+     * exception class, so silencing `NotFoundException` would silence every
+     * genuinely broken route in the forum as well.
+     *
+     * The body stays empty. A scraper reads the status code, and an
+     * installation without a token should look like one that has no such
+     * address.
+     *
+     * @return \Cake\Http\Response
+     */
+    private function refuse(): Response
+    {
+        return $this->response
+            ->withStatus(404)
+            ->withType('text/plain')
+            ->withStringBody('');
     }
 
     /**

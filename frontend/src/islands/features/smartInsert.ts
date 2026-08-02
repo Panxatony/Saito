@@ -25,6 +25,30 @@ function youtubeId(url: string): string | null {
     return wa ? wa[1] : null;
 }
 
+/**
+ * A PeerTube watch URL, turned into the address that can actually be embedded.
+ *
+ * PeerTube hands people `/w/<id>` — a whole HTML page. Pasting that into
+ * `[video]` produces a `<video src=…>` pointing at a web page, which plays
+ * nothing, and pasting it into `[iframe]` embeds the entire site chrome. The
+ * player lives at `/videos/embed/<id>`.
+ *
+ * Recognised by the path rather than the host: PeerTube is federated, so there
+ * is no domain list to match against — macnemo runs its own instance and so
+ * does everyone else. `/w/<id>` is distinctive enough, and the cost of a false
+ * positive is small: the forum's own `video_domains_allowed` still has to
+ * permit the host, or the posting shows "domain not allowed" instead of a
+ * frame.
+ *
+ * @param url the pasted address
+ * @returns the embed address, or null when it is not a PeerTube watch URL
+ */
+function peertubeEmbed(url: string): string | null {
+    const match = url.match(/^(https?:\/\/[^/]+)\/w\/([\w-]+)/i);
+
+    return match ? `${match[1]}/videos/embed/${match[2]}` : null;
+}
+
 function urlToBbcode(url: string, text: string): { type: string; bbcode: string } {
     const trimmedUrl = url.trim();
     if (!trimmedUrl) {
@@ -35,6 +59,14 @@ function urlToBbcode(url: string, text: string): { type: string; bbcode: string 
         return {
             type: 'YouTube',
             bbcode: `[iframe src=//www.youtube-nocookie.com/embed/${id} allowfullscreen=allowfullscreen`
+                + ' frameborder=0 height=315 width=560][/iframe]',
+        };
+    }
+    const peertube = peertubeEmbed(trimmedUrl);
+    if (peertube) {
+        return {
+            type: 'PeerTube',
+            bbcode: `[iframe src=${peertube} allowfullscreen=allowfullscreen`
                 + ' frameborder=0 height=315 width=560][/iframe]',
         };
     }

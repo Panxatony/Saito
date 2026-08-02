@@ -2796,3 +2796,11 @@ msgstr "Meine Daten herunterladen"
 #: templates/Users/htmx_edit.php
 msgid "user.export.exp"
 msgstr "Alles, was das Forum über dich gespeichert hat, als JSON-Datei."
+
+#: templates/email/text/user_register_existing.php
+msgid "register_email_existing_subject"
+msgstr "Registrierungsversuch bei {0}"
+
+#: templates/email/text/user_register_existing.php
+msgid "register_email_existing_content"
+msgstr "Hallo,\n\nbei {0} hat jemand versucht, ein Konto mit dieser E-Mail-Adresse anzulegen. Es gibt hier bereits ein Konto mit dieser Adresse, unter dem Namen "{1}".\n\nDu musst nichts tun. Wenn du das selbst warst und dein Konto vergessen hattest: melde dich einfach an.\n\n{2}\n\nWenn du es nicht warst, hat sich vermutlich jemand bei seiner eigenen Adresse vertippt. Dein Konto ist davon unberührt, und es wurde nichts geändert."

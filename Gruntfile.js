@@ -79,6 +79,23 @@ module.exports = function (grunt) {
       // into webroot/js/locale/*.json, which only the retired SPA read (via
       // JsDataHelper::getAppJs, reached from the SPA layout). The island
       // translates server-side through PHP's __(), out of src/Locale.
+      // Sass through its own CLI rather than grunt-dart-sass, which was last
+      // released in May 2022 and drives the legacy JS API that Dart Sass 2
+      // removes. It sits in the path that builds the themes for every release,
+      // so the day that lands it would not break somebody's local work — it
+      // would break the release pipeline, under time pressure.
+      //
+      // Checked before the swap: the CLI's output is byte-identical to the
+      // plugin's but for a trailing newline, which the plugin omitted. The
+      // plugin's `sourceComments: true` turned out to emit nothing at all.
+      sassStatic: {
+        command: 'yarn css:static',
+        options: { stdout: true, stderr: true, failOnError: true, },
+      },
+      sassTheme: {
+        command: 'yarn css:theme',
+        options: { stdout: true, stderr: true, failOnError: true, },
+      },
       bundle: {
         // JS bundle via Vite (replaces the legacy Webpack 4 build). Emits one
         // self-contained IIFE per entry into webroot/js; no NODE_OPTIONS
@@ -95,42 +112,10 @@ module.exports = function (grunt) {
         }
       },
     },
-    'dart-sass': {
-      options: {
-        sourceComments: true,
-        sourceMap: false,
-        // compression is done by "postcss"-task
-        // outputStyle: 'compressed',
-      },
-      static: {
-        files: {
-          // The admin stylesheet is not built here: it moved into the plugin
-          // with the Bootstrap 4 rewrite and is loaded as 'Admin.admin.css'.
-          // This entry named a source that has not existed since, and
-          // grunt-dart-sass skips a missing file without a word.
-          'webroot/css/stylesheets/static.css': 'webroot/css/src/static.scss',
-        }
-      },
-      theme: {
-        files: {
-          'plugins/Bota/webroot/css/night.css': 'plugins/Bota/webroot/css/src/night.scss',
-          'plugins/Bota/webroot/css/theme.css': 'plugins/Bota/webroot/css/src/theme.scss',
-          // Nova (the modern default) builds on Bota's partials, so it is
-          // compiled from the same task and rebuilt whenever Bota changes.
-          'plugins/Nova/webroot/css/night.css': 'plugins/Nova/webroot/css/src/night.scss',
-          'plugins/Nova/webroot/css/theme.css': 'plugins/Nova/webroot/css/src/theme.scss',
-          // Macnemo imports Nova, which imports Bota's partials — but it was
-          // missing here, so every change to those partials stopped at Nova and
-          // the macnemo theme silently drifted away from its own source.
-          'plugins/Macnemo/webroot/css/night.css': 'plugins/Macnemo/webroot/css/src/night.scss',
-          'plugins/Macnemo/webroot/css/theme.css': 'plugins/Macnemo/webroot/css/src/theme.scss',
-        }
-      },
-    },
     watch: {
       sassStatic: {
         files: ['webroot/css/src/**/*.scss'],
-        tasks: ['dart-sass:static'],
+        tasks: ['shell:sassStatic'],
       },
       sassTheme: {
         files: [
@@ -138,7 +123,7 @@ module.exports = function (grunt) {
             'plugins/Nova/webroot/css/src/**/*.scss',
             'plugins/Macnemo/webroot/css/src/**/*.scss',
           ],
-        tasks: ['dart-sass:theme'],
+        tasks: ['shell:sassTheme'],
       },
     },
     postcss: {
@@ -174,7 +159,7 @@ module.exports = function (grunt) {
           'webroot/css/stylesheets/static.css',
           'plugins/Bota/webroot/css/*.css',
           'plugins/Nova/webroot/css/*.css',
-          // Macnemo is compiled by dart-sass:theme but was missing here, so it
+          // Macnemo is compiled by shell:sassTheme but was missing here, so it
           // was the one theme released unprefixed and unminified.
           'plugins/Macnemo/webroot/css/*.css'
         ]
@@ -188,7 +173,6 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-shell');
-  grunt.loadNpmTasks('grunt-dart-sass');
   // The maintained fork: `grunt-postcss` was last released in 2018 and speaks
   // only the PostCSS 7 plugin API, so autoprefixer 10 and cssnano 7 arrive as
   // "[object Object] is not a PostCSS plugin".
@@ -205,8 +189,8 @@ module.exports = function (grunt) {
     // cleanup
     'clean:release',
     // CSS
-    'dart-sass:static',
-    'dart-sass:theme',
+    'shell:sassStatic',
+    'shell:sassTheme',
     'postcss:release',
     // JS bundle (Vite)
     'shell:bundle',

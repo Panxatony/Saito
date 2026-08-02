@@ -54,10 +54,9 @@ suite does not fail on deprecations raised inside dependencies.
 
 ### The stylesheets compile with 300 deprecation warnings
 
-Surfaced on 2026-08-01 by the Node 24 upgrade. `grunt-dart-sass` declares `sass`
-as a *peer* dependency, which yarn 1 never installs; the old lockfile happened
-to carry sass 1.24.4 from an older resolution. Declaring it properly brought
-1.102, and with it warnings the 2020 compiler never printed:
+Surfaced by the Node 24 upgrade: `sass` had never been declared, and declaring
+it properly moved the compiler from 1.24 to 1.102 — which prints warnings the
+2020 version never did.
 
 | Warning | Deadline |
 |---|---|
@@ -65,21 +64,17 @@ to carry sass 1.24.4 from an older resolution. Declaring it properly brought
 | `lighten()` / `darken()` are deprecated | use `color.adjust()` / `color.scale()` |
 | `/` for division outside `calc()` | removed in Dart Sass **2.0** |
 | global built-ins (`abs()`, `if()`) | removed in Dart Sass **3.0** |
-| the legacy JS API grunt-dart-sass uses | removed in Dart Sass **2.0** |
 
-Nothing is broken: the compiled CSS was checked against the previous compiler by
+Nothing is broken. The compiled CSS was checked against the previous compiler by
 rendering the live front page and a posting page and comparing pixel by pixel —
 zero differing pixels out of 2.8 and 2.3 million. The output only *looks*
 different in the file, where `darken()` results now print as
 `rgb(50.67%, 13.72%, 11.08%)` instead of `#8b0404`.
 
-The last row is the awkward one and should be settled first: `grunt-dart-sass`
-was last released in 2021 and calls the API that goes away in Dart Sass 2. The
-partials can be modernised at leisure; that dependency needs a decision — a
-maintained replacement, or compiling sass from a plain script instead of a grunt
-task.
-
-Not urgent, and not the kind of thing to do in the same change that moved Node.
+Dart Sass is at 1.102 and there is no 2.0, so none of these deadlines has a
+date. Modernising the partials is a leisurely job — one that touches every theme
+and is best done when nothing else is in flight, since a mistake in a colour
+function is invisible until somebody looks at the right page.
 
 ### TypeScript stays on 6 until typescript-eslint catches up
 
@@ -141,51 +136,6 @@ Categories", "Apply", "Cite", "Media") and one message in CakePHP 2's
 Last on the list on purpose: the reward is a smaller file, the risk is deleting
 a string that turns out to be built from parts, and no test would catch it. Read
 the candidates rather than scripting the removal.
-
-### Video uploads
-
-
-`video/mp4` and `video/webm` are already in the allowed types and `[video]`
-already exists in the parser, so the feature is not missing — it is unusable.
-The limits are far too small for any real recording, and nothing converts what
-arrives.
-
-**There is no single open format that plays everywhere**, and it is worth
-saying plainly rather than discovering it halfway through. H.264/AAC in MP4 runs
-on every phone and browser with hardware decoding, and is patent-encumbered.
-VP9 in WebM is open and at home on Android, but Safari's support arrived late
-and is not dependable. AV1 is open and modern, and older devices decode it in
-software — a flat battery and a stuttering picture, when it plays at all. The
-usual way out is to ship two encodings and let `<video>` pick, at the cost of
-double the storage and double the encoding time.
-
-**The cheap step, if the goal is "members can post a clip":** raise the limits
-and accept only what already plays. Check the uploaded file with `ffprobe` and
-refuse anything that is not H.264/AAC in MP4, with a message saying so. Phones
-record exactly that, so it covers nearly everyone, and it needs no queue, no
-migration and no new state. Someone with an exotic file has to convert it
-themselves — that is the whole cost.
-
-Four limits have to move together or it fails at the smallest one: Saito's own
-`setDefaultMaxFileSize` (16 MB on the live install), PHP's `upload_max_filesize`
-and `post_max_size` (30 MB each), and nginx's `client_max_body_size`. A minute
-of phone video is easily 100 MB.
-
-**The full version is a project, not a feature.** Converting cannot happen in
-the request — a transcode takes minutes and would block a PHP worker into its
-timeout — so it needs a queue and a real background worker. The `Cron` plugin
-does not qualify; it is a poor man's cron that runs off page views. From the
-queue follows a state model (an upload is "in progress", then ready), which
-means a column on `uploads` and a migration, and a posting that can render both
-states. `ffmpeg` is **not installed** on the live install, and encoding to H.264
-carries its own licensing question.
-
-Two things not to skip when it happens: storage — the live install holds 2.5 GB
-of uploads today and video plus two encodings changes the order of magnitude,
-not the percentage — and the fact that a video is a complex file handed to a
-very large parser. Saito checks images for decompression bombs; video would need
-ceilings on duration, resolution and bitrate, and `ffmpeg` should not run as the
-same user as the forum.
 
 ### The rest of the way out from under Bootstrap 4
 
@@ -253,28 +203,3 @@ on production, `datetime` from the migrations** — and here the migrations are 
 correct side. Converting means rewriting two columns whose values were written
 under whatever timezone the server had at the time, so it belongs with the 2038
 work above and not before it.
-
-### A refused metrics scrape writes an error to the log
-
-`MetricsController` answers a missing or wrong token with a `NotFoundException`,
-and that lands in `error.log` like any other. Right, in the sense that the
-request failed; wrong, in that it is not an application error — it is the guard
-doing its job.
-
-It costs nothing while the token is correct. The moment it is not — a rotated
-token, a typo in the scrape config — a 60-second interval writes **1,440 entries
-a day**, and the log stops being readable exactly when somebody needs to read it.
-Refuse without raising, or exclude this path from the error logger.
-
-Seen on the test system, where two of the day's five entries came from probing
-the guard.
-
-### Registration tells you whether an address already has an account
-
-`error_email_reserved` on a duplicate address — which is what a registration
-form has to say for the person filling it in, and at the same time an oracle
-for asking whether someone is a member here. The throttle added in 8.3.2 caps
-it at five questions an hour per address, which is the cheap half of the fix.
-The expensive half is accepting the registration silently and saying so only in
-the mail, and that changes what a person sees when they simply mistyped. Worth
-deciding on rather than drifting into.

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Test\TestCase\Controller;
 
 use Cake\Core\Configure;
-use Cake\Http\Exception\NotFoundException;
 use Saito\Test\IntegrationTestCase;
 
 /**
@@ -48,10 +47,10 @@ class MetricsControllerTest extends IntegrationTestCase
     {
         Configure::write('Saito.metricsToken', '');
 
-        // The suite disables the error-handler middleware, so a refusal
-        // arrives as the exception rather than as a rendered 404.
-        $this->expectException(NotFoundException::class);
         $this->get('/metrics');
+
+        $this->assertResponseCode(404);
+        $this->assertResponseEquals('');
     }
 
     /**
@@ -67,8 +66,9 @@ class MetricsControllerTest extends IntegrationTestCase
         Configure::write('Saito.metricsToken', self::TOKEN);
         $this->configRequest(['headers' => ['Authorization' => 'Bearer wrong']]);
 
-        $this->expectException(NotFoundException::class);
         $this->get('/metrics');
+
+        $this->assertResponseCode(404);
     }
 
     /**
@@ -80,8 +80,9 @@ class MetricsControllerTest extends IntegrationTestCase
     {
         Configure::write('Saito.metricsToken', self::TOKEN);
 
-        $this->expectException(NotFoundException::class);
         $this->get('/metrics');
+
+        $this->assertResponseCode(404);
     }
 
     /**
@@ -100,8 +101,38 @@ class MetricsControllerTest extends IntegrationTestCase
             'headers' => ['Authorization' => 'Bearer ' . substr(self::TOKEN, 0, 20)],
         ]);
 
-        $this->expectException(NotFoundException::class);
         $this->get('/metrics');
+
+        $this->assertResponseCode(404);
+    }
+
+    /**
+     * A refusal is a response, not an exception.
+     *
+     * That distinction is the whole point: an exception goes through the error
+     * handler, and the error handler writes to `error.log`. A guard doing its
+     * job is not an application error, and at a 60-second scrape a wrong token
+     * would otherwise write 1,440 entries a day — making the log unreadable
+     * exactly when somebody needs to read it.
+     *
+     * The log file itself is not asserted on, and the first version of this
+     * test that tried to was worthless: the suite disables the error-handler
+     * middleware, so nothing writes there under test either way. What this does
+     * assert is the thing the logging follows from — and the negative control
+     * confirms it, because with the old throwing version the exception escapes
+     * and this test errors.
+     *
+     * @return void
+     */
+    public function testARefusalIsAResponseAndNotAnException(): void
+    {
+        Configure::write('Saito.metricsToken', self::TOKEN);
+        $this->configRequest(['headers' => ['Authorization' => 'Bearer wrong']]);
+
+        $this->get('/metrics');
+
+        $this->assertResponseCode(404);
+        $this->assertResponseEquals('');
     }
 
     /**
