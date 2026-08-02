@@ -2,6 +2,8 @@
 
 namespace Saito\Test\User\ReadPostings;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+
 use App\Model\Entity\Entry;
 use Cake\Controller\Controller;
 use Cake\Http\Response;
@@ -100,6 +102,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         $this->assertFalse($this->ReadPostings->isRead(4, $time + 3));
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testDelete()
     {
         $this->mock();
@@ -109,6 +112,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         $this->ReadPostings->delete();
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGet()
     {
         $this->mock();
@@ -188,6 +192,7 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
         );
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGc()
     {
         $this->mock();
@@ -230,6 +235,8 @@ class ReadPostingsCookieTest extends \Saito\Test\SaitoTestCase
             $this->ReadPostings = new ReadPostingsCookieMock($currentUser, $this->cookieMock);
         }
 
+        // Stays a mock: testSet() and testSetSingle() put expectations on it,
+        // which a stub has no machinery for.
         $this->lastRefreshMock = $this->getMockBuilder(LastRefreshDummy::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['isNewerThan'])

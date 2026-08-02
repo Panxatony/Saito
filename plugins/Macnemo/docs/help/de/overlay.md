@@ -1,13 +1,13 @@
 Willkommen! Dieses Forum ist wie eine Kneipe, nur mit weniger verschütteten
-Getränken und einem *Ungelesen-Strich*. Hier ein kurzer Rundgang – keine Sorge,
-es gibt keine Prüfung am Ende. Wahrscheinlich.
+Getränken und mit Fettdruck für alles, was du noch nicht gelesen hast. Hier ein
+kurzer Rundgang – keine Sorge, es gibt keine Prüfung am Ende. Wahrscheinlich.
 
 <!-- icon: list -->
 ### Die Threadliste
 
-Alles Wichtige steht vorne. Ein oranger Strich links heißt „hier ist was Neues“ –
-sobald du reinschaust, verduftet er beleidigt. Über *„Mehr laden“* holst du dir
-Nachschub aus dem Archiv.
+Alles Wichtige steht vorne. **Fett** heißt „hier ist was Neues“ – sobald du
+reinschaust, wird es beleidigt dünn. Über *„Mehr laden“* holst du dir Nachschub
+aus dem Archiv.
 
 Wuchert ein Thread mit hundert Antworten? Der kleine Klapp-Pfeil links daneben
 faltet ihn zusammen, bis nur das Eröffnungsposting übrig ist – und in den
@@ -72,7 +72,7 @@ Dankeschön an den Verfasser.
 <!-- icon: check -->
 ### Gelesen-Markierung
 
-Zu viele orange Striche? Der *„Alles gelesen“*-Knopf macht mit einem Klick reinen
+Zu viel Fettgedrucktes? Der *„Alles gelesen“*-Knopf macht mit einem Klick reinen
 Tisch – der Reset-Knopf für dein schlechtes Gewissen.
 
 <!-- icon: columns -->

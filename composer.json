@@ -46,7 +46,7 @@
     "cakephp/cakephp-codesniffer": "^5",
     "cakephp/debug_kit": "^5",
     "psy/psysh": "@stable",
-    "phpunit/phpunit": "^11.5",
+    "phpunit/phpunit": "^13",
     "squizlabs/php_codesniffer": "^3.0",
     "phpstan/phpstan": "^2.1",
     "symfony/css-selector": "^8",

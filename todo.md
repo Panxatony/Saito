@@ -46,59 +46,100 @@ was measured, not guessed:
 |---|---|
 | `cakephp/authentication` 3 → 4 | **Tried. 250 tests fail.** Version 4 changed the shape of the identifier configuration — "Identifier configuration must specify a class name" — so `src/Auth/AuthenticationServiceFactory.php` has to be rewritten, not re-pinned. Reverted. Security-relevant, so worth doing properly. |
 | `cakephp/migrations` 4 → 5 | **Tried. 25 errors.** Under 5 the `Initial` migration no longer creates the tables, so the next migration runs against a `users` that is not there. Our migration files need work, not a new constraint. Reverted. |
-| `phpunit` 11 → 13 | **Tried, and closer than it looks: every one of the 647 tests passes with the same 1545 assertions.** The run exits non-zero on 548 *notices*, and they come from vendor code — `suin/php-rss-writer` and `jbbcode` — plus one warning about `apc.enable_cli`, an ini in `phpunit.xml` that already fails to apply today. So this is not a code migration but a decision: should the suite fail on deprecations raised inside dependencies? Answer that first, then this is a short job. Reverted for now. |
 | `squizlabs/php_codesniffer` 3 → 4 | **Not ours to move.** `cakephp/cakephp-codesniffer` and `slevomat/coding-standard` both still require `^3`. Wait for them. |
 
 All four remaining were attempted one at a time with the suite as the gate,
 which is the only reason the notes above say anything useful. Two went in, two
 came back out.
 
-### Timezones: the database holds local time, the framework believes in UTC
+### The stylesheets compile with 300 deprecation warnings
 
+Surfaced on 2026-08-01 by the Node 24 upgrade. `grunt-dart-sass` declares `sass`
+as a *peer* dependency, which yarn 1 never installs; the old lockfile happened
+to carry sass 1.24.4 from an older resolution. Declaring it properly brought
+1.102, and with it warnings the 2020 compiler never printed:
 
-Found on 2026-07-26 while chasing something else, and **not** caused by the SPA
-teardown — it has been like this for years and affected the old frontend just
-the same.
-
-**The finding**, measured on one posting:
-
-| | |
+| Warning | Deadline |
 |---|---|
-| Server | `21:11 CEST` = `19:11 UTC` |
-| `entries.time` in the database | `20:54:02` — i.e. **local time** (DB timezone `SYSTEM`) |
-| `APP_DEFAULT_TIMEZONE` | `UTC` |
-| the `<time datetime>` served | `2026-07-26T20:54:02+00:00` |
-| RSS `<pubDate>` | `… +0000` |
-| the text shown | `20:54` — **correct** |
+| `@import` is deprecated | removed in Dart Sass **3.0** |
+| `lighten()` / `darken()` are deprecated | use `color.adjust()` / `color.scale()` |
+| `/` for division outside `calc()` | removed in Dart Sass **2.0** |
+| global built-ins (`abs()`, `if()`) | removed in Dart Sass **3.0** |
+| the legacy JS API grunt-dart-sass uses | removed in Dart Sass **2.0** |
 
-**Why the display is right anyway:** `TimeHHelper` computes
-`serverOffset - offset(Saito.Settings.timezone)`. The setting says
-`Europe/Berlin`, the server runs on CEST — the difference is zero, so the raw
-value is printed unchanged and happens to be right.
+Nothing is broken: the compiled CSS was checked against the previous compiler by
+rendering the live front page and a posting page and comparing pixel by pixel —
+zero differing pixels out of 2.8 and 2.3 million. The output only *looks*
+different in the file, where `darken()` results now print as
+`rgb(50.67%, 13.72%, 11.08%)` instead of `#8b0404`.
 
-**What follows from that:**
+The last row is the awkward one and should be settled first: `grunt-dart-sass`
+was last released in 2021 and calls the API that goes away in Dart Sass 2. The
+partials can be modernised at leisure; that dependency needs a decision — a
+maintained replacement, or compiling sass from a plain script instead of a grunt
+task.
 
-- Everything machine-readable is wrong by the local offset: the `datetime`
-  attribute, the RSS `pubDate`, and therefore every feed reader. Postings appear
-  **two hours in the future** there (one in winter).
-- It is also **fragile**: move the server to UTC — an obvious thing to do during
-  a migration — and the display that is currently correct shifts by two hours.
-  Its correctness rests on the server timezone and a display setting happening to
-  agree.
+Not urgent, and not the kind of thing to do in the same change that moved Node.
 
-**Why it is not fixed yet:** setting `APP_DEFAULT_TIMEZONE` to `Europe/Berlin`
-shifts *every* time at once, including 2006, and those old rows may have been
-written under changing assumptions. It needs:
+### TypeScript stays on 6 until typescript-eslint catches up
 
-1. an inventory of whether `entries.time` really is local throughout (check the
-   DST boundaries — times around 02:00 in October),
-2. a decision: migrate the stored data to UTC (clean, but a one-time risk) or
-   teach the framework the right timezone (cheaper, but keeps local time in the
-   database),
-3. a pass over every output path: `TimeHHelper`, `<time>` elements, feeds,
-   sorting, "unread since", and `UsersController::_failedLoginMessage()`, which
-   feeds the database-local block `ends` through `timeAgoInWords` as if it were
-   UTC — so "your block ends in N hours" is off by the server offset.
+`typescript-eslint` refuses to load against TypeScript 7 — it says so and exits,
+so `yarn lint` produces no lint at all. Tracked upstream as
+typescript-eslint#10940. TS 6.0.3 type-checks the island cleanly, so there is
+nothing to gain from forcing it; this is a note so the next person who sees
+Dependabot offer TypeScript 7 knows it has already been tried.
+
+### Timezones: what is left after the helper was fixed
+
+**Done on 2026-08-02.** `TimeHHelper` renders the stored instant in the forum's
+timezone instead of adding an offset to the epoch, and it has tests now — it had
+none, in fifteen call sites. Three defects went with it, and only the second had
+ever been written down:
+
+1. **The offset was computed once from *now*.** So in August every winter
+   posting was shown an hour late and vice versa. On production a posting stored
+   at `16:48 UTC` in January was displayed as **18:48** instead of 17:48. This
+   was the one that actually reached readers, and nobody had noticed it.
+2. The `datetime` attribute carried the shifted value labelled `+00:00`.
+3. "Today" began at midnight **UTC**, because `mktime()` follows PHP's timezone —
+   and this forum's busiest hour is the one right after local midnight.
+
+`ThreadHtmlRenderer` reaches for the helper outside a view render, so
+`beforeRender()` is not guaranteed; the clock is read lazily now. Before, that
+path silently used an offset of zero and rendered in UTC.
+
+**The configuration rule, which is the part worth carrying to any other
+installation:** `App.defaultTimezone` **must be UTC**. CakePHP pins its own
+connection to `+00:00` regardless of the DSN, so the value arriving from the
+database is always a correct UTC rendering; PHP's timezone is what decides
+whether it gets labelled correctly. Set the app to `Europe/Berlin` and every
+instant read is wrong by the offset.
+
+That is not hypothetical: **the test system was set that way** —
+`env[APP_DEFAULT_TIMEZONE] = "Europe/Berlin"` in its fpm pool — and read every
+posting an hour off in winter, two in summer. Corrected 2026-08-02, old pool
+kept as `saito.conf.vor-tz-fix`. Production and beta were already on UTC.
+
+It also means the previous version of this entry proposed the exact opposite of
+the fix. Setting the app timezone to `Europe/Berlin` does not correct the
+display; it breaks the reading.
+
+**Checked and *not* broken**, contrary to what this entry used to claim:
+`UsersController::_failedLoginMessage()` takes `ends` as a `Cake\I18n\DateTime`
+off a `datetime` column, not a string, so the instant survives; and the RSS
+`pubDate` was always right.
+
+**What is left is the 2038 ceiling, and it is the only part that touches the
+schema.** `timestamp` cannot hold an instant after **2038-01-19**:
+`entries.time`, `last_answer`, `edited`, `users.registered`, `last_login` — the
+columns new postings are written to. Eleven years off, a date rather than a
+worry, and `datetime` has no such ceiling. Worth doing in the same pass as the
+`last_refresh` difference left over from the schema alignment, since both are
+`ALTER`s on the same tables.
+
+Also noticed while measuring: six postings whose `edited` predates their `time`,
+and seven with `last_answer < time`. Thirteen rows out of twenty years, almost
+certainly import residue.
 
 ### Video uploads
 

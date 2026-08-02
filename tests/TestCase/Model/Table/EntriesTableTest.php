@@ -2,6 +2,8 @@
 
 namespace App\Test\TestCase\Model\Table;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+
 use App\Model\Entity\Entry;
 use App\Model\Table\EntriesTable;
 use Cake\Datasource\Exception\RecordNotFoundException;
@@ -27,6 +29,7 @@ class EntriesTableTest extends SaitoTableTestCase
         'app.Setting',
     ];
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testCreateSuccessNewThread()
     {
         $category = 1;

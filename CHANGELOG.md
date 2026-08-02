@@ -5,6 +5,44 @@
 - Δ Changed
 - − Removed
 
+## [8.3.11] - 2026-08-02 "time chaos"
+
+No migration and no data touched. **Times from the other half of the year move
+by an hour** — that is the correction below, not a new fault.
+
+Also worth checking on your own install before you update: `APP_DEFAULT_TIMEZONE`
+**must be `UTC`**. It is not the forum's timezone — that is a setting in the
+admin area. See [configuration.md](docs/configuration.md).
+
+- ✓ Fixed: **postings from the other half of the year were shown with the wrong
+  hour.** `TimeHHelper` added the timezone offset to the epoch and then formatted
+  with `date()`, which runs under PHP's UTC — two mistakes that cancel, which is
+  why the text looked right for years. But the offset was computed once from
+  *now* and applied to every posting on the page, so in summer every winter
+  posting was an hour late and in winter every summer one an hour early. Measured
+  on the reference install: a posting stored at 16:48 UTC in January was served
+  as 18:48 instead of 17:48. The helper renders the instant in the forum's
+  timezone now, so PHP looks up the offset that applied *at that instant*.
+
+- ✓ Fixed: **the `datetime` attribute carried the wrong offset** — the shifted
+  value labelled `+00:00`, so feed readers, search engines and the browser's own
+  tooltip were out by the local offset. The RSS `pubDate` was always correct.
+
+- ✓ Fixed: **"today" began at midnight UTC.** `mktime()` follows PHP's timezone,
+  so between local midnight and the UTC one a posting was filed under the
+  previous day — and that is this forum's busiest hour.
+
+- ＋ Added: **`docs/configuration.md`**, every environment variable an operator
+  can set, with defaults and what each one does. Twelve of the thirty-three were
+  documented nowhere, among them the whole SMTP block and `SAITO_TRUST_PROXY`,
+  which lets clients forge their own IP if it is switched on without a proxy in
+  front.
+
+- Δ Changed: the toolchain moved to **Node 24** and **PHPUnit 13**, and
+  `cakephp/bake` is gone. None of it reaches a server — no install has Node, and
+  the release tarball is built `--no-dev`. Developers need Node >= 22.11 now;
+  `.nvmrc` names the version.
+
 ## [8.3.10] - 2026-08-01 "hybi"
 
 No migration. The stylesheet and the island bundle both changed; the parser

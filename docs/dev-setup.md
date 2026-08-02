@@ -8,7 +8,10 @@ How to run Saito locally for development.
   simplexml, ...)
 - **MySQL** or **MariaDB**
 - [**Composer**](https://getcomposer.org/) for the PHP dependencies
-- **Node.js** with [**Yarn**](https://yarnpkg.com/) for the frontend assets
+- **Node.js >= 22.11** with [**Yarn**](https://yarnpkg.com/) for the frontend
+  assets. `.nvmrc` names the exact version the pipelines run (24 LTS). Below the
+  floor `yarn install` stops with an engine error naming `cssnano` rather than
+  Node, which is easy to misread as a broken lockfile.
 
 ## 1. Get the Code
 

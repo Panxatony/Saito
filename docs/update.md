@@ -109,10 +109,17 @@ migrations and records the new version.
 > ```
 >
 > **The cache clear belongs to the migration, not after it.** 8.3.0 drops six
-> columns from `users`, and CakePHP keeps each table's column list in
-> `tmp/cache/models`. Until that is cleared, every request still asks the
-> database for a column that no longer exists and gets a 500 — on every page,
-> for everyone logged in. Reload PHP-FPM afterwards.
+> columns from `users` and 8.3.8 drops `entries.flattr`, and CakePHP keeps each
+> table's column list in `tmp/cache/models`. Until that is cleared, every
+> request still asks the database for a column that no longer exists and gets a
+> 500 — on every page, for everyone logged in. Reload PHP-FPM afterwards.
+>
+> **8.3.8 also removes data**, not just a column: on an installation grown from
+> Saito 4 the `flattr` column holds a marking on every posting that was ever set
+> for it — 16,104 of them on the reference install, from 2011 to 2018. Nothing
+> reads it and the service shut down, but the migration has no `down()` and
+> cannot put it back. If you want those markings, take them out of the backup
+> before you run it.
 
 **This is expected, not an error.** If you deploy without the updater — from a
 configuration-management tool, say — remember that the database version has to

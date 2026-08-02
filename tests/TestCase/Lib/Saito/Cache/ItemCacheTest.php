@@ -2,6 +2,8 @@
 
 namespace Saito\Test\Cache;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+
 use Saito\Cache\ItemCache;
 use Saito\Cache\SaitoCacheEngineInterface;
 use Saito\Test\SaitoTestCase;
@@ -73,6 +75,7 @@ class ItemCacheTest extends SaitoTestCase
         } else {
             $this->ItemCache = new ItemCacheMock('test', null, $options);
         }
+        // Stays a mock: testCacheEngineIsWrittenTo() puts an expectation on it.
         $this->CacheEngine = $this->getMockBuilder(SaitoCacheEngineInterface::class)
             ->onlyMethods(['read', 'write'])
             ->getMock();
@@ -93,6 +96,7 @@ class ItemCacheTest extends SaitoTestCase
         unset($this->CacheEngine);
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGcMaxItems()
     {
         $this->_setupItemCache(
@@ -114,6 +118,7 @@ class ItemCacheTest extends SaitoTestCase
         $this->assertArrayHasKey('4', $cache);
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGcOutdated()
     {
         $duration = 3600;
@@ -160,12 +165,14 @@ class ItemCacheTest extends SaitoTestCase
         $this->assertArrayHasKey(3, $cache);
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGetRaw()
     {
         $this->_setFixture();
         $this->assertEquals($this->fixture, $this->ItemCache->get());
     }
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testReset()
     {
         $this->ItemCache->reset();
