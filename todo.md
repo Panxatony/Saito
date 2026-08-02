@@ -89,73 +89,53 @@ typescript-eslint#10940. TS 6.0.3 type-checks the island cleanly, so there is
 nothing to gain from forcing it; this is a note so the next person who sees
 Dependabot offer TypeScript 7 knows it has already been tried.
 
-### Timezones: one helper shifts the clock instead of reading it
+### Timezones: what is left after the helper was fixed
 
-**Corrected on 2026-08-01.** The first version of this entry — and the inventory
-written into it earlier the same day — was wrong on two counts, and the mistake
-is worth recording because it is easy to repeat: **every measurement was taken
-through a `mysql` CLI session running on `SYSTEM`, i.e. CEST, while the
-application connects with `timezone=UTC` in its `DATABASE_URL`.** So the CLI
-rendered correct UTC instants into local time and made the data look broken.
+**Done on 2026-08-02.** `TimeHHelper` renders the stored instant in the forum's
+timezone instead of adding an offset to the epoch, and it has tests now — it had
+none, in fifteen call sites. Three defects went with it, and only the second had
+ever been written down:
 
-Read through the connection the application actually uses:
+1. **The offset was computed once from *now*.** So in August every winter
+   posting was shown an hour late and vice versa. On production a posting stored
+   at `16:48 UTC` in January was displayed as **18:48** instead of 17:48. This
+   was the one that actually reached readers, and nobody had noticed it.
+2. The `datetime` attribute carried the shifted value labelled `+00:00`.
+3. "Today" began at midnight **UTC**, because `mktime()` follows PHP's timezone —
+   and this forum's busiest hour is the one right after local midnight.
 
-| | |
-|---|---|
-| `entries.time` vs `entries.created`, same row | **identical**, `diff = 0` |
-| the stored instant of posting 681228 | `2026-08-01 21:14:24` UTC — correct |
-| RSS `<pubDate>` | `Sat, 01 Aug 2026 21:14:24 +0000` — **correct** |
-| the text on the page | `23:14` — **correct** |
-| `<time datetime=…>` | `2026-08-01T23:14:24+00:00` — **wrong** |
+`ThreadHtmlRenderer` reaches for the helper outside a view render, so
+`beforeRender()` is not guaranteed; the clock is read lazily now. Before, that
+path silently used an offset of zero and rendered in UTC.
 
-So: the database is right, the feeds are right, the visible text is right. **One
-thing is wrong**, and it is not storage.
+**The configuration rule, which is the part worth carrying to any other
+installation:** `App.defaultTimezone` **must be UTC**. CakePHP pins its own
+connection to `+00:00` regardless of the DSN, so the value arriving from the
+database is always a correct UTC rendering; PHP's timezone is what decides
+whether it gets labelled correctly. Set the app to `Europe/Berlin` and every
+instant read is wrong by the offset.
 
-**Where it comes from.** `TimeHHelper::beforeRender()` computes
-`_timeDiffToUtc = offset(server) − offset(Settings.timezone)` = `0 − 7200` on
-this install, and `formatTime()` then does arithmetic on the epoch:
+That is not hypothetical: **the test system was set that way** —
+`env[APP_DEFAULT_TIMEZONE] = "Europe/Berlin"` in its fpm pool — and read every
+posting an hour off in winter, two in summer. Corrected 2026-08-02, old pool
+kept as `saito.conf.vor-tz-fix`. Production and beta were already on UTC.
 
-    $timestamp = $unixTimestamp - $this->_timeDiffToUtc;   // epoch + 7200
+It also means the previous version of this entry proposed the exact opposite of
+the fix. Setting the app timezone to `Europe/Berlin` does not correct the
+display; it breaks the reading.
 
-Every `date()` call afterwards runs under PHP's timezone, which is UTC — so a
-corrupted epoch rendered in UTC produces the correct Berlin wall clock. The text
-is right by two errors cancelling. `timeTag()` then formats that same corrupted
-epoch as RFC 3339 and labels it `+00:00`, which is the bug: the value has been
-moved to +02:00 and the offset still claims UTC. Feed readers are two hours out.
+**Checked and *not* broken**, contrary to what this entry used to claim:
+`UsersController::_failedLoginMessage()` takes `ends` as a `Cake\I18n\DateTime`
+off a `datetime` column, not a string, so the instant survives; and the RSS
+`pubDate` was always right.
 
-**The fix is to stop shifting epochs and let PHP render the timezone:**
-
-    $tz = new DateTimeZone(Configure::read('Saito.Settings.timezone') ?: 'UTC');
-    $local = (clone $timestamp)->setTimezone($tz);
-    // text:      $local->format('H:i')          — unchanged from today
-    // attribute: $local->format(DATE_RFC3339)   — now +02:00, and correct
-
-No migration, no data touched, and no visible change — which is also what makes
-it testable: the rendered text must come out byte-identical, only the attribute
-moves.
-
-**A second, smaller one in the same file:** `_formatRelative()` compares against
-`$this->_today = mktime(0, 0, 0)`, and `mktime()` uses PHP's timezone. "Today"
-therefore begins at 00:00 **UTC**, so between midnight and 02:00 Berlin a
-posting is filed under the wrong day and shows a date where it should show a
-time. Same fix — compute midnight in the display timezone.
-
-**What must NOT be done**, and the earlier version of this entry proposed it:
-setting `APP_DEFAULT_TIMEZONE` to `Europe/Berlin`. `EntriesTable::createEntry()`
-writes `bDate()`, which is `date('Y-m-d H:i:s')` in PHP's timezone, over a
-connection pinned to `timezone=UTC`. Today both are UTC and the stored instant is
-right. Change the app timezone alone and every new posting is written two hours
-off — it would *introduce* the corruption this entry was afraid of.
-
-**There is no test for `TimeHHelper`.** It is used in fifteen places and has
-none. Whatever is changed here needs one first.
-
-**The 2038 ceiling stands, and it is the only thing here that touches the
+**What is left is the 2038 ceiling, and it is the only part that touches the
 schema.** `timestamp` cannot hold an instant after **2038-01-19**:
-`entries.time`, `last_answer`, `edited`, `users.registered`, `last_login` —
-the columns new postings are written to. Eleven years off, a date rather than a
+`entries.time`, `last_answer`, `edited`, `users.registered`, `last_login` — the
+columns new postings are written to. Eleven years off, a date rather than a
 worry, and `datetime` has no such ceiling. Worth doing in the same pass as the
-`last_refresh` difference left over from the schema alignment.
+`last_refresh` difference left over from the schema alignment, since both are
+`ALTER`s on the same tables.
 
 Also noticed while measuring: six postings whose `edited` predates their `time`,
 and seven with `last_answer < time`. Thirteen rows out of twenty years, almost
