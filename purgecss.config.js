@@ -65,6 +65,11 @@ module.exports = {
             // saving is not worth a failure mode that only a pixel comparison
             // can catch, and only on a page somebody remembered to compare.
             /^fa$/, /^fa-/,
+            // The collapsed-header state. A plain safelist entry proved not to
+            // hold: of five `html.headerClosed …` rules, purging kept three and
+            // dropped two — including the one that lets the bar shrink. Greedy
+            // keeps every rule the class appears in, compound selectors and all.
+            /headerClosed/,
         ],
         // Keep every rule that styles an element rather than a class: `reboot`
         // is the base normalisation and has no class names to match on.

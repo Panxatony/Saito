@@ -79,5 +79,26 @@ function applyFontScale(root: HTMLElement): void {
     }
 }
 
+/**
+ * Collapse the header if the reader left it collapsed.
+ *
+ * On the document element rather than `<body>`, which the classic theme used:
+ * this script runs inside `<head>`, so `document.body` does not exist yet. That
+ * is the whole reason it belongs here — applying the class after paint means
+ * watching the header fold itself away on every page load.
+ *
+ * @param root the document element
+ */
+function applyHeaderState(root: HTMLElement): void {
+    try {
+        if (localStorage.getItem('headerClosed') === 'true') {
+            root.classList.add('headerClosed');
+        }
+    } catch {
+        /* localStorage unavailable */
+    }
+}
+
 applyTheme(document.documentElement);
 applyFontScale(document.documentElement);
+applyHeaderState(document.documentElement);
