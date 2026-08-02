@@ -6,10 +6,36 @@ Every setting an operator can give Saito, in one place: the ones edited in
 **Three layers, and this file covers two of them.** `config/saito_config.php`
 first, because it is the one nothing else documents; then the environment.
 
-The third is the **admin area**, and it is not here: everything a forum owner
-changes while the forum runs — the forum's timezone, subject length,
+The third is the **admin area**, and it is not documented here: everything a
+forum owner changes while the forum runs — the forum's timezone, subject length,
 registration policy, categories — is edited in the browser and stored in the
-database. Nothing in this file overrides it.
+`settings` table.
+
+### Which layer wins
+
+The database is loaded into `Saito.Settings`, and what `saito_config.php` put
+there is passed in as a preset:
+
+```php
+// SettingsTable::load()
+$settings = $preset + $settings;   // PHP keeps the LEFT side on a collision
+```
+
+So **the file wins over the admin area**, not the other way round. That is worth
+knowing before assuming a setting can be changed in the browser: where both name
+the same key, the admin form saves the value, the database holds it, and the
+running forum ignores it.
+
+**Today nothing collides.** The file contributes four keys under
+`Saito.Settings` — `ParserPlugin`, `uploadDirectory`,
+`answeringAutoSelectCategory` and `uploader` — and none of them is an admin
+setting; checked against both a fresh install and a forum with 37 settings rows
+on 2026-08-02. Everything else the file sets lives under `Saito.*` rather than
+`Saito.Settings`, where the admin area never reaches at all.
+
+The trap is only there for whoever adds the next key. Adding one under
+`Saito.Settings` that an admin form also writes creates a setting that cannot be
+changed, and it fails silently — no error, the form just has no effect.
 
 A rule that has cost time before: the forum's timezone is an admin setting, not
 `APP_DEFAULT_TIMEZONE`. See below.
