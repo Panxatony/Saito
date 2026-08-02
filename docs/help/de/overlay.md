@@ -89,6 +89,17 @@ Ergebnislisten werden über *Mehr laden* nachgeladen.
 Der Umschalter im Kopfbereich wechselt zwischen heller und dunkler Darstellung.
 Die Wahl bleibt auf diesem Gerät erhalten.
 
+<!-- icon: minus-square-o -->
+### Kopfleiste einklappen
+
+Rechts in der Kopfleiste klappt ein Knopf sie zu einem schmalen Streifen
+zusammen. Das schafft Platz auf kleinen Bildschirmen und beim langen Lesen; die
+zusammengeklappte Leiste bleibt dann am oberen Rand stehen, sodass Logo und
+Aufklapp-Knopf beim Scrollen erreichbar bleiben.
+
+Die Entscheidung bleibt auf diesem Gerät erhalten — wie bei heller und dunkler
+Darstellung.
+
 <!-- icon: user -->
 ### Profil und Einstellungen
 

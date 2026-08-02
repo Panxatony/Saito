@@ -5,6 +5,62 @@
 - Δ Changed
 - − Removed
 
+## [8.3.14] - 2026-08-03 "ballast"
+
+No migration. Both the stylesheets and the JS bundle changed, so deploy them
+with the rest.
+
+Named for what goes overboard: the shipped CSS loses two thirds of its weight,
+and the header bar can fold itself away again.
+
+- Δ Changed: **the release now ships only the CSS the forum uses** — 810 KB down
+  to 271, `Nova/theme.css` alone from 132 KB to 41. Bootstrap stays a dependency
+  and nothing derived from it lives in this repository; what changed is that
+  `grunt release` drops every rule no template or PHP class refers to. The
+  compiled themes carry about 1600 classes and the forum uses roughly 150.
+
+  This step is lossy and fails silently, so it comes with `dev/pixel-diff.sh`,
+  which renders real pages against both stylesheets and counts differing pixels.
+  Twelve comparisons at zero: three themes in both presets, three pages, three
+  viewport widths. Three blind spots turned up on the way and none was
+  guessable by reading — markup is built in `src/` as well as `templates/`; icon
+  names are composed (`$iconLabel('sign-in')` never appears as `fa-sign-in`
+  anywhere); and some classes exist only through `@extend`.
+
+  **For installations with their own theme:** rebuild it against this release
+  before deploying, and run the pixel diff. A rule your theme relies on that no
+  Saito template mentions will be removed.
+
+- ＋ Added: **the header bar folds away again.** The classic Bota theme could
+  collapse it to a thin strip and remembered the choice; the island frontend
+  never carried it over, and for three releases the CSS for it sat in the
+  stylesheet with no markup to match. The state is applied before the first
+  paint, so no page load shows the header folding itself, and it keeps the old
+  `headerClosed` key — an installation upgrading from the classic theme finds
+  its readers' preference intact rather than reset.
+
+- ＋ Added: **`Webhooks`, a plugin that tells an outside system about new
+  members.** Registration, activation and account deletion post a small signed
+  JSON body to an address the installation configures, under
+  `Saito.webhooks.user`. Meant for a companion app or a moderation queue; an
+  empty `url` switches the whole thing off, listener included.
+
+  The body carries id, username and a UTC timestamp and deliberately nothing
+  else — no email address, no IP. Delivery is best-effort: the call happens
+  inside the request that registered the member, so a dead endpoint must not
+  fail their registration, and a lost event is the accepted cost. Something that
+  must not miss events should poll the API.
+
+- Δ Changed: **the stylesheets compile with 32 deprecation warnings instead of
+  148.** `/` for division, `map-get` and `darken()`/`lighten()` are gone; the
+  dependencies are silenced properly now, which needed a load path rather than
+  the flag alone. Every conversion was output-preserving, so the test was `cmp`
+  on the compiled CSS rather than a pixel diff — all seven byte-identical
+  through the full release chain. `--fatal-deprecation` keeps the three cleared
+  categories from coming back. `@import` is what remains; the official migrator
+  refuses this codebase, and its deadline is a compiler version that does not
+  exist yet.
+
 ## [8.3.13] - 2026-08-02 "funkstille"
 
 No migration. The JS bundle changed, so deploy it with the rest.

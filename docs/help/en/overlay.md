@@ -85,6 +85,17 @@ further by author, category and a period. Longer result lists are fetched with
 The switch in the header changes between the light and dark presentation. The
 choice is kept on this device.
 
+<!-- icon: minus-square-o -->
+### Folding the header away
+
+A button at the right of the header collapses it to a thin strip. It buys room
+on a small screen and while reading at length; the collapsed bar then stays at
+the top of the window, so the logo and the unfold button remain within reach as
+you scroll.
+
+The choice is kept on this device, the same way the light and dark presentation
+is.
+
 <!-- icon: user -->
 ### Profile and settings
 
