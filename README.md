@@ -70,8 +70,12 @@ rather than in the commit history.
 You need a more or less generic environement providing:
 
 -  PHP with `composer` for the server-backend (mainly build on [CakePHP][cake])
--  node with `yarn` and `grunt-cli` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts)
+-  **Node.js >= 22.11** with `yarn` and `grunt-cli` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts). `.nvmrc` names the version the pipelines use; the build tooling sets that floor and `yarn install` refuses below it.
 -  a database
+
+Every environment variable an operator can set is listed in
+[docs/configuration.md](docs/configuration.md) — one table, with the defaults and
+what each one actually does.
 
 ### Install Files
 

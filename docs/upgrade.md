@@ -356,13 +356,24 @@ good way to see what your members are about to get, with a one-line way back.
 
 ## Notes for old installations
 
-**Times are stored as local time.** Installations that go back far enough hold
-local time in `entries.time` while the application is configured for UTC. The
-displayed times are correct as long as the server timezone and the forum's
-timezone setting agree; machine-readable output (RSS `pubDate`, the `datetime`
-attribute) is off by the local offset. This predates Saito 8 and is not changed
-by the upgrade — but if you are moving the forum to a new server anyway, do not
-"tidy up" the server timezone in the same step.
+**Times: the stored data is fine, and `APP_DEFAULT_TIMEZONE` must stay `UTC`.**
+An earlier version of this note claimed installations hold local time in
+`entries.time`. They do not. That column is a MySQL `timestamp`, which stores an
+unambiguous UTC instant, and CakePHP pins its own connection to `+00:00` — so
+the value the application reads is correct on every installation, however old.
+The measurement behind the wrong claim had been taken through a `mysql` client
+whose session ran on local time.
+
+What the variable controls is how PHP *labels* that value. Set it to a local
+zone and every instant in the forum is read wrong by the offset. The forum's own
+timezone is a separate setting in the admin area, and Saito renders displayed
+times into it.
+
+Up to and including 8.3.10 the display had three faults of its own — winter
+postings shown with the summer offset and vice versa, a `datetime` attribute
+carrying the wrong offset, and "today" beginning at midnight UTC. Fixed after
+8.3.10. **Expect times from the other half of the year to move by an hour when
+you upgrade past it**; that is the correction, not a new fault.
 
 **The `Local` theme was renamed.** If your installation carries a custom theme
 under `plugins/Local`, it keeps working — the rename affected the theme shipped
