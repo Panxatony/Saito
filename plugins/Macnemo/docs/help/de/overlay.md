@@ -70,6 +70,18 @@ weitergeholfen, darfst du sie per Haken als *hilfreich* auszeichnen – ein klei
 Dankeschön an den Verfasser.
 
 <!-- icon: check -->
+<!-- icon: user -->
+### Dein Rang
+
+Im Profil steht seit Neuestem ein Rang – vom *Fischbrötchen* ab zehn Beiträgen
+bis hinauf zum *Smutje*. Er richtet sich allein danach, wie viel jemand
+geschrieben hat, und wandert von selbst mit. Wer noch unter zehn Beiträgen
+liegt, hat schlicht noch keinen; das ist keine Strafe, sondern ein Anfang.
+
+Ganz oben wartet *Kpt. Ahab* bei hunderttausend Beiträgen. Den hat bisher
+niemand, und der fleißigste Schreiber im Forum ist noch nicht einmal auf halbem
+Weg.
+
 ### Gelesen-Markierung
 
 Zu viel Fettgedrucktes? Der *„Alles gelesen“*-Knopf macht mit einem Klick reinen

@@ -389,3 +389,23 @@ msgstr "Administrator"
 
 msgid "permission.role.4"
 msgstr "Eigentümer"
+
+#
+msgid "userranks.t"
+msgstr "Ränge"
+
+#
+msgid "userranks_show"
+msgstr "Ränge anzeigen"
+
+#
+msgid "userranks_show_exp"
+msgstr "Zeigt im Profil den Rang an, den ein Mitglied durch die Anzahl seiner Beiträge erreicht hat."
+
+#
+msgid "userranks_ranks"
+msgstr "Rangleiter"
+
+#
+msgid "userranks_ranks_exp"
+msgstr "Liste aus <Anzahl>=<Titel>, getrennt durch senkrechte Striche. Der Rang gilt ab der genannten Anzahl: \"10=Fischbrötchen|100=Schiffsjunge\" macht ab zehn Beiträgen zum Fischbrötchen und ab hundert zum Schiffsjungen. Wer die unterste Anzahl noch nicht erreicht hat, bekommt keinen Rang angezeigt. Leer lassen schaltet die Ränge ab."

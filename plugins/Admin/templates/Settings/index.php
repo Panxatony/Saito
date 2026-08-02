@@ -71,6 +71,13 @@ echo $this->Setting->table(
     $Settings
 );
 
+echo $this->Setting->table(
+    __d('nondynamic', 'userranks.t'),
+    ['userranks_show', 'userranks_ranks'],
+    $Settings,
+    ['sh' => 6]
+);
+
 // The "Debug" section held one switch, stopwatch_get, which turned on the
 // profiler chart in the page footer. That chart was rendered by StopwatchHelper
 // through jQuery and has been unreachable since the SPA went; the helper is

@@ -225,39 +225,31 @@
 
 /* Editor toolbar: modern ghost icon-buttons instead of solid grey Bootstrap
    buttons. Transparent with a soft border; accent tint on hover/focus. */
-/* Subject field: as wide as the subject may be long, no wider.
+/* Subject field: the full width of the form again.
 
-   A `form-control` spans the whole form, so on a desktop the box invited a
-   headline several times longer than the forum accepts — the writer types on,
-   hits the maxlength, and the field simply stops responding with no explanation.
-   The limit is an admin setting, so the templates pass it in as `--subject-max`
-   and the width follows it.
+   It was capped for a while at roughly the width of the longest subject the
+   forum accepts. The reason was real — a box spanning the whole form invites a
+   headline several times longer than the limit, and the writer only found out
+   by typing until the field stopped responding, with nothing to explain why.
 
-   `ch` is the width of the digit zero, and running text is narrower than that:
-   measured against this theme's font, a hundred characters of ordinary prose
-   come to 713px while `100ch` is 891px. A plain `1ch` per character therefore
-   still left a fifth of the box empty — which is the complaint this rule exists
-   to answer, so the measured 0.8 goes in rather than the round number.
+   The countdown answers that directly: the number of characters left sits in
+   the field and turns red as it runs out, so the field no longer promises
+   anything it cannot keep. With the explanation there, the cap was only taking
+   away room on a wide screen for a warning that is now given in words.
 
-   The 2rem covers the field's own padding and border plus a little slack, so a
-   subject of wide characters is not clipped at the last letter. `max-width`
-   keeps it from overflowing a narrow screen, where 100% is the smaller value. */
-.htmx-island .js-subject {
-    max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
-}
+   `--subject-max` went with it. The templates no longer pass it and
+   subjectCount.ts no longer copies it: the counter reads `maxlength` from the
+   field itself, which is where the limit already was. */
 
 /* The remaining-characters count, inside the field at its right edge.
    subjectCount.ts wraps the field so the number can be pinned to the field
-   rather than to the wider row it sits in; the width rule therefore moves to the
-   wrapper and the field goes back to filling what it is given. The right padding
-   is what keeps a long subject from running under the number. */
+   rather than to the wider row it sits in. The right padding is what keeps a
+   long subject from running under the number. */
 .htmx-island .subject-field {
     position: relative;
     display: block;
-    max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
 }
 .htmx-island .subject-field .js-subject {
-    max-width: none;
     width: 100%;
     padding-right: 3.2rem;
 }

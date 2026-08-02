@@ -159,6 +159,19 @@ jobs:
           # pattern and straight back on, because `*/tests` further down relies
           # on the default.
           #
+          # The exclusion used to be `./docs/*.md`, which took the
+          # operator-facing pages with it — and the shipped README links to two
+          # of them, so an operator who had only the tarball followed a dead
+          # link to the file that says APP_DEFAULT_TIMEZONE must be UTC, the one
+          # setting that silently breaks every timestamp in the forum. Naming
+          # the developer pages instead is also the safer shape: adding a page
+          # for operators now ships it by default, and forgetting to ship one is
+          # the failure that goes unnoticed.
+          #
+          # Naming the wanted files back as operands does not work: GNU tar
+          # applies --exclude to explicitly named files too. Tried, and the
+          # files were still absent from the archive.
+          #
           # These comments live here rather than between the arguments: a `#`
           # line following a trailing backslash comments out the remainder of the
           # command. That swallowed the `.` operand and tar refused to build an
@@ -172,9 +185,9 @@ jobs:
             --exclude='./.phpunit.result.cache' \
             --exclude='./build' \
             --exclude='./dev' \
-            --no-wildcards-match-slash \
-            --exclude='./docs/*.md' \
-            --wildcards-match-slash \
+            --exclude='./docs/dev-setup.md' \
+            --exclude='./docs/dev-hooks.md' \
+            --exclude='./docs/CHANGELOG_OLD.md' \
             --exclude='./docs/local' \
             --exclude='./frontend' \
             --exclude='./node_modules' \

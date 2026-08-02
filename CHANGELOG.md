@@ -5,6 +5,62 @@
 - Δ Changed
 - − Removed
 
+## [8.3.12] - 2026-08-02 "logbuch"
+
+**One migration runs.** It removes two settings rows and there is no way back —
+`down()` is empty on purpose.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+Named for what the three new pieces have in common: none of them invents
+anything. The rank ladder had been configured in the database for eleven years,
+the counters were already cached for the page footer, and the personal data was
+always there — all that was missing was a way to read any of it.
+
+- ＋ Added: **a member can download everything the forum holds about them.**
+  GDPR Art. 15 and 20; the link sits beside "change password" in their own
+  settings. The action takes no parameter — the account comes from the session,
+  so there is nothing to substitute and it cannot be pointed at anyone else, not
+  even by an administrator. Credentials are absent, and so is anything about
+  other people: who ignores this member, which moderator imposed a block, and
+  the text of postings they only edited. Streamed through a spilling buffer,
+  because assembling it in memory peaked at 174 MB for the busiest account
+  against a 128M limit.
+
+- ＋ Added: **`/metrics` for Prometheus**, guarded by `SAITO_METRICS_TOKEN`.
+  Empty token means the address answers 404, so this stays absent on any
+  installation that has not asked for it. Counters come from the cache the front
+  page already fills: 315 ms cold, 2–7 ms warm. `saito_db_version_matches` is
+  the one worth an alert — 0 means every request lands on the updater, which is
+  a forum that is down while nothing logs an error.
+
+- ＋ Added: **the rank a member has written their way to**, back after eleven
+  years, in the profile. A threshold is now the count a rank is *earned* at
+  rather than an upper bound, so somebody who has written nothing has no rank
+  instead of the bottom one. Both settings are editable in the admin area at
+  last — they never were.
+
+- Δ Changed: **the subject field spans the form again.** It was capped to stop
+  it promising room the forum would not accept; the character countdown says
+  that in words now, so the cap only took away space.
+
+- − Removed: **`api_enabled` and `api_crossdomain`.** Nothing reads either. The
+  first is the uncomfortable one: an administrator setting it to 0 had every
+  reason to believe the API was off, and it never was. The API itself is
+  untouched and working — its routes come from the ImageUploader and Bookmarks
+  plugins.
+
+- ＋ Added: `dev/audit-probes.sh`, the comparisons that found the residue above,
+  and a CI check that fails when a translation key is used without being
+  declared — the defect that put a raw `user.block.t` in front of moderators.
+
+- ✓ Fixed: the release tarball now carries the operator documentation. It
+  excluded all of `docs/*.md`, so the shipped README linked to a
+  `configuration.md` that was not in the package.
+
 ## [8.3.11] - 2026-08-02 "time chaos"
 
 No migration and no data touched. **Times from the other half of the year move

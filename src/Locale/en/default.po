@@ -1402,6 +1402,10 @@ msgstr "{hours} hours"
 msgid "user.block.duration"
 msgstr "Block duration"
 
+#: templates/Users/htmx_profile.php
+msgid "user.rank.t"
+msgstr "Rank"
+
 #: src/Template/Users/view.ctp:367
 msgid "user.del.exp.1"
 msgstr "Delete user \"{0}\""
@@ -1945,3 +1949,11 @@ msgstr "A saved draft was put back in."
 #: templates/Entries/htmx_reply_form.php
 msgid "draft.discard"
 msgstr "Discard"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.link"
+msgstr "Download my data"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.exp"
+msgstr "Everything this forum holds about you, as a JSON file."

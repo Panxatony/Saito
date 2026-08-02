@@ -141,6 +141,63 @@ Also noticed while measuring: six postings whose `edited` predates their `time`,
 and seven with `last_answer < time`. Thirteen rows out of twenty years, almost
 certainly import residue.
 
+### Residue found by the probe sweep of 2026-08-02
+
+`dev/audit-probes.sh` runs the comparisons that found everything else this
+cycle. It prints candidates, never verdicts — a `grep` proves a name is absent,
+not that a feature is gone. What it turned up:
+
+**Four settings rows nothing reads** — all four dealt with. `userranks_show`
+and `userranks_ranks` drive the rank in the profile now; `api_enabled` and
+`api_crossdomain` were removed in `20260802140000_DropApiSettings`, because a
+switch that appears to control access to the API and does not is worse than no
+switch.
+
+**A correction, because the first version of this entry was wrong.** The API is
+*not* dead. Probing `/api`, `/api/v2` and `/api/v2/entries` returns 404 and led
+me to say so; the live routes are elsewhere and answer properly:
+
+```
+/api/v2/uploads/thumb/{id}   403      /api/v2/uploads.json   401
+/api/v2/bookmarks            401
+```
+
+401 and 403 are authenticated endpoints working. They are registered by
+**ImageUploader** and **Bookmarks**; the `Api` plugin supplies the base
+controller and the JSON error renderer they share, and the CSRF exemption for
+`/api/v2/` covers real routes. Nothing to revive — only to extend, if there is
+ever a consumer.
+
+### The whole-forum export
+
+The per-member half is done — `/users/export`, GDPR Art. 15 and 20, streamed
+into a spilling buffer because assembling it peaked at 174 MB against a 128M
+limit. What is left is the other half, and it is a different problem:
+
+**66.5 MB of posting text across 680,292 postings, plus 5,540 uploads.** That
+cannot go through a request at all; it belongs in a console command that streams
+JSON Lines, with an admin action doing no more than starting it and handing back
+a file when it is done. Useful for a move and for a content-level backup beside
+the SQL dump.
+
+The serialisation is already written and can be reused: `Saito\User\DataExport`
+turns a row into the shape, and `eachPosting()` already reads in batches.
+
+### Translation catalogues carrying dead weight
+
+**180 of 535 msgids have no call site**, and both `default.po` files carry
+entries already commented out as obsolete — 293 in German, 72 in English.
+
+Expect false positives among the 180: a key assembled at runtime cannot be seen
+by a static sweep. Which is why this is last on the list — the reward is a
+smaller file, the risk is deleting a string that turns out to be built from
+parts, and there is no test that would catch it.
+
+The reverse direction is the one that matters and it is **clean**: no key is
+used without being declared. That check runs in CI now
+(`dev/check-translations.php`, about a second), so the missing `user.block.t`
+would have failed the build instead of reaching a moderator.
+
 ### Video uploads
 
 

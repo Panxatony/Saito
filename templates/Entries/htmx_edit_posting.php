@@ -59,7 +59,6 @@ $backUrl = $this->request->getAttribute('webroot') . 'entries/htmx-thread/' . (i
             echo $this->Form->control('subject', [
                 'class' => 'form-control js-subject', 'label' => __('subject'),
                 'maxlength' => $subjectMax,
-                'style' => '--subject-max: ' . $subjectMax,
                 'value' => $posting->get('subject'),
             ]);
             // Editing keeps whatever the posting already says, so the toggle

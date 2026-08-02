@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 /**
@@ -15,22 +14,23 @@ namespace App\Controller;
 use App\Form\BlockForm;
 use App\Model\Entity\User;
 use Cake\Cache\Cache;
-use Saito\Posting\Posting;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
-use Cake\Event\Event;
+use Cake\Event\EventInterface;
 use Cake\Http\Exception\BadRequestException;
-use Cake\Http\Exception\ForbiddenException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
 use Cake\I18n\DateTime;
 use Cake\Routing\Router;
-use Saito\App\Registry;
+use Exception;
+use Laminas\Diactoros\Stream;
+use RuntimeException;
 use Saito\Exception\Logger\ExceptionLogger;
 use Saito\Exception\Logger\ForbiddenLogger;
 use Saito\Exception\SaitoForbiddenException;
+use Saito\Posting\Posting;
 use Saito\User\Blocker\ManualBlocker;
-use Saito\User\Permission\Permissions;
+use Saito\User\DataExport;
 use Saito\User\Permission\ResourceAI;
 use Saito\User\WidgetPreferences;
 use Stopwatch\Lib\Stopwatch;
@@ -63,7 +63,7 @@ class UsersController extends AppController
     public const LOCK_DURATIONS = [21600, 43200, 86400, 259200, 432000];
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function initialize(): void
     {
@@ -78,7 +78,7 @@ class UsersController extends AppController
     /**
      * Login user.
      *
-     * @return void|Response
+     * @return \Cake\Http\Response|void
      */
     public function login()
     {
@@ -110,9 +110,9 @@ class UsersController extends AppController
             if ($this->getRequest()->getQuery('redirect', null)) {
                 $this->Flash->set(
                     __('user.authe.required.exp'),
-                    ['element' => 'warning', 'params' => ['title' => __('user.authe.required.t')]]
+                    ['element' => 'warning', 'params' => ['title' => __('user.authe.required.t')]],
                 );
-            };
+            }
 
             return;
         }
@@ -147,7 +147,7 @@ class UsersController extends AppController
         /// error on login
         $this->_registerFailedLogin();
         $username = (string)$this->request->getData('username');
-        /** @var User|null $User */
+        /** @var \App\Model\Entity\User|null $User */
         $User = $this->Users->find()
             ->where(['username' => $username])
             ->first();
@@ -160,7 +160,7 @@ class UsersController extends AppController
         $Logger = new ForbiddenLogger();
         $Logger->write(
             "Unsuccessful login for user: $username",
-            ['msgs' => [$message]]
+            ['msgs' => [$message]],
         );
 
         $this->Flash->set($message, [
@@ -210,7 +210,7 @@ class UsersController extends AppController
      * simply wrong; only for a known account that is unactivated or blocked is
      * a specific reason shown (a block additionally states when it ends).
      *
-     * @param User|null $User the account matching the submitted username, if any
+     * @param \App\Model\Entity\User|null $User the account matching the submitted username, if any
      * @param string $username the submitted username
      * @return string translated message
      */
@@ -341,7 +341,7 @@ class UsersController extends AppController
     /**
      * Logout user.
      *
-     * @return void|Response
+     * @return \Cake\Http\Response|void
      */
     public function logout()
     {
@@ -375,9 +375,9 @@ class UsersController extends AppController
      *
      * @param string $id user-ID
      * @return void
-     * @throws BadRequestException
+     * @throws \Cake\Http\Exception\BadRequestException
      */
-    public function rs($id = null)
+    public function rs(?string $id = null): void
     {
         if (!$id) {
             throw new BadRequestException();
@@ -387,7 +387,7 @@ class UsersController extends AppController
         $code = (string)$this->request->getQuery('c');
         try {
             $activated = $this->Users->activate((int)$id, $code);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $activated = false;
         }
         if (!$activated) {
@@ -409,7 +409,7 @@ class UsersController extends AppController
      *
      * @return void
      */
-    public function htmxUsers()
+    public function htmxUsers(): void
     {
         $menuItems = [
             'username' => [__('username_marking'), []],
@@ -451,7 +451,7 @@ class UsersController extends AppController
      * @param string|null $id user-ID
      * @return \Cake\Http\Response|void
      */
-    public function htmxProfile($id = null)
+    public function htmxProfile(?string $id = null)
     {
         $id = (int)$id;
         /** @var \App\Model\Entity\User|null $user */
@@ -472,7 +472,7 @@ class UsersController extends AppController
         // they decide somebody needs a break.
         $mayLock = (bool)$this->CurrentUser->permission(
             'saito.core.user.lock.set',
-            (new ResourceAI())->onRole($user->getRole())
+            (new ResourceAI())->onRole($user->getRole()),
         );
         $this->set('mayLock', $mayLock);
         $this->set('blockForm', $mayLock ? new BlockForm() : null);
@@ -483,12 +483,12 @@ class UsersController extends AppController
             'lastEntries',
             $this->Users->Entries->getRecentPostings(
                 $this->CurrentUser,
-                ['user_id' => $id, 'limit' => $entriesShownOnPage]
-            )
+                ['user_id' => $id, 'limit' => $entriesShownOnPage],
+            ),
         );
         $this->set(
             'hasMoreEntriesThanShownOnPage',
-            ($user->numberOfPostings() - $entriesShownOnPage) > 0
+            $user->numberOfPostings() - $entriesShownOnPage > 0,
         );
         // What ignoring looks like from here. Two different things, deliberately:
         // your own list is private and only ever shown on your own profile,
@@ -498,7 +498,7 @@ class UsersController extends AppController
         $UserIgnores = $this->Users->UserIgnores;
         $this->set(
             'ignoredByMe',
-            $this->CurrentUser->getId() === $id ? $UserIgnores->getAllIgnoredBy($id) : null
+            $this->CurrentUser->getId() === $id ? $UserIgnores->getAllIgnoredBy($id) : null,
         );
         $this->set('ignoredByOthers', $UserIgnores->countIgnored($id));
 
@@ -535,7 +535,7 @@ class UsersController extends AppController
      *
      * @return void
      */
-    public function htmxRegister()
+    public function htmxRegister(): void
     {
         $this->AuthUser->logout();
         $tosRequired = Configure::read('Saito.Settings.tos_enabled');
@@ -597,7 +597,7 @@ class UsersController extends AppController
                 'template' => 'user_register',
                 'viewVars' => ['user' => $user],
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             (new ExceptionLogger())->write('Registering email confirmation failed', ['e' => $e]);
             $this->set('status', 'fail: email');
 
@@ -679,12 +679,12 @@ class UsersController extends AppController
         if (
             !$this->CurrentUser->permission(
                 'saito.core.user.edit',
-                (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId())
+                (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId()),
             )
         ) {
-            throw new \Saito\Exception\SaitoForbiddenException(
+            throw new SaitoForbiddenException(
                 sprintf('Attempt to edit user "%s".', $id),
-                ['CurrentUser' => $this->CurrentUser]
+                ['CurrentUser' => $this->CurrentUser],
             );
         }
 
@@ -744,7 +744,7 @@ class UsersController extends AppController
             }
             $this->Flash->set(
                 __('The user could not be saved. Please, try again.'),
-                ['element' => 'error']
+                ['element' => 'error'],
             );
         }
 
@@ -764,7 +764,7 @@ class UsersController extends AppController
      *
      * @return void
      */
-    public function ignore()
+    public function ignore(): void
     {
         $this->request->allowMethod('POST');
         $blockedId = (int)$this->request->getData('id');
@@ -776,7 +776,7 @@ class UsersController extends AppController
      *
      * @return void
      */
-    public function unignore()
+    public function unignore(): void
     {
         $this->request->allowMethod('POST');
         $blockedId = (int)$this->request->getData('id');
@@ -790,7 +790,7 @@ class UsersController extends AppController
      * @param bool $set block or unblock
      * @return \Cake\Http\Response
      */
-    protected function _ignore($blockedId, $set)
+    protected function _ignore(int $blockedId, bool $set): Response
     {
         $userId = $this->CurrentUser->getId();
         if ((int)$userId === (int)$blockedId) {
@@ -814,9 +814,9 @@ class UsersController extends AppController
      * into an ID, which is why it survives the removal of the SPA.
      *
      * @param string|null $name username
-     * @return Response
+     * @return \Cake\Http\Response
      */
-    public function name($name = null)
+    public function name(?string $name = null): Response
     {
         if (!empty($name)) {
             $viewedUser = $this->Users->find()
@@ -831,13 +831,107 @@ class UsersController extends AppController
                         'controller' => 'users',
                         'action' => 'htmxProfile',
                         $viewedUser->get('id'),
-                    ]
+                    ],
                 );
             }
         }
         $this->Flash->set(__('Invalid user'), ['element' => 'error']);
 
         return $this->redirect('/');
+    }
+
+    /**
+     * Hand a member everything the forum holds about them.
+     *
+     * GDPR Art. 15 and 20. Until this existed the only way to answer such a
+     * request was by hand, out of the database.
+     *
+     * **It takes no parameter, and that is the security design.** The account
+     * comes from the session and nowhere else, so there is no id to substitute,
+     * nothing to increment, and no permission check to get wrong — the action
+     * cannot be pointed at another member because it cannot be told which member
+     * to look at.
+     *
+     * That also means an administrator cannot pull this for somebody else, which
+     * reads like a limitation and is not one: Art. 15 is a right of the person
+     * the data is about, exercised by them. An admin who needs to answer a
+     * request forwards it; they do not answer it on the member's behalf.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function export(): Response
+    {
+        $this->autoRender = false;
+
+        $userId = (int)$this->CurrentUser->getId();
+        // A session whose account no longer exists. `getId()` returns 0 then,
+        // and 0 is not "nobody" to a database query — `WHERE user_id = 0` is a
+        // perfectly good condition. Refused explicitly rather than left to fail
+        // somewhere further in, because "what does it do with 0" is exactly the
+        // question nobody wants to answer after the fact.
+        if ($userId < 1) {
+            throw new BadRequestException();
+        }
+        $export = new DataExport($userId);
+
+        $name = preg_replace('/[^A-Za-z0-9_-]/', '_', (string)$this->CurrentUser->get('username'));
+        $filename = sprintf('saito-export-%s-%s.json', $name, date('Y-m-d'));
+
+        // Streamed, not assembled. Building the whole document as an array and
+        // encoding it peaked at 174 MB for the busiest account on the reference
+        // forum, against a production `memory_limit` of 128M — so the export
+        // would have died precisely for the members with the most to export.
+        // Written out in pieces, the peak is a batch of 500 postings.
+        // Written into a buffer that spills to disk, not assembled in memory.
+        // Building the whole document as an array and encoding it peaked at
+        // 174 MB for the busiest account on the reference forum, against a
+        // production `memory_limit` of 128M — so the export would have died
+        // precisely for the members with the most to export.
+        //
+        // `php://temp` keeps the first 8 MB in RAM and moves to a temporary file
+        // beyond that, so the peak is a batch of 500 postings plus that buffer,
+        // whatever the account holds. (`CallbackStream` looks like the answer
+        // and is not: it collects the callback's return value into one string.)
+        $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        $handle = fopen('php://temp/maxmemory:' . (8 * 1024 * 1024), 'w+b');
+        if ($handle === false) {
+            throw new RuntimeException('Could not open a buffer for the export.');
+        }
+
+        $head = (string)json_encode($export->collect(), $flags);
+        // The last brace only. `rtrim($head, "\n}")` looks like it does this and
+        // does not: the second argument is a *set* of characters, so it ate both
+        // closing braces and produced invalid JSON.
+        fwrite($handle, substr($head, 0, (int)strrpos($head, '}')) . ",\n    \"postings\": [");
+
+        $first = true;
+        foreach ($export->eachPosting() as $posting) {
+            fwrite($handle, $first ? "\n" : ",\n");
+            // Indented to sit inside the pretty-printed envelope around it: a
+            // person is meant to be able to open this file and read it.
+            fwrite(
+                $handle,
+                '        ' . str_replace("\n", "\n        ", (string)json_encode($posting, $flags)),
+            );
+            $first = false;
+        }
+        fwrite($handle, "\n    ]\n}\n");
+        rewind($handle);
+
+        // Said here rather than relied upon. PHP's session handling already
+        // emits `no-store` while a session is open, which is why the response
+        // was uncacheable when this was first measured — but that is a side
+        // effect of `session.cache_limiter`, and a personal-data download must
+        // not depend on an ini setting staying where it is. `private` names the
+        // reason as well: this belongs to one person, so no shared cache may
+        // hold it even briefly.
+        return $this->response
+            ->withType('application/json')
+            ->withHeader('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0')
+            ->withHeader('Pragma', 'no-cache')
+            ->withHeader('Expires', '0')
+            ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->withBody(new Stream($handle));
     }
 
     /**
@@ -851,7 +945,7 @@ class UsersController extends AppController
      *
      * @return void
      */
-    public function bookmarks()
+    public function bookmarks(): void
     {
         $Bookmarks = $this->fetchTable('Bookmarks.Bookmarks');
         $bookmarks = $Bookmarks->find(
@@ -924,7 +1018,7 @@ class UsersController extends AppController
      * @param string|null $id posting id
      * @return void
      */
-    public function htmxBookmarkComment($id = null)
+    public function htmxBookmarkComment(?string $id = null): void
     {
         $entryId = (int)$id;
         if ($entryId <= 0) {
@@ -949,7 +1043,7 @@ class UsersController extends AppController
             $Bookmarks->patchEntity(
                 $bookmark,
                 ['comment' => (string)$this->getRequest()->getData('comment')],
-                ['fields' => ['comment']]
+                ['fields' => ['comment']],
             );
             if (!$Bookmarks->save($bookmark)) {
                 throw new BadRequestException();
@@ -970,21 +1064,21 @@ class UsersController extends AppController
      * @param string|null $id user id
      * @return \Cake\Http\Response
      */
-    public function htmxAvatar($id = null)
+    public function htmxAvatar(?string $id = null): Response
     {
         $id = (int)$id;
         // get() raises RecordNotFoundException (404) for an unknown id.
-        /** @var User $user */
+        /** @var \App\Model\Entity\User $user */
         $user = $this->Users->get($id);
 
         $permission = $this->CurrentUser->permission(
             'saito.core.user.edit',
-            (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId())
+            (new ResourceAI())->onRole($user->getRole())->onOwner($user->getId()),
         );
         if (!$permission) {
-            throw new \Saito\Exception\SaitoForbiddenException(
+            throw new SaitoForbiddenException(
                 "Attempt to edit avatar for user $id.",
-                ['CurrentUser' => $this->CurrentUser]
+                ['CurrentUser' => $this->CurrentUser],
             );
         }
 
@@ -1002,7 +1096,7 @@ class UsersController extends AppController
             } else {
                 $this->Flash->set(
                     __('The user could not be saved. Please, try again.'),
-                    ['element' => 'error']
+                    ['element' => 'error'],
                 );
             }
         }
@@ -1014,7 +1108,7 @@ class UsersController extends AppController
      * Lock user.
      *
      * @return \Cake\Http\Response|void
-     * @throws BadRequestException
+     * @throws \Cake\Http\Exception\BadRequestException
      */
     public function lock()
     {
@@ -1025,17 +1119,17 @@ class UsersController extends AppController
 
         $id = (int)$this->request->getData('lockUserId');
 
-        /** @var User */
+        /** @var \App\Model\Entity\User */
         $readUser = $this->Users->get($id);
 
         $permission = $this->CurrentUser->permission(
             'saito.core.user.lock.set',
-            (new ResourceAI())->onRole($readUser->getRole())
+            (new ResourceAI())->onRole($readUser->getRole()),
         );
         if (!$permission) {
             throw new SaitoForbiddenException(
                 null,
-                ['CurrentUser' => $this->CurrentUser]
+                ['CurrentUser' => $this->CurrentUser],
             );
         }
 
@@ -1055,7 +1149,7 @@ class UsersController extends AppController
                 || $duration % self::LOCK_STEP !== 0)
         ) {
             throw new BadRequestException(
-                sprintf('Lock duration "%d" is outside the allowed range.', $duration)
+                sprintf('Lock duration "%d" is outside the allowed range.', $duration),
             );
         }
 
@@ -1067,11 +1161,11 @@ class UsersController extends AppController
                 $blocker = new ManualBlocker($this->CurrentUser->getId(), $duration);
                 $status = $this->Users->UserBlocks->block($blocker, $id);
                 if (!$status) {
-                    throw new \Exception();
+                    throw new Exception();
                 }
                 $message = __('User {0} is locked.', $readUser->get('username'));
                 $this->Flash->set($message, ['element' => 'success']);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $message = __('Error while locking.');
                 $this->Flash->set($message, ['element' => 'error']);
             }
@@ -1094,7 +1188,7 @@ class UsersController extends AppController
 
         $id = (int)$id;
 
-        /** @var User|null */
+        /** @var \App\Model\Entity\User|null */
         $user = $this->Users
             ->find()
             ->matching('UserBlocks', function ($q) use ($id) {
@@ -1111,19 +1205,19 @@ class UsersController extends AppController
 
         $permission = $this->CurrentUser->permission(
             'saito.core.user.lock.set',
-            (new ResourceAI())->onRole($user->getRole())
+            (new ResourceAI())->onRole($user->getRole()),
         );
         if (!$permission) {
             throw new SaitoForbiddenException(
                 null,
-                ['CurrentUser' => $this->CurrentUser]
+                ['CurrentUser' => $this->CurrentUser],
             );
         }
 
         if (!$this->Users->UserBlocks->unblock($id)) {
             $this->Flash->set(
                 __('Error while unlocking.'),
-                ['element' => 'error']
+                ['element' => 'error'],
             );
 
             // Without the return, the success message below was set as well and
@@ -1176,9 +1270,9 @@ class UsersController extends AppController
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function beforeFilter(\Cake\Event\EventInterface $event)
+    public function beforeFilter(EventInterface $event)
     {
         parent::beforeFilter($event);
         Stopwatch::start('Users->beforeFilter()');
@@ -1210,7 +1304,7 @@ class UsersController extends AppController
     /**
      * Logout user if logged in and create response to revisit logged out
      *
-     * @return Response|null
+     * @return \Cake\Http\Response|null
      */
     protected function _logoutAndComeHereAgain(): ?Response
     {

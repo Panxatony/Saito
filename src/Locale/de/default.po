@@ -1434,6 +1434,10 @@ msgstr "{hours} Stunden"
 msgid "user.block.duration"
 msgstr "Dauer der Sperre"
 
+#: templates/Users/htmx_profile.php
+msgid "user.rank.t"
+msgstr "Rang"
+
 #: src/Template/Users/view.ctp:367
 msgid "user.del.exp.1"
 msgstr "Lösche Nutzer \"{0}\""
@@ -2784,3 +2788,11 @@ msgstr "Ein gespeicherter Entwurf wurde eingesetzt."
 #: templates/Entries/htmx_reply_form.php
 msgid "draft.discard"
 msgstr "Verwerfen"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.link"
+msgstr "Meine Daten herunterladen"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.exp"
+msgstr "Alles, was das Forum über dich gespeichert hat, als JSON-Datei."
