@@ -49,6 +49,38 @@ function peertubeEmbed(url: string): string | null {
     return match ? `${match[1]}/videos/embed/${match[2]}` : null;
 }
 
+/**
+ * The media formats recognised by file extension, and the tag each one gets.
+ *
+ * A table rather than three `if`s, because all three ask the same question and
+ * differ only in the answer. Adding a format is a row here; it was a fourth
+ * branch in `urlToBbcode` before.
+ *
+ * The extension has to be followed by the end of the address or by one of
+ * `/?#` — otherwise `example.com/mp3-player/` would be taken for audio.
+ */
+const mediaFormats: { pattern: RegExp; type: string; tag: string }[] = [
+    { pattern: /\.(png|gif|jpe?g|webp|svg)([/?#]|$)/i, type: 'Bild', tag: 'img' },
+    { pattern: /\.(mp4|webm|m4v)([/?#]|$)/i, type: 'Video', tag: 'video' },
+    { pattern: /\.(m4a|ogg|mp3|wav|opus)([/?#]|$)/i, type: 'Audio', tag: 'audio' },
+];
+
+/**
+ * The address as a media tag, when its extension says what it is.
+ *
+ * @param url the trimmed address
+ * @returns type and bbcode, or null when no extension matches
+ */
+function mediaBbcode(url: string): { type: string; bbcode: string } | null {
+    for (const { pattern, type, tag } of mediaFormats) {
+        if (pattern.test(url)) {
+            return { type, bbcode: `[${tag}]${url}[/${tag}]` };
+        }
+    }
+
+    return null;
+}
+
 function urlToBbcode(url: string, text: string): { type: string; bbcode: string } {
     const trimmedUrl = url.trim();
     if (!trimmedUrl) {
@@ -70,14 +102,9 @@ function urlToBbcode(url: string, text: string): { type: string; bbcode: string 
                 + ' frameborder=0 height=315 width=560][/iframe]',
         };
     }
-    if (/\.(png|gif|jpe?g|webp|svg)([/?#]|$)/i.test(trimmedUrl)) {
-        return { type: 'Bild', bbcode: `[img]${trimmedUrl}[/img]` };
-    }
-    if (/\.(mp4|webm|m4v)([/?#]|$)/i.test(trimmedUrl)) {
-        return { type: 'Video', bbcode: `[video]${trimmedUrl}[/video]` };
-    }
-    if (/\.(m4a|ogg|mp3|wav|opus)([/?#]|$)/i.test(trimmedUrl)) {
-        return { type: 'Audio', bbcode: `[audio]${trimmedUrl}[/audio]` };
+    const media = mediaBbcode(trimmedUrl);
+    if (media) {
+        return media;
     }
     const label = text.trim();
     return { type: 'Link', bbcode: label ? `[url=${trimmedUrl}]${label}[/url]` : `[url]${trimmedUrl}[/url]` };
