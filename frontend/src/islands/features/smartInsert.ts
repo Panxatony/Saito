@@ -50,6 +50,37 @@ function peertubeEmbed(url: string): string | null {
 }
 
 /**
+ * The player frame both video services get, differing only in the address.
+ *
+ * Written once because the attributes are not free-form: the size matches the
+ * SPA's, and `allowfullscreen` has to survive the BBCode parser's attribute
+ * whitelist. Two copies of this drift apart the first time one is adjusted.
+ */
+function iframeBbcode(src: string): string {
+    return `[iframe src=${src} allowfullscreen=allowfullscreen`
+        + ' frameborder=0 height=315 width=560][/iframe]';
+}
+
+/**
+ * The address as an embedded player, when a video service recognises it.
+ *
+ * @param url the trimmed address
+ * @returns type and bbcode, or null when no service claims it
+ */
+function embedBbcode(url: string): { type: string; bbcode: string } | null {
+    const youtube = youtubeId(url);
+    if (youtube) {
+        return { type: 'YouTube', bbcode: iframeBbcode(`//www.youtube-nocookie.com/embed/${youtube}`) };
+    }
+    const peertube = peertubeEmbed(url);
+    if (peertube) {
+        return { type: 'PeerTube', bbcode: iframeBbcode(peertube) };
+    }
+
+    return null;
+}
+
+/**
  * The media formats recognised by file extension, and the tag each one gets.
  *
  * A table rather than three `if`s, because all three ask the same question and
@@ -86,21 +117,9 @@ function urlToBbcode(url: string, text: string): { type: string; bbcode: string 
     if (!trimmedUrl) {
         return { type: '', bbcode: '' };
     }
-    const id = youtubeId(trimmedUrl);
-    if (id) {
-        return {
-            type: 'YouTube',
-            bbcode: `[iframe src=//www.youtube-nocookie.com/embed/${id} allowfullscreen=allowfullscreen`
-                + ' frameborder=0 height=315 width=560][/iframe]',
-        };
-    }
-    const peertube = peertubeEmbed(trimmedUrl);
-    if (peertube) {
-        return {
-            type: 'PeerTube',
-            bbcode: `[iframe src=${peertube} allowfullscreen=allowfullscreen`
-                + ' frameborder=0 height=315 width=560][/iframe]',
-        };
+    const embed = embedBbcode(trimmedUrl);
+    if (embed) {
+        return embed;
     }
     const media = mediaBbcode(trimmedUrl);
     if (media) {
