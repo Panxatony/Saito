@@ -47,10 +47,15 @@ fi
 
 # ---------------------------------------------------------------------------
 hr "2. Translation keys with no call site"
-# The reverse direction of this found `user.block.t` shipping to moderators as
-# a raw key. Expect false positives: keys assembled at runtime cannot be seen
-# from here, so treat a hit as a question, not an answer.
-python3 - <<'PY'
+# The first version of this probe reported 180 of 535 and was almost entirely
+# wrong: Saito assembles keys at runtime — `__d('nondynamic', 'permission.role.'
+# . $id)`, every admin setting label from its own name, every page title from
+# controller/action. A probe that cannot see those reports working code as dead,
+# which is worse than no probe.
+#
+# So concatenation prefixes are collected too, and any key starting with one is
+# considered used. What is left over is small enough to read.
+python3 - <<'PY_INNER'
 import re, os
 ids = {}
 for po in ('src/Locale/de/default.po', 'src/Locale/de/nondynamic.po', 'src/Locale/de/page_titles.po'):
@@ -58,8 +63,10 @@ for po in ('src/Locale/de/default.po', 'src/Locale/de/nondynamic.po', 'src/Local
         continue
     for m in re.finditer(r'^msgid "((?:[^"\\]|\\.)*)"', open(po, encoding='utf-8').read(), re.M):
         if m.group(1):
-            ids[m.group(1)] = po
-used = set()
+            ids[m.group(1)] = os.path.basename(po)
+
+used, prefixes = set(), set()
+dynamic = False
 for dp, dn, fn in os.walk('.'):
     if any(x in dp for x in ('/vendor', '/node_modules', '/.git', '/tmp')):
         continue
@@ -72,13 +79,24 @@ for dp, dn, fn in os.walk('.'):
             continue
         used.update(m.group(1) for m in re.finditer(r"__(?:d|n|dn)?\(\s*'([^']+)'", s))
         used.update(m.group(1) for m in re.finditer(r'__(?:d|n|dn)?\(\s*"([^"]+)"', s))
-orphan = sorted(k for k in ids if k not in used)
-print(f"  {len(ids)} msgids, {len(orphan)} without a call site")
-for k in orphan[:15]:
-    print(f"    {k}")
-if len(orphan) > 15:
-    print(f"    … and {len(orphan) - 15} more")
-PY
+        # __('prefix.' . $var)  and  __d('domain', 'prefix.' . $var)
+        prefixes.update(m.group(1) for m in re.finditer(r"__(?:d|n|dn)?\([^)]*?'([^']*)'\s*\.\s*\$", s))
+        # a wholly variable key: __($x) / __d($domain, $x) — nothing can be judged
+        if re.search(r"__(?:d|n|dn)?\(\s*\$", s) or re.search(r"__d\(\s*'[^']+'\s*,\s*\$", s):
+            dynamic = True
+
+orphan = sorted(k for k in ids
+                if k not in used and not any(k.startswith(p) for p in prefixes if p))
+print(f"  {len(ids)} msgids, {len(prefixes)} concatenation prefixes seen, "
+      f"{len(orphan)} left without a call site")
+if dynamic:
+    print("  NOTE: at least one __() takes a fully variable key (page titles, "
+          "settings labels),")
+    print("        so some of the following are looked up by a name this probe "
+          "cannot see.")
+for k in orphan:
+    print(f"    {k}  [{ids[k]}]")
+PY_INNER
 
 # ---------------------------------------------------------------------------
 hr "3. Translation keys used but never declared"
