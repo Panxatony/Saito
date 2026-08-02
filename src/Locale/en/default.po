@@ -1949,3 +1949,11 @@ msgstr "A saved draft was put back in."
 #: templates/Entries/htmx_reply_form.php
 msgid "draft.discard"
 msgstr "Discard"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.link"
+msgstr "Download my data"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.exp"
+msgstr "Everything this forum holds about you, as a JSON file."

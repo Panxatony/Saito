@@ -62,6 +62,11 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @var array<string, string>
      */
     private const MEMBER_OPEN = [
+        // Takes no parameter: the account comes from the session, so there is
+        // nothing to substitute and no per-record check to make. Deliberately
+        // *not* available to an administrator for somebody else — GDPR Art. 15
+        // is a right of the person the data is about, exercised by them.
+        'App\\Controller\\UsersController::export' => 'hands the current member their own data (self-scoped by construction)',
         'App\\Controller\\UsersController::name' => 'view a public user profile by name (read)',
         'App\\Controller\\UsersController::ignore' => 'adds to the current user\'s own ignore list (self-scoped)',
         'App\\Controller\\UsersController::unignore' => 'removes from the current user\'s own ignore list (self-scoped)',

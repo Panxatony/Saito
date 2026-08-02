@@ -2788,3 +2788,11 @@ msgstr "Ein gespeicherter Entwurf wurde eingesetzt."
 #: templates/Entries/htmx_reply_form.php
 msgid "draft.discard"
 msgstr "Verwerfen"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.link"
+msgstr "Meine Daten herunterladen"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.exp"
+msgstr "Alles, was das Forum über dich gespeichert hat, als JSON-Datei."
