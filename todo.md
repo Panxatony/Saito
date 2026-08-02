@@ -141,36 +141,17 @@ Also noticed while measuring: six postings whose `edited` predates their `time`,
 and seven with `last_answer < time`. Thirteen rows out of twenty years, almost
 certainly import residue.
 
-### Operator documentation is missing from the release tarball
-
-The package excludes `docs/*.md` as developer documentation. That was right when
-`docs/` held only developer notes; it is not right now. `configuration.md` and
-`deployment-debian.md` are written for operators, and the README **is** shipped
-and links to both:
-
-```
-TOT   docs/configuration.md
-TOT   docs/deployment-debian.md
-```
-
-So the one file that tells an operator `APP_DEFAULT_TIMEZONE` must be UTC is the
-one they cannot find from the package they downloaded. Ship the operator-facing
-subset — configuration, deployment, update, upgrade, the privacy template — and
-keep dev-setup and dev-hooks out. One line in the tar invocation.
-
 ### Residue found by the probe sweep of 2026-08-02
 
 `dev/audit-probes.sh` runs the comparisons that found everything else this
 cycle. It prints candidates, never verdicts — a `grep` proves a name is absent,
 not that a feature is gone. What it turned up:
 
-**Four settings rows nothing reads.** `api_enabled`, `api_crossdomain`,
-`userranks_show`, `userranks_ranks`.
-
-The first two are the more uncomfortable pair: an admin who sets `api_enabled`
-to 0 believes the API is off. It is not, and never was — nothing consults that
-value. Either wire it up or remove it, but a switch that pretends to control
-something is worse than no switch.
+**Four settings rows nothing reads** — all four dealt with. `userranks_show`
+and `userranks_ranks` drive the rank in the profile now; `api_enabled` and
+`api_crossdomain` were removed in `20260802140000_DropApiSettings`, because a
+switch that appears to control access to the API and does not is worse than no
+switch.
 
 **A correction, because the first version of this entry was wrong.** The API is
 *not* dead. Probing `/api`, `/api/v2` and `/api/v2/entries` returns 404 and led
@@ -187,91 +168,20 @@ controller and the JSON error renderer they share, and the CSRF exemption for
 `/api/v2/` covers real routes. Nothing to revive — only to extend, if there is
 ever a consumer.
 
-### A Prometheus endpoint
+### The whole-forum export
 
-There is a Prometheus server with access to the hosts over NetBird, which
-settles the question the idea usually founders on: who reads it.
+The per-member half is done — `/users/export`, GDPR Art. 15 and 20, streamed
+into a spilling buffer because assembling it peaked at 174 MB against a 128M
+limit. What is left is the other half, and it is a different problem:
 
-**Measured on production before designing anything** — the cost is one query:
+**66.5 MB of posting text across 680,292 postings, plus 5,540 uploads.** That
+cannot go through a request at all; it belongs in a console command that streams
+JSON Lines, with an admin action doing no more than starting it and handing back
+a file when it is done. Useful for a move and for a content-level backup beside
+the SQL dump.
 
-| | |
-|---|---|
-| `COUNT(*) FROM entries` (680,292 rows) | **128 ms** |
-| users, uploads, useronline, last-24h postings | 10–13 ms each |
-
-InnoDB has to walk an index for the first one. At a 15-second scrape that is
-about 1% of a core spent counting, so the total wants a short cache — a minute
-is plenty; no forum needs its posting count to the second.
-
-**Not under `/api/v2`.** The exposition format is `text/plain`, not JSON, so it
-would inherit the JSON error renderer and the CSRF exemption for nothing. A
-separate `/metrics` route.
-
-**And not behind the admin session.** Prometheus is a scraper, not a member: it
-can send basic auth, a static bearer token or a client certificate, but it
-cannot log in and renew a JWT. So a static token from the environment
-(`SAITO_METRICS_TOKEN`, compared with `hash_equals`), **empty meaning the
-endpoint is off** — which keeps it absent on any installation that has not asked
-for it, macfix included. The NetBird interface gives the second lock at nginx.
-
-Half a day for the endpoint, the token check and a dozen metrics.
-
-### Bring user ranks back, for the profile
-
-The feature was extracted to a plugin in 2014 and has been gone from the code
-since — 39 lines of logic, a threshold-to-title ladder keyed on a member's
-posting count. The **settings survived on production and hold real data**:
-
-```
-10=Fischbrötchen|100=Schiffsjunge|1000=Maat|5000=Bootsmann
-|10000=Harpunier|50000=Smutje|100000=Kpt. Ahab
-```
-
-Somebody configured that ladder and it has been displayed nowhere for eleven
-years. `userranks_show` is 1.
-
-**Scope: one row in the profile, nothing else.** Optional by construction —
-driven by the two settings, so an installation without them shows nothing and
-macfix is unaffected. No new column, no migration.
-
-**One thing to check first:** the old code read `users.number_of_entries`, and
-that field no longer exists. The profile counts through
-`$user->numberOfPostings()` today; whether that costs a query per call decides
-whether the rank can ever appear in the thread list, where it would run
-hundreds of times a page. In the profile it does not matter.
-
-**Emoji in the ladder — later.** The settings column is `varchar(255)` in
-utf8mb4, so they fit, and the ladder currently uses 105 of those characters. But
-colour emoji render differently on every platform, and monochrome dingbats
-(`⚓ ⚒ ✦ ★ ⛵ ❖`) inherit the text colour and sit in a table row without
-shouting. Worth trying once the plain version is up. Avoid `❶`–`❿`: that is the
-glyph range the 7.2.5 XSS ran through — harmless in a setting, but not a range
-to start using casually.
-
-### An export an admin can run
-
-Nothing exports anything today: no console command beyond the dummy-data
-generator, no admin action, no per-user data download.
-
-**Two different features hide under one word**, and they have almost nothing in
-common:
-
-**The whole forum.** 66.5 MB of posting text across 680,292 postings, plus 5,540
-uploads. That cannot be assembled in memory or delivered through a request — it
-is the same wall the InnoDB migration hit, and it belongs in a console command
-that streams (JSON Lines, one posting per line) with the admin action doing no
-more than starting it and handing back a file when it is done. Useful for a
-move, for a content-level backup beside the SQL dump, and it would have helped
-the 5.7 upgrade conversation.
-
-**One member's data.** The largest account holds 50,878 postings and about 3 MB
-of text — small enough to build and deliver in a request. This is the one with a
-deadline attached: GDPR Art. 15 and 20 give a member the right to their data in
-a machine-readable form, and Saito currently has no way to answer that except by
-hand. It is also the smaller job.
-
-Do the per-member one first. It is the obligation, it is a day's work, and the
-full export can reuse its serialisation.
+The serialisation is already written and can be reused: `Saito\User\DataExport`
+turns a row into the shape, and `eachPosting()` already reads in batches.
 
 ### Translation catalogues carrying dead weight
 
@@ -284,8 +194,9 @@ smaller file, the risk is deleting a string that turns out to be built from
 parts, and there is no test that would catch it.
 
 The reverse direction is the one that matters and it is **clean**: no key is
-used without being declared. That check belongs in CI, where the missing
-`user.block.t` would have been caught before a moderator saw it.
+used without being declared. That check runs in CI now
+(`dev/check-translations.php`, about a second), so the missing `user.block.t`
+would have failed the build instead of reaching a moderator.
 
 ### Video uploads
 
