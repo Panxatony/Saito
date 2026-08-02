@@ -36,7 +36,7 @@
 // Components the forum uses. Bootstrap's own order is kept — later modules
 // depend on earlier ones having defined their variables and placeholders.
 @import "bootstrap/scss/type";
-@import "../basics/grid";
+@import "bootstrap/scss/grid";
 @import "bootstrap/scss/tables";
 @import "bootstrap/scss/forms";
 @import "bootstrap/scss/buttons";
@@ -47,10 +47,9 @@
 @import "bootstrap/scss/badge";
 @import "bootstrap/scss/alert";
 
-// The spacing, display, border and text helpers — ours since 2026-08-02.
-// Bootstrap's `utilities` was 41 KB for 1005 classes, of which 49 are used;
-// `../basics/utilities` keeps the names and the values and drops the rest.
-@import "../basics/utilities";
+// Utilities carries the spacing, display, border and text helpers the templates
+// and the Saito partials lean on most heavily — forty of them are in use.
+@import "bootstrap/scss/utilities";
 
 // Print rules are eleven lines and change what a printed thread looks like;
 // dropping them would be a visible change rather than a saving.

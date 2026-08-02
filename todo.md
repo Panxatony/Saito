@@ -169,125 +169,83 @@ Last on the list on purpose: the reward is a smaller file, the risk is deleting
 a string that turns out to be built from parts, and no test would catch it. Read
 the candidates rather than scripting the removal.
 
-### The rest of the way out from under Bootstrap 4
+### Bootstrap stays a dependency; only the shipped CSS is trimmed
 
-Bootstrap has been unmaintained since January 2023. The exposure is smaller than
-the version number suggests: **Bootstrap's JavaScript is not loaded anywhere in
-the project**, and the known Bootstrap 4 vulnerabilities are all in its JS
-components. What is left is a stylesheet. So this is a weight and maintenance
-question, not a security one.
+**Decided 2026-08-02, after trying the other way first.** Two modules —
+`utilities` and `grid` — were reimplemented in this repository and then reverted.
+They worked and the pixels did not move, but the result was Bootstrap's design
+under our name: 37% and 64% of the code lines were word for word Bootstrap's,
+because the gate was "zero differing pixels" and identical output admits
+essentially one implementation. The choice of gate had chosen the design.
 
-**Do not detour through Bootstrap 5 on the way out.** Asked and measured on
-2026-08-02. It buys nothing for the deprecation warnings above — 5.3.8 still
-carries 40 `@import` lines, no `@use` at all, 24 `map-get` and 84 `if()` — and a
-4 → 5 migration is a breaking pass over the whole Bota → Nova → Macnemo → Macfix
-chain plus the ~46 classes below, all of it thrown away when Bootstrap goes.
+The question that ended it was the right one: **what is theirs and what is
+ours?** A reimplementation is a permanent fork of code nobody here wrote, with
+none of the upstream benefit, an MIT notice to carry, and — measured — a saving
+of 132 KB to 111. Keeping Bootstrap in `node_modules` and trimming the *output*
+gives a clean boundary and four times the saving.
 
-But it turned up something that is true *now*: **the PHP side is already on
-Bootstrap 5 while the CSS is on 4.** `friendsofcake/bootstrap-ui` is at 5.2.0
-and targets Bootstrap 5.3, and the Admin plugin has it generate the markup
-(`BootstrapUI.Form`, `.Html`, `.Flash`, `.Paginator`). So the admin emits classes
-like `form-label` and `me-2` — which appear in *no* stylesheet we ship, not
-Bootstrap 4.6's and not our own. Checked: zero occurrences across every compiled
-theme.
+| | Nova `theme.css` | Grenze fremd/eigen |
+|---|---|---|
+| unverändert | 132 KB | sauber |
+| nachgebaut | 111 KB | verwischt |
+| **gepurgt** | **41 KB** | **sauber** |
 
-The damage is small and worth knowing rather than fixing blind: both classes only
-set `margin: 0.5rem`, so admin forms lose spacing and nothing breaks. A handful
-of declarations closes it if it ever annoys anybody. It is *not* an argument for
-the 5 migration — it is an argument for not being surprised by it later.
+Across all seven stylesheets: **810 KB to 271 KB.** `dev/purge-css.js` in the
+release chain, configured in `purgecss.config.js`, verified by
+`dev/pixel-diff.sh` — twelve comparisons, zero differing pixels, three themes in
+both presets plus three pages and three viewport widths.
 
-The weight is the argument. Measured on 2026-07-29:
+**This step is lossy and fails silently, which is the whole reason the harness
+exists.** PurgeCSS keeps a rule when the class name appears as a literal in
+`content`. Three separate blind spots turned up, none of them guessable:
 
-| | |
-|---|---|
-| What `templates/` actually uses | ~46 distinct Bootstrap classes |
-| Grid usage in the frontend | `container`, `row`, `col-md-8`, `col-lg-6` — that is all |
-| What is imported for it | the complete Bootstrap SCSS, 484 KB of source |
-| What falls out | `theme.css`, 11,033 lines, 199 KB — 132 KB since the reduction below |
+1. **Markup is built in `src/`, not only in `templates/`.** The thread renderers
+   and several helpers emit their own classes — `threadLine-pre`,
+   `threadTree-node`, `et-root`, `solves-isSolved`. Missing those globs stripped
+   the whole thread tree: 27% of the page.
+2. **Icon names are composed.** `$iconLabel('sign-in', …)` produces
+   `fa-sign-in`, which exists nowhere as a literal. Font Awesome is therefore
+   kept whole — a cleverer extractor would learn today's call pattern and miss
+   tomorrow's, and icons are too small a saving to buy that risk.
+3. **Some classes only exist after `@extend`.** `flex-bar`, `flex-bar-header`.
 
-Essentially: `btn`, `card`, `modal`, `alert`, `form-control` and a handful of
-spacing utilities, paid for with a full framework. Modern CSS covers the rest —
-`<dialog>` replaces the modal component including backdrop and focus trap, grid
-and flexbox replace `col-*`, and Nova already carries its own custom properties.
+Re-run `dev/pixel-diff.sh` after touching the config. **Zero is the gate**, not
+"small enough" — every entry in the safelist is there because it broke a
+comparison, and the next one will be found the same way or not at all.
 
-**The theme interface is 36 names, not 671 — so this need not be a breaking
-release.** Measured 2026-08-02, correcting what this entry claimed before.
-Bootstrap defines 671 variables. Bota sets 33 of them, Nova 36, and Macnemo —
-the theme the live forum actually runs — exactly six: `body-bg`, `body-color`,
-`border-color`, `orange`, `primary`, `text-muted`.
+Still open, and unchanged by this: Bootstrap 4 has been unmaintained since
+January 2023. Its JavaScript is not loaded anywhere here, so this is a
+maintenance question rather than a security one — but the dependency is frozen,
+and a real modernisation (CSS grid, `<dialog>`, custom properties, Bootstrap's
+class names dropped) is still the only thing that would retire it. That is a
+change to how the forum *looks*, so `cmp` and the pixel harness both stop being
+the gate and human judgement starts; it belongs in a release that is about the
+appearance, not smuggled into one that is not.
 
-So what derived themes consume is a few dozen well-known names, and Bota can
-keep declaring them itself, with `!default`, once Bootstrap is gone. Macfix then
-keeps working unchanged without anybody having to touch it — which matters,
-because we cannot see it. **The earlier plan of "major version plus notice to
-theme authors" was based on assuming the whole framework was the interface. It
-is not.**
+**Do not detour through Bootstrap 5.** Measured: 5.3.8 still carries 40
+`@import` lines, no `@use` at all, 24 `map-get` and 84 `if()`, so it fixes none
+of the deprecations above, and a 4 → 5 migration is a breaking pass over every
+theme plus ~46 classes in the templates — all of it thrown away when Bootstrap
+goes.
 
-The residual risk is worth stating plainly: a derived theme that overrides a
-Bootstrap variable we do *not* carry over loses its effect **silently** — the
-same failure mode as the missing `!default` that let Bota's `$enable-rounded`
-quietly beat Macnemo's. The mitigation is to be generous rather than minimal:
-carry fifty names, not thirty.
+But that measurement turned up something true *now*: **the PHP side is already
+on Bootstrap 5 while the CSS is on 4.** `friendsofcake/bootstrap-ui` is at 5.2.0
+and targets Bootstrap 5.3, and the Admin plugin has it generate the markup. So
+the admin emits `form-label` and `me-2`, which appear in no stylesheet we ship.
+Both only set `margin: 0.5rem`, so admin forms lose spacing and nothing breaks —
+worth knowing rather than fixing blind.
 
-**Two separate fronts, and they are genuinely independent** — checked on
-2026-08-02, because "frontend first" only works if it is true:
+**The admin is a separate front and does not block this one.** It loads
+`stylesheets/bootstrap.min.css`, copied out of `node_modules` by grunt, plus
+`Admin.admin.css`, and never a theme. Dropping Bootstrap there means dropping
+BootstrapUI and writing form templates; it is worth doing in the same pass as
+the modernisation above, and paying for twice otherwise.
 
-1. **The themes.** `plugins/Bota/webroot/css/src/partials/__theme.scss` imports
-   Bootstrap wholesale, and Nova extends Bota, and Macnemo and Macfix extend
-   Nova. The frontend layout loads `stylesheets/static.css` plus
-   `<theme>.theme.css` — and *not* the admin's stylesheet.
-2. **Admin and installer.** These do not merely use Bootstrap's classes, they
-   have BootstrapUI *generate* the markup
-   (`plugins/Admin/src/Controller/AdminAppController.php` — Form, Flash,
-   Paginator, Breadcrumbs). Dropping Bootstrap here means dropping BootstrapUI
-   and writing form templates. The frontend is unaffected by this half; it uses
-   the plain Cake helpers.
-
-   And the admin loads its own stylesheet — `stylesheets/bootstrap.min.css`,
-   copied out of `node_modules` by grunt, plus `Admin.admin.css`. It never loads
-   a theme. So the front can be taken off Bootstrap without the admin noticing,
-   and the admin keeps its copy until its own pass.
-
-**There is no LICENSE file at the repository root.** `composer.json` says MIT and
-nothing else does — no `LICENSE`, and until 2026-08-02 no mention of Bootstrap,
-whose MIT notice asks to travel with derived code. The two replacement partials
-carry their attribution now; the root file is still missing, and it should list
-the third-party code the distribution actually contains.
-
-**What the work actually is, measured rather than guessed:**
-
-| | |
-|---|---|
-| Bootstrap's share of `Nova/theme.css` (minified) | **108 KB of 132 — 82%** |
-| Component classes used in `templates/` | 33, in five families |
-| Utility classes used in `templates/` | 7 |
-| `@extend` on *Bootstrap* classes in our own SCSS | **83 calls, 43 distinct** |
-| `@extend` on our own classes | 33 calls |
-
-The 33 component classes are buttons, cards, alerts, form controls and a grid
-that consists of `container`, `row`, `col-md-8`, `col-lg-6`. That is the whole
-of it. The `@extend` calls are the part that is easy to miss: the coupling is
-not only the `@import` lines, and each one becomes a hand-written declaration.
-
-Removing Bootstrap does **not** clear the `@import` deprecations above — only 19
-of the 54 sites are Bootstrap's. And unlike that work, the compiled CSS *will*
-change here, so `cmp` cannot be the gate; it is a pixel diff per theme and page,
-as used for the compiler change.
-
-The first step shipped in 8.3.0: `__theme.scss` imports the nineteen modules
-actually in use rather than all thirty-eight, 23% off every stylesheet without
-changing a class in any template. It was meant to measure what is really being
-paid for, and it did. What remains is `reboot`, `type`, `grid`, `tables`,
-`forms`, `buttons`, `dropdown`, `button-group`, `input-group`, `card`, `badge`,
-`alert` and `utilities` — and `utilities` alone accounts for forty of the classes in use,
-mostly spacing and display helpers that modern CSS covers directly. So the
-remaining question is no longer "how much is Bootstrap carrying" but "is a
-framework worth it for buttons, cards, form controls and a spacing scale".
-
-The admin area is worth reworking in the same pass, and only then. It has
-already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
-on Alpine now — so its markup is the one thing still tying it to Bootstrap.
-Doing it separately means paying for it twice.
+**There is no LICENSE file at the repository root.** `composer.json` says MIT
+and no file in the distribution does. Noticed while deriving those two partials;
+they are reverted, so nothing derived remains — but the missing root file is a
+separate omission, and it should list the third-party code the distribution
+actually contains.
 
 ### The last schema difference, and the nineteen that stay
 
