@@ -248,6 +248,12 @@ carry fifty names, not thirty.
    a theme. So the front can be taken off Bootstrap without the admin noticing,
    and the admin keeps its copy until its own pass.
 
+**There is no LICENSE file at the repository root.** `composer.json` says MIT and
+nothing else does — no `LICENSE`, and until 2026-08-02 no mention of Bootstrap,
+whose MIT notice asks to travel with derived code. The two replacement partials
+carry their attribution now; the root file is still missing, and it should list
+the third-party code the distribution actually contains.
+
 **What the work actually is, measured rather than guessed:**
 
 | | |
