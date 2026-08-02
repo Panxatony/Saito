@@ -18,7 +18,12 @@ import http.server, os, socketserver, subprocess, sys, threading, re, pathlib
 
 HOST = os.environ.get('PXHOST', 'https://forum.panxatony.net')
 UA = 'Mozilla/5.0 (X11; Linux x86_64) Gecko/20100101 Firefox/128.0'
-ROOT = pathlib.Path(__file__).parent
+# Everything this writes — screenshots, browser profiles, the mirrored page, a
+# cookie jar — goes to a scratch directory, never next to the script. Writing it
+# beside the source once put 491 files and 15.5 MB into a commit, including a
+# session cookie for the forum it had just fetched.
+ROOT = pathlib.Path(os.environ.get('TMPDIR', '/tmp')) / 'saito-pixel-diff'
+ROOT.mkdir(parents=True, exist_ok=True)
 
 
 def fetch(path: str, out: pathlib.Path, port: int) -> None:
