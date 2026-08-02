@@ -1,0 +1,112 @@
+/******************************************************************************
+ * The twelve-column grid, ours now
+ *
+ * This replaces `bootstrap/scss/grid`, 10 KB and 242 classes, of which the
+ * forum uses eight: `container`, `container-fluid`, `row`, and four column
+ * widths — `col-md-3`, `col-md-4`, `col-md-8`, `col-md-9`, `col-lg-6`. There is
+ * no nesting and no offsetting anywhere in `templates/`.
+ *
+ * Kept as a twelve-column flex grid rather than rewritten in CSS grid, because
+ * the class names are what the templates are written against and a theme on an
+ * installation we cannot read may use others. Column *widths* are generated for
+ * all twelve at every breakpoint — 84 rules — while order and offset helpers,
+ * which nothing uses, are not.
+ *
+ * Gutters stay Bootstrap's `$grid-gutter-width`, halved on each side, so a theme
+ * that overrides that variable keeps its effect.
+ ******************************************************************************/
+
+@use "sass:map";
+@use "sass:math";
+
+$grid-columns: 12 !default;
+
+@mixin make-container {
+  width: 100%;
+  padding-right: math.div($grid-gutter-width, 2);
+  padding-left: math.div($grid-gutter-width, 2);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.container {
+  @include make-container;
+
+  // One max-width per breakpoint, so the text column stops growing on a wide
+  // screen. `container-fluid` is the same box without that ceiling.
+  @each $name, $width in $container-max-widths {
+    @media (min-width: map.get($grid-breakpoints, $name)) {
+      max-width: $width;
+    }
+  }
+}
+
+.container-fluid {
+  @include make-container;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: math.div($grid-gutter-width, -2);
+  margin-left: math.div($grid-gutter-width, -2);
+}
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+
+  > .col,
+  > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+// Every column carries the gutter padding and fills the row's width; what the
+// numbered classes add is the basis. A mixin rather than a placeholder because
+// `@extend` may not cross a media query, and the breakpoint variants below live
+// inside one.
+@mixin column-base {
+  position: relative;
+  width: 100%;
+  padding-right: math.div($grid-gutter-width, 2);
+  padding-left: math.div($grid-gutter-width, 2);
+}
+
+@mixin columns($infix: '') {
+  .col#{$infix} {
+    @include column-base;
+
+    flex-basis: 0;
+    flex-grow: 1;
+    max-width: 100%;
+  }
+
+  .col#{$infix}-auto {
+    @include column-base;
+
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+  }
+
+  @for $i from 1 through $grid-columns {
+    .col#{$infix}-#{$i} {
+      @include column-base;
+
+      flex: 0 0 math.percentage(math.div($i, $grid-columns));
+      max-width: math.percentage(math.div($i, $grid-columns));
+    }
+  }
+}
+
+@include columns;
+
+@each $name, $min in $grid-breakpoints {
+  @if $min != 0 {
+    @media (min-width: $min) {
+      @include columns('-#{$name}');
+    }
+  }
+}

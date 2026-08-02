@@ -36,7 +36,7 @@
 // Components the forum uses. Bootstrap's own order is kept — later modules
 // depend on earlier ones having defined their variables and placeholders.
 @import "bootstrap/scss/type";
-@import "bootstrap/scss/grid";
+@import "../basics/grid";
 @import "bootstrap/scss/tables";
 @import "bootstrap/scss/forms";
 @import "bootstrap/scss/buttons";
