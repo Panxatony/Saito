@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Test\TestCase\Controller;
 
+use Cake\Http\Exception\BadRequestException;
 use Cake\I18n\DateTime;
 use Saito\Test\IntegrationTestCase;
 
@@ -165,7 +166,7 @@ class UserDataExportTest extends IntegrationTestCase
         // another tab, or a moderator acting between two requests.
         $this->getTableLocator()->get('Users')->deleteAll(['id' => 3]);
 
-        $this->expectException(\Cake\Http\Exception\BadRequestException::class);
+        $this->expectException(BadRequestException::class);
         $this->get('/users/export');
     }
 
