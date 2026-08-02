@@ -1,6 +1,8 @@
 // (parsed) markup
 // -------------------------------------
 
+@use "sass:map";
+
 .richtext {
   ul {
     @extend %ul;
@@ -104,7 +106,7 @@
 }
 
 .richtext-embed {
-  @media only screen and (min-width: map-get($grid-breakpoints, sm)) {
+  @media only screen and (min-width: map.get($grid-breakpoints, sm)) {
     margin: 0 auto;
     max-width: 75%;
   }

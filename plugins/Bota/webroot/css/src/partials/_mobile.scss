@@ -2,17 +2,20 @@
 // slidetabs will push the whole threadBox container with all threadlines to the
 // side. This way the threadlines  are not in a container and able to float
 // around slidetabs.
-@media only screen and (min-width: map-get($grid-breakpoints, lg)) {
+
+@use "sass:map";
+
+@media only screen and (min-width: map.get($grid-breakpoints, lg)) {
 }
 
 // reduce indent to prevent overflow; test with macnemo #654543; see macnemo #654580
-@media only screen and (max-width: map-get($grid-breakpoints, lg)) {
+@media only screen and (max-width: map.get($grid-breakpoints, lg)) {
   .threadTree-node {
     padding-left: 20px;
   }
 }
 
-@media only screen and (max-width: map-get($grid-breakpoints, md)) {
+@media only screen and (max-width: map.get($grid-breakpoints, md)) {
   .threadTree-node {
     padding-left: 15px;
     min-width: 10em;
@@ -26,7 +29,7 @@
   }
 }
 
-@media only screen and (max-width: map-get($grid-breakpoints, sm)) {
+@media only screen and (max-width: map.get($grid-breakpoints, sm)) {
   /* Slidetabs open to full width on Phone size
   // ------------------------------------- */
   #slidetabs {

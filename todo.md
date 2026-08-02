@@ -52,29 +52,61 @@ reason the notes above say anything useful. `phpunit` 11 → 13 was the fourth a
 went in with 8.3.12, once the question it was waiting on had an answer: no, the
 suite does not fail on deprecations raised inside dependencies.
 
-### The stylesheets compile with 300 deprecation warnings
+### The stylesheets still use `@import`, 54 times
 
-Surfaced by the Node 24 upgrade: `sass` had never been declared, and declaring
-it properly moved the compiler from 1.24 to 1.102 — which prints warnings the
-2020 version never did.
+Everything else Dart Sass warned about is fixed; `@import` is what is left. It
+is removed in **Dart Sass 3.0**, and there is not even a 2.0 yet, so this has no
+date — but it is the one part with no automated path.
 
-| Warning | Deadline |
-|---|---|
-| `@import` is deprecated | removed in Dart Sass **3.0** |
-| `lighten()` / `darken()` are deprecated | use `color.adjust()` / `color.scale()` |
-| `/` for division outside `calc()` | removed in Dart Sass **2.0** |
-| global built-ins (`abs()`, `if()`) | removed in Dart Sass **3.0** |
+**The official migrator refuses this codebase.** `sass-migrator module` exits
+with *"multiple possible migrations … depending on the context in which it's
+loaded"* for `Bota/…/partials/__theme.scss`, and it is right to: Bota, Nova and
+Macnemo each load it with different variables set beforehand. That is the
+`!default` inheritance the themes are built on, and resolving it into `@use …
+with (…)` / `@forward` is a design decision per theme, not a rename.
 
-Nothing is broken. The compiled CSS was checked against the previous compiler by
-rendering the live front page and a posting page and comparing pixel by pixel —
-zero differing pixels out of 2.8 and 2.3 million. The output only *looks*
-different in the file, where `darken()` results now print as
-`rgb(50.67%, 13.72%, 11.08%)` instead of `#8b0404`.
+So it has to be done by hand, one theme at a time, and it is the job that is
+best done when nothing else is in flight — a mistake in the variable chain is
+invisible until somebody opens the right page in the right theme.
 
-Dart Sass is at 1.102 and there is no 2.0, so none of these deadlines has a
-date. Modernising the partials is a leisurely job — one that touches every theme
-and is best done when nothing else is in flight, since a mistake in a colour
-function is invisible until somebody looks at the right page.
+**The gate that made the rest of this safe:** every conversion below was
+output-preserving, so the test was `cmp` on the compiled CSS, not a pixel diff —
+all seven stylesheets byte-identical, through the full `grunt` release chain
+including minification. Use the same gate for `@use`; if the CSS moves, the
+migration is wrong.
+
+Done on 2026-08-02, for whoever wonders why the count dropped from 148 to 32:
+
+- **Dependencies are silenced properly now.** `--quiet-deps` had no effect
+  because Bootstrap and Font Awesome were pulled in by *relative path*
+  (`../../../../../../node_modules/…`), which Sass counts as project code. They
+  come in over `--load-path=node_modules` now, and their 56 warnings are gone.
+  Note that this is *all* it does — Bootstrap 5.3.8 still has 40 `@import`
+  lines, 24 `map-get` and 84 `if()` of its own, so upgrading it would not have
+  fixed a single warning here.
+- **`/` for division** — two sites, done by `sass-migrator division`. This was
+  the only deadline with the nearer number (2.0) and it is cleared.
+- **`map-get` → `map.get`** — 14 sites. A `@use "sass:map"` works fine inside a
+  file that is itself `@import`ed, which is why this did not have to wait for
+  the `@use` migration.
+- **`darken()` / `lighten()` / `desaturate()`** — 11 sites, now `color.adjust()`.
+
+**Two traps found the hard way, both caught by the byte comparison:**
+
+`color.adjust()` does not clamp. `darken($c, 40%)` floors at black; `color.adjust`
+keeps counting and emits `hsl(255, 8%, -0.59%)`, which no browser accepts. The
+night presets are dark enough to hit that floor, so `_layout-and-navs.scss` now
+clamps explicitly. Any further colour work needs the same care.
+
+And a nested call converted by regex silently swaps its arguments:
+`darken(desaturate($c, 20%), 40%)` became `-20%` *lightness* and `-40%`
+*saturation*. It compiled, it looked plausible, and only the compiled CSS showed
+it. Convert nested colour calls by hand.
+
+A guard is in place so none of the three cleared categories can come back:
+`--fatal-deprecation=slash-div,global-builtin,color-functions` in the `css:*`
+scripts. Verified by reintroducing a `map-get` and watching the build fail with
+exit 65 — and it does not fire on dependencies, `--quiet-deps` wins there.
 
 ### TypeScript stays on 6 until typescript-eslint catches up
 
@@ -144,6 +176,25 @@ the version number suggests: **Bootstrap's JavaScript is not loaded anywhere in
 the project**, and the known Bootstrap 4 vulnerabilities are all in its JS
 components. What is left is a stylesheet. So this is a weight and maintenance
 question, not a security one.
+
+**Do not detour through Bootstrap 5 on the way out.** Asked and measured on
+2026-08-02. It buys nothing for the deprecation warnings above — 5.3.8 still
+carries 40 `@import` lines, no `@use` at all, 24 `map-get` and 84 `if()` — and a
+4 → 5 migration is a breaking pass over the whole Bota → Nova → Macnemo → Macfix
+chain plus the ~46 classes below, all of it thrown away when Bootstrap goes.
+
+But it turned up something that is true *now*: **the PHP side is already on
+Bootstrap 5 while the CSS is on 4.** `friendsofcake/bootstrap-ui` is at 5.2.0
+and targets Bootstrap 5.3, and the Admin plugin has it generate the markup
+(`BootstrapUI.Form`, `.Html`, `.Flash`, `.Paginator`). So the admin emits classes
+like `form-label` and `me-2` — which appear in *no* stylesheet we ship, not
+Bootstrap 4.6's and not our own. Checked: zero occurrences across every compiled
+theme.
+
+The damage is small and worth knowing rather than fixing blind: both classes only
+set `margin: 0.5rem`, so admin forms lose spacing and nothing breaks. A handful
+of declarations closes it if it ever annoys anybody. It is *not* an argument for
+the 5 migration — it is an argument for not being surprised by it later.
 
 The weight is the argument. Measured on 2026-07-29:
 

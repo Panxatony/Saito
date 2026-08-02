@@ -1,5 +1,8 @@
 /* flex-bar
 // ------------------------------------- */
+
+@use "sass:map";
+
 .flex-bar {
   position: relative;
   align-items: center;
@@ -48,7 +51,7 @@
   flex-direction: column;
 }
 
-@media only screen and (max-width: map-get($grid-breakpoints, lg)) {
+@media only screen and (max-width: map.get($grid-breakpoints, lg)) {
   .lefty-aside {
     align-items: center;
     flex-direction: row;
@@ -71,7 +74,7 @@
   flex: auto;
 }
 
-@media only screen and (max-width: map-get($grid-breakpoints, lg)) {
+@media only screen and (max-width: map.get($grid-breakpoints, lg)) {
   .flex-lefty {
     flex-direction: column;
   }
@@ -87,7 +90,7 @@
   grid-template-columns: fit-content(20%) auto;
 }
 
-@media only screen and (max-width: map-get($grid-breakpoints, lg)) {
+@media only screen and (max-width: map.get($grid-breakpoints, lg)) {
   .grid-lefty {
     grid-template-columns: 1fr;
   }

@@ -2,27 +2,29 @@
  * Bootstrap variables
  ******************************************************************************/
 
+@use "sass:color";
+
 $body-bg: #1d1d1f !default;
 $modal-content-bg: $body-bg !default;
 
 $primary: rgb(255, 184, 30) !default;
 $body-color: #decab2 !default;
 
-$border-color: darken($primary, 35%) !default;
+$border-color: color.adjust($primary, $lightness: -35%) !default;
 $close-color: $body-color !default;
 $input-color: $body-color !default;
 
 $text-muted: #9a866d !default;
 
-$input-border-color: darken($primary, 35%) !default;
-$input-focus-border-color: lighten($input-border-color, 15%) !default;
+$input-border-color: color.adjust($primary, $lightness: -35%) !default;
+$input-focus-border-color: color.adjust($input-border-color, $lightness: 15%) !default;
 $nav-tabs-link-active-color: $primary;
 
 $form-bg: #28282b !default;
-$card-cap-bg: lighten($form-bg, 10%) !default;
+$card-cap-bg: color.adjust($form-bg, $lightness: 10%) !default;
 $card-bg: $form-bg !default;
 $list-group-bg: $form-bg !default;
-$list-group-hover-bg: darken(desaturate($primary, 20%), 40%) !default;
+$list-group-hover-bg: color.adjust(color.adjust($primary, $saturation: -20%), $lightness: -40%) !default;
 
 $font-size-base: 0.95rem !default;
 $small-font-size: 85% !default;
