@@ -5,6 +5,45 @@
 - Δ Changed
 - − Removed
 
+## [8.3.13] - 2026-08-02 "funkstille"
+
+No migration. The JS bundle changed, so deploy it with the rest.
+
+Named for what three of these have in common: the forum stops sending something
+it should not have been sending.
+
+- ✓ Fixed: **the registration form no longer says whether an address already has
+  an account.** "This address is taken" is what a form has to tell the person
+  filling it in — and at the same time an oracle for asking, of anybody, whether
+  they are a member here. A forum's membership is not public information. The
+  answer now goes to the address itself, where only its owner can read it, and
+  the form says exactly the same thing either way. The throttle from 8.3.2
+  capped how often the question could be asked; this stops it being answered.
+
+  The cost, deliberately accepted: somebody who mistypes their address into one
+  that belongs to another member sees "check your mail" and never gets a mail,
+  while that member gets one they did not ask for. That mail is written for
+  exactly that reader.
+
+- ✓ Fixed: **a refused `/metrics` scrape no longer writes to `error.log`.** The
+  guard doing its job is not an application error. It cost nothing while the
+  token was right and everything when it was not: a rotated token at a
+  60-second interval would write 1,440 entries a day, making the log unreadable
+  exactly when somebody needed to read it.
+
+- ＋ Added: **the editor understands PeerTube addresses.** Paste the `/w/…` link
+  from the address bar and it becomes the player, the way YouTube already did.
+  Recognised by the path rather than the host, because PeerTube is federated and
+  there is no domain list to match against. The forum's own
+  `video_domains_allowed` still has to permit the instance.
+
+- Δ Changed: **`grunt-dart-sass` is gone**, replaced by the sass CLI through the
+  `grunt-shell` task the JS bundle already uses. The package was last released
+  in May 2022 and drives the legacy JS API that Dart Sass 2 removes — in the
+  path that builds the themes for every release, so the day that lands it would
+  have broken the release pipeline rather than somebody's local work. All six
+  stylesheets come out byte-identical.
+
 ## [8.3.12] - 2026-08-02 "logbuch"
 
 **One migration runs.** It removes two settings rows and there is no way back —

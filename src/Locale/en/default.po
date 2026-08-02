@@ -1957,3 +1957,11 @@ msgstr "Download my data"
 #: templates/Users/htmx_edit.php
 msgid "user.export.exp"
 msgstr "Everything this forum holds about you, as a JSON file."
+
+#: templates/email/text/user_register_existing.php
+msgid "register_email_existing_subject"
+msgstr "Someone tried to register at {0}"
+
+#: templates/email/text/user_register_existing.php
+msgid "register_email_existing_content"
+msgstr "Hello,\n\nsomebody tried to create an account at {0} with this email address. There is already an account here using it, under the name "{1}".\n\nYou do not have to do anything. If this was you and you had forgotten the account: just sign in.\n\n{2}\n\nIf it was not you, somebody most likely mistyped their own address. Your account is unaffected and nothing has been changed."

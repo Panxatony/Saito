@@ -34,6 +34,7 @@ use Saito\User\DataExport;
 use Saito\User\Permission\ResourceAI;
 use Saito\User\WidgetPreferences;
 use Stopwatch\Lib\Stopwatch;
+use Throwable;
 
 /**
  * User controller
@@ -583,6 +584,29 @@ class UsersController extends AppController
 
         $user = $this->Users->register($data);
         if ($user->getErrors()) {
+            // A duplicate address is the one error the form must not report.
+            // Saying "this address is taken" answers, to anybody who asks,
+            // whether a given person is a member here — and a forum's
+            // membership is not public information. The throttle added in 8.3.2
+            // caps how often the question can be asked; this stops it being
+            // answered at all.
+            //
+            // The reply is instead sent to the address itself, which is the one
+            // place where only its owner can read it.
+            //
+            // The cost, and it is a real one: somebody who mistypes their
+            // address into one that belongs to another member sees "check your
+            // mail" and never gets a mail, while that other member gets one
+            // they did not ask for. The mail is written for exactly that
+            // reader. Reporting the collision instead would mean telling every
+            // passer-by who is a member here, which is the worse trade.
+            if ($this->isOnlyDuplicateEmail($user->getErrors())) {
+                $this->notifyExistingAccount((string)$data['user_email']);
+                $this->set('status', 'success');
+
+                return;
+            }
+
             $user->set('tos_confirm', false);
             $this->set('user', $user);
 
@@ -605,6 +629,57 @@ class UsersController extends AppController
         }
 
         $this->set('status', 'success');
+    }
+
+    /**
+     * Whether the only thing wrong with the registration is a known address.
+     *
+     * Deliberately narrow. If the form also failed on the username, the
+     * password or the terms, the person has something to correct and must be
+     * told — silently accepting *that* would leave them waiting for a mail that
+     * never comes, with nothing to act on.
+     *
+     * @param array<string, mixed> $errors validation errors from register()
+     * @return bool
+     */
+    private function isOnlyDuplicateEmail(array $errors): bool
+    {
+        if (array_keys($errors) !== ['user_email']) {
+            return false;
+        }
+
+        return array_keys((array)$errors['user_email']) === ['isUnique'];
+    }
+
+    /**
+     * Tell the address that somebody tried to register with it.
+     *
+     * Failures are swallowed on purpose: whether the mail went out must not
+     * change what the form shows, or the timing and the outcome would answer
+     * the same question the silence exists to avoid. It is logged instead.
+     *
+     * @param string $email the address somebody tried to register
+     * @return void
+     */
+    private function notifyExistingAccount(string $email): void
+    {
+        try {
+            /** @var \App\Model\Entity\User|null $existing */
+            $existing = $this->Users->find()->where(['user_email' => $email])->first();
+            if ($existing === null) {
+                return;
+            }
+
+            $this->SaitoEmail->email([
+                'recipient' => $existing,
+                'subject' => __('register_email_existing_subject', Configure::read('Saito.Settings.forum_name')),
+                'sender' => 'register',
+                'template' => 'user_register_existing',
+                'viewVars' => ['user' => $existing],
+            ]);
+        } catch (Throwable $e) {
+            (new ExceptionLogger())->write('Notifying an existing account failed', ['e' => $e]);
+        }
     }
 
     /**
