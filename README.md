@@ -11,13 +11,9 @@ Saito is a web-forum with [conversation threading][ConversationThreading]. It is
 
 A lot of optimization went into serving long existing, small- to mid-sized communities with moderate traffic but hundreds of thousands of existing postings. It is able to displays hundreds of individual postings on a single page while running on a inexpensive, shared hosting account.
 
-[Test it here][SaitoSupport] (login: test/test).
-
 [cake]: http://cakephp.org/
 [htmx]: https://htmx.org/
 [alpine]: https://alpinejs.dev/
-[SaitoHomepage]: https://saito.siezi.com/
-[SaitoSupport]: https://saito-forum.de/
 [ConversationThreading]: https://en.wikipedia.org/wiki/Conversation_threading
 
 ## Requirements
@@ -48,6 +44,15 @@ Two things worth knowing up front:
 - `config/saito_config.php` is install-specific. Never copy a fresh one over a
   running install — merge the changes instead.
 
+**[docs/configuration.md](docs/configuration.md) is the reference for both
+layers**: the twenty-odd keys in `config/saito_config.php` and the thirty-three
+environment variables, each with its default and what it actually does. It also
+says which of the two wins where they name the same setting, which is not the
+obvious way round.
+
+The third layer, the admin area, is not in it: those settings are edited in the
+browser and stored in the database.
+
 ## Themes
 
 Saito ships three: **Nova** (the default — a modern take on Bota), **Bota** (the
@@ -72,10 +77,6 @@ You need a more or less generic environement providing:
 -  PHP with `composer` for the server-backend (mainly build on [CakePHP][cake])
 -  **Node.js >= 22.11** with `yarn` and `grunt-cli` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts). `.nvmrc` names the version the pipelines use; the build tooling sets that floor and `yarn install` refuses below it.
 -  a database
-
-Every environment variable an operator can set is listed in
-[docs/configuration.md](docs/configuration.md) — one table, with the defaults and
-what each one actually does.
 
 ### Install Files
 
