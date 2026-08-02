@@ -210,20 +210,63 @@ spacing utilities, paid for with a full framework. Modern CSS covers the rest �
 `<dialog>` replaces the modal component including backdrop and focus trap, grid
 and flexbox replace `col-*`, and Nova already carries its own custom properties.
 
-**Two separate fronts, and they are not equally hard:**
+**The theme interface is 36 names, not 671 — so this need not be a breaking
+release.** Measured 2026-08-02, correcting what this entry claimed before.
+Bootstrap defines 671 variables. Bota sets 33 of them, Nova 36, and Macnemo —
+the theme the live forum actually runs — exactly six: `body-bg`, `body-color`,
+`border-color`, `orange`, `primary`, `text-muted`.
+
+So what derived themes consume is a few dozen well-known names, and Bota can
+keep declaring them itself, with `!default`, once Bootstrap is gone. Macfix then
+keeps working unchanged without anybody having to touch it — which matters,
+because we cannot see it. **The earlier plan of "major version plus notice to
+theme authors" was based on assuming the whole framework was the interface. It
+is not.**
+
+The residual risk is worth stating plainly: a derived theme that overrides a
+Bootstrap variable we do *not* carry over loses its effect **silently** — the
+same failure mode as the missing `!default` that let Bota's `$enable-rounded`
+quietly beat Macnemo's. The mitigation is to be generous rather than minimal:
+carry fifty names, not thirty.
+
+**Two separate fronts, and they are genuinely independent** — checked on
+2026-08-02, because "frontend first" only works if it is true:
 
 1. **The themes.** `plugins/Bota/webroot/css/src/partials/__theme.scss` imports
    Bootstrap wholesale, and Nova extends Bota, and Macnemo and Macfix extend
-   Nova. Pulling Bootstrap out of Bota breaks *every* derived theme at once —
-   including the ones on other installations. That is a break of the theme
-   interface and belongs in a major version with notice to theme authors, not in
-   a point release.
+   Nova. The frontend layout loads `stylesheets/static.css` plus
+   `<theme>.theme.css` — and *not* the admin's stylesheet.
 2. **Admin and installer.** These do not merely use Bootstrap's classes, they
    have BootstrapUI *generate* the markup
    (`plugins/Admin/src/Controller/AdminAppController.php` — Form, Flash,
    Paginator, Breadcrumbs). Dropping Bootstrap here means dropping BootstrapUI
    and writing form templates. The frontend is unaffected by this half; it uses
    the plain Cake helpers.
+
+   And the admin loads its own stylesheet — `stylesheets/bootstrap.min.css`,
+   copied out of `node_modules` by grunt, plus `Admin.admin.css`. It never loads
+   a theme. So the front can be taken off Bootstrap without the admin noticing,
+   and the admin keeps its copy until its own pass.
+
+**What the work actually is, measured rather than guessed:**
+
+| | |
+|---|---|
+| Bootstrap's share of `Nova/theme.css` (minified) | **108 KB of 132 — 82%** |
+| Component classes used in `templates/` | 33, in five families |
+| Utility classes used in `templates/` | 7 |
+| `@extend` on *Bootstrap* classes in our own SCSS | **83 calls, 43 distinct** |
+| `@extend` on our own classes | 33 calls |
+
+The 33 component classes are buttons, cards, alerts, form controls and a grid
+that consists of `container`, `row`, `col-md-8`, `col-lg-6`. That is the whole
+of it. The `@extend` calls are the part that is easy to miss: the coupling is
+not only the `@import` lines, and each one becomes a hand-written declaration.
+
+Removing Bootstrap does **not** clear the `@import` deprecations above — only 19
+of the 54 sites are Bootstrap's. And unlike that work, the compiled CSS *will*
+change here, so `cmp` cannot be the gate; it is a pixel diff per theme and page,
+as used for the compiler change.
 
 The first step shipped in 8.3.0: `__theme.scss` imports the nineteen modules
 actually in use rather than all thirty-eight, 23% off every stylesheet without

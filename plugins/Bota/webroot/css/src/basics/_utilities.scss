@@ -1,0 +1,236 @@
+/******************************************************************************
+ * Spacing, display, text, border — the helper classes, ours now
+ *
+ * This replaces `bootstrap/scss/utilities`, which was 41 KB of the 108 KB of
+ * Bootstrap in every compiled theme — 38% of it — and defined 1005 classes of
+ * which the templates and Saito's own partials use 49.
+ *
+ * The class names are Bootstrap's on purpose. Every one of them appears in
+ * `templates/`, in an `@extend`, or possibly in a theme on an installation we
+ * cannot see, and renaming them would be a change to markup for no gain. What
+ * goes away is the 956 that nobody asked for.
+ *
+ * **Deliberately generated wider than the measured need.** The sweep found
+ * sizes 0–3 and the `md`/`lg` breakpoints in use; this emits the whole scale at
+ * every breakpoint anyway. It costs about four kilobytes and it is the cheap
+ * insurance: Macfix carries its own theme, nobody here can read it, and a
+ * utility class that quietly stops existing fails the way missing `!default`
+ * failed — silently, and only on somebody else's site.
+ *
+ * The values are Bootstrap's, but written against the theme's variables rather
+ * than its defaults, so `.text-muted` follows a theme's `$text-muted` exactly as
+ * it did before.
+ ******************************************************************************/
+
+@use "sass:map";
+
+// Bootstrap's own scale and numbering, so `.m-3` still means 1rem.
+$spacer: 1rem !default;
+$spacers: (
+  0: 0,
+  1: $spacer * .25,
+  2: $spacer * .5,
+  3: $spacer,
+  4: $spacer * 1.5,
+  5: $spacer * 3,
+) !default;
+
+// `t`/`b`/`l`/`r` set one side, `x`/`y` a pair, and no suffix all four.
+$sides: (
+  t: (top),
+  b: (bottom),
+  l: (left),
+  r: (right),
+  x: (left, right),
+  y: (top, bottom),
+);
+
+$displays: none, inline, inline-block, block, table, table-row, table-cell, flex, inline-flex;
+
+// Spacing and display are the two families anyone writes a breakpoint variant
+// of, so they are emitted at every breakpoint. `$scale` narrows the responsive
+// copies to the lower half of the scale: `.px-md-3` is a thing people write,
+// `.px-md-5` is not, and each extra size costs fourteen rules per breakpoint.
+@mixin spacing-and-display($infix: '', $scale: $spacers) {
+  @each $size, $length in $scale {
+    .m#{$infix}-#{$size} { margin: $length !important; }
+    .p#{$infix}-#{$size} { padding: $length !important; }
+
+    @each $abbrev, $edges in $sides {
+      .m#{$abbrev}#{$infix}-#{$size} {
+        @each $edge in $edges { margin-#{$edge}: $length !important; }
+      }
+      .p#{$abbrev}#{$infix}-#{$size} {
+        @each $edge in $edges { padding-#{$edge}: $length !important; }
+      }
+    }
+  }
+
+  .m#{$infix}-auto { margin: auto !important; }
+  @each $abbrev, $edges in $sides {
+    .m#{$abbrev}#{$infix}-auto {
+      @each $edge in $edges { margin-#{$edge}: auto !important; }
+    }
+  }
+
+  @each $value in $displays {
+    .d#{$infix}-#{$value} { display: $value !important; }
+  }
+}
+
+// Layout and alignment, emitted once. Bootstrap has a breakpoint copy of each of
+// these too; nothing in Saito or its themes uses one, and reinstating a single
+// line here is easier than justifying eighty rules that never match.
+@mixin flex-and-text {
+  .flex-row { flex-direction: row !important; }
+  .flex-column { flex-direction: column !important; }
+  .flex-wrap { flex-wrap: wrap !important; }
+  .flex-nowrap { flex-wrap: nowrap !important; }
+  .flex-fill { flex: 1 1 auto !important; }
+  .flex-grow-1 { flex-grow: 1 !important; }
+
+  .justify-content-start { justify-content: flex-start !important; }
+  .justify-content-end { justify-content: flex-end !important; }
+  .justify-content-center { justify-content: center !important; }
+  .justify-content-between { justify-content: space-between !important; }
+  .justify-content-around { justify-content: space-around !important; }
+
+  .align-items-start { align-items: flex-start !important; }
+  .align-items-end { align-items: flex-end !important; }
+  .align-items-center { align-items: center !important; }
+  .align-items-baseline { align-items: baseline !important; }
+  .align-items-stretch { align-items: stretch !important; }
+
+  .align-self-center { align-self: center !important; }
+
+  .text-left { text-align: left !important; }
+  .text-right { text-align: right !important; }
+  .text-center { text-align: center !important; }
+}
+
+// The breakpoint-less set first, then one block per breakpoint, in ascending
+// order — `min-width` rules, so later blocks have to win.
+@include spacing-and-display;
+@include flex-and-text;
+
+$responsive-spacers: (0: 0, 1: $spacer * .25, 2: $spacer * .5, 3: $spacer) !default;
+
+@each $name, $min in $grid-breakpoints {
+  @if $min != 0 {
+    @media (min-width: $min) {
+      @include spacing-and-display('-#{$name}', $responsive-spacers);
+    }
+  }
+}
+
+/* Colour, type and border helpers — theme variables, not Bootstrap's defaults */
+
+.text-primary { color: $primary !important; }
+.text-secondary { color: $secondary !important; }
+.text-success { color: $success !important; }
+.text-danger { color: $danger !important; }
+.text-warning { color: $warning !important; }
+.text-info { color: $info !important; }
+.text-light { color: $light !important; }
+.text-dark { color: $dark !important; }
+.text-white { color: $white !important; }
+.text-body { color: $body-color !important; }
+.text-muted { color: $text-muted !important; }
+
+.bg-primary { background-color: $primary !important; }
+.bg-secondary { background-color: $secondary !important; }
+.bg-success { background-color: $success !important; }
+.bg-danger { background-color: $danger !important; }
+.bg-warning { background-color: $warning !important; }
+.bg-info { background-color: $info !important; }
+.bg-light { background-color: $light !important; }
+.bg-dark { background-color: $dark !important; }
+.bg-white { background-color: $white !important; }
+.bg-transparent { background-color: transparent !important; }
+
+.font-weight-light { font-weight: 300 !important; }
+.font-weight-normal { font-weight: 400 !important; }
+.font-weight-bold { font-weight: 700 !important; }
+.font-italic { font-style: italic !important; }
+.text-monospace { font-family: $font-family-monospace !important; }
+.text-nowrap { white-space: nowrap !important; }
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.text-uppercase { text-transform: uppercase !important; }
+.text-lowercase { text-transform: lowercase !important; }
+.text-capitalize { text-transform: capitalize !important; }
+.text-decoration-none { text-decoration: none !important; }
+
+.border { border: $border-width solid $border-color !important; }
+.border-top { border-top: $border-width solid $border-color !important; }
+.border-bottom { border-bottom: $border-width solid $border-color !important; }
+.border-left { border-left: $border-width solid $border-color !important; }
+.border-right { border-right: $border-width solid $border-color !important; }
+.border-0 { border: 0 !important; }
+.border-top-0 { border-top: 0 !important; }
+.border-bottom-0 { border-bottom: 0 !important; }
+.border-left-0 { border-left: 0 !important; }
+.border-right-0 { border-right: 0 !important; }
+
+.border-primary { border-color: $primary !important; }
+.border-secondary { border-color: $secondary !important; }
+.border-success { border-color: $success !important; }
+.border-danger { border-color: $danger !important; }
+.border-warning { border-color: $warning !important; }
+.border-info { border-color: $info !important; }
+.border-light { border-color: $light !important; }
+.border-dark { border-color: $dark !important; }
+.border-white { border-color: $white !important; }
+
+.rounded { border-radius: $border-radius !important; }
+.rounded-sm { border-radius: $border-radius-sm !important; }
+.rounded-lg { border-radius: $border-radius-lg !important; }
+.rounded-circle { border-radius: 50% !important; }
+.rounded-0 { border-radius: 0 !important; }
+
+.shadow-sm { box-shadow: $box-shadow-sm !important; }
+.shadow { box-shadow: $box-shadow !important; }
+.shadow-lg { box-shadow: $box-shadow-lg !important; }
+.shadow-none { box-shadow: none !important; }
+
+.w-25 { width: 25% !important; }
+.w-50 { width: 50% !important; }
+.w-75 { width: 75% !important; }
+.w-100 { width: 100% !important; }
+.w-auto { width: auto !important; }
+.h-100 { height: 100% !important; }
+.mw-100 { max-width: 100% !important; }
+
+.float-left { float: left !important; }
+.float-right { float: right !important; }
+.float-none { float: none !important; }
+.clearfix::after {
+  display: block;
+  clear: both;
+  content: "";
+}
+
+.overflow-auto { overflow: auto !important; }
+.overflow-hidden { overflow: hidden !important; }
+
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+.position-static { position: static !important; }
+
+// Visible to a screen reader and to nothing else. Bootstrap's rules verbatim —
+// this one is a well-tested incantation rather than a style choice, and the
+// `clip` property is deprecated but still what assistive technology expects.
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
