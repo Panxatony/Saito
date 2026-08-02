@@ -1,5 +1,16 @@
 /******************************************************************************
- * Spacing, display, text, border — the helper classes, ours now
+ * Spacing, display, text, border — the helper classes
+ *
+ * Derived from Bootstrap v4.6.2, `scss/utilities/*`.
+ * Copyright (c) 2011-2022 Twitter, Inc. — MIT licence.
+ * Copyright (c) 2011-2022 The Bootstrap Authors.
+ *
+ * Say what this is rather than what it flatters us to call it: the class names,
+ * the spacing scale and the values are Bootstrap's, and the output is identical
+ * by design — "zero differing pixels" was the gate this had to pass, and that
+ * gate admits no other implementation. What changed is the scope, not the
+ * design. Calling it "our own" would be wrong twice over: wrong about the work,
+ * and wrong about the licence, which asks that the notice travel with the code.
  *
  * This replaces `bootstrap/scss/utilities`, which was 41 KB of the 108 KB of
  * Bootstrap in every compiled theme — 38% of it — and defined 1005 classes of

@@ -1,5 +1,15 @@
 /******************************************************************************
- * The twelve-column grid, ours now
+ * The twelve-column grid
+ *
+ * Derived from Bootstrap v4.6.2, `scss/_grid.scss` and `scss/mixins/_grid.scss`.
+ * Copyright (c) 2011-2022 Twitter, Inc. — MIT licence.
+ * Copyright (c) 2011-2022 The Bootstrap Authors.
+ *
+ * Same mechanism, same class names, same gutters: the flex basis, the container
+ * max-widths and the negative row margin are Bootstrap's, because the gate this
+ * had to pass was an unchanged rendering. A grid built on CSS grid instead would
+ * be a better grid and a different one, and could not have been verified this
+ * way.
  *
  * This replaces `bootstrap/scss/grid`, 10 KB and 242 classes, of which the
  * forum uses eight: `container`, `container-fluid`, `row`, and four column
