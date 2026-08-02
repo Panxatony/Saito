@@ -1,7 +1,10 @@
 {
   "name": "schlaefer/saito",
   "description": "Saito - The Threaded Forum",
-  "keywords": ["forum", "cakephp"],
+  "keywords": [
+    "forum",
+    "cakephp"
+  ],
   "license": "MIT",
   "homepage": "http://saito.siezi.com/",
   "support": {
@@ -27,7 +30,6 @@
     "cakephp/migrations": "^4.0",
     "cakephp/plugin-installer": "*",
     "josegonzalez/dotenv": "^4",
-
     "aura/di": "^5",
     "jbbcode/jbbcode": "~1.4",
     "yzalis/identicon": "*",
@@ -64,7 +66,6 @@
       "App\\Lib\\": "src/Lib",
       "Saito\\": "src/Lib/Saito/",
       "Saito\\Test\\": "tests/TestCase/Lib/Saito",
-
       "Plugin\\": "plugins/",
       "Admin\\": "plugins/Admin/src",
       "Admin\\Test\\": "./plugins/Admin/tests",
@@ -93,7 +94,9 @@
       "SaitoSearch\\": "./plugins/SaitoSearch/src",
       "Sitemap\\": "./plugins/Sitemap/src",
       "Sitemap\\Test\\": "./plugins/Sitemap/tests",
-      "Stopwatch\\": "./plugins/Stopwatch/src"
+      "Stopwatch\\": "./plugins/Stopwatch/src",
+      "Webhooks\\": "./plugins/Webhooks/src",
+      "Webhooks\\Test\\": "./plugins/Webhooks/tests"
     }
   },
   "autoload-dev": {
@@ -110,10 +113,11 @@
       "App\\Console\\Installer::postInstall"
     ],
     "post-autoload-dump": "Cake\\Composer\\Installer\\PluginInstaller::postAutoloadDump",
-
     "cs-check": "unset XDEBUG_CONFIG; phpcs --parallel=4 -p --colors --runtime-set ignore_warnings_on_exit true",
     "cs-fix": "unset XDEBUG_CONFIG; phpcbf --parallel=4 -p --colors > /dev/null || true",
-    "check": ["@cs-check"],
+    "check": [
+      "@cs-check"
+    ],
     "phpstan": "unset XDEBUG_CONFIG; vendor/bin/phpstan analyse --ansi",
     "coverage": [
       "Composer\\Config::disableProcessTimeout",
@@ -131,14 +135,12 @@
       "@phpunit",
       "@phpstan"
     ],
-
     "js-all": "yarn lint",
-
     "test-all": [
       "@test",
       "@js-all"
     ]
   },
-  "minimum-stability" : "dev",
+  "minimum-stability": "dev",
   "prefer-stable": true
 }
