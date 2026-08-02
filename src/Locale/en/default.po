@@ -1402,6 +1402,10 @@ msgstr "{hours} hours"
 msgid "user.block.duration"
 msgstr "Block duration"
 
+#: templates/Users/htmx_profile.php
+msgid "user.rank.t"
+msgstr "Rank"
+
 #: src/Template/Users/view.ctp:367
 msgid "user.del.exp.1"
 msgstr "Delete user \"{0}\""

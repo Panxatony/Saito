@@ -48,6 +48,22 @@ if ($CurrentUser->permission('saito.core.user.lastLogin.view')) {
     ];
 }
 $rows[] = [__('user_postings'), $this->Html->link($user->numberOfPostings(), $historyUrl)];
+
+// The rank a member has written their way to. Off unless the installation
+// configured it: `userranks_show` has to be on *and* `userranks_ranks` has to
+// parse into something, so an install that never set this up — macfix — shows
+// no row at all rather than an empty one.
+//
+// `numberOfPostings()` reads the `entry_count` column, so this costs nothing
+// beyond the string work.
+if (\Cake\Core\Configure::read('Saito.Settings.userranks_show')) {
+    $rank = \Saito\User\Userranks\Ranks::fromSetting(
+        \Cake\Core\Configure::read('Saito.Settings.userranks_ranks')
+    )->titleFor($user->numberOfPostings());
+    if ($rank !== null) {
+        $rows[] = [__('user.rank.t'), h($rank)];
+    }
+}
 if ($solved) {
     $rows[] = [$this->Posting->solvedBadge(), $solved];
 }
