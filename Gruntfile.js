@@ -96,6 +96,15 @@ module.exports = function (grunt) {
         command: 'yarn css:theme',
         options: { stdout: true, stderr: true, failOnError: true, },
       },
+      // Release only, and deliberately so: what a developer compiles locally is
+      // the full stylesheet, and what ships is trimmed. That difference is a
+      // hazard worth naming — a rule that only the purge removes will look fine
+      // in `yarn css` and be missing on the server. `dev/pixel-diff.sh` is what
+      // closes it, and it compares the *purged* output.
+      purge: {
+        command: 'yarn css:purge',
+        options: { stdout: true, stderr: true, failOnError: true, },
+      },
       bundle: {
         // JS bundle via Vite (replaces the legacy Webpack 4 build). Emits one
         // self-contained IIFE per entry into webroot/js; no NODE_OPTIONS
@@ -192,6 +201,9 @@ module.exports = function (grunt) {
     'shell:sassStatic',
     'shell:sassTheme',
     'postcss:release',
+    // After minification: the compiled themes carry ~1600 classes, the forum
+    // uses ~150. Bootstrap stays a dependency; only the shipped CSS is trimmed.
+    'shell:purge',
     // JS bundle (Vite)
     'shell:bundle',
     // JS

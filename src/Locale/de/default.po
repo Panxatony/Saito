@@ -2578,6 +2578,12 @@ msgstr "Zitat"
 msgid "Strikethrough"
 msgstr "Durchgestrichen"
 
+msgid "Show header"
+msgstr "Kopfzeile einblenden"
+
+msgid "Hide header"
+msgstr "Kopfzeile ausblenden"
+
 msgid "Toggle dark / light"
 msgstr "Hell / Dunkel umschalten"
 

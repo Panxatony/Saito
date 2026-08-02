@@ -52,29 +52,61 @@ reason the notes above say anything useful. `phpunit` 11 → 13 was the fourth a
 went in with 8.3.12, once the question it was waiting on had an answer: no, the
 suite does not fail on deprecations raised inside dependencies.
 
-### The stylesheets compile with 300 deprecation warnings
+### The stylesheets still use `@import`, 54 times
 
-Surfaced by the Node 24 upgrade: `sass` had never been declared, and declaring
-it properly moved the compiler from 1.24 to 1.102 — which prints warnings the
-2020 version never did.
+Everything else Dart Sass warned about is fixed; `@import` is what is left. It
+is removed in **Dart Sass 3.0**, and there is not even a 2.0 yet, so this has no
+date — but it is the one part with no automated path.
 
-| Warning | Deadline |
-|---|---|
-| `@import` is deprecated | removed in Dart Sass **3.0** |
-| `lighten()` / `darken()` are deprecated | use `color.adjust()` / `color.scale()` |
-| `/` for division outside `calc()` | removed in Dart Sass **2.0** |
-| global built-ins (`abs()`, `if()`) | removed in Dart Sass **3.0** |
+**The official migrator refuses this codebase.** `sass-migrator module` exits
+with *"multiple possible migrations … depending on the context in which it's
+loaded"* for `Bota/…/partials/__theme.scss`, and it is right to: Bota, Nova and
+Macnemo each load it with different variables set beforehand. That is the
+`!default` inheritance the themes are built on, and resolving it into `@use …
+with (…)` / `@forward` is a design decision per theme, not a rename.
 
-Nothing is broken. The compiled CSS was checked against the previous compiler by
-rendering the live front page and a posting page and comparing pixel by pixel —
-zero differing pixels out of 2.8 and 2.3 million. The output only *looks*
-different in the file, where `darken()` results now print as
-`rgb(50.67%, 13.72%, 11.08%)` instead of `#8b0404`.
+So it has to be done by hand, one theme at a time, and it is the job that is
+best done when nothing else is in flight — a mistake in the variable chain is
+invisible until somebody opens the right page in the right theme.
 
-Dart Sass is at 1.102 and there is no 2.0, so none of these deadlines has a
-date. Modernising the partials is a leisurely job — one that touches every theme
-and is best done when nothing else is in flight, since a mistake in a colour
-function is invisible until somebody looks at the right page.
+**The gate that made the rest of this safe:** every conversion below was
+output-preserving, so the test was `cmp` on the compiled CSS, not a pixel diff —
+all seven stylesheets byte-identical, through the full `grunt` release chain
+including minification. Use the same gate for `@use`; if the CSS moves, the
+migration is wrong.
+
+Done on 2026-08-02, for whoever wonders why the count dropped from 148 to 32:
+
+- **Dependencies are silenced properly now.** `--quiet-deps` had no effect
+  because Bootstrap and Font Awesome were pulled in by *relative path*
+  (`../../../../../../node_modules/…`), which Sass counts as project code. They
+  come in over `--load-path=node_modules` now, and their 56 warnings are gone.
+  Note that this is *all* it does — Bootstrap 5.3.8 still has 40 `@import`
+  lines, 24 `map-get` and 84 `if()` of its own, so upgrading it would not have
+  fixed a single warning here.
+- **`/` for division** — two sites, done by `sass-migrator division`. This was
+  the only deadline with the nearer number (2.0) and it is cleared.
+- **`map-get` → `map.get`** — 14 sites. A `@use "sass:map"` works fine inside a
+  file that is itself `@import`ed, which is why this did not have to wait for
+  the `@use` migration.
+- **`darken()` / `lighten()` / `desaturate()`** — 11 sites, now `color.adjust()`.
+
+**Two traps found the hard way, both caught by the byte comparison:**
+
+`color.adjust()` does not clamp. `darken($c, 40%)` floors at black; `color.adjust`
+keeps counting and emits `hsl(255, 8%, -0.59%)`, which no browser accepts. The
+night presets are dark enough to hit that floor, so `_layout-and-navs.scss` now
+clamps explicitly. Any further colour work needs the same care.
+
+And a nested call converted by regex silently swaps its arguments:
+`darken(desaturate($c, 20%), 40%)` became `-20%` *lightness* and `-40%`
+*saturation*. It compiled, it looked plausible, and only the compiled CSS showed
+it. Convert nested colour calls by hand.
+
+A guard is in place so none of the three cleared categories can come back:
+`--fatal-deprecation=slash-div,global-builtin,color-functions` in the `css:*`
+scripts. Verified by reintroducing a `map-get` and watching the build fail with
+exit 65 — and it does not fire on dependencies, `--quiet-deps` wins there.
 
 ### TypeScript stays on 6 until typescript-eslint catches up
 
@@ -137,57 +169,83 @@ Last on the list on purpose: the reward is a smaller file, the risk is deleting
 a string that turns out to be built from parts, and no test would catch it. Read
 the candidates rather than scripting the removal.
 
-### The rest of the way out from under Bootstrap 4
+### Bootstrap stays a dependency; only the shipped CSS is trimmed
 
-Bootstrap has been unmaintained since January 2023. The exposure is smaller than
-the version number suggests: **Bootstrap's JavaScript is not loaded anywhere in
-the project**, and the known Bootstrap 4 vulnerabilities are all in its JS
-components. What is left is a stylesheet. So this is a weight and maintenance
-question, not a security one.
+**Decided 2026-08-02, after trying the other way first.** Two modules —
+`utilities` and `grid` — were reimplemented in this repository and then reverted.
+They worked and the pixels did not move, but the result was Bootstrap's design
+under our name: 37% and 64% of the code lines were word for word Bootstrap's,
+because the gate was "zero differing pixels" and identical output admits
+essentially one implementation. The choice of gate had chosen the design.
 
-The weight is the argument. Measured on 2026-07-29:
+The question that ended it was the right one: **what is theirs and what is
+ours?** A reimplementation is a permanent fork of code nobody here wrote, with
+none of the upstream benefit, an MIT notice to carry, and — measured — a saving
+of 132 KB to 111. Keeping Bootstrap in `node_modules` and trimming the *output*
+gives a clean boundary and four times the saving.
 
-| | |
-|---|---|
-| What `templates/` actually uses | ~46 distinct Bootstrap classes |
-| Grid usage in the frontend | `container`, `row`, `col-md-8`, `col-lg-6` — that is all |
-| What is imported for it | the complete Bootstrap SCSS, 484 KB of source |
-| What falls out | `theme.css`, 11,033 lines, 199 KB — 132 KB since the reduction below |
+| | Nova `theme.css` | Grenze fremd/eigen |
+|---|---|---|
+| unverändert | 132 KB | sauber |
+| nachgebaut | 111 KB | verwischt |
+| **gepurgt** | **41 KB** | **sauber** |
 
-Essentially: `btn`, `card`, `modal`, `alert`, `form-control` and a handful of
-spacing utilities, paid for with a full framework. Modern CSS covers the rest —
-`<dialog>` replaces the modal component including backdrop and focus trap, grid
-and flexbox replace `col-*`, and Nova already carries its own custom properties.
+Across all seven stylesheets: **810 KB to 271 KB.** `dev/purge-css.js` in the
+release chain, configured in `purgecss.config.js`, verified by
+`dev/pixel-diff.sh` — twelve comparisons, zero differing pixels, three themes in
+both presets plus three pages and three viewport widths.
 
-**Two separate fronts, and they are not equally hard:**
+**This step is lossy and fails silently, which is the whole reason the harness
+exists.** PurgeCSS keeps a rule when the class name appears as a literal in
+`content`. Three separate blind spots turned up, none of them guessable:
 
-1. **The themes.** `plugins/Bota/webroot/css/src/partials/__theme.scss` imports
-   Bootstrap wholesale, and Nova extends Bota, and Macnemo and Macfix extend
-   Nova. Pulling Bootstrap out of Bota breaks *every* derived theme at once —
-   including the ones on other installations. That is a break of the theme
-   interface and belongs in a major version with notice to theme authors, not in
-   a point release.
-2. **Admin and installer.** These do not merely use Bootstrap's classes, they
-   have BootstrapUI *generate* the markup
-   (`plugins/Admin/src/Controller/AdminAppController.php` — Form, Flash,
-   Paginator, Breadcrumbs). Dropping Bootstrap here means dropping BootstrapUI
-   and writing form templates. The frontend is unaffected by this half; it uses
-   the plain Cake helpers.
+1. **Markup is built in `src/`, not only in `templates/`.** The thread renderers
+   and several helpers emit their own classes — `threadLine-pre`,
+   `threadTree-node`, `et-root`, `solves-isSolved`. Missing those globs stripped
+   the whole thread tree: 27% of the page.
+2. **Icon names are composed.** `$iconLabel('sign-in', …)` produces
+   `fa-sign-in`, which exists nowhere as a literal. Font Awesome is therefore
+   kept whole — a cleverer extractor would learn today's call pattern and miss
+   tomorrow's, and icons are too small a saving to buy that risk.
+3. **Some classes only exist after `@extend`.** `flex-bar`, `flex-bar-header`.
 
-The first step shipped in 8.3.0: `__theme.scss` imports the nineteen modules
-actually in use rather than all thirty-eight, 23% off every stylesheet without
-changing a class in any template. It was meant to measure what is really being
-paid for, and it did. What remains is `reboot`, `type`, `grid`, `tables`,
-`forms`, `buttons`, `dropdown`, `button-group`, `input-group`, `card`, `badge`,
-`alert` and `utilities` — and `utilities` alone accounts for forty of the classes in use,
-mostly spacing and display helpers that modern CSS covers directly. So the
-remaining question is no longer "how much is Bootstrap carrying" but "is a
-framework worth it for buttons, cards, form controls and a spacing scale".
+Re-run `dev/pixel-diff.sh` after touching the config. **Zero is the gate**, not
+"small enough" — every entry in the safelist is there because it broke a
+comparison, and the next one will be found the same way or not at all.
 
-The admin area is worth reworking in the same pass, and only then. It has
-already been taken off jQuery, DataTables and Bootstrap's JavaScript — it runs
-on Alpine now — so its markup is the one thing still tying it to Bootstrap.
-Doing it separately means paying for it twice.
+Still open, and unchanged by this: Bootstrap 4 has been unmaintained since
+January 2023. Its JavaScript is not loaded anywhere here, so this is a
+maintenance question rather than a security one — but the dependency is frozen,
+and a real modernisation (CSS grid, `<dialog>`, custom properties, Bootstrap's
+class names dropped) is still the only thing that would retire it. That is a
+change to how the forum *looks*, so `cmp` and the pixel harness both stop being
+the gate and human judgement starts; it belongs in a release that is about the
+appearance, not smuggled into one that is not.
+
+**Do not detour through Bootstrap 5.** Measured: 5.3.8 still carries 40
+`@import` lines, no `@use` at all, 24 `map-get` and 84 `if()`, so it fixes none
+of the deprecations above, and a 4 → 5 migration is a breaking pass over every
+theme plus ~46 classes in the templates — all of it thrown away when Bootstrap
+goes.
+
+But that measurement turned up something true *now*: **the PHP side is already
+on Bootstrap 5 while the CSS is on 4.** `friendsofcake/bootstrap-ui` is at 5.2.0
+and targets Bootstrap 5.3, and the Admin plugin has it generate the markup. So
+the admin emits `form-label` and `me-2`, which appear in no stylesheet we ship.
+Both only set `margin: 0.5rem`, so admin forms lose spacing and nothing breaks —
+worth knowing rather than fixing blind.
+
+**The admin is a separate front and does not block this one.** It loads
+`stylesheets/bootstrap.min.css`, copied out of `node_modules` by grunt, plus
+`Admin.admin.css`, and never a theme. Dropping Bootstrap there means dropping
+BootstrapUI and writing form templates; it is worth doing in the same pass as
+the modernisation above, and paying for twice otherwise.
+
+**There is no LICENSE file at the repository root.** `composer.json` says MIT
+and no file in the distribution does. Noticed while deriving those two partials;
+they are reverted, so nothing derived remains — but the missing root file is a
+separate omission, and it should list the third-party code the distribution
+actually contains.
 
 ### The last schema difference, and the nineteen that stay
 

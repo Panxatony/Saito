@@ -103,6 +103,38 @@ $config = [
         'headHtml' => '',
 
         /**
+         * Outbound notifications for user lifecycle events.
+         *
+         * Posts a small signed JSON body when somebody registers, activates
+         * their account or deletes it — for a companion app or a moderation
+         * queue that lives outside the forum. Leaving `url` empty switches the
+         * whole plugin off, listener included.
+         *
+         * The body carries the member's id, username and a timestamp, and
+         * deliberately nothing else: no email address, no IP. A receiver that
+         * needs more should ask the API with its own credentials, where the
+         * request is authenticated and can be refused.
+         *
+         * **Delivery is best-effort.** The call happens inside the request that
+         * registered the member, so a slow endpoint must not fail their
+         * registration — failures are logged and dropped. Poll the API instead
+         * if an event must not be missed.
+         *
+         * @see plugins/Webhooks/readme.txt
+         */
+        'webhooks' => [
+            'user' => [
+                'url' => '',
+                /** Shared with the receiver; sent as X-Saito-Signature. */
+                'secret' => '',
+                /** Omit the key entirely to subscribe to all three. */
+                'events' => ['register', 'activate', 'delete'],
+                /** Seconds. */
+                'timeout' => 3,
+            ],
+        ],
+
+        /**
          * Custom HTML placed between the header bar and the page content, in a
          * `div.ads_top` — the banner slot. Meant for an ad tag, a donation
          * banner or a notice an installation wants above everything else.

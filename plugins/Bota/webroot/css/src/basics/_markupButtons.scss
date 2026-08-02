@@ -1,3 +1,5 @@
+@use "sass:map";
+
 .markupButtons {
   $markup-buttonWidth: 32px;
   $markup-buttonHeight: $markup-buttonWidth;
@@ -12,7 +14,7 @@
     display: inline-block;
     overflow: hidden;
 
-    @media (min-width: map-get($grid-breakpoints, md)) {
+    @media (min-width: map.get($grid-breakpoints, md)) {
       margin: 3px;
     }
   }
@@ -22,8 +24,8 @@
     width: 1px;
     overflow: hidden;
     background-color: $border-color;
-    margin-left: $markup-buttonWidth/4;
-    margin-right: $markup-buttonWidth/4;
+    margin-left: $markup-buttonWidth * 0.25;
+    margin-right: $markup-buttonWidth * 0.25;
     height: $markup-buttonHeight;
 
     ::after {
@@ -48,7 +50,7 @@
       color: $body-color;
     }
 
-    @media (min-width: map-get($grid-breakpoints, md)) {
+    @media (min-width: map.get($grid-breakpoints, md)) {
       font-size: 18px;
     }
   }

@@ -1,3 +1,5 @@
+@use "sass:map";
+
 .c-category {
   color: $body-color;
   font-weight: normal;
@@ -20,7 +22,7 @@
     'aside content'
     '. compose';
 
-  @media only screen and (max-width: map-get($grid-breakpoints, md)) {
+  @media only screen and (max-width: map.get($grid-breakpoints, md)) {
     grid-area: none;
   }
 }
@@ -103,7 +105,7 @@
   display: none;
 }
 
-@media only screen and (max-width: map-get($grid-breakpoints, lg)) {
+@media only screen and (max-width: map.get($grid-breakpoints, lg)) {
   .postingLayout-slider {
     padding: 0 !important;
   }

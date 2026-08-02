@@ -22,6 +22,7 @@
     "grunt-contrib-watch": "*",
     "grunt-shell": "*",
     "load-grunt-tasks": "^5.1.0",
+    "purgecss": "8",
     "sass": "^1",
     "typescript": "^6",
     "typescript-eslint": "^8",
@@ -36,9 +37,10 @@
     "build": "ENTRY=htmx-threads vite build && ENTRY=admin vite build && ENTRY=boot vite build",
     "dev": "ENTRY=htmx-threads vite build --watch",
     "typecheck": "tsc --noEmit",
-    "css:static": "sass --no-source-map --style=expanded webroot/css/src/static.scss:webroot/css/stylesheets/static.css",
-    "css:theme": "sass --no-source-map --style=expanded plugins/Bota/webroot/css/src/theme.scss:plugins/Bota/webroot/css/theme.css plugins/Bota/webroot/css/src/night.scss:plugins/Bota/webroot/css/night.css plugins/Nova/webroot/css/src/theme.scss:plugins/Nova/webroot/css/theme.css plugins/Nova/webroot/css/src/night.scss:plugins/Nova/webroot/css/night.css plugins/Macnemo/webroot/css/src/theme.scss:plugins/Macnemo/webroot/css/theme.css plugins/Macnemo/webroot/css/src/night.scss:plugins/Macnemo/webroot/css/night.css",
-    "css": "yarn css:static && yarn css:theme"
+    "css:static": "sass --no-source-map --style=expanded --load-path=node_modules --quiet-deps --fatal-deprecation=slash-div --fatal-deprecation=global-builtin --fatal-deprecation=color-functions webroot/css/src/static.scss:webroot/css/stylesheets/static.css",
+    "css:theme": "sass --no-source-map --style=expanded --load-path=node_modules --quiet-deps --fatal-deprecation=slash-div --fatal-deprecation=global-builtin --fatal-deprecation=color-functions plugins/Bota/webroot/css/src/theme.scss:plugins/Bota/webroot/css/theme.css plugins/Bota/webroot/css/src/night.scss:plugins/Bota/webroot/css/night.css plugins/Nova/webroot/css/src/theme.scss:plugins/Nova/webroot/css/theme.css plugins/Nova/webroot/css/src/night.scss:plugins/Nova/webroot/css/night.css plugins/Macnemo/webroot/css/src/theme.scss:plugins/Macnemo/webroot/css/theme.css plugins/Macnemo/webroot/css/src/night.scss:plugins/Macnemo/webroot/css/night.css",
+    "css": "yarn css:static && yarn css:theme",
+    "css:purge": "node dev/purge-css.js"
   },
   "browserslist": [
     "last 2 versions",

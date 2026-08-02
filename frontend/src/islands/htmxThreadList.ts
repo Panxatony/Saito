@@ -40,6 +40,7 @@ import './features/modals';
 import './features/feedLinks';
 import './features/flash';
 import './features/appearance';
+import './features/headerCollapse';
 import './features/userColors';
 
 Alpine.start();

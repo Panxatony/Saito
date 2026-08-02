@@ -1,3 +1,7 @@
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+
 html {
   height: 100%;
 }
@@ -8,7 +12,15 @@ body {
   @extend .px-lg-3;
 
   height: 100%;
-  background: darken($body-bg, 10);
+
+  // A shade darker than the page, floored at black. `darken()` did the flooring
+  // by itself; `color.adjust()` keeps counting past zero and would emit
+  // `hsl(255, 8%, -0.59%)` here — not a colour any browser accepts. The night
+  // presets are dark enough to hit that floor, so the clamp is the behaviour,
+  // not a precaution.
+  $body-shade: math.max(0%, color.channel($body-bg, "lightness", $space: hsl) - 10%);
+
+  background: color.change($body-bg, $lightness: $body-shade, $space: hsl);
 }
 
 #site {
@@ -46,7 +58,7 @@ body {
   @extend .border-bottom;
   @extend .py-2;
 
-  @media only screen and (max-width: map-get($grid-breakpoints, sm)) {
+  @media only screen and (max-width: map.get($grid-breakpoints, sm)) {
     & > div {
       flex: auto;
     }

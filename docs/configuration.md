@@ -75,6 +75,27 @@ privacy text in [privacy-policy-template.md](privacy-policy-template.md).
 | `Globals.postingsPerThread` | `10` | An empiric average used for sizing, not a limit. |
 | `debug.logInfo` | `false` | Writes additional non-error information to `info.log`. |
 
+### Outbound notifications
+
+Under `Saito.webhooks.user`, for a companion app or a moderation queue that
+lives outside the forum. Provided by the `Webhooks` plugin.
+
+| Key | Default | What it does |
+|---|---|---|
+| `url` | `''` | Where to post. **Empty switches the whole plugin off**, listener included, so installations that do not use it pay nothing. |
+| `secret` | `''` | Shared with the receiver. The body is signed with HMAC-SHA256 and sent as `X-Saito-Signature: sha256=…`. Set it: without one, a receiver cannot tell this forum's call from anybody else's who guessed the URL, and URLs end up in logs. |
+| `events` | all three | Which of `register`, `activate`, `delete` to send. Omitting the key means all of them. |
+| `timeout` | `3` | Seconds. |
+
+The body carries the member's id, username and a UTC timestamp — deliberately no
+email address and no IP. A receiver that needs more should ask the API with its
+own credentials, where the request is authenticated and can be refused.
+
+**Delivery is best-effort.** The call happens inside the request that registered
+the member, so a slow or dead endpoint must not fail their registration:
+failures are logged and dropped. Poll the API instead if an event must not be
+missed.
+
 ### Behaviour
 
 | Key | Default | What it does |

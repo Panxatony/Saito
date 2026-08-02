@@ -68,10 +68,23 @@ For production (minified, purged) assets:
 grunt release
 ```
 
-Every theme is compiled by one task, `grunt dart-sass:theme` — Bota, Nova and
-Macnemo together, because Nova imports Bota's partials and Macnemo imports
-Nova's. Change a partial and rebuild all of them, or the themes drift apart.
-`grunt release` runs that task and then minifies the results.
+Every theme is compiled by one task, `grunt shell:sassTheme` (or `yarn css` for
+all stylesheets at once) — Bota, Nova and Macnemo together, because Nova imports
+Bota's partials and Macnemo imports Nova's. Change a partial and rebuild all of
+them, or the themes drift apart.
+
+**`grunt release` does one more thing than a local build, and it matters.**
+After minifying, it runs `dev/purge-css.js`, which drops every rule no template
+or PHP class refers to — the compiled themes carry about 1600 classes and the
+forum uses roughly 150, so this is 810 KB down to 271. Bootstrap stays a
+dependency; only the shipped CSS is trimmed.
+
+So what you compile locally is the full stylesheet and what ships is not. That
+gap is a real hazard: a rule only the purge removes looks fine in `yarn css` and
+is missing on the server, with nothing in any log. `dev/pixel-diff.sh` is what
+closes it — it renders real pages against both and counts differing pixels.
+**Run it after touching `purgecss.config.js`, and treat anything but zero as a
+missing safelist entry rather than an acceptable number.**
 
 ## 4. Run the App
 
