@@ -89,6 +89,13 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @var array<string, string>
      */
     private const PUBLIC_OPEN = [
+        // Unauthenticated in Saito's terms because a Prometheus scraper cannot
+        // hold a session — but not open: it is gated on a fixed bearer token
+        // compared with hash_equals, and answers 404 both when the token is
+        // wrong and when none is configured, so an installation that has not
+        // asked for metrics is indistinguishable from one that never had them.
+        // See MetricsController and docs/configuration.md.
+        'App\\Controller\\MetricsController::index' => 'Prometheus exposition, guarded by SAITO_METRICS_TOKEN (404 without it)',
         // Reading the forum: content itself is filtered by the reader's
         // category read-permission (guests see public categories only).
         'App\\Controller\\EntriesController::htmxIndex' => 'island front page (read; category-filtered)',

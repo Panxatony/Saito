@@ -159,6 +159,38 @@ whole transport to SMTP, and the remaining `EMAIL_SMTP_*` values apply.
 | `EMAIL_SMTP_TLS` | `true` | STARTTLS. Turning it off sends credentials in the clear. |
 | `EMAIL_TRANSPORT_DEFAULT_URL` | *(unset)* | A complete CakePHP transport DSN, for a transport the fields above cannot express. Overrides them. |
 
+### Monitoring
+
+| Variable | Default | What it does |
+|---|---|---|
+| `SAITO_METRICS_TOKEN` | *(empty)* | Bearer token a Prometheus scraper must send to `/metrics`. **Empty means the address answers 404**, so an installation that has not asked for metrics is indistinguishable from one that never had them — and a wrong token gets the same 404, not a 401. |
+
+The exposition is `text/plain; version=0.0.4` at `/metrics`, deliberately outside
+`/api/v2`. Counters come from the cache the front page already fills, so a scrape
+costs what a page view costs: measured on the reference install, **315 ms cold
+and 2–7 ms warm**.
+
+```yaml
+scrape_configs:
+  - job_name: saito
+    metrics_path: /metrics
+    authorization:
+      credentials_file: /etc/prometheus/saito.token
+    static_configs:
+      - targets: ['forum.example.org']
+```
+
+**Put a second lock in front of it.** The token is all this code can do; the
+exposition still tells a stranger how many members the forum has, how busy it is
+and which version it runs. One `allow`/`deny` pair at the web server, restricted
+to the monitoring network, costs nothing.
+
+The metric worth an alert is `saito_db_version_matches`. When it reads 0 the
+schema version and the code version disagree, and Saito routes **every** request
+to the updater — the forum is effectively down, and nothing writes an error,
+because it is not one. That has happened here, from a deploy that copied
+`version.php` without setting `db_version`.
+
 ### Beta and staging installs
 
 | Variable | Default | What it does |

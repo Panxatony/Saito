@@ -62,6 +62,18 @@ $config = [
         'trustProxy' => filter_var(env('SAITO_TRUST_PROXY', false), FILTER_VALIDATE_BOOLEAN),
 
         /**
+         * Bearer token a Prometheus scraper has to send to /metrics.
+         *
+         * Empty — the default — means the endpoint answers 404, so an
+         * installation that has not asked for it is indistinguishable from one
+         * that never had it. Set SAITO_METRICS_TOKEN to something long and
+         * random, and restrict the address to the monitoring network at the web
+         * server as well: the exposition tells a stranger how many members the
+         * forum has, how busy it is and which version it runs.
+         */
+        'metricsToken' => (string)env('SAITO_METRICS_TOKEN', ''),
+
+        /**
          * Imprint / legal notice (Impressum)
          *
          * Trusted HTML rendered on the /pages/impressum page (linked from the
