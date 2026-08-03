@@ -247,6 +247,47 @@ they are reverted, so nothing derived remains — but the missing root file is a
 separate omission, and it should list the third-party code the distribution
 actually contains.
 
+### The remaining schema drift, after two migration fixes
+
+Two faults in the upgrade path were found on 2026-08-03 by running the
+migrations against a schema from a forum that grew from an old version, rather
+than against one these migrations built. Both are fixed; what is written here is
+what the exercise showed about the ones that are left.
+
+**The blocking one:** `AlignSchemaWithGrownInstalls` widened `entries.text` with
+a `MODIFY` that states `CHARACTER SET utf8mb4`. On a table still in utf8mb3 that
+changes one column and leaves its neighbours, and `entries` carries a FULLTEXT
+index over `subject`, `name` and `text` — which may not span two character sets.
+MySQL raises `ERROR 1283`, the migration aborts, and everything after it never
+runs. The installations here never met it because their `entries` had been
+converted years earlier; the migration now converts the table first, guarded so
+it costs nothing where it is already done.
+
+**The silent one:** the utf8mb4 conversion only ever covered `users` and
+`useronline`. Ten tables stayed three-byte, so on a grown install a bookmark
+note, a category name or a block reason containing an emoji is *refused* —
+`ERROR 1366` under the default strict mode, truncated without complaint outside
+it. `ConvertRemainingTablesToUtf8mb4` closes it.
+
+**What still differs** between an upgraded install and a fresh one, verified
+after both fixes — four columns, and none of them is worth an `ALTER`:
+
+| | grown | fresh |
+|---|---|---|
+| `categories.accession` | `tinyint(4)` | `int(11)` |
+| `user_blocks.hash` | `char(32)` | `varchar(32)` |
+| `users.last_refresh` | `timestamp` | `datetime` |
+| `users.last_refresh_tmp` | `timestamp` | `datetime` |
+
+The first two are storage-identical for the values these columns hold. The two
+`timestamp` columns are the 2038 ceiling described below, and they belong in
+that pass rather than in a charset one.
+
+**The lesson worth keeping**: a migration verified against a database the
+migrations themselves built proves only that they are self-consistent. Both
+faults above needed a schema from somewhere else to surface, and one of them
+stopped the upgrade dead.
+
 ### The last schema difference, and the nineteen that stay
 
 Measured 2026-08-01 against a freshly migrated database: **21 differences remain
