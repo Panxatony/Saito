@@ -17,6 +17,15 @@ Configure in config/saito_config.php:
 
 Leaving `url` empty switches the whole plugin off, listener included.
 
+There is one further key, `legacyContactFields`, and it is deprecated the day it
+appears. Setting it true adds the member's email address and IP to the payload.
+It is here for one situation only: a forum that already runs a receiver written
+against an older integration, so it can upgrade Saito today and rewrite that
+receiver afterwards. **Plan on it going away.** Every send logs a warning while
+it is on, and the IP still follows the forum's `store_ip` and
+`store_ip_anonymized` settings — a webhook must not be the way around a decision
+the forum has already made about addresses.
+
 The body:
 
     {"event":"register","user":{"id":4711,"username":"jane"},

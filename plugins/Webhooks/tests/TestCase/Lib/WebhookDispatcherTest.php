@@ -163,4 +163,49 @@ class WebhookDispatcherTest extends TestCase
         $this->assertSame(['event', 'user', 'occurredAt'], array_keys($data));
         $this->assertSame(['id', 'username'], array_keys($data['user']));
     }
+
+    /**
+     * The deprecated fields, when an installation asks for them.
+     *
+     * @return void
+     */
+    public function testLegacyContactFieldsAreCarriedWhenGiven(): void
+    {
+        $payload = new UserEventPayload(
+            'register',
+            4711,
+            'jane',
+            '2026-08-02T18:30:00Z',
+            ['email' => 'jane@example.org', 'ip' => '198.51.100.7'],
+        );
+
+        $user = $payload->toArray()['user'];
+
+        $this->assertSame(['id', 'username', 'email', 'ip'], array_keys($user));
+        $this->assertSame('jane@example.org', $user['email']);
+        $this->assertSame('198.51.100.7', $user['ip']);
+    }
+
+    /**
+     * They must not push the id or the name out of the way, whatever a caller
+     * hands over — a receiver reading `user.id` has to keep finding it there.
+     *
+     * @return void
+     */
+    public function testLegacyFieldsCannotOverwriteTheCoreOnes(): void
+    {
+        $payload = new UserEventPayload(
+            'register',
+            4711,
+            'jane',
+            '2026-08-02T18:30:00Z',
+            ['id' => 99, 'username' => 'somebody else', 'email' => 'jane@example.org'],
+        );
+
+        $user = $payload->toArray()['user'];
+
+        $this->assertSame(4711, $user['id']);
+        $this->assertSame('jane', $user['username']);
+        $this->assertSame('jane@example.org', $user['email']);
+    }
 }

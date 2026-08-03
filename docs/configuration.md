@@ -86,6 +86,7 @@ lives outside the forum. Provided by the `Webhooks` plugin.
 | `secret` | `''` | Shared with the receiver. The body is signed with HMAC-SHA256 and sent as `X-Saito-Signature: sha256=…`. Set it: without one, a receiver cannot tell this forum's call from anybody else's who guessed the URL, and URLs end up in logs. |
 | `events` | all three | Which of `register`, `activate`, `delete` to send. Omitting the key means all of them. |
 | `timeout` | `3` | Seconds. |
+| `legacyContactFields` | `false` | **Deprecated on arrival, and it will be removed.** Puts the member's email address and IP back into the payload, for a receiver written against an older integration. It exists so a forum can upgrade Saito now and rewrite that receiver afterwards rather than doing both at once — not as a supported way to ship personal data. Every send with it enabled writes a warning to the log. The IP still follows `store_ip` and `store_ip_anonymized`: sending is more exposing than storing, so the stricter setting wins. |
 
 The body carries the member's id, username and a UTC timestamp — deliberately no
 email address and no IP. A receiver that needs more should ask the API with its
