@@ -75,6 +75,45 @@ privacy text in [privacy-policy-template.md](privacy-policy-template.md).
 | `Globals.postingsPerThread` | `10` | An empiric average used for sizing, not a limit. |
 | `debug.logInfo` | `false` | Writes additional non-error information to `info.log`. |
 
+### Behind a bot filter (Anubis, Cloudflare, and the like)
+
+**Two endpoints must not be challenged.** The island frontend polls them in the
+background with XHR:
+
+| Path | What it returns |
+|---|---|
+| `/entries/htmx-new-count` | a number — how many postings have appeared |
+| `/entries/htmx-widgets` | the widget rail (who is online, recent postings) |
+
+A proof-of-work challenge cannot be answered from an XHR. The filter returns its
+challenge page, htmx swaps that HTML into the running page, and the reader
+watches the bot-check graphic appear over the forum. Reloading fixes it, because
+a real navigation can solve the challenge — so it looks intermittent and
+harmless, and it is neither.
+
+Measured on one installation before this was understood: **80% of all challenges
+issued went to these two paths**, none of them could ever be solved, and the next
+poll drew a fresh one. Both browsers tested were affected; it is not a quirk of
+one of them.
+
+For Anubis, an `ALLOW` rule does it:
+
+```yaml
+  - name: forum-htmx-background
+    action: ALLOW
+    path_regex: ^/entries/htmx-(new-count|widgets)$
+```
+
+Both are safe to let through: the first returns a count scoped to what the
+requester may read, and the second enforces `widgetsForGuests` itself rather
+than relying on the markup being left out.
+
+**Also check the challenge cookie's `SameSite`.** Anubis defaults to `None`,
+which marks a first-party cookie as usable across sites — exactly what Safari's
+tracking protection and Chrome's third-party cookie phase-out restrict. `Lax` is
+correct here (`-cookie-same-site Lax`), and without it the cookie can go missing
+on the very requests that need it.
+
 ### Outbound notifications
 
 Under `Saito.webhooks.user`, for a companion app or a moderation queue that
