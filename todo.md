@@ -247,6 +247,34 @@ they are reverted, so nothing derived remains — but the missing root file is a
 separate omission, and it should list the third-party code the distribution
 actually contains.
 
+### Remove `legacyContactFields` from the Webhooks plugin
+
+Added in 8.3.15 and deprecated in the same release. It puts the member's email
+address and IP back into the webhook payload, for one reason only: an
+installation that already runs a receiver written against an older integration
+can upgrade Saito now and rewrite that receiver afterwards, instead of having to
+do both at once.
+
+**Take it out once that installation has migrated.** Not "at some point" — the
+setting has a job with an end, and the job is done when the forum it was built
+for runs on a receiver that reads the API instead. Ask before removing; do not
+assume from silence.
+
+What to remove: the `legacyContactFields` branch in `UserEventPayload`, its
+constructor parameter, the config key in `config/saito_config.php`, the row in
+`docs/configuration.md`, the paragraph in `plugins/Webhooks/readme.txt`, and the
+tests in `LegacyContactFieldsTest`. The two payload tests in
+`WebhookDispatcherTest` that cover the extra fields go with them; the one that
+asserts the payload carries nothing beyond id and username stays, and becomes
+the whole truth again.
+
+`IpLoggingBehavior::anonymizeIp()` was made public for this and can go back to
+`protected` at the same time — unless something else has picked it up by then,
+which is worth checking rather than assuming.
+
+Removing it is a breaking change for whoever still has it on, so it belongs in a
+release that says so in its first line, not in a point release.
+
 ### The remaining schema drift, after two migration fixes
 
 Two faults in the upgrade path were found on 2026-08-03 by running the

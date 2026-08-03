@@ -5,6 +5,65 @@
 - Δ Changed
 - − Removed
 
+## [8.3.15] - 2026-08-03 "viertes byte"
+
+**Two migrations run.** No `down()` on either — see below.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+Named for the byte utf8mb4 has and utf8mb3 has not. Both fixes are about it: the
+character set that could not be mixed inside one index, and the emoji the
+database refused.
+
+- ✓ Fixed: **the upgrade could stop at the eighth of nine migrations.**
+  `AlignSchemaWithGrownInstalls` widened `entries.text` with a statement naming
+  `utf8mb4`. On a table still in utf8mb3 that converts one column and leaves its
+  neighbours behind — and `entries` carries a FULLTEXT index over `subject`,
+  `name` and `text`, which may not span two character sets:
+
+      ERROR 1283: Column 'text' cannot be part of FULLTEXT index
+
+  The migration aborted and the four after it never ran. It converts the whole
+  table first now, guarded, so an installation already on utf8mb4 pays no
+  rebuild. **This only ever affected forums old enough to still have `entries`
+  in utf8mb3** — which is exactly why it was not found sooner.
+
+- ✓ Fixed: **the utf8mb4 conversion was never finished**, and on a grown
+  installation that shows as a refusal rather than a nuisance. Ten tables stayed
+  three-byte, so a bookmark note with an emoji, a category name, a block reason:
+
+      ERROR 1366: Incorrect string value: '\xF0\x9F\x91\x8D ...'
+
+  under MySQL's default strict mode, and truncated without complaint outside it.
+  `ConvertRemainingTablesToUtf8mb4` converts what is left, table by table,
+  skipping what is done.
+
+  Both faults were invisible to every check this project runs, for one reason:
+  the migrations had only ever been verified against databases the migrations
+  themselves built. That proves they are self-consistent and nothing else.
+
+- ＋ Added: **`Saito.webhooks.user.legacyContactFields`, deprecated in the same
+  release it appears in.** It puts the member's email address and IP back into
+  the webhook payload. Off by default, and it should stay off — it exists so a
+  forum that already runs a receiver written against an older integration can
+  upgrade Saito now and rewrite that receiver afterwards, instead of having to
+  do both at once. **Plan on it being removed.** Every send logs a warning while
+  it is on.
+
+  It does not loosen the forum's own rules: the IP follows `store_ip` and
+  `store_ip_anonymized`, so an installation that has decided not to keep
+  addresses does not start posting them, and one that keeps them shortened sends
+  them shortened. Sending is more exposing than storing, so the stricter setting
+  wins.
+
+- Δ Changed: `docs/upgrade.md` said seven migrations and measured "no
+  difference" against a database it had built itself. It says ten now, and what
+  the two faults above showed about the difference between self-consistency and
+  correctness.
+
 ## [8.3.14] - 2026-08-03 "ballast"
 
 No migration. Both the stylesheets and the JS bundle changed, so deploy them
