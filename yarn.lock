@@ -2728,10 +2728,10 @@ typeface-cabin@^1.1.13:
   resolved "https://registry.yarnpkg.com/typeface-cabin/-/typeface-cabin-1.1.13.tgz#9c365222b2d0729251715cf43b25e0035d7ab2ef"
   integrity sha512-Kp4ucB4Vfd95XbLdqAR/2D4YC7EwKbMMKYw0s9agJuj3ubChvK43C3lY9e8piwyO8RzyZipZkUAwbS7FttEYfQ==
 
-typeface-fenix@^0.0.72:
-  version "0.0.72"
-  resolved "https://registry.yarnpkg.com/typeface-fenix/-/typeface-fenix-0.0.72.tgz#36c7a99603d79d584bc505adbbb099456d88caab"
-  integrity sha512-i0rPTmbr6fWAFfTBhrTpmLg3KxCiskueUJCLjw6As78m91ExD4Jp/ty5e3LsRkG+za83RNtIDZl8sq/jjBchVw==
+typeface-fenix@^1.1.13:
+  version "1.1.13"
+  resolved "https://registry.yarnpkg.com/typeface-fenix/-/typeface-fenix-1.1.13.tgz#25b05243e03a594eebc4f92ddfd104081482bc09"
+  integrity sha512-J71kgBl2xsr2BGFM7EFC3Mw8auAUKD6Z3VA8E1lVNARgqbJAughMJxWzFBrXtPJXxwzgvQx4/V6RR/5NI+bYZA==
 
 typescript-eslint@^8:
   version "8.65.0"

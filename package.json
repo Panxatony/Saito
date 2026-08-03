@@ -7,7 +7,7 @@
     "font-awesome": "^4.7.0",
     "htmx.org": "^2.0.10",
     "typeface-cabin": "^1.1.13",
-    "typeface-fenix": "^0.0.72"
+    "typeface-fenix": "^1.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
