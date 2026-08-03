@@ -24,7 +24,7 @@
     "load-grunt-tasks": "^5.1.0",
     "purgecss": "8",
     "sass": "^1",
-    "typescript": "^6",
+    "typescript": "^7",
     "typescript-eslint": "^8",
     "vite": "^8"
   },
