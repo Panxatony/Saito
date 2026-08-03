@@ -65,11 +65,13 @@ class AlignSchemaWithGrownInstalls extends BaseMigration
             ['users', 'profile'],
             ] as [$table, $column]
         ) {
+            $this->convertTableToUtf8mb4($table);
+
             $this->execute(sprintf(
                 'ALTER TABLE `%s` MODIFY `%s` MEDIUMTEXT '
                 . 'CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL',
                 $table,
-                $column
+                $column,
             ));
         }
 
@@ -78,15 +80,66 @@ class AlignSchemaWithGrownInstalls extends BaseMigration
         // index on a live table to put an equivalent one back is a risk taken
         // for nothing.
         $isUnique = $this->fetchRow(
-            "SELECT NON_UNIQUE FROM information_schema.STATISTICS "
+            'SELECT NON_UNIQUE FROM information_schema.STATISTICS '
             . "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' "
-            . "AND INDEX_NAME = 'username' LIMIT 1"
+            . "AND INDEX_NAME = 'username' LIMIT 1",
         );
 
         if ($isUnique !== false && (int)$isUnique['NON_UNIQUE'] === 1) {
             $this->execute('ALTER TABLE `users` DROP INDEX `username`');
             $this->execute('ALTER TABLE `users` ADD UNIQUE INDEX `username` (`username`(191))');
         }
+    }
+
+    /**
+     * Bring a whole table to utf8mb4, if it is not there yet.
+     *
+     * **Without this the widening above cannot run on some installations, and
+     * the upgrade stops here.** The `MODIFY` states `CHARACTER SET utf8mb4`, so
+     * on a table still in utf8mb3 it changes one column's character set and
+     * leaves its neighbours alone. Where a FULLTEXT index spans several columns
+     * — `entries` has one over `subject`, `name` and `text` — MySQL refuses:
+     *
+     *     ERROR 1283: Column 'text' cannot be part of FULLTEXT index
+     *
+     * because such an index may not span mixed character sets. The migration
+     * aborts, and everything after it never runs.
+     *
+     * `ConvertLegacyTablesToUtf8mb4` does not close this: it converts `users`
+     * and `useronline`, not `entries` or `drafts`. Installations whose `entries`
+     * had been converted at some earlier point never met the problem, which is
+     * why it went unnoticed — it needs a forum that grew from a version old
+     * enough to have `entries` in utf8mb3 *and* still carries the FULLTEXT index.
+     *
+     * `CONVERT TO CHARACTER SET` handles the whole table at once, so no index
+     * ever spans two character sets. It also widens TEXT to MEDIUMTEXT by
+     * itself — utf8mb4 needs more bytes for the same text, and MySQL promotes
+     * the type rather than lose capacity — which makes the `MODIFY` after it a
+     * no-op on exactly the installations that needed this.
+     *
+     * Guarded, because converting rebuilds the table: on `entries` that is every
+     * posting the forum has, and doing it for nothing on an installation that is
+     * already utf8mb4 would be a long lock bought with no gain.
+     *
+     * @param string $table table name
+     * @return void
+     */
+    private function convertTableToUtf8mb4(string $table): void
+    {
+        $row = $this->fetchRow(sprintf(
+            'SELECT TABLE_COLLATION FROM information_schema.TABLES '
+            . "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '%s' LIMIT 1",
+            $table,
+        ));
+
+        if ($row === false || str_starts_with((string)$row['TABLE_COLLATION'], 'utf8mb4')) {
+            return;
+        }
+
+        $this->execute(sprintf(
+            'ALTER TABLE `%s` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci',
+            $table,
+        ));
     }
 
     /**

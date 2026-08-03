@@ -4,11 +4,24 @@
 intermediate version to stop at, and the database barely changes. The work is
 almost entirely on the server, not in the data.
 
-That is not an assumption. It was measured on 2026-08-01: a database was
-migrated to the 5.7 level, then taken to the current release in a single
-`migrations migrate`, and the resulting schema compared column by column with a
-fresh installation. **124 columns on both sides, no difference.** Stopping
-somewhere in between buys nothing.
+That is not an assumption, and it has been measured twice — the second time
+against a database this project did not build, which is the measurement that
+counts.
+
+On 2026-08-01, a database was migrated to the 5.7 level, then taken to the
+current release in a single `migrations migrate`, and compared column by column
+with a fresh installation: 124 columns on both sides, no difference. That proved
+the migrations are self-consistent and nothing more, because both sides came
+from the same migrations.
+
+On 2026-08-03 the same run was done from a schema dump of a forum that had grown
+from an old version. **It failed**, at the eighth of nine migrations, and it
+turned up a second fault that would have been worse for being silent. Both are
+fixed (see *Two faults that only a grown schema shows*, below). After the fix
+the run completes and the result matches a fresh installation with no
+character-set differences and four cosmetic column differences.
+
+Stopping somewhere in between still buys nothing.
 
 This document covers the 5.7 → 8 jump specifically. For the general "copy the
 new files over" routine, see [update.md](update.md).
@@ -17,11 +30,12 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: seven migrations
+### The database: ten migrations
 
-Between 5.7.0 and the current release there are **seven** schema changes. The
-second exists only to repair the first; one of them is the expensive one, and
-the last two are about columns that predate these migrations entirely.
+Between 5.7.0 and the current release there are **ten** schema changes. The
+second exists only to repair the first; one of them is the expensive one; two
+are about columns that predate these migrations entirely; and the last one
+finishes a character-set conversion that the first left incomplete.
 
 | Migration | What it does |
 |---|---|
@@ -32,6 +46,9 @@ the last two are about columns that predate these migrations entirely.
 | `20260730020000_DropUnusedEcachesTable` | Drops `ecaches`, a cache table nothing has written to since 2014 |
 | `20260731210000_AddNsfwToEntries` | Adds `entries.nsfw` — **only where it is missing**, see below |
 | `20260801080000_DropFlattrResidue` | Drops `entries.flattr` and three settings rows, if they are there |
+| `20260801090000_AlignSchemaWithGrownInstalls` | Widens three text columns to `MEDIUMTEXT` and makes the username index unique — converting each table's character set first, see below |
+| `20260802140000_DropApiSettings` | Drops two settings rows belonging to the retired API |
+| `20260803090000_ConvertRemainingTablesToUtf8mb4` | Converts every remaining table from utf8mb3, so a four-byte character can be stored at all |
 
 #### The last two are guarded, and that is not decoration
 
@@ -137,6 +154,40 @@ The 8.3.0 migrations change how tables are stored and remove a column set and a
 cache table nothing has read since 2012 and 2014; the two from 8.3.7 and 8.3.8
 touch columns older than these migrations, one of which is dropped along with
 three settings rows. **Your postings, members and categories are untouched.**
+
+#### Two faults that only a grown schema shows
+
+Both were found on 2026-08-03 and both are fixed. They are written down because
+the *reason* they went unnoticed applies to anything else in here: until that
+day, every check ran against a database these migrations had built.
+
+**The upgrade used to stop at `AlignSchemaWithGrownInstalls`.** It widened
+`entries.text` with a statement that also named `utf8mb4`. On a table still in
+utf8mb3 that converts one column and leaves its neighbours — and `entries`
+carries a FULLTEXT index over `subject`, `name` and `text`, which may not span
+two character sets:
+
+    ERROR 1283: Column 'text' cannot be part of FULLTEXT index
+
+The migration aborted and the ones after it never ran. It now converts the whole
+table first, and only where that is still needed.
+
+**And the conversion was never finished.** `ConvertLegacyTablesToUtf8mb4` reaches
+`useronline` and one column of `users`; ten tables stayed three-byte. On such an
+installation a four-byte character — an emoji in a bookmark note, a category
+name, a block reason — is *refused*:
+
+    ERROR 1366: Incorrect string value: '\xF0\x9F\x91\x8D ...'
+
+under MySQL's default strict mode, and silently truncated without it.
+`ConvertRemainingTablesToUtf8mb4` closes that.
+
+**What still differs** after the upgrade, compared with a fresh installation —
+four columns, none worth an `ALTER`: `categories.accession` (`tinyint` against
+`int`), `user_blocks.hash` (`char` against `varchar`), and
+`users.last_refresh`/`last_refresh_tmp` (`timestamp` against `datetime`). The
+first two are storage-identical for the values they hold; the last two are the
+2038 question and belong to their own pass.
 
 #### Clear the schema cache afterwards, or the forum will not come back
 

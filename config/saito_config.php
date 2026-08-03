@@ -131,6 +131,24 @@ $config = [
                 'events' => ['register', 'activate', 'delete'],
                 /** Seconds. */
                 'timeout' => 3,
+
+                /**
+                 * @deprecated Temporary, and it will be removed.
+                 *
+                 * Puts the member's email address and IP back into the payload.
+                 * Off, and it should stay off: it exists only so a forum that
+                 * already runs a receiver expecting those fields can upgrade
+                 * Saito now and rewrite that receiver afterwards, instead of
+                 * having to do both at once.
+                 *
+                 * Every send with this enabled writes a warning to the log, on
+                 * purpose — it is not meant to be forgotten about.
+                 *
+                 * The IP still follows `store_ip` and `store_ip_anonymized`: a
+                 * forum that does not keep addresses does not start posting
+                 * them, and one that keeps them shortened sends them shortened.
+                 */
+                'legacyContactFields' => false,
             ],
         ],
 
