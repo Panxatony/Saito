@@ -1401,4 +1401,66 @@ class EntriesControllerTest extends IntegrationTestCase
 
         $this->assertResponseOk();
     }
+
+    /**
+     * SECURITY: a member cannot post without limit.
+     *
+     * The eleventh posting inside the window is refused. Login, registration and
+     * the contact form all throttle; this closes the last open write path.
+     *
+     * @return void
+     */
+    public function testPostingIsRateLimited(): void
+    {
+        Cache::clear();
+        $table = $this->getTableLocator()->get('Entries');
+        $this->_loginUser(3); // role: user
+
+        $written = 0;
+        for ($i = 1; $i <= 12; $i++) {
+            $before = $table->find()->count();
+            $this->post('/entries/htmx-add', [
+                'category_id' => 2,
+                'subject' => "posting $i",
+                'text' => "body of posting $i",
+            ]);
+            if ($table->find()->count() > $before) {
+                $written++;
+            }
+        }
+
+        $this->assertSame(
+            10,
+            $written,
+            'a member wrote more than the per-window limit of postings'
+        );
+    }
+
+    /**
+     * A moderator is exempt: `saito.core.posting.unthrottled` is theirs, so a
+     * burst of clean-up postings is not stopped.
+     *
+     * @return void
+     */
+    public function testModeratorIsNotRateLimited(): void
+    {
+        Cache::clear();
+        $table = $this->getTableLocator()->get('Entries');
+        $this->_loginUser(2); // role: mod
+
+        $written = 0;
+        for ($i = 1; $i <= 12; $i++) {
+            $before = $table->find()->count();
+            $this->post('/entries/htmx-add', [
+                'category_id' => 2,
+                'subject' => "mod posting $i",
+                'text' => "body $i",
+            ]);
+            if ($table->find()->count() > $before) {
+                $written++;
+            }
+        }
+
+        $this->assertSame(12, $written, 'a moderator was throttled');
+    }
 }

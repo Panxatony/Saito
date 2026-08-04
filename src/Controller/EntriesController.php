@@ -24,6 +24,7 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\MethodNotAllowedException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
+use Cake\Cache\Cache;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Basic\BasicPostingInterface;
 use Saito\User\CurrentUser\CurrentUserInterface;
@@ -43,6 +44,12 @@ use Stopwatch\Lib\Stopwatch;
  */
 class EntriesController extends AppController
 {
+    /** @var int postings a member may write per window */
+    private const POST_MAX_ATTEMPTS = 10;
+
+    /** @var int the window in seconds */
+    private const POST_THROTTLE_WINDOW = 300;
+
     /**
      * The front page's right-rail widgets, in the order they are rendered.
      *
@@ -379,6 +386,38 @@ class EntriesController extends AppController
      *
      * @return \Cake\Http\Response|void
      */
+    /**
+     * Whether the member has written too many postings too fast.
+     *
+     * The forum throttles login, registration and the contact form; posting was
+     * the one write path left open. It is cheaper to abuse than any of those — a
+     * script needs one confirmed account, then a `create()` per request — and
+     * each write invalidates the thread cache, so the cost is not only rows.
+     *
+     * Keyed on the member id, not the client IP: posting already requires an
+     * account, and several members behind one connection (a university, a mobile
+     * network) must not throttle each other. Moderators and above are exempt —
+     * they answer and clean up in bursts, and the limit is aimed at a script.
+     *
+     * @return bool
+     */
+    private function isPostThrottled(): bool
+    {
+        if ($this->CurrentUser->permission('saito.core.posting.unthrottled')) {
+            return false;
+        }
+
+        $key = 'post-throttle-' . $this->CurrentUser->getId();
+        $record = Cache::read($key);
+        if (!is_array($record) || (time() - $record['first']) >= self::POST_THROTTLE_WINDOW) {
+            $record = ['count' => 0, 'first' => time()];
+        }
+        $record['count']++;
+        Cache::write($key, $record);
+
+        return $record['count'] > self::POST_MAX_ATTEMPTS;
+    }
+
     public function htmxAdd()
     {
         $this->set('categories', $this->CurrentUser->getCategories()->getAll('thread', 'select'));
@@ -403,10 +442,15 @@ class EntriesController extends AppController
                 // Saito 4 made, and for the same reason.
                 'nsfw' => (bool)$this->getRequest()->getData('nsfw'),
             ];
-            try {
-                $posting = $this->Posting->create($data, $this->CurrentUser);
-            } catch (SaitoForbiddenException $e) {
+            if ($this->isPostThrottled()) {
                 $posting = null;
+                $this->Flash->set(__('entry.post.throttled'), ['element' => 'error']);
+            } else {
+                try {
+                    $posting = $this->Posting->create($data, $this->CurrentUser);
+                } catch (SaitoForbiddenException $e) {
+                    $posting = null;
+                }
             }
 
             if ($posting !== null && !$posting->getErrors()) {
@@ -815,10 +859,15 @@ class EntriesController extends AppController
                 // part of Saito 4's rule still holds.
                 'nsfw' => (bool)$this->getRequest()->getData('nsfw'),
             ];
-            try {
-                $posting = $this->Posting->create($data, $this->CurrentUser);
-            } catch (SaitoForbiddenException $e) {
+            if ($this->isPostThrottled()) {
                 $posting = null;
+                $this->Flash->set(__('entry.post.throttled'), ['element' => 'error']);
+            } else {
+                try {
+                    $posting = $this->Posting->create($data, $this->CurrentUser);
+                } catch (SaitoForbiddenException $e) {
+                    $posting = null;
+                }
             }
 
             if ($posting !== null && !$posting->getErrors()) {

@@ -7,7 +7,7 @@
     "font-awesome": "^4.7.0",
     "htmx.org": "^2.0.10",
     "typeface-cabin": "^1.1.13",
-    "typeface-fenix": "^0.0.72"
+    "typeface-fenix": "^1.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -26,7 +26,7 @@
     "sass": "^1",
     "typescript": "^6",
     "typescript-eslint": "^8",
-    "vite": "^8"
+    "vite": "^8.2.0"
   },
   "engines": {
     "node": ">=22.11",

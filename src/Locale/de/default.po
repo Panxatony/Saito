@@ -321,6 +321,9 @@ msgstr "Authentifizierung nötig"
 msgid "user.authe.e.generic"
 msgstr "Der Name oder das Passwort sind nicht korrekt."
 
+msgid "entry.post.throttled"
+msgstr "Zu viele Beiträge in kurzer Zeit. Bitte warte ein paar Minuten und versuche es erneut."
+
 msgid "user.authe.throttled"
 msgstr "Zu viele fehlgeschlagene Anmeldeversuche. Bitte warte ein paar Minuten und versuche es erneut."
 

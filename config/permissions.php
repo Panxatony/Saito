@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 /**
  * Saito - The Threaded Web Forum
@@ -8,8 +9,8 @@
  * @license http://opensource.org/licenses/MIT
  */
 
-use Saito\User\Permission\ResourceAC;
 use Saito\User\Permission\Resource;
+use Saito\User\Permission\ResourceAC;
 use Saito\User\Permission\Resources;
 use Saito\User\Permission\Roles;
 
@@ -18,7 +19,7 @@ use Saito\User\Permission\Roles;
  *
  * Add translations in nondynamic.po as 'permission.role.<ID-number>'
  */
-$config['Saito']['Permission']['Roles'] = (new Roles)
+$config['Saito']['Permission']['Roles'] = (new Roles())
     // Non logged-in visitors
     ->add('anon', 0)
     // Registered and logged-in users
@@ -59,6 +60,11 @@ $config['Saito']['Permission']['Resources'] = (new Resources())
     // Access to the administration backend
     ->add((new Resource('saito.core.admin.backend'))
         ->allow((new ResourceAC())->asRole('admin')))
+    // Exempt from the per-member posting rate limit. Moderators and above
+    // clean up and answer in bursts; the throttle is aimed at a script running
+    // through a single confirmed account, not at them.
+    ->add((new Resource('saito.core.posting.unthrottled'))
+        ->allow((new ResourceAC())->asRole('mod')))
     // Pin or lock a posting
     ->add((new Resource('saito.core.posting.pinAndLock'))
         ->allow((new ResourceAC())->asRole('mod')))
@@ -144,7 +150,6 @@ $config['Saito']['Permission']['Resources'] = (new Resources())
     // View the uploader
     ->add((new Resource('saito.plugin.uploader.view'))
         ->allow((new ResourceAC())->asRole('admin'))
-        ->allow((new ResourceAC())->onOwn()))
-    ;
+        ->allow((new ResourceAC())->onOwn()));
 
 return $config;

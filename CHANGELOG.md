@@ -5,6 +5,42 @@
 - Δ Changed
 - − Removed
 
+## [8.3.16] - 2026-08-04 "türsteher"
+
+No migration. Both the stylesheets and the JS bundle changed, so deploy them
+with the rest.
+
+Named for what these have in common: who gets let in and who gets turned away.
+
+- ✓ Fixed: **`[email]` no longer runs on `.html()`, and needs no jQuery.** The
+  tag emitted an inline jQuery script that reassembled the address with
+  `.html()`. On 8.3 that was already visibly broken — no jQuery since 8.1.0, so
+  the script threw and the link rendered empty — and on an older install with
+  jQuery and no strict CSP it was a stored-XSS path, because `.html()` turns the
+  decoded attribute back into live markup. The reassembly is in the island
+  bundle now and uses `textContent`; the scheme is hard-coded to `mailto:` so a
+  posting cannot smuggle `javascript:`, and the helper escapes its own
+  attributes rather than trusting its caller. Verified in a real browser: a
+  hostile address renders as text, nothing executes.
+
+- ＋ Added: **posting is rate-limited.** Login, registration and the contact
+  form were throttled; posting was the one write path left open, and the
+  cheapest to abuse — one confirmed account, a posting per request, each write
+  dropping the thread cache. Ten per five minutes per member, keyed on the
+  member id (members share connections; a script does not need to), with
+  moderators and above exempt through a new `saito.core.posting.unthrottled`
+  permission.
+
+- Δ Changed: **the bot filter must not challenge two htmx endpoints.** The
+  island polls `/entries/htmx-new-count` and `/entries/htmx-widgets` in the
+  background; a proof-of-work challenge cannot be answered from an XHR, so the
+  challenge page came back and htmx swapped it into the running forum. Documented
+  in `docs/configuration.md` — the `ALLOW` rule and the `SameSite=Lax` cookie
+  setting — because it meets any Saito 8 behind Anubis, Cloudflare or similar.
+
+- Δ Changed: Vite 8.1.5 → 8.2.0 and typeface-fenix 0.0.72 → 1.1.13. The font is
+  byte-identical, the version jump is packaging only.
+
 ## [8.3.15] - 2026-08-03 "viertes byte"
 
 **Two migrations run.** No `down()` on either — see below.

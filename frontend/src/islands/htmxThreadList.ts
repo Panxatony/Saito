@@ -33,6 +33,7 @@ import './features/smartInsert';
 import './features/subjectCount';
 import './features/embeds';
 import './features/spoiler';
+import './features/mailObfuscator';
 import './features/widgets';
 import './features/categoryFilter';
 import './features/headerActions';
