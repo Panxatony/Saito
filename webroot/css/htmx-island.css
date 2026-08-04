@@ -241,23 +241,36 @@
    subjectCount.ts no longer copies it: the counter reads `maxlength` from the
    field itself, which is where the limit already was. */
 
-/* The remaining-characters count, inside the field at its right edge.
-   subjectCount.ts wraps the field so the number can be pinned to the field
-   rather than to the wider row it sits in. The right padding is what keeps a
-   long subject from running under the number. */
+/* The remaining-characters count, beside the field rather than inside it.
+   subjectCount.ts wraps the field so the number stays with it instead of
+   aligning to the wider row.
+
+   It sat *inside* the field once, held clear by `padding-right`. That only
+   works where the browser honours the padding for scrolled content, and iOS
+   Safari does not: it scrolls an overflowing input's text straight under its own
+   right padding, so a long subject ran over the number. Masking the number with
+   an opaque chip fixed the collision and broke something worse — the chip then
+   covered the text at the caret, exactly where the writer is typing. There is no
+   in-field position that survives both, so the number moved out of the field
+   into its own flex cell: nothing can overlap it and it can hide nothing. */
 .htmx-island .subject-field {
-    position: relative;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 .htmx-island .subject-field .js-subject {
-    width: 100%;
-    padding-right: 3.2rem;
+    /* `min-width: 0` so the field may shrink below its intrinsic width — without
+       it a flex item refuses, and the count would be pushed out of the row. */
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
 }
 .htmx-island .subject-count {
-    position: absolute;
-    right: 0.7rem;
-    top: 50%;
-    transform: translateY(-50%);
+    flex: 0 0 auto;
+    /* Room for three digits, so the field's right edge does not jump as the
+       count runs 100 → 99 → 9. */
+    min-width: 1.8rem;
+    text-align: right;
     font-size: 0.85rem;
     line-height: 1;
     color: var(--isl-text-muted, #6b6560);
