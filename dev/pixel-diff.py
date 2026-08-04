@@ -38,7 +38,7 @@ def fetch(path: str, out: pathlib.Path, port: int) -> None:
     # <noscript>. So the scripts come out and the <noscript> is unwrapped, which
     # makes that link real and swappable. The island markup is rendered by the
     # server — the bundle only enhances it — so nothing being compared is lost.
-    html = re.sub(r'<script\b[^>]*>.*?</script>', '', html, flags=re.S | re.I)
+    html = re.sub(r'<script\b[^>]*>.*?</script\s*>', '', html, flags=re.S | re.I)
     html = re.sub(r'</?noscript>', '', html, flags=re.I)
     # … and now the one thing under test can be substituted.
     # Absolute, because the <base> above would otherwise resolve a root-relative
