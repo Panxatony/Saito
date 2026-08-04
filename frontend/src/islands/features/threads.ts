@@ -27,6 +27,24 @@ function setIconState(leaf: HTMLElement, open: boolean): void {
 }
 
 /**
+ * Close a thread line's inline posting, if it has one open.
+ *
+ * The fragment is kept — hidden, not thrown away — so reopening the line does
+ * not fetch it a second time, which is what `toggleInlinePosting` relies on.
+ *
+ * @param leaf the `.threadLeaf` list item
+ */
+function closeInlinePosting(leaf: HTMLElement): void {
+    const slider = leaf.querySelector<HTMLElement>('.threadInline-slider');
+    if (!slider) {
+        return;
+    }
+    slider.style.display = 'none';
+    leaf.classList.remove('is-inline-open');
+    setIconState(leaf, false);
+}
+
+/**
  * Toggle a thread line's inline posting. The first open POSTs to entries/view/ID
  * (via htmx, so CSRF + X-Requested-With are attached) and reveals the returned
  * fragment; later clicks just show/hide it.
@@ -260,6 +278,17 @@ document.addEventListener('click', (event: MouseEvent) => {
     if (box) {
         const collapsed = box.classList.toggle('is-thread-collapsed');
         btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        // Collapsing hides the answers by stylesheet, but the root line stays by
+        // design — and so did a posting opened inline *on* the root, which is
+        // the whole body plus its images. The thread read as "not collapsed"
+        // while the arrow already said it was. Hiding the slider in CSS would
+        // have left the line's icon claiming "open" over nothing, so the
+        // postings are closed for real: the icons stay truthful and reopening
+        // one is a click, on the line the reader chooses.
+        if (collapsed) {
+            box.querySelectorAll<HTMLElement>('.threadLeaf.is-inline-open')
+                .forEach(closeInlinePosting);
+        }
     }
 });
 // Honour the "show all threads collapsed by default" user setting: collapse every
