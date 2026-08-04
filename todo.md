@@ -52,6 +52,36 @@ reason the notes above say anything useful. `phpunit` 11 → 13 was the fourth a
 went in with 8.3.12, once the question it was waiting on had an answer: no, the
 suite does not fail on deprecations raised inside dependencies.
 
+### Retire the grunt release chain
+
+The frontend runs on Vite, but the *release build* still goes through grunt:
+`grunt release` chains `clean`, the two `sass` shells, `postcss`, `purge`, the
+Vite `bundle` shell and `copy`. Grunt earns its keep as an orchestrator and
+nothing more — every real step is already a shell-out to a tool we call directly
+elsewhere.
+
+The cost of keeping it showed on 2026-08-04. Eight Dependabot advisories, every
+one of them build-time only and none reaching the shipped bundle, came in solely
+through the grunt tooling — `grunt-contrib-watch` dragging in a vulnerable
+`lodash`, `async` and, through `gaze → globule`, a `minimatch@3.0.4` that
+`globule` hard-pins to `~3.0.2` so a yarn resolution cannot lift it. Removing
+the dev-only `watch` plugin cleared three of the four packages at the source;
+the fourth, `brace-expansion`, needed a scoped resolution. That worked, but it
+is the kind of whack-a-mole an old orchestrator will keep generating.
+
+The target is to fold the `release` chain into `package.json` scripts — the
+`sass` CLI and Vite are already invoked there, `postcss`/`cssnano` run from
+`dev/purge-css.js`'s neighbourhood, and `clean`/`copy` are a few lines of Node
+or shell. When it lands, `grunt` and its five `grunt-*` dependencies leave the
+tree entirely, and the CI/`gitlab`/`github` release jobs drop `grunt-cli`. The
+gate is the same as every CSS change here: the seven stylesheets and the three
+JS bundles must come out byte-identical through the new chain, verified with the
+pixel-diff harness before the old `Gruntfile.js` is deleted.
+
+Not urgent — the remaining risk is build/supply-chain on dev and CI machines,
+never the browser — but it is the clean end of the dependency-hygiene work, not
+another pin.
+
 ### The stylesheets still use `@import`, 54 times
 
 Everything else Dart Sass warned about is fixed; `@import` is what is left. It

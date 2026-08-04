@@ -5,6 +5,45 @@
 - Δ Changed
 - − Removed
 
+## [8.3.17] - 2026-08-04 "blindgänger"
+
+No migration. Only the stylesheet changed; the JS bundle and the PHP are
+untouched, so this one is a CSS deploy.
+
+Named for what most of it turned out to be: findings that looked live and were
+inert. Eight dependency alerts that never reach a browser, five reported XSS
+that cannot fire. The one real defect was on a phone.
+
+- ✓ Fixed: **the subject counter no longer collides with the subject.** On an
+  iPhone the remaining-characters count and a long subject rendered on top of
+  each other. iOS Safari scrolls an overflowing text input's content *under* its
+  own right padding, so the padding that held the number clear did nothing there
+  — Blink and Gecko stop the text short, which is why it only showed on the
+  phone. There is no position inside the field that survives both (masking the
+  number with an opaque chip just moved the problem onto the text at the caret),
+  so the number sits beside the field now: nothing can overlap it and it can
+  hide nothing. The field gives up about 3rem of width for it.
+
+- Δ Changed: **the build tooling lost `grunt-contrib-watch`.** Eight Dependabot
+  advisories — a vulnerable `lodash`, `async`, `minimatch` and `brace-expansion`
+  — all sat in `yarn.lock`, all build-time only, none of them in the bundle a
+  reader downloads. Three of the four came in solely through that dev-only
+  plugin, which `grunt release` does not use and `yarn dev`/`yarn css` already
+  cover, so it was removed rather than pinned; `globule` hard-pins its
+  `minimatch` and a resolution could not have lifted it anyway. The fourth,
+  `brace-expansion`, is pinned scoped so the eslint line is untouched. Nothing
+  about the release build changes: the same chain produces byte-identical
+  assets.
+
+- Δ Changed: **the CodeQL findings were triaged, not swept.** Five of six were
+  false positives and are dismissed with reasons — an inert `DOMParser` parse,
+  two stylesheet `href`s from server-rendered theme paths, a same-origin delete
+  navigation, and the `[spoiler]` reveal, whose content is escaped *twice*
+  server-side so the `innerHTML` lands on entity text rather than an element.
+  That last one is now pinned by a test, and its comment says why it must not be
+  "fixed" into a break. The sixth was real but dev-only: the pixel-diff harness
+  stripped `<script>` case-sensitively.
+
 ## [8.3.16] - 2026-08-04 "türsteher"
 
 No migration. Both the stylesheets and the JS bundle changed, so deploy them

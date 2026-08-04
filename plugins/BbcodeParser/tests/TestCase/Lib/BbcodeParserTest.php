@@ -243,6 +243,27 @@ class BbcodeParserTest extends SaitoTestCase
         $this->assertHtml($expected, $result);
     }
 
+    /**
+     * The spoiler's safety rests on the content being escaped *twice* — once by
+     * the parser, once by `htmlentities` in the definition — so that `<` reaches
+     * the browser as `&amp;lt;`. The island reveals it with `innerHTML`, which
+     * undoes only the one layer `getAttribute` left, landing on inert entity
+     * text rather than a live element. If this contract ever weakens to a single
+     * encode, that `innerHTML` becomes stored XSS — so pin it here.
+     *
+     * @return void
+     */
+    public function testSpoilerContentIsDoubleEscaped()
+    {
+        $result = $this->_Parser->parse('[spoiler]<img src=x onerror=alert(1)>[/spoiler]');
+
+        // `<` and `>` leave the server double-encoded; the raw angle brackets of
+        // an `<img>` element never appear inside the attribute.
+        $this->assertStringContainsString('data-spoiler="&amp;lt;img', $result);
+        $this->assertStringContainsString('onerror=alert(1)&amp;gt;"', $result);
+        $this->assertStringNotContainsString('<img src=x', $result);
+    }
+
     public function testList()
     {
         $input = "[list]\n[*]fooo\n[*]bar\n[/list]";
