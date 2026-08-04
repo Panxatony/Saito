@@ -82,6 +82,7 @@
       "Detectors\\Test\\": "./plugins/Detectors/tests",
       "Cron\\": "./plugins/Cron/src",
       "MailObfuscator\\": "./plugins/MailObfuscator/src",
+      "MailObfuscator\\Test\\": "./plugins/MailObfuscator/tests",
       "Feeds\\": "./plugins/Feeds/src",
       "Feeds\\Test\\": "./plugins/Feeds/tests",
       "ImageUploader\\": "plugins/ImageUploader/src",

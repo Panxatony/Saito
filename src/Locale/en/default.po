@@ -308,6 +308,9 @@ msgstr "Login required"
 msgid "user.authe.e.generic"
 msgstr "Name or password are wrong."
 
+msgid "entry.post.throttled"
+msgstr "Too many postings in a short time. Please wait a few minutes and try again."
+
 msgid "user.authe.throttled"
 msgstr "Too many failed login attempts. Please wait a few minutes and try again."
 
