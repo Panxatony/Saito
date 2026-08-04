@@ -23,29 +23,31 @@
  * link can arrive at either point.
  */
 
+function revealMailLink(el: HTMLAnchorElement): void {
+    const local = el.dataset.ttl;
+    const domain = el.dataset.dom;
+    if (!local || !domain) {
+        return;
+    }
+
+    const address = `${local}@${domain}`;
+    el.href = `mailto:${address}`;
+
+    // An [email] with no title renders an empty link; fill it with the address
+    // as text. One that carried a title keeps it.
+    if (el.textContent === '') {
+        el.textContent = address;
+    }
+
+    // Done — drop the parts so a second pass (or a scraper reading the live DOM)
+    // finds nothing to reassemble.
+    el.classList.remove('js-mailObfuscated');
+    delete el.dataset.ttl;
+    delete el.dataset.dom;
+}
+
 function revealMailLinks(root: ParentNode): void {
-    root.querySelectorAll<HTMLAnchorElement>('a.js-mailObfuscated').forEach((el) => {
-        const local = el.dataset.ttl ?? '';
-        const domain = el.dataset.dom ?? '';
-        if (local === '' || domain === '') {
-            return;
-        }
-
-        const address = `${local}@${domain}`;
-        el.href = `mailto:${address}`;
-
-        // An [email] with no title renders an empty link; fill it with the
-        // address as text. One that carried a title keeps it.
-        if (el.textContent === '') {
-            el.textContent = address;
-        }
-
-        // Done — drop the parts so a second pass (or a scraper reading the live
-        // DOM) finds nothing to reassemble.
-        el.classList.remove('js-mailObfuscated');
-        delete el.dataset.ttl;
-        delete el.dataset.dom;
-    });
+    root.querySelectorAll<HTMLAnchorElement>('a.js-mailObfuscated').forEach(revealMailLink);
 }
 
 revealMailLinks(document);
