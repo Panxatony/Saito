@@ -19,7 +19,6 @@
     "grunt": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
-    "grunt-contrib-watch": "*",
     "grunt-shell": "*",
     "load-grunt-tasks": "^5.1.0",
     "purgecss": "8",
@@ -27,6 +26,10 @@
     "typescript": "^6",
     "typescript-eslint": "^8",
     "vite": "^8.2.0"
+  },
+  "//resolutions": "brace-expansion 1.1.x reaches the tree only through the legacy grunt release chain's minimatch@3.x (glob/grunt/multimatch), never through the shipped browser bundle, so the ReDoS advisory is build-time only. The pin is scoped to `minimatch/brace-expansion` so the eslint line (minimatch@10 -> brace-expansion@5) is left untouched. The other build-time advisories (vulnerable lodash, async, minimatch@3.0.4 via gaze/globule) came in solely through grunt-contrib-watch, a dev-only plugin not used by `grunt release`; it was removed rather than pinned.",
+  "resolutions": {
+    "minimatch/brace-expansion": "^1.1.16"
   },
   "engines": {
     "node": ">=22.11",

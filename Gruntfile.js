@@ -121,20 +121,6 @@ module.exports = function (grunt) {
         }
       },
     },
-    watch: {
-      sassStatic: {
-        files: ['webroot/css/src/**/*.scss'],
-        tasks: ['shell:sassStatic'],
-      },
-      sassTheme: {
-        files: [
-            'plugins/Bota/webroot/css/src/**/*.scss',
-            'plugins/Nova/webroot/css/src/**/*.scss',
-            'plugins/Macnemo/webroot/css/src/**/*.scss',
-          ],
-        tasks: ['shell:sassTheme'],
-      },
-    },
     postcss: {
       options: {
         map: false,
@@ -180,7 +166,6 @@ module.exports = function (grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-shell');
   // The maintained fork: `grunt-postcss` was last released in 2018 and speaks
   // only the PostCSS 7 plugin API, so autoprefixer 10 and cssnano 7 arrive as
