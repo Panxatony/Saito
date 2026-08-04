@@ -77,42 +77,50 @@ privacy text in [privacy-policy-template.md](privacy-policy-template.md).
 
 ### Behind a bot filter (Anubis, Cloudflare, and the like)
 
-**Two endpoints must not be challenged.** The island frontend polls them in the
-background with XHR:
+**The island's XHR requests must not be challenged.** A proof-of-work challenge
+cannot be answered from an XHR: the filter returns its challenge page, htmx swaps
+that HTML into the running page, and the reader watches the bot-check graphic
+appear over the forum. Reloading fixes it, because a real navigation can solve
+the challenge — so it looks intermittent and harmless, and it is neither.
 
-| Path | What it returns |
-|---|---|
-| `/entries/htmx-new-count` | a number — how many postings have appeared |
-| `/entries/htmx-widgets` | the widget rail (who is online, recent postings) |
+This is not one or two paths. The frontend calls htmx endpoints across several
+controllers — the new-posting count and widget rail poll in the background, and
+opening a posting, replying, editing, the "show new postings" reload and the
+profile forms all swap fragments in. Allow-listing them one path at a time does
+not hold: a release adds an endpoint, it is not on the list, and the graphic is
+back. Match the request instead of the route.
 
-A proof-of-work challenge cannot be answered from an XHR. The filter returns its
-challenge page, htmx swaps that HTML into the running page, and the reader
-watches the bot-check graphic appear over the forum. Reloading fixes it, because
-a real navigation can solve the challenge — so it looks intermittent and
-harmless, and it is neither.
-
-Measured on one installation before this was understood: **80% of all challenges
-issued went to these two paths**, none of them could ever be solved, and the next
-poll drew a fresh one. Both browsers tested were affected; it is not a quirk of
-one of them.
-
-For Anubis, an `ALLOW` rule does it:
+Every htmx request carries the header `HX-Request: true`, and none of them can
+solve a challenge. That header is the rule. For Anubis:
 
 ```yaml
-  - name: forum-htmx-background
+  - name: forum-htmx
     action: ALLOW
-    path_regex: ^/entries/htmx-(new-count|widgets)$
+    expression:
+      all:
+        - '"Hx-Request" in headers'   # htmx sets this on every request
+        - 'path.contains("/htmx-")'   # the forum's htmx routes are named htmx-*
 ```
 
-Both are safe to let through: the first returns a count scoped to what the
-requester may read, and the second enforces `widgetsForGuests` itself rather
-than relying on the markup being left out.
+The header alone would let anything that sets it skip the challenge site-wide;
+the `path.contains("/htmx-")` clause keeps a forged header confined to the
+fragment endpoints, which is where the exemption is needed and no further. (CEL
+header keys are canonicalised, so `HX-Request` is read as `Hx-Request`.) On a
+filter without CEL, fall back to a path allow-list — `path_regex:
+^/(entries|users)/htmx-` — and remember to extend it when a new controller grows
+htmx routes.
 
 **Also check the challenge cookie's `SameSite`.** Anubis defaults to `None`,
 which marks a first-party cookie as usable across sites — exactly what Safari's
 tracking protection and Chrome's third-party cookie phase-out restrict. `Lax` is
 correct here (`-cookie-same-site Lax`), and without it the cookie can go missing
 on the very requests that need it.
+
+**Why it surfaces on phones.** Anubis binds its clearance token to the client
+IP (`X-Real-IP`). A phone's IP changes as it moves between cell and Wi-Fi, the
+token stops matching, and the next request is challenged afresh — and if that
+next request is an htmx XHR, the challenge lands in the page rather than in a
+navigation that could solve it. The rule above is what makes that harmless.
 
 ### Outbound notifications
 
