@@ -812,7 +812,7 @@ class EntriesController extends AppController
                 $this->set('ownerId', (int)$upload->user->getId());
                 $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_upload_delete_confirm');
 
-                return null;
+                return $this->render();
             }
         }
 
