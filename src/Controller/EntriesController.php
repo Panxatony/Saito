@@ -794,6 +794,22 @@ class EntriesController extends AppController
             );
         }
 
+        // Deleting an upload that is still embedded leaves a dangling [img] in
+        // old postings. When something references it, answer the first request
+        // with a warning instead of deleting; the caller re-posts with
+        // `confirm=1` to go ahead. Nothing embedding it → straight through.
+        if ($this->getRequest()->getData('confirm') !== '1') {
+            $usageCount = $this->findPostingsEmbeddingUpload($upload)->count();
+            if ($usageCount > 0) {
+                $this->set('uploadId', $id);
+                $this->set('usageCount', $usageCount);
+                $this->set('ownerId', (int)$upload->user->getId());
+                $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_upload_delete_confirm');
+
+                return null;
+            }
+        }
+
         if (!$Uploads->delete($upload)) {
             throw new BadRequestException();
         }
@@ -846,23 +862,37 @@ class EntriesController extends AppController
             );
         }
 
-        $name = (string)$upload->get('name');
-        // Escape the LIKE metacharacters so a filename's underscores match
-        // literally rather than as single-character wildcards.
-        $pattern = '%' . addcslashes($name, '\\%_') . '%';
-
-        $postings = $this->Entries->find()
+        $postings = $this->findPostingsEmbeddingUpload($upload)
             ->select(['id', 'subject', 'time'])
-            ->where([
-                'Entries.user_id' => (int)$upload->user->getId(),
-                'Entries.text LIKE' => $pattern,
-            ])
             ->orderBy(['Entries.time' => 'DESC'])
             ->limit(50)
             ->all();
 
         $this->set('postings', $postings);
         $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_upload_usage');
+    }
+
+    /**
+     * Postings by an upload's owner whose text embeds it.
+     *
+     * The upload appears in a posting as `[img src=upload]<name>[/img]`, so the
+     * filename is matched in `entries.text` with LIKE — its underscores escaped
+     * so they stay literal rather than single-character wildcards — scoped to
+     * the owner's rows. Shared by the usage listing and the delete guard.
+     *
+     * @param \ImageUploader\Model\Entity\Upload $upload the upload
+     * @return \Cake\ORM\Query\SelectQuery
+     */
+    private function findPostingsEmbeddingUpload(
+        \ImageUploader\Model\Entity\Upload $upload,
+    ): \Cake\ORM\Query\SelectQuery {
+        $pattern = '%' . addcslashes((string)$upload->get('name'), '\\%_') . '%';
+
+        return $this->Entries->find()
+            ->where([
+                'Entries.user_id' => (int)$upload->user->getId(),
+                'Entries.text LIKE' => $pattern,
+            ]);
     }
 
     /**

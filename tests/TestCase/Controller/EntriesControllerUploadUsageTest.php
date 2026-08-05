@@ -120,4 +120,50 @@ class EntriesControllerUploadUsageTest extends IntegrationTestCase
         $this->expectException(\Saito\Exception\SaitoForbiddenException::class);
         $this->get('/entries/htmx-upload-usage/1');
     }
+
+    /**
+     * Deleting an upload that is still embedded warns first and keeps the file.
+     */
+    public function testDeletingEmbeddedUploadWarnsInsteadOfDeleting(): void
+    {
+        $this->_loginUser(1);
+        $name = $this->Uploads->get(1)->get('name');
+        $this->Entries->updateAll(['user_id' => 1, 'text' => '[img src=upload]' . $name . '[/img]'], ['id' => 1]);
+
+        $this->post('/entries/htmx-upload-delete/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('upload-delete-confirm');
+        $this->assertTrue($this->Uploads->exists(['id' => 1]), 'the upload is not deleted yet');
+    }
+
+    /**
+     * "Delete anyway" (confirm=1) removes an embedded upload.
+     */
+    public function testDeleteAnywayRemovesEmbeddedUpload(): void
+    {
+        $this->_loginUser(1);
+        $name = $this->Uploads->get(1)->get('name');
+        $this->Entries->updateAll(['user_id' => 1, 'text' => '[img src=upload]' . $name . '[/img]'], ['id' => 1]);
+
+        $this->post('/entries/htmx-upload-delete/1', ['confirm' => '1']);
+
+        $this->assertResponseOk();
+        $this->assertFalse($this->Uploads->exists(['id' => 1]), 'the upload is gone');
+    }
+
+    /**
+     * An upload nothing embeds is deleted without a warning.
+     */
+    public function testUnusedUploadDeletesDirectly(): void
+    {
+        $this->_loginUser(1);
+        $this->Uploads->updateAll(['name' => 'never_referenced_zzz.png', 'user_id' => 1], ['id' => 1]);
+
+        $this->post('/entries/htmx-upload-delete/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('upload-delete-confirm');
+        $this->assertFalse($this->Uploads->exists(['id' => 1]), 'the upload is gone');
+    }
 }

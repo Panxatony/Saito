@@ -222,6 +222,37 @@
 .htmx-island .upload-usage-list > li { padding: 0.15rem 0; }
 .htmx-island .upload-usage-list time { color: var(--isl-text-muted, #6b6560); margin-left: 0.35rem; }
 
+/* Delete guard: fills the tile's square when a delete is asked for an upload
+   that is still embedded somewhere (issue #64). */
+.htmx-island .upload-delete-confirm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem;
+    background: var(--nova-surface, #fff);
+    border: 1px solid var(--isl-danger, #b3261e);
+    border-radius: 0.3rem;
+    text-align: center;
+}
+.htmx-island .upload-delete-confirm-msg {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: var(--isl-danger, #b3261e);
+}
+.htmx-island .upload-delete-confirm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 100%;
+}
+.htmx-island .upload-delete-confirm-actions .btn {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.72rem;
+}
+
 /* Selected tiles: accent outline + a check badge. Insertion happens on the
    "insert selected" button, not on click. */
 .htmx-island .js-uploadTile.is-selected {
