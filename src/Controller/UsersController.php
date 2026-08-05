@@ -895,6 +895,9 @@ class UsersController extends AppController
             }
             $this->Users->patchEntity($user, $data);
             if ($this->Users->save($user)) {
+                // Keep *this* session logged in while the changed password kicks
+                // the account's other sessions on their next request.
+                $this->AuthUser->refreshPasswordFingerprint((int)$id);
                 $this->Flash->set(__('change_password_success'), ['element' => 'success']);
                 if ($isHtmx) {
                     // A 302 would be followed by htmx and swapped into the modal
