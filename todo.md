@@ -360,3 +360,12 @@ on production, `datetime` from the migrations** — and here the migrations are 
 correct side. Converting means rewriting two columns whose values were written
 under whatever timezone the server had at the time, so it belongs with the 2038
 work above and not before it.
+
+### Terms of service page
+
+The beta still serves an old one at `/pages/de/tos` — pre-island markup, and its
+text is out of date. A forum with registration open needs a terms page that says
+what it currently is, and the registration flow already gates on `tos_enabled`
+and links `tos_url`, so the copy is what is missing, not the wiring. Write the
+current terms and point `tos_url` at the island page that renders them, then
+retire the stale `/pages/de/tos`.
