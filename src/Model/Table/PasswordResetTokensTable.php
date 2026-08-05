@@ -72,6 +72,13 @@ class PasswordResetTokensTable extends Table
      */
     public function issueFor(int $userId): string
     {
+        // Opportunistic garbage collection: reset requests are rare, so sweeping
+        // everyone's expired tokens here keeps the table tidy without a cron.
+        // `deleteExpired()` stays public for a scheduled sweep should one ever
+        // be wanted.
+        $this->deleteExpired();
+        // Drop this member's earlier token too, expired or not — one live link
+        // at a time, so an inbox full of old requests cannot be walked back.
         $this->deleteAll(['user_id' => $userId]);
 
         $token = bin2hex(Security::randomBytes(32));
