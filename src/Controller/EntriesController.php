@@ -360,6 +360,12 @@ class EntriesController extends AppController
             // damit durch, weil sie den ajax-Layout-Umschalter benutzte.
             $this->viewBuilder()->disableAutoLayout();
 
+            // Inline im Thread-Baum geöffnet: die angeklickte Baumzeile direkt
+            // darüber trägt den Betreff schon, die Überschrift des Postings
+            // würde ihn nur eine Zeile tiefer wiederholen. Auf der eigenen
+            // Posting-Seite (Vollseite) bleibt die Überschrift der Seitentitel.
+            $this->set('hideSubjectHeading', true);
+
             return $this->render('/element/entry/view_posting');
         }
 

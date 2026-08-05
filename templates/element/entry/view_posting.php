@@ -48,6 +48,7 @@ $jsEntry = json_encode(
                     'entry' => $entry,
                     'level' => $level,
                     'signature' => $showSignature,
+                    'hideSubjectHeading' => $hideSubjectHeading ?? false,
                 ]
             );
             ?>
