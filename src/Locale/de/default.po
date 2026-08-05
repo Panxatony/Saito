@@ -2838,6 +2838,7 @@ msgid "Still used in {0} posting."
 msgid_plural "Still used in {0} postings."
 msgstr[0] "Noch in {0} Beitrag verwendet."
 msgstr[1] "Noch in {0} Beiträgen verwendet."
+
 #: templates/Users/htmx_login_form.php
 msgid "user.pwreset.request.link"
 msgstr "Passwort vergessen?"
