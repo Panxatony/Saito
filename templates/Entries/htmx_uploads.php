@@ -55,6 +55,17 @@ foreach ($uploads as $u) :
         ?>
         <div class="js-uploadManageItem upload-manage-item">
             <?= $tile ?>
+            <?php // A native <details> so the answer toggles shut on a second
+                  // click with no JS; htmx loads it once, when it first opens. ?>
+            <details class="upload-usage-wrap">
+                <summary class="upload-tile-usage" title="<?= h(__('upload.usage.link')) ?>">
+                    <i class="fa fa-search" aria-hidden="true"></i>
+                </summary>
+                <div class="js-uploadUsage upload-usage"
+                     hx-get="<?= $webroot ?>entries/htmx-upload-usage/<?= (int)$u->get('id') ?>"
+                     hx-trigger="intersect once"
+                     hx-target="this" hx-swap="innerHTML"><span class="upload-usage-loading"><?= h(__('Loading …')) ?></span></div>
+            </details>
             <button type="button" class="upload-tile-del"
                     hx-post="<?= $webroot ?>entries/htmx-upload-delete/<?= (int)$u->get('id') ?>"
                     hx-target="closest .js-uploadManageItem" hx-swap="outerHTML"

@@ -172,6 +172,90 @@
 .htmx-island .upload-tile-del:focus { opacity: 1; }
 .htmx-island .upload-tile-del:hover { background: rgba(200, 40, 40, 1); }
 
+/* "Where is this upload used?" — a magnifier opposite the delete control, its
+   answer a popover that a native <details> toggles open and shut (issue #64). */
+.htmx-island .upload-usage-wrap {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    z-index: 3;
+}
+.htmx-island .upload-usage-wrap > summary {
+    list-style: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .12s;
+}
+.htmx-island .upload-usage-wrap > summary::-webkit-details-marker { display: none; }
+.htmx-island .upload-manage-item:hover .upload-usage-wrap > summary,
+.htmx-island .upload-usage-wrap[open] > summary,
+.htmx-island .upload-usage-wrap > summary:focus { opacity: 1; }
+.htmx-island .upload-usage-wrap > summary:hover { background: rgba(0, 0, 0, 0.8); }
+
+/* The result, a floating card just below the magnifier. */
+.htmx-island .upload-usage {
+    position: absolute;
+    left: 0;
+    top: 1.9rem;
+    z-index: 5;
+    min-width: 14rem;
+    max-width: 20rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--nova-surface, #fff);
+    border: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.2));
+    border-radius: 0.3rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    font-size: 0.82rem;
+    text-align: left;
+    white-space: normal;
+}
+.htmx-island .upload-usage-loading { color: var(--isl-text-muted, #6b6560); }
+.htmx-island .upload-usage-count { margin: 0 0 0.2rem; font-weight: 600; }
+.htmx-island .upload-usage-none { margin: 0; }
+.htmx-island .upload-usage-list { list-style: none; margin: 0; padding: 0; }
+.htmx-island .upload-usage-list > li { padding: 0.15rem 0; }
+.htmx-island .upload-usage-list time { color: var(--isl-text-muted, #6b6560); margin-left: 0.35rem; }
+
+/* Delete guard: fills the tile's square when a delete is asked for an upload
+   that is still embedded somewhere (issue #64). */
+.htmx-island .upload-delete-confirm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem;
+    background: var(--nova-surface, #fff);
+    border: 1px solid var(--isl-danger, #b3261e);
+    border-radius: 0.3rem;
+    text-align: center;
+}
+.htmx-island .upload-delete-confirm-msg {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: var(--isl-danger, #b3261e);
+}
+.htmx-island .upload-delete-confirm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 100%;
+}
+.htmx-island .upload-delete-confirm-actions .btn {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.72rem;
+}
+
 /* Selected tiles: accent outline + a check badge. Insertion happens on the
    "insert selected" button, not on click. */
 .htmx-island .js-uploadTile.is-selected {

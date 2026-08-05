@@ -794,6 +794,22 @@ class EntriesController extends AppController
             );
         }
 
+        // Deleting an upload that is still embedded leaves a dangling [img] in
+        // old postings. When something references it, answer the first request
+        // with a warning instead of deleting; the caller re-posts with
+        // `confirm=1` to go ahead. Nothing embedding it → straight through.
+        if ($this->getRequest()->getData('confirm') !== '1') {
+            $usageCount = $this->findPostingsEmbeddingUpload($upload)->count();
+            if ($usageCount > 0) {
+                $this->set('uploadId', $id);
+                $this->set('usageCount', $usageCount);
+                $this->set('ownerId', (int)$upload->user->getId());
+                $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_upload_delete_confirm');
+
+                return null;
+            }
+        }
+
         if (!$Uploads->delete($upload)) {
             throw new BadRequestException();
         }
@@ -803,6 +819,80 @@ class EntriesController extends AppController
         $this->autoRender = false;
 
         return $this->response->withStringBody('');
+    }
+
+    /**
+     * List the postings that embed a given upload (issue #64).
+     *
+     * So a member can see where an image is used before deleting it: a deleted
+     * upload that is still embedded leaves a dangling `[img]` in old postings,
+     * with nothing warning them first.
+     *
+     * An upload is referenced in a posting as `[img src=upload]<name>[/img]`
+     * (see `uploads.ts`), so its filename appears verbatim in `entries.text`.
+     * The name is matched literally — every upload name carries underscores,
+     * which are LIKE wildcards unless escaped. Scoped to the upload's owner: a
+     * member embeds their own uploads in their own postings, and this keeps the
+     * scan to one member's rows. `LIKE '%…%'` cannot use an index, so this runs
+     * per-upload and on demand, never in bulk.
+     *
+     * @param string|null $id upload id
+     * @return void
+     */
+    public function htmxUploadUsage($id = null): void
+    {
+        $id = (int)$id;
+        if ($id <= 0) {
+            throw new BadRequestException();
+        }
+
+        $Uploads = $this->fetchTable('ImageUploader.Uploads');
+        /** @var \ImageUploader\Model\Entity\Upload $upload */
+        $upload = $Uploads->get($id, contain: ['Users']);
+
+        // Same right as viewing that member's uploads at all.
+        $allowed = $this->CurrentUser->permission(
+            'saito.plugin.uploader.view',
+            (new ResourceAI())->onRole($upload->user->getRole())->onOwner($upload->user->getId()),
+        );
+        if (!$allowed) {
+            throw new SaitoForbiddenException(
+                sprintf('Attempt to list usage of upload "%s".', $id),
+                ['CurrentUser' => $this->CurrentUser],
+            );
+        }
+
+        $postings = $this->findPostingsEmbeddingUpload($upload)
+            ->select(['id', 'subject', 'time'])
+            ->orderBy(['Entries.time' => 'DESC'])
+            ->limit(50)
+            ->all();
+
+        $this->set('postings', $postings);
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_upload_usage');
+    }
+
+    /**
+     * Postings by an upload's owner whose text embeds it.
+     *
+     * The upload appears in a posting as `[img src=upload]<name>[/img]`, so the
+     * filename is matched in `entries.text` with LIKE — its underscores escaped
+     * so they stay literal rather than single-character wildcards — scoped to
+     * the owner's rows. Shared by the usage listing and the delete guard.
+     *
+     * @param \ImageUploader\Model\Entity\Upload $upload the upload
+     * @return \Cake\ORM\Query\SelectQuery
+     */
+    private function findPostingsEmbeddingUpload(
+        \ImageUploader\Model\Entity\Upload $upload,
+    ): \Cake\ORM\Query\SelectQuery {
+        $pattern = '%' . addcslashes((string)$upload->get('name'), '\\%_') . '%';
+
+        return $this->Entries->find()
+            ->where([
+                'Entries.user_id' => (int)$upload->user->getId(),
+                'Entries.text LIKE' => $pattern,
+            ]);
     }
 
     /**
