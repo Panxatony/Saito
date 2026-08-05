@@ -2813,3 +2813,52 @@ msgstr "Registrierungsversuch bei {0}"
 #: templates/email/text/user_register_existing.php
 msgid "register_email_existing_content"
 msgstr "Hallo,\n\nbei {0} hat jemand versucht, ein Konto mit dieser E-Mail-Adresse anzulegen. Es gibt hier bereits ein Konto mit dieser Adresse, unter dem Namen "{1}".\n\nDu musst nichts tun. Wenn du das selbst warst und dein Konto vergessen hattest: melde dich einfach an.\n\n{2}\n\nWenn du es nicht warst, hat sich vermutlich jemand bei seiner eigenen Adresse vertippt. Dein Konto ist davon unberührt, und es wurde nichts geändert."
+
+#: templates/Users/htmx_login_form.php
+msgid "user.pwreset.request.link"
+msgstr "Passwort vergessen?"
+
+#: templates/Users/htmx_forgot_password.php
+msgid "user.pwreset.request.title"
+msgstr "Passwort zurücksetzen"
+
+msgid "user.pwreset.request.intro"
+msgstr "Gib die E-Mail-Adresse deines Kontos ein, dann schicken wir dir einen Link, um ein neues Passwort zu setzen."
+
+msgid "user.pwreset.request.submit"
+msgstr "Link senden"
+
+msgid "user.pwreset.request.sent.title"
+msgstr "Schau in deine Mails"
+
+msgid "user.pwreset.request.sent.text"
+msgstr "Falls diese Adresse zu einem Konto hier gehört, ist ein Link zum Setzen eines neuen Passworts unterwegs. Er gilt eine Stunde."
+
+msgid "user.pwreset.request.again"
+msgstr "Neuen Link anfordern"
+
+#: templates/element/user/reset_password_body.php
+msgid "user.pwreset.form.title"
+msgstr "Neues Passwort setzen"
+
+msgid "user.pwreset.form.intro"
+msgstr "Wähle ein neues Passwort für dein Konto."
+
+msgid "user.pwreset.form.submit"
+msgstr "Passwort setzen"
+
+msgid "user.pwreset.invalid.title"
+msgstr "Dieser Link ist nicht mehr gültig"
+
+msgid "user.pwreset.invalid.text"
+msgstr "Der Reset-Link ist abgelaufen oder wurde bereits benutzt. Reset-Links gelten eine Stunde und funktionieren einmal."
+
+msgid "user.pwreset.done"
+msgstr "Dein Passwort wurde geändert. Du kannst dich jetzt damit anmelden."
+
+#: templates/email/text/user_password_reset.php
+msgid "user.pwreset.email.subject"
+msgstr "Passwort zurücksetzen bei {0}"
+
+msgid "user.pwreset.email.content"
+msgstr "Hallo,\n\njemand — vermutlich du — hat darum gebeten, das Passwort für dein Konto bei {0} zurückzusetzen.\n\nÖffne diesen Link, um ein neues Passwort zu setzen. Er gilt eine Stunde:\n\n{1}\n\nWarst du das nicht, ignoriere diese Mail einfach; dein Passwort bleibt unverändert."

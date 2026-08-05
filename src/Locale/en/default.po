@@ -1968,3 +1968,52 @@ msgstr "Someone tried to register at {0}"
 #: templates/email/text/user_register_existing.php
 msgid "register_email_existing_content"
 msgstr "Hello,\n\nsomebody tried to create an account at {0} with this email address. There is already an account here using it, under the name "{1}".\n\nYou do not have to do anything. If this was you and you had forgotten the account: just sign in.\n\n{2}\n\nIf it was not you, somebody most likely mistyped their own address. Your account is unaffected and nothing has been changed."
+
+#: templates/Users/htmx_login_form.php
+msgid "user.pwreset.request.link"
+msgstr "Forgot your password?"
+
+#: templates/Users/htmx_forgot_password.php
+msgid "user.pwreset.request.title"
+msgstr "Reset your password"
+
+msgid "user.pwreset.request.intro"
+msgstr "Enter the email address of your account and we will send a link to set a new password."
+
+msgid "user.pwreset.request.submit"
+msgstr "Send reset link"
+
+msgid "user.pwreset.request.sent.title"
+msgstr "Check your mail"
+
+msgid "user.pwreset.request.sent.text"
+msgstr "If that address belongs to an account here, a link to set a new password is on its way. It is valid for one hour."
+
+msgid "user.pwreset.request.again"
+msgstr "Request a new link"
+
+#: templates/element/user/reset_password_body.php
+msgid "user.pwreset.form.title"
+msgstr "Set a new password"
+
+msgid "user.pwreset.form.intro"
+msgstr "Choose a new password for your account."
+
+msgid "user.pwreset.form.submit"
+msgstr "Set password"
+
+msgid "user.pwreset.invalid.title"
+msgstr "This link is no longer valid"
+
+msgid "user.pwreset.invalid.text"
+msgstr "The reset link has expired or has already been used. Reset links last one hour and work once."
+
+msgid "user.pwreset.done"
+msgstr "Your password has been changed. You can sign in with it now."
+
+#: templates/email/text/user_password_reset.php
+msgid "user.pwreset.email.subject"
+msgstr "Reset your password at {0}"
+
+msgid "user.pwreset.email.content"
+msgstr "Hello,\n\nsomebody — probably you — asked to reset the password for your account at {0}.\n\nOpen this link to set a new password. It is valid for one hour:\n\n{1}\n\nIf it was not you, just ignore this mail; your password stays as it is."
