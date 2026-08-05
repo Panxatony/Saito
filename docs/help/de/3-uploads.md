@@ -64,5 +64,8 @@ Im eigenen Profil liegt das vollständige Archiv. Dort lassen sich Dateien
 auswählen und gemeinsam löschen. Vor dem Löschen wird einmal für die ganze
 Auswahl nachgefragt, denn rückgängig machen lässt es sich nicht.
 
-Eine gelöschte Datei verschwindet auch aus Beiträgen, die sie eingebunden haben
-— dort bleibt dann eine Fundstelle ohne Inhalt zurück.
+Zu jeder Datei zeigt das Lupen-Symbol, in welchen eigenen Beiträgen sie
+eingebunden ist — so lässt sich vor dem Löschen nachsehen, ob sie noch irgendwo
+gebraucht wird. Wird eine Datei gelöscht, die noch eingebunden ist, fragt das
+Forum vorher eigens nach; früher verschwand sie kommentarlos und hinterließ in
+den betroffenen Beiträgen eine Fundstelle ohne Inhalt.
