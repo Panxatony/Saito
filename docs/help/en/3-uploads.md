@@ -59,5 +59,7 @@ Your profile holds the full archive. Files can be selected there and deleted
 together. Deleting asks once for the whole selection, because it cannot be
 undone.
 
-A deleted file also disappears from the postings that embedded it, leaving a
-reference with nothing behind it.
+Each file carries a magnifier that lists the postings of yours it is embedded
+in, so you can check whether it is still needed before removing it. Deleting a
+file that is still embedded now asks first; it used to disappear without a word,
+leaving a reference with nothing behind it in the postings that used it.

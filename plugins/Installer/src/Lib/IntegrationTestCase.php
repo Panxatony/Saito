@@ -36,6 +36,7 @@ abstract class IntegrationTestCase extends SaitoIntegrationTestCase
         'categories',
         'drafts',
         'entries',
+        'password_reset_tokens',
         'phinxlog',
         'settings',
         'smiley_codes',

@@ -103,6 +103,23 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->assertResponseNotContains('<html');
         // The tree is only needed by the full page.
         $this->assertNull($this->viewVariable('tree'));
+        // Opened inline, the posting sits right under the thread line that
+        // carries its subject; the heading would only repeat it, so it is gone.
+        $this->assertResponseNotContains('postingBody-heading');
+    }
+
+    /**
+     * The counterpart: the posting's own page keeps the subject heading, because
+     * there it is the page title, not a line repeated one row down.
+     *
+     * @return void
+     */
+    public function testHtmxPostingKeepsSubjectHeadingOnFullPage(): void
+    {
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('postingBody-heading');
     }
 
     /**

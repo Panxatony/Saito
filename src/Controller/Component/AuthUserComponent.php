@@ -16,6 +16,7 @@ use App\Controller\AppController;
 use App\Model\Entity\User;
 use App\Model\Table\UsersTable;
 use Authentication\Authenticator\CookieAuthenticator;
+use Authentication\Authenticator\StatelessInterface;
 use Authentication\Controller\Component\AuthenticationComponent;
 use Cake\Controller\Component;
 use Cake\Controller\Controller;
@@ -48,6 +49,14 @@ class AuthUserComponent extends Component
      * @var string
      */
     public $name = 'CurrentUser';
+
+    /**
+     * Session key holding the fingerprint of the account password this session
+     * was established with — see {@see self::sessionMatchesPassword()}.
+     *
+     * @var string
+     */
+    public const PW_FINGERPRINT_KEY = 'Saito.pwFingerprint';
 
     /**
      * Component's components
@@ -104,6 +113,16 @@ class AuthUserComponent extends Component
         // personalized-feed token and must then be served as that logged-in
         // user. Only fall back to bot/guest handling when there is no identity.
         $user = $this->authenticate();
+        // Drop a session whose account password has changed since it began — a
+        // password reset (or change) then logs out every *other* device the
+        // account was signed in on, so a hijacked session cannot outlive the
+        // reset. Only for stateful (session/cookie) logins: a stateless token or
+        // JWT re-presents its credential each request and holds no fingerprint.
+        if (!empty($user) && !$this->isStatelessAuth() && !$this->sessionMatchesPassword($user)) {
+            $this->Authentication->logout();
+            $controller->getRequest()->getSession()->delete(self::PW_FINGERPRINT_KEY);
+            $user = null;
+        }
         if (!empty($user)) {
             $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
             $this->UsersTable->UserOnline->setOnline((string)$CurrentUser->getId(), true);
@@ -199,6 +218,11 @@ class AuthUserComponent extends Component
             $this->UsersTable->autoUpdatePassword($this->CurrentUser->getId(), $password);
         }
 
+        // Stamp this session with the account's current password fingerprint —
+        // read after any rehash above — so a later password change elsewhere
+        // invalidates it. See {@see self::sessionMatchesPassword()}.
+        $this->refreshPasswordFingerprint((int)$user->get('id'));
+
         return true;
     }
 
@@ -286,7 +310,76 @@ class AuthUserComponent extends Component
             }
             $this->setCurrentUser(CurrentUserFactory::createVisitor($this->getController()));
         }
+        $this->getController()->getRequest()->getSession()->delete(self::PW_FINGERPRINT_KEY);
         $this->Authentication->logout();
+    }
+
+    /**
+     * Is the current request authenticated by a stateless provider?
+     *
+     * Stateless authenticators (feed token, JWT) re-present their credential on
+     * every request and keep no server-side session, so the password-fingerprint
+     * guard neither applies to them nor has a session to read.
+     *
+     * @return bool
+     */
+    private function isStatelessAuth(): bool
+    {
+        $provider = $this->Authentication
+            ->getAuthenticationService()
+            ->getAuthenticationProvider();
+
+        return $provider instanceof StatelessInterface;
+    }
+
+    /**
+     * Does this session still belong to the account's current password?
+     *
+     * A session is stamped at login with a fingerprint of the account password
+     * (see {@see self::refreshPasswordFingerprint()}). When the password later
+     * changes — a self-service reset, an admin change, a "change password" from
+     * another device — every session carrying the old fingerprint stops
+     * matching and is dropped on its next request. That is what turns a password
+     * reset into "log out everywhere".
+     *
+     * A session that predates this mechanism carries no fingerprint; it adopts
+     * the current one and is trusted this once, so existing logins are not all
+     * kicked the moment the feature ships.
+     *
+     * @param User $user the freshly loaded account (carries the current hash)
+     * @return bool
+     */
+    private function sessionMatchesPassword(User $user): bool
+    {
+        $session = $this->getController()->getRequest()->getSession();
+        $current = hash('sha256', (string)$user->get('password'));
+        $stored = $session->read(self::PW_FINGERPRINT_KEY);
+        if ($stored === null) {
+            $session->write(self::PW_FINGERPRINT_KEY, $current);
+
+            return true;
+        }
+
+        return hash_equals($current, (string)$stored);
+    }
+
+    /**
+     * Stamp the current session with an account's present password fingerprint.
+     *
+     * Called at login and after a logged-in password change, so the session
+     * that performed the change keeps matching while the account's *other*
+     * sessions fall out of sync and are dropped.
+     *
+     * @param int $userId account whose current password to fingerprint
+     * @return void
+     */
+    public function refreshPasswordFingerprint(int $userId): void
+    {
+        $user = $this->UsersTable->get($userId, fields: ['id', 'password']);
+        $this->getController()->getRequest()->getSession()->write(
+            self::PW_FINGERPRINT_KEY,
+            hash('sha256', (string)$user->get('password'))
+        );
     }
 
     /**

@@ -26,6 +26,9 @@ $webroot = $this->request->getAttribute('webroot');
             <p style="margin-top: 1rem; font-size: .9rem;">
                 <a href="<?= $webroot ?>users/htmx-register"><?= h(__('register_linkname')) ?></a>
             </p>
+            <p style="font-size: .9rem;">
+                <a href="<?= $webroot ?>users/htmx-forgot-password"><?= h(__('user.pwreset.request.link')) ?></a>
+            </p>
         </div>
     </div>
 </div>

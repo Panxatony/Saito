@@ -115,6 +115,12 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::rs' => 'account activation via the emailed code',
         'App\\Controller\\UsersController::htmxLogin' => 'island login form',
         'App\\Controller\\UsersController::htmxRegister' => 'island registration form',
+        // Self-service password reset (#63): both must work for a member who
+        // cannot log in. Enumeration-safe (identical answer whether or not the
+        // address is on file) and throttled per client; the reset step is gated
+        // on a single-use, 60-minute, hashed token, not on a session.
+        'App\\Controller\\UsersController::htmxForgotPassword' => 'request a password-reset link (enumeration-safe, throttled)',
+        'App\\Controller\\UsersController::htmxResetPassword' => 'set a new password via an emailed single-use token (token-gated, not session)',
         // Public search + contact + static content.
         'SaitoSearch\\Controller\\SearchesController::htmxSimple' => 'island fulltext search (results category-filtered)',
         'App\\Controller\\ContactsController::htmxContactOwner' => 'island contact the operator (honeypot + timing guard)',

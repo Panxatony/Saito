@@ -5,6 +5,71 @@
 - Δ Changed
 - − Removed
 
+## [8.4.0] - 2026-08-05 "schlosswechsel"
+
+**One migration runs.** It adds `password_reset_tokens`; there is no `down()`.
+The JS bundle and the stylesheets changed too, so this is a full deploy, not a
+code-only one.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+Named for what the release does to a lock: a member who resets their password
+sets a new one, and every old key stops turning. Two long-standing gaps close
+with it — there was no way back into a forgotten account without an
+administrator, and a password reset did not end the sessions it was meant to
+end.
+
+- ＋ Added: **self-service password reset (#63).** Until now the only way back in
+  for a member who had lost their password was an administrator setting a new one
+  by hand. "Forgot password" now sends a one-time link: the member sets a new
+  password themselves and is taken to the login. The link carries a token whose
+  SHA-256 is all that is stored — a read of the new `password_reset_tokens` table
+  hands an attacker nothing usable — and it is single-use, expires after 60
+  minutes, and a fresh request clears the member's earlier links first. The
+  request form answers the same whether or not the address is on file, so it
+  cannot be used to tell which addresses are registered, and it is throttled per
+  client. It is an island page (htmx), so it works without the SPA and without
+  JavaScript.
+
+- ＋ Added: **see where an upload is embedded before deleting it (#64).** On the
+  upload-management grid each file now has a search control that lists the
+  postings it appears in, and deleting a file that is still embedded asks for
+  confirmation first instead of silently leaving a dangling `[img]` in old
+  postings. The lookup matches the upload's filename in the posting text, scoped
+  to the owner and riding the existing `user_id` index; the popover is a native
+  `<details>` toggle, so it stays within the content-security policy with no new
+  script.
+
+- Δ Changed: **a password change now logs out the account's other sessions.** A
+  session is stamped at login with a fingerprint of the account password and
+  dropped on its next request once that fingerprint no longer matches — so a
+  reset (or a change, or an administrator setting a new password) actually ends
+  the other devices the account was signed in on, which is the whole point of
+  resetting a password you fear was captured. Stateful logins only: a feed token
+  or JWT re-presents its credential each request and holds no session to
+  fingerprint. Sessions that predate the mechanism adopt the current fingerprint
+  rather than being kicked, so upgrading does not log everyone out at once.
+
+- ✓ Fixed: **a posting opened inline no longer repeats its own subject.** In the
+  thread tree, clicking a subject line opened the posting right beneath it — and
+  the posting printed the same subject again as its heading, one row down. The
+  heading is dropped for the inline view (the line above already carries it) and
+  kept on the posting's own page, where it is the page title. A forum member had
+  asked for exactly this.
+
+- ✓ Fixed: **the thread-collapse arrow closes inline-opened postings again.** On
+  a phone, once a posting in a multi-reply thread had been opened inline, the
+  collapse arrow could no longer fold the thread shut. Collapsing now closes any
+  inline postings it holds first.
+
+- Δ Changed: internal only — the upload-delete confirm branch returns a proper
+  `Response` (it returned `null`, which failed static analysis), and the
+  pixel-diff test harness matches a `<script>` end tag by shape rather than by
+  exact spelling. Neither reaches a reader.
+
 ## [8.3.17] - 2026-08-04 "blindgänger"
 
 No migration. Only the stylesheet changed; the JS bundle and the PHP are

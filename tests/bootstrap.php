@@ -40,9 +40,9 @@ foreach (Cache::configured() as $cacheKey) {
     $migrations = new Migrations();
     // Tables present after all Saito 5 migrations have run.
     $knownTables = [
-        'bookmarks', 'categories', 'drafts', 'entries', 'phinxlog', 'settings',
-        'smiley_codes', 'smilies', 'uploads', 'user_blocks', 'user_ignores',
-        'user_reads', 'useronline', 'users',
+        'bookmarks', 'categories', 'drafts', 'entries', 'password_reset_tokens',
+        'phinxlog', 'settings', 'smiley_codes', 'smilies', 'uploads',
+        'user_blocks', 'user_ignores', 'user_reads', 'useronline', 'users',
     ];
     // Legacy Saito 4 tables dropped by migration 5.1.0 — must be dropped
     // before re-running migrations so the initial migration can recreate them.

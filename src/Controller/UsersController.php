@@ -399,6 +399,194 @@ class UsersController extends AppController
         $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_rs');
     }
 
+    /** @var int max reset requests/attempts per client and window */
+    private const PASSWORD_RESET_MAX_ATTEMPTS = 5;
+
+    /** @var int reset throttle window in seconds */
+    private const PASSWORD_RESET_THROTTLE_WINDOW = 900;
+
+    /**
+     * Whether the client has spent its password-reset budget for the window.
+     *
+     * Guards both the request form and the reset-attempt form, keyed on the
+     * client IP: it caps how often someone can ask the "is this address a
+     * member" question the flow is careful never to answer, and how often a
+     * token can be guessed at.
+     *
+     * @return bool
+     */
+    private function isPasswordResetThrottled(): bool
+    {
+        $key = 'password-reset-throttle-' . $this->getRequest()->clientIp();
+        $record = Cache::read($key);
+
+        if (!is_array($record) || (time() - $record['first']) >= self::PASSWORD_RESET_THROTTLE_WINDOW) {
+            $record = ['count' => 0, 'first' => time()];
+        }
+        $record['count']++;
+        Cache::write($key, $record);
+
+        return $record['count'] > self::PASSWORD_RESET_MAX_ATTEMPTS;
+    }
+
+    /**
+     * Step 1 of the forgotten-password flow: take an address and email a link.
+     *
+     * The reply is the same whether or not the address belongs to a member —
+     * always "if that address is one of ours, a link is on the way". Saying
+     * more would answer, to anyone who asks, whether a given person is
+     * registered here, which a forum's membership is not public enough to allow
+     * (the registration flow makes the same choice, for the same reason). A link
+     * is only really sent for an address that matches an activated account.
+     *
+     * @return void
+     */
+    public function htmxForgotPassword(): void
+    {
+        $this->AuthUser->logout();
+        $this->set('status', 'view');
+
+        $isHtmx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+        if ($isHtmx) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_forgot_password_form');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_forgot_password');
+        }
+
+        if (!$this->request->is('post')) {
+            return;
+        }
+
+        if ($this->isPasswordResetThrottled()) {
+            $this->Flash->set(__('user.authe.throttled'), ['element' => 'error']);
+
+            return;
+        }
+
+        // From here on the member is told the same thing no matter what.
+        $this->set('status', 'sent');
+
+        $email = trim((string)$this->request->getData('user_email'));
+        if ($email === '') {
+            return;
+        }
+
+        /** @var \App\Model\Entity\User|null $user */
+        $user = $this->Users->find()
+            ->where(['user_email' => $email, 'activate_code' => 0])
+            ->first();
+        if ($user === null) {
+            // No such account, or one that never finished activating: say
+            // nothing, do nothing — the "sent" status above still shows.
+            return;
+        }
+
+        $token = $this->fetchTable('PasswordResetTokens')->issueFor((int)$user->get('id'));
+        $resetUrl = Router::url(
+            ['controller' => 'Users', 'action' => 'htmxResetPassword', '?' => ['token' => $token]],
+            true,
+        );
+
+        try {
+            $this->SaitoEmail->email([
+                'recipient' => $user,
+                'subject' => __('user.pwreset.email.subject', Configure::read('Saito.Settings.forum_name')),
+                'sender' => 'register',
+                'template' => 'user_password_reset',
+                'viewVars' => ['user' => $user, 'resetUrl' => $resetUrl],
+            ]);
+        } catch (Exception $e) {
+            // A mail hiccup must not become an oracle: still show "sent".
+            (new ExceptionLogger())->write('Password-reset email failed', ['e' => $e]);
+        }
+    }
+
+    /**
+     * Step 2: the link's landing — set a new password when the token is valid.
+     *
+     * The token, not a session, is the authority here: it resolves to the
+     * member and is single-use. The new password is set without the old one
+     * (a locked-out member does not have it) via the same field-whitelisted
+     * patch registration uses, and every token for that member is burned once
+     * it succeeds so the link cannot be replayed.
+     *
+     * @return \Cake\Http\Response|null
+     */
+    public function htmxResetPassword(): ?Response
+    {
+        $this->AuthUser->logout();
+
+        $isHtmx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+        $render = function () use ($isHtmx): void {
+            if ($isHtmx) {
+                $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_reset_password_form');
+            } else {
+                $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_reset_password');
+            }
+        };
+
+        $Tokens = $this->fetchTable('PasswordResetTokens');
+        $isPost = $this->request->is('post');
+        $token = $isPost
+            ? (string)$this->request->getData('token')
+            : (string)$this->request->getQuery('token');
+        $this->set('token', $token);
+        $this->set('errorMessage', null);
+
+        $userId = $Tokens->userIdForToken($token);
+        if ($userId === null) {
+            $this->set('status', 'invalid');
+            $render();
+
+            return null;
+        }
+
+        if (!$isPost) {
+            $this->set('status', 'form');
+            $render();
+
+            return null;
+        }
+
+        if ($this->isPasswordResetThrottled()) {
+            $this->set('status', 'form');
+            $this->set('errorMessage', __('user.authe.throttled'));
+            $render();
+
+            return null;
+        }
+
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->get($userId);
+        $data = [
+            'password' => $this->request->getData('password'),
+            'password_confirm' => $this->request->getData('password_confirm'),
+        ];
+        // Field whitelist keeps this to the password (as register() does), so
+        // the `password_old` rule — absent from the data — never fires, while
+        // strength and the confirm match still do.
+        $this->Users->patchEntity($user, $data, ['fields' => ['password']]);
+
+        if (!$user->getErrors() && $this->Users->save($user)) {
+            $Tokens->clearFor($userId);
+            $this->Flash->set(__('user.pwreset.done'), ['element' => 'success']);
+            $loginUrl = Router::url(['_name' => 'login']);
+
+            // htmx follows a 302 and swaps it in; HX-Redirect makes it a real
+            // navigation to the login page, where the flash then shows.
+            return $isHtmx
+                ? $this->response->withHeader('HX-Redirect', $loginUrl)
+                : $this->redirect($loginUrl);
+        }
+
+        $errors = $user->getErrors();
+        $this->set('status', 'form');
+        $this->set('errorMessage', $errors ? __d('nondynamic', (string)current(array_pop($errors))) : null);
+        $render();
+
+        return null;
+    }
+
     /**
      * Member list as an htmx island (strangler-fig migration).
      *
@@ -707,6 +895,9 @@ class UsersController extends AppController
             }
             $this->Users->patchEntity($user, $data);
             if ($this->Users->save($user)) {
+                // Keep *this* session logged in while the changed password kicks
+                // the account's other sessions on their next request.
+                $this->AuthUser->refreshPasswordFingerprint((int)$id);
                 $this->Flash->set(__('change_password_success'), ['element' => 'success']);
                 if ($isHtmx) {
                     // A 302 would be followed by htmx and swapped into the modal
@@ -1360,7 +1551,9 @@ class UsersController extends AppController
         ];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
-        $this->Authentication->allowUnauthenticated(['login', 'logout', 'rs', 'htmxLogin', 'htmxRegister']);
+        $this->Authentication->allowUnauthenticated(
+            ['login', 'logout', 'rs', 'htmxLogin', 'htmxRegister', 'htmxForgotPassword', 'htmxResetPassword'],
+        );
         $this->AuthUser->authorizeAction('htmxRegister', 'saito.core.user.register');
         $this->AuthUser->authorizeAction('rs', 'saito.core.user.register');
 

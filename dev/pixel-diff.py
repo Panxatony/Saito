@@ -38,8 +38,15 @@ def fetch(path: str, out: pathlib.Path, port: int) -> None:
     # <noscript>. So the scripts come out and the <noscript> is unwrapped, which
     # makes that link real and swappable. The island markup is rendered by the
     # server — the bundle only enhances it — so nothing being compared is lost.
-    html = re.sub(r'<script\b[^>]*>.*?</script>', '', html, flags=re.S | re.I)
-    html = re.sub(r'</?noscript>', '', html, flags=re.I)
+    # The end tag matches the way HTML actually closes one: any case, and
+    # whitespace or leftover junk before the bracket (`</script >`,
+    # `</script\n foo>`) still closes the element. Three passes of CodeQL found
+    # three of those spellings one after another; this pattern covers the shape
+    # rather than the spelling. Nothing here is a sanitiser — the input is our
+    # own test server's output — but a stripper that misses a tag would leave a
+    # script running in the screenshot and quietly ruin the comparison.
+    html = re.sub(r'<script\b[^>]*>.*?</script(?:\s[^>]*)?>', '', html, flags=re.S | re.I)
+    html = re.sub(r'</?noscript(?:\s[^>]*)?>', '', html, flags=re.I)
     # … and now the one thing under test can be substituted.
     # Absolute, because the <base> above would otherwise resolve a root-relative
     # path against the test host — which silently 404s and renders the page with
