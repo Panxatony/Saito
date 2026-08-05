@@ -58,6 +58,21 @@ class UsersControllerPasswordResetTest extends IntegrationTestCase
         $this->Users->updateAll(['activate_code' => 0], ['id' => 1]);
     }
 
+    public function tearDown(): void
+    {
+        parent::tearDown();
+        // The whole suite shares one database connection. A forgot-password
+        // request here can leave that connection inside an open transaction;
+        // carried into the next test it turns a nested rollback into a no-op
+        // (savepoints are off), which surfaced as PostingBehaviorTest's
+        // mid-merge-rollback test failing only when this class ran before it.
+        // Leave the connection as we would want to find it.
+        $connection = \Cake\Datasource\ConnectionManager::get('default');
+        while ($connection->inTransaction()) {
+            $connection->rollback();
+        }
+    }
+
     /**
      * An unknown address is answered exactly like a known one, and nothing is
      * issued — the flow never reveals who is a member.
