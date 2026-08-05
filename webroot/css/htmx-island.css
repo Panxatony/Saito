@@ -218,6 +218,7 @@
     text-align: left;
     white-space: normal;
 }
+.htmx-island .upload-usage-loading { color: var(--isl-text-muted, #6b6560); }
 .htmx-island .upload-usage-count { margin: 0 0 0.2rem; font-weight: 600; }
 .htmx-island .upload-usage-none { margin: 0; }
 .htmx-island .upload-usage-list { list-style: none; margin: 0; padding: 0; }

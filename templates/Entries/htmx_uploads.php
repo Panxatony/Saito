@@ -64,7 +64,7 @@ foreach ($uploads as $u) :
                 <div class="js-uploadUsage upload-usage"
                      hx-get="<?= $webroot ?>entries/htmx-upload-usage/<?= (int)$u->get('id') ?>"
                      hx-trigger="intersect once"
-                     hx-target="this" hx-swap="innerHTML"></div>
+                     hx-target="this" hx-swap="innerHTML"><span class="upload-usage-loading"><?= h(__('Loading …')) ?></span></div>
             </details>
             <button type="button" class="upload-tile-del"
                     hx-post="<?= $webroot ?>entries/htmx-upload-delete/<?= (int)$u->get('id') ?>"
