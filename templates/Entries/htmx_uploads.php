@@ -55,6 +55,12 @@ foreach ($uploads as $u) :
         ?>
         <div class="js-uploadManageItem upload-manage-item">
             <?= $tile ?>
+            <button type="button" class="upload-tile-usage"
+                    hx-get="<?= $webroot ?>entries/htmx-upload-usage/<?= (int)$u->get('id') ?>"
+                    hx-target="next .js-uploadUsage" hx-swap="innerHTML"
+                    title="<?= h(__('upload.usage.link')) ?>">
+                <i class="fa fa-search" aria-hidden="true"></i>
+            </button>
             <button type="button" class="upload-tile-del"
                     hx-post="<?= $webroot ?>entries/htmx-upload-delete/<?= (int)$u->get('id') ?>"
                     hx-target="closest .js-uploadManageItem" hx-swap="outerHTML"
@@ -62,6 +68,7 @@ foreach ($uploads as $u) :
                     title="<?= h(__('Delete')) ?>">
                 <i class="fa fa-trash-o" aria-hidden="true"></i>
             </button>
+            <div class="js-uploadUsage upload-usage"></div>
         </div>
         <?php
     else :

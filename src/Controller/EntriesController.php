@@ -806,6 +806,66 @@ class EntriesController extends AppController
     }
 
     /**
+     * List the postings that embed a given upload (issue #64).
+     *
+     * So a member can see where an image is used before deleting it: a deleted
+     * upload that is still embedded leaves a dangling `[img]` in old postings,
+     * with nothing warning them first.
+     *
+     * An upload is referenced in a posting as `[img src=upload]<name>[/img]`
+     * (see `uploads.ts`), so its filename appears verbatim in `entries.text`.
+     * The name is matched literally — every upload name carries underscores,
+     * which are LIKE wildcards unless escaped. Scoped to the upload's owner: a
+     * member embeds their own uploads in their own postings, and this keeps the
+     * scan to one member's rows. `LIKE '%…%'` cannot use an index, so this runs
+     * per-upload and on demand, never in bulk.
+     *
+     * @param string|null $id upload id
+     * @return void
+     */
+    public function htmxUploadUsage($id = null): void
+    {
+        $id = (int)$id;
+        if ($id <= 0) {
+            throw new BadRequestException();
+        }
+
+        $Uploads = $this->fetchTable('ImageUploader.Uploads');
+        /** @var \ImageUploader\Model\Entity\Upload $upload */
+        $upload = $Uploads->get($id, contain: ['Users']);
+
+        // Same right as viewing that member's uploads at all.
+        $allowed = $this->CurrentUser->permission(
+            'saito.plugin.uploader.view',
+            (new ResourceAI())->onRole($upload->user->getRole())->onOwner($upload->user->getId()),
+        );
+        if (!$allowed) {
+            throw new SaitoForbiddenException(
+                sprintf('Attempt to list usage of upload "%s".', $id),
+                ['CurrentUser' => $this->CurrentUser],
+            );
+        }
+
+        $name = (string)$upload->get('name');
+        // Escape the LIKE metacharacters so a filename's underscores match
+        // literally rather than as single-character wildcards.
+        $pattern = '%' . addcslashes($name, '\\%_') . '%';
+
+        $postings = $this->Entries->find()
+            ->select(['id', 'subject', 'time'])
+            ->where([
+                'Entries.user_id' => (int)$upload->user->getId(),
+                'Entries.text LIKE' => $pattern,
+            ])
+            ->orderBy(['Entries.time' => 'DESC'])
+            ->limit(50)
+            ->all();
+
+        $this->set('postings', $postings);
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_upload_usage');
+    }
+
+    /**
      * Inline reply to a posting, for the htmx island (strangler-fig migration).
      *
      * GET renders a minimal reply form; POST creates the answer via the same

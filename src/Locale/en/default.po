@@ -1968,3 +1968,19 @@ msgstr "Someone tried to register at {0}"
 #: templates/email/text/user_register_existing.php
 msgid "register_email_existing_content"
 msgstr "Hello,\n\nsomebody tried to create an account at {0} with this email address. There is already an account here using it, under the name "{1}".\n\nYou do not have to do anything. If this was you and you had forgotten the account: just sign in.\n\n{2}\n\nIf it was not you, somebody most likely mistyped their own address. Your account is unaffected and nothing has been changed."
+
+#: templates/Entries/htmx_uploads.php
+msgid "upload.usage.link"
+msgstr "Where is this used?"
+
+#: templates/Entries/htmx_upload_usage.php
+msgid "upload.usage.none"
+msgstr "Not embedded in any of your postings."
+
+msgid "(no subject)"
+msgstr "(no subject)"
+
+msgid "Embedded in {0} posting"
+msgid_plural "Embedded in {0} postings"
+msgstr[0] "Embedded in {0} posting"
+msgstr[1] "Embedded in {0} postings"
