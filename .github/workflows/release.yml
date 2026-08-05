@@ -134,15 +134,15 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Build frontend assets (yarn + grunt)
+      - name: Build frontend assets (yarn)
         run: |
           node --version
-          npm install -g --silent yarn grunt-cli
+          npm install -g --silent yarn
           yarn install --frozen-lockfile --non-interactive
-          # `grunt release` still orchestrates CSS, locale JSON and asset copy;
-          # its JS-bundle step now runs Vite (see Gruntfile shell:bundle), so the
-          # OpenSSL legacy-provider flag Webpack 4 needed is no longer required.
-          grunt release
+          # The release chain is package.json scripts now (no grunt): Sass,
+          # PostCSS (autoprefixer + cssnano), purge, the three Vite bundles and
+          # the asset copy. Output is byte-identical to the old `grunt release`.
+          yarn build:release
 
       - name: Package tarball
         run: |
@@ -195,7 +195,6 @@ jobs:
             --exclude='./tmp' \
             --exclude='./tests' \
             --exclude='./pipeline-failed.log' \
-            --exclude='./Gruntfile.js' \
             --exclude='./package.json' \
             --exclude='./phpcs.xml.dist' \
             --exclude='./phpstan.neon' \
