@@ -64,3 +64,32 @@ tt {
   color: $body-color;
   line-height: inherit;
 }
+
+// Bootstrap's contextual alerts carry their own backgrounds and keep them in
+// the dark presets, where the pale green of a success box is deliberate rather
+// than an oversight. What is an oversight is the rule above reaching inside
+// one: `$body-color` is near-white in every dark preset, so `<code>` in an
+// alert came out near-white on pale green — about 1.2:1, which is not "hard to
+// read", it is not there.
+//
+// It surfaced on the two-factor recovery codes, which is the worst place for
+// it: they are shown exactly once, and there is no second chance to read them.
+// Inside an alert, take the alert's own colour.
+.alert {
+  code,
+  pre,
+  tt {
+    color: inherit;
+  }
+}
+
+// Ten codes that somebody has to read off a screen and keep. Monospace so the
+// columns line up, extra tracking because the alphabet deliberately drops the
+// pairs that get misread by hand and the rest still deserve the space, and a
+// little room between lines so the eye does not skip one.
+.two-factor-codes {
+  margin-top: 0.75rem;
+  font-family: $font-family-monospace;
+  letter-spacing: 0.08em;
+  line-height: 1.9;
+}
