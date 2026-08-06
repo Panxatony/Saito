@@ -44,3 +44,7 @@ echo $this->Form->end();
     <a href="<?= $webroot ?>users/htmx-register" class="js-authModalOpen"
        data-modal-url="<?= $webroot ?>users/htmx-register"><?= h(__('register_linkname')) ?></a>
 </p>
+<p style="font-size: .9rem;">
+    <a href="<?= $webroot ?>users/htmx-forgot-password" class="js-authModalOpen"
+       data-modal-url="<?= $webroot ?>users/htmx-forgot-password"><?= h(__('user.pwreset.request.link')) ?></a>
+</p>

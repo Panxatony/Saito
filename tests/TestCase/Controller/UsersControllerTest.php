@@ -1,23 +1,23 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Test\TestCase\Controller;
 
-use Authentication\PasswordHasher\DefaultPasswordHasher;
+use App\Controller\EntriesController;
 use App\Controller\UsersController;
+use Authentication\PasswordHasher\DefaultPasswordHasher;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
-use Cake\Event\Event;
-use Cake\Event\EventManager;
 use Cake\Http\Cookie\CookieCollection;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\NotFoundException;
-use Cake\Mailer\Message;
+use Cake\I18n\I18n;
 use Cake\ORM\TableRegistry;
-use Laminas\Diactoros\UploadedFile;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Test\IntegrationTestCase;
 use Saito\User\Permission\ResourceAC;
+use Saito\User\WidgetPreferences;
 
 class UsersControllerTest extends IntegrationTestCase
 {
@@ -35,7 +35,6 @@ class UsersControllerTest extends IntegrationTestCase
         }
         @rmdir($dir);
     }
-
 
     public array $fixtures = [
         'app.Category',
@@ -186,6 +185,84 @@ class UsersControllerTest extends IntegrationTestCase
     }
 
     /**
+     * A known address and an unknown one get the same answer.
+     *
+     * This is the whole point, and it has to be asserted as an *equality*
+     * rather than as the absence of a message: any difference at all — a
+     * different heading, a field marked in red, an extra word — is the answer
+     * somebody was asking for. So the two responses are compared to each other,
+     * not to a string somebody remembered to look for.
+     *
+     * The throttle from 8.3.2 remains the second layer. It capped how often the
+     * question could be asked; this stops it being answered.
+     *
+     * @return void
+     */
+    public function testRegistrationDoesNotRevealWhetherAnAddressIsKnown()
+    {
+        Cache::clear('default');
+        try {
+            $known = $this->getTableLocator()->get('Users')->get(3)->get('user_email');
+            $this->assertNotEmpty($known, 'the fixture must have an address, or this proves nothing');
+
+            $withKnown = $this->registerAndCaptureBody('taken-name-1', $known);
+            $withUnknown = $this->registerAndCaptureBody('taken-name-2', 'nobody-here@example.com');
+
+            $this->assertNotEmpty($withUnknown, 'nothing rendered — the comparison would be vacuous');
+            $this->assertSame(
+                $withUnknown,
+                $withKnown,
+                'the response differs for a known address, which answers the question',
+            );
+        } finally {
+            Cache::clear('default');
+        }
+    }
+
+    /**
+     * Post a registration the way a person would and hand back what they see.
+     *
+     * The honeypot needs the form to have been open for five seconds, which
+     * the session records — so the load has to happen first, and the clock has
+     * to be moved rather than waited out.
+     *
+     * @param string $username name to register
+     * @param string $email address to register
+     * @return string the rendered body
+     */
+    private function registerAndCaptureBody(string $username, string $email): string
+    {
+        $this->mockSecurity();
+        $this->get('/users/htmx-register');
+        $this->session(['Register.formLoadTime' => time() - 60]);
+        $this->post('/users/htmx-register', [
+            'username' => $username,
+            'user_email' => $email,
+            'password' => 'a-long-enough-password',
+            'password_confirm' => 'a-long-enough-password',
+            'tos_confirm' => 1,
+        ]);
+
+        // Per-request nonces differ by design and say nothing about the
+        // address; comparing them would make the test fail on every run
+        // regardless of the behaviour it is meant to measure. The username is
+        // normalised for the same reason — the two attempts cannot share one,
+        // or the second collides on the name instead of the address.
+        $body = (string)$this->_response->getBody();
+        $body = preg_replace('/(_csrfToken|csrf-token|_Token\[[a-z]+\])[^>]*?value="[^"]*"/', '$1', $body) ?? $body;
+        $body = preg_replace('/content="[A-Za-z0-9+\/=]{40,}"/', 'content=""', $body) ?? $body;
+        // The footer prints how long the request took. Not an oracle in itself
+        // — both branches send exactly one mail, the confirmation or the
+        // "somebody tried to register", so there is no extra work on one side
+        // to measure. Normalised because it is noise, not because it is safe to
+        // ignore: if one branch ever stops sending, the timing becomes the
+        // answer this test exists to prevent.
+        $body = preg_replace('/Generated in [0-9.]+ s/', 'Generated in T s', $body) ?? $body;
+
+        return str_replace($username, 'NAME', $body);
+    }
+
+    /**
      * Logging in with "remember me" must set a *persistent* auth cookie.
      *
      * Regression: the Cookie authenticator was configured with the Cake 3
@@ -220,7 +297,7 @@ class UsersControllerTest extends IntegrationTestCase
         //# must be persistent, not a session cookie
         $this->assertNotNull(
             $cookie->getExpiresTimestamp(),
-            'remember-me cookie must have an expiry (must not be a session cookie)'
+            'remember-me cookie must have an expiry (must not be a session cookie)',
         );
         $this->assertGreaterThan(time(), $cookie->getExpiresTimestamp());
 
@@ -283,7 +360,7 @@ class UsersControllerTest extends IntegrationTestCase
         $Users = TableRegistry::getTableLocator()->get('Users');
         $UserBlocks = $this->getMockForTable(
             'UserBlocks',
-            ['getBlockEndsForUser']
+            ['getBlockEndsForUser'],
         );
         $UserBlocks
             ->expects($this->once())
@@ -302,8 +379,8 @@ class UsersControllerTest extends IntegrationTestCase
         // hard-coded in English, so a German (or any non-English) forum showed
         // English. The strings now go through i18n; verify they resolve to the
         // localized text (and never leak the raw message key).
-        \Cake\Cache\Cache::clear('_cake_translations_');
-        \Cake\I18n\I18n::setLocale('de');
+        Cache::clear('_cake_translations_');
+        I18n::setLocale('de');
         try {
             $keys = [
                 'register_success_title' => 'Danke für deine Registrierung',
@@ -318,7 +395,7 @@ class UsersControllerTest extends IntegrationTestCase
                 $this->assertSame($expected, __($key), sprintf('Key "%s" is not translated to German.', $key));
             }
         } finally {
-            \Cake\I18n\I18n::setLocale('en_US');
+            I18n::setLocale('en_US');
         }
     }
 
@@ -368,6 +445,7 @@ class UsersControllerTest extends IntegrationTestCase
      *
      * @return void
      */
+
     /**
      * Blocking a member sits on the profile page, not in the admin backend:
      * `saito.core.user.lock.set` grants it to moderators, and the backend is
@@ -415,7 +493,7 @@ class UsersControllerTest extends IntegrationTestCase
         $blocks = TableRegistry::getTableLocator()->get('UserBlocks');
         $this->assertNotEmpty(
             $blocks->find()->where(['user_id' => 3, 'ended IS' => null])->first(),
-            'the moderator could not block the member'
+            'the moderator could not block the member',
         );
     }
 
@@ -471,7 +549,7 @@ class UsersControllerTest extends IntegrationTestCase
 
             $this->assertNotEmpty(
                 $blocks->find()->where(['user_id' => 3, 'ended IS' => null])->first(),
-                sprintf('slider step %d was refused', $seconds)
+                sprintf('slider step %d was refused', $seconds),
             );
         }
     }
@@ -483,9 +561,9 @@ class UsersControllerTest extends IntegrationTestCase
      */
     protected function storedArrangement(): array
     {
-        return \Saito\User\WidgetPreferences::read(
+        return WidgetPreferences::read(
             TableRegistry::getTableLocator()->get('Users')->get(3)->get('slidetab_order'),
-            \App\Controller\EntriesController::WIDGETS
+            EntriesController::WIDGETS,
         );
     }
 
@@ -541,7 +619,7 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertResponseOk();
         $this->assertSame(
             ['order' => ['mine', 'online', 'recent'], 'minimised' => ['online']],
-            $this->storedArrangement()
+            $this->storedArrangement(),
         );
     }
 
@@ -605,7 +683,6 @@ class UsersControllerTest extends IntegrationTestCase
         $this->get($url);
         $this->assertRedirectLogin($url);
     }
-
 
     public function testIgnore()
     {
@@ -738,7 +815,6 @@ class UsersControllerTest extends IntegrationTestCase
         $this->get($url);
         $this->assertRedirectLogin($url);
     }
-
 
     /**
      * The island login page is public — it has to be, or nobody could reach it.

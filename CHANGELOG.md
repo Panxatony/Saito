@@ -5,6 +5,690 @@
 - Δ Changed
 - − Removed
 
+## [8.4.1] - 2026-08-06 "hausordnung"
+
+**One migration runs.** It adds `users.tos_accepted_version`; there is no
+`down()`. The stylesheets changed too (Nova and Macnemo); the JS bundles did
+not, so they can stay as they are.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+A point release by number and a house-rules release by content: the forum now
+ships terms of service, links them where they belong, and can ask members to
+agree again when they change. Named for what § 2 of those terms calls the
+operator's Hausrecht.
+
+Nothing here changes what a member sees day to day unless the operator raises
+`tos_version` — the new machinery is dormant until then, deliberately, so
+upgrading does not greet everybody with a consent form.
+
+- ＋ Added: **terms of service that actually exist.** `/pages/tos` renders them,
+  the registration form and the footer link to them, and the retired
+  `/pages/de/tos` is gone. An installation that writes its own puts trusted HTML
+  in `Saito.tos`; **left empty, a German default ships** with the forum's name
+  filled in and the operator taken from the imprint, so a fresh forum is not
+  left with a dead link. `docs/terms-of-service-template.md` is the same text to
+  start from.
+
+- ＋ Added: **members are asked to agree again when the terms change.** The terms
+  carry a version (`tos_version`, in Admin → Settings) and each account records
+  the version it agreed to. Raise the setting after a material change and every
+  account behind it meets the new terms and an accept button instead of the
+  forum — § 7 of the shipped terms, implemented.
+
+  Sessions are deliberately *not* invalidated: the check runs on every request,
+  so the next thing a member does already lands there, and forcing a re-login
+  would cost everyone their session to no purpose. Four ways out stay open, or
+  somebody who does not want to agree would be trapped in a forum they cannot
+  leave: the terms themselves, the imprint and privacy policy, logging out, and
+  the GDPR data export.
+
+- ＋ Added: **the whole forum as a file.** `bin/cake export_forum` streams
+  members, categories, postings and upload metadata as JSON Lines — for a move,
+  or a backup you can still read in ten years. It pages every table and yields a
+  record at a time, so the reference forum's 680,000 postings cost a few
+  megabytes of memory rather than the 66 the text weighs. Credentials and the
+  upload files stay out on purpose; both belong to the SQL dump and the file
+  backup that this sits beside.
+
+- ✓ Fixed: **read-only fields were unreadable on the dark theme.** The personal
+  RSS-feed addresses in the settings sat on Bootstrap's fixed light-grey
+  `[readonly]` fill under light text. They follow the theme's own colours now.
+
+- ✓ Fixed: **the forum export was written world-readable.** It holds every
+  member's e-mail address, and their IP addresses where the forum stores them,
+  and the default umask made it `0644` — on a shared host, the membership list
+  for any local account. It is `0600` in a `0700` directory now, and the command
+  refuses to write at all if it cannot set that. Found in the security audit of
+  this release; it was never reachable over the web and never carried
+  credentials, so this was local exposure, not a remote hole.
+
+- Δ Changed: **the release build lost grunt.** The chain is `package.json`
+  scripts now — `yarn build:release` runs Sass, PostCSS, the purge, the three
+  Vite bundles and the asset copy. grunt and its five packages leave the tree,
+  and with them the last `minimatch@3`, so the build-time advisory pin goes too.
+  The gate was byte-identical output: the seven stylesheets, three bundles and
+  twenty copied assets all `cmp`-equal to what `grunt release` produced.
+
+- Δ Changed: **a LICENSE file at last.** `composer.json` had said MIT for years
+  with no file to carry the notice. It also names the third-party code a
+  distribution actually contains — Bootstrap, Alpine, htmx, Font Awesome, and
+  the OFL-licensed fonts.
+
+- − Removed: **823 dead translation entries**, already marked obsolete by
+  gettext and never read by CakePHP — its parser skips `#~` lines entirely.
+  Verified rather than assumed: the catalogue was dumped through that parser
+  before and after and the two are byte-identical. `default.po` drops from 76K
+  to 52K (de) and 56K to 48K (en).
+
+- Δ Changed: `todo.md` is retired. What it held is now issues #65–#77, each
+  carrying its measurements; the file is a pointer so nobody looks for the list
+  where it used to be.
+
+## [8.4.0] - 2026-08-05 "schlosswechsel"
+
+**One migration runs.** It adds `password_reset_tokens`; there is no `down()`.
+The JS bundle and the stylesheets changed too, so this is a full deploy, not a
+code-only one.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+Named for what the release does to a lock: a member who resets their password
+sets a new one, and every old key stops turning. Two long-standing gaps close
+with it — there was no way back into a forgotten account without an
+administrator, and a password reset did not end the sessions it was meant to
+end.
+
+- ＋ Added: **self-service password reset (#63).** Until now the only way back in
+  for a member who had lost their password was an administrator setting a new one
+  by hand. "Forgot password" now sends a one-time link: the member sets a new
+  password themselves and is taken to the login. The link carries a token whose
+  SHA-256 is all that is stored — a read of the new `password_reset_tokens` table
+  hands an attacker nothing usable — and it is single-use, expires after 60
+  minutes, and a fresh request clears the member's earlier links first. The
+  request form answers the same whether or not the address is on file, so it
+  cannot be used to tell which addresses are registered, and it is throttled per
+  client. It is an island page (htmx), so it works without the SPA and without
+  JavaScript.
+
+- ＋ Added: **see where an upload is embedded before deleting it (#64).** On the
+  upload-management grid each file now has a search control that lists the
+  postings it appears in, and deleting a file that is still embedded asks for
+  confirmation first instead of silently leaving a dangling `[img]` in old
+  postings. The lookup matches the upload's filename in the posting text, scoped
+  to the owner and riding the existing `user_id` index; the popover is a native
+  `<details>` toggle, so it stays within the content-security policy with no new
+  script.
+
+- Δ Changed: **a password change now logs out the account's other sessions.** A
+  session is stamped at login with a fingerprint of the account password and
+  dropped on its next request once that fingerprint no longer matches — so a
+  reset (or a change, or an administrator setting a new password) actually ends
+  the other devices the account was signed in on, which is the whole point of
+  resetting a password you fear was captured. Stateful logins only: a feed token
+  or JWT re-presents its credential each request and holds no session to
+  fingerprint. Sessions that predate the mechanism adopt the current fingerprint
+  rather than being kicked, so upgrading does not log everyone out at once.
+
+- ✓ Fixed: **a posting opened inline no longer repeats its own subject.** In the
+  thread tree, clicking a subject line opened the posting right beneath it — and
+  the posting printed the same subject again as its heading, one row down. The
+  heading is dropped for the inline view (the line above already carries it) and
+  kept on the posting's own page, where it is the page title. A forum member had
+  asked for exactly this.
+
+- ✓ Fixed: **the thread-collapse arrow closes inline-opened postings again.** On
+  a phone, once a posting in a multi-reply thread had been opened inline, the
+  collapse arrow could no longer fold the thread shut. Collapsing now closes any
+  inline postings it holds first.
+
+- Δ Changed: internal only — the upload-delete confirm branch returns a proper
+  `Response` (it returned `null`, which failed static analysis), and the
+  pixel-diff test harness matches a `<script>` end tag by shape rather than by
+  exact spelling. Neither reaches a reader.
+
+## [8.3.17] - 2026-08-04 "blindgänger"
+
+No migration. Only the stylesheet changed; the JS bundle and the PHP are
+untouched, so this one is a CSS deploy.
+
+Named for what most of it turned out to be: findings that looked live and were
+inert. Eight dependency alerts that never reach a browser, five reported XSS
+that cannot fire. The one real defect was on a phone.
+
+- ✓ Fixed: **the subject counter no longer collides with the subject.** On an
+  iPhone the remaining-characters count and a long subject rendered on top of
+  each other. iOS Safari scrolls an overflowing text input's content *under* its
+  own right padding, so the padding that held the number clear did nothing there
+  — Blink and Gecko stop the text short, which is why it only showed on the
+  phone. There is no position inside the field that survives both (masking the
+  number with an opaque chip just moved the problem onto the text at the caret),
+  so the number sits beside the field now: nothing can overlap it and it can
+  hide nothing. The field gives up about 3rem of width for it.
+
+- Δ Changed: **the build tooling lost `grunt-contrib-watch`.** Eight Dependabot
+  advisories — a vulnerable `lodash`, `async`, `minimatch` and `brace-expansion`
+  — all sat in `yarn.lock`, all build-time only, none of them in the bundle a
+  reader downloads. Three of the four came in solely through that dev-only
+  plugin, which `grunt release` does not use and `yarn dev`/`yarn css` already
+  cover, so it was removed rather than pinned; `globule` hard-pins its
+  `minimatch` and a resolution could not have lifted it anyway. The fourth,
+  `brace-expansion`, is pinned scoped so the eslint line is untouched. Nothing
+  about the release build changes: the same chain produces byte-identical
+  assets.
+
+- Δ Changed: **the CodeQL findings were triaged, not swept.** Five of six were
+  false positives and are dismissed with reasons — an inert `DOMParser` parse,
+  two stylesheet `href`s from server-rendered theme paths, a same-origin delete
+  navigation, and the `[spoiler]` reveal, whose content is escaped *twice*
+  server-side so the `innerHTML` lands on entity text rather than an element.
+  That last one is now pinned by a test, and its comment says why it must not be
+  "fixed" into a break. The sixth was real but dev-only: the pixel-diff harness
+  stripped `<script>` case-sensitively.
+
+## [8.3.16] - 2026-08-04 "türsteher"
+
+No migration. Both the stylesheets and the JS bundle changed, so deploy them
+with the rest.
+
+Named for what these have in common: who gets let in and who gets turned away.
+
+- ✓ Fixed: **`[email]` no longer runs on `.html()`, and needs no jQuery.** The
+  tag emitted an inline jQuery script that reassembled the address with
+  `.html()`. On 8.3 that was already visibly broken — no jQuery since 8.1.0, so
+  the script threw and the link rendered empty — and on an older install with
+  jQuery and no strict CSP it was a stored-XSS path, because `.html()` turns the
+  decoded attribute back into live markup. The reassembly is in the island
+  bundle now and uses `textContent`; the scheme is hard-coded to `mailto:` so a
+  posting cannot smuggle `javascript:`, and the helper escapes its own
+  attributes rather than trusting its caller. Verified in a real browser: a
+  hostile address renders as text, nothing executes.
+
+- ＋ Added: **posting is rate-limited.** Login, registration and the contact
+  form were throttled; posting was the one write path left open, and the
+  cheapest to abuse — one confirmed account, a posting per request, each write
+  dropping the thread cache. Ten per five minutes per member, keyed on the
+  member id (members share connections; a script does not need to), with
+  moderators and above exempt through a new `saito.core.posting.unthrottled`
+  permission.
+
+- Δ Changed: **the bot filter must not challenge two htmx endpoints.** The
+  island polls `/entries/htmx-new-count` and `/entries/htmx-widgets` in the
+  background; a proof-of-work challenge cannot be answered from an XHR, so the
+  challenge page came back and htmx swapped it into the running forum. Documented
+  in `docs/configuration.md` — the `ALLOW` rule and the `SameSite=Lax` cookie
+  setting — because it meets any Saito 8 behind Anubis, Cloudflare or similar.
+
+- Δ Changed: Vite 8.1.5 → 8.2.0 and typeface-fenix 0.0.72 → 1.1.13. The font is
+  byte-identical, the version jump is packaging only.
+
+## [8.3.15] - 2026-08-03 "viertes byte"
+
+**Two migrations run.** No `down()` on either — see below.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+Named for the byte utf8mb4 has and utf8mb3 has not. Both fixes are about it: the
+character set that could not be mixed inside one index, and the emoji the
+database refused.
+
+- ✓ Fixed: **the upgrade could stop at the eighth of nine migrations.**
+  `AlignSchemaWithGrownInstalls` widened `entries.text` with a statement naming
+  `utf8mb4`. On a table still in utf8mb3 that converts one column and leaves its
+  neighbours behind — and `entries` carries a FULLTEXT index over `subject`,
+  `name` and `text`, which may not span two character sets:
+
+      ERROR 1283: Column 'text' cannot be part of FULLTEXT index
+
+  The migration aborted and the four after it never ran. It converts the whole
+  table first now, guarded, so an installation already on utf8mb4 pays no
+  rebuild. **This only ever affected forums old enough to still have `entries`
+  in utf8mb3** — which is exactly why it was not found sooner.
+
+- ✓ Fixed: **the utf8mb4 conversion was never finished**, and on a grown
+  installation that shows as a refusal rather than a nuisance. Ten tables stayed
+  three-byte, so a bookmark note with an emoji, a category name, a block reason:
+
+      ERROR 1366: Incorrect string value: '\xF0\x9F\x91\x8D ...'
+
+  under MySQL's default strict mode, and truncated without complaint outside it.
+  `ConvertRemainingTablesToUtf8mb4` converts what is left, table by table,
+  skipping what is done.
+
+  Both faults were invisible to every check this project runs, for one reason:
+  the migrations had only ever been verified against databases the migrations
+  themselves built. That proves they are self-consistent and nothing else.
+
+- ＋ Added: **`Saito.webhooks.user.legacyContactFields`, deprecated in the same
+  release it appears in.** It puts the member's email address and IP back into
+  the webhook payload. Off by default, and it should stay off — it exists so a
+  forum that already runs a receiver written against an older integration can
+  upgrade Saito now and rewrite that receiver afterwards, instead of having to
+  do both at once. **Plan on it being removed.** Every send logs a warning while
+  it is on.
+
+  It does not loosen the forum's own rules: the IP follows `store_ip` and
+  `store_ip_anonymized`, so an installation that has decided not to keep
+  addresses does not start posting them, and one that keeps them shortened sends
+  them shortened. Sending is more exposing than storing, so the stricter setting
+  wins.
+
+- Δ Changed: `docs/upgrade.md` said seven migrations and measured "no
+  difference" against a database it had built itself. It says ten now, and what
+  the two faults above showed about the difference between self-consistency and
+  correctness.
+
+## [8.3.14] - 2026-08-03 "ballast"
+
+No migration. Both the stylesheets and the JS bundle changed, so deploy them
+with the rest.
+
+Named for what goes overboard: the shipped CSS loses two thirds of its weight,
+and the header bar can fold itself away again.
+
+- Δ Changed: **the release now ships only the CSS the forum uses** — 810 KB down
+  to 271, `Nova/theme.css` alone from 132 KB to 41. Bootstrap stays a dependency
+  and nothing derived from it lives in this repository; what changed is that
+  `grunt release` drops every rule no template or PHP class refers to. The
+  compiled themes carry about 1600 classes and the forum uses roughly 150.
+
+  This step is lossy and fails silently, so it comes with `dev/pixel-diff.sh`,
+  which renders real pages against both stylesheets and counts differing pixels.
+  Twelve comparisons at zero: three themes in both presets, three pages, three
+  viewport widths. Three blind spots turned up on the way and none was
+  guessable by reading — markup is built in `src/` as well as `templates/`; icon
+  names are composed (`$iconLabel('sign-in')` never appears as `fa-sign-in`
+  anywhere); and some classes exist only through `@extend`.
+
+  **For installations with their own theme:** rebuild it against this release
+  before deploying, and run the pixel diff. A rule your theme relies on that no
+  Saito template mentions will be removed.
+
+- ＋ Added: **the header bar folds away again.** The classic Bota theme could
+  collapse it to a thin strip and remembered the choice; the island frontend
+  never carried it over, and for three releases the CSS for it sat in the
+  stylesheet with no markup to match. The state is applied before the first
+  paint, so no page load shows the header folding itself, and it keeps the old
+  `headerClosed` key — an installation upgrading from the classic theme finds
+  its readers' preference intact rather than reset.
+
+- ＋ Added: **`Webhooks`, a plugin that tells an outside system about new
+  members.** Registration, activation and account deletion post a small signed
+  JSON body to an address the installation configures, under
+  `Saito.webhooks.user`. Meant for a companion app or a moderation queue; an
+  empty `url` switches the whole thing off, listener included.
+
+  The body carries id, username and a UTC timestamp and deliberately nothing
+  else — no email address, no IP. Delivery is best-effort: the call happens
+  inside the request that registered the member, so a dead endpoint must not
+  fail their registration, and a lost event is the accepted cost. Something that
+  must not miss events should poll the API.
+
+- Δ Changed: **the stylesheets compile with 32 deprecation warnings instead of
+  148.** `/` for division, `map-get` and `darken()`/`lighten()` are gone; the
+  dependencies are silenced properly now, which needed a load path rather than
+  the flag alone. Every conversion was output-preserving, so the test was `cmp`
+  on the compiled CSS rather than a pixel diff — all seven byte-identical
+  through the full release chain. `--fatal-deprecation` keeps the three cleared
+  categories from coming back. `@import` is what remains; the official migrator
+  refuses this codebase, and its deadline is a compiler version that does not
+  exist yet.
+
+## [8.3.13] - 2026-08-02 "funkstille"
+
+No migration. The JS bundle changed, so deploy it with the rest.
+
+Named for what three of these have in common: the forum stops sending something
+it should not have been sending.
+
+- ✓ Fixed: **the registration form no longer says whether an address already has
+  an account.** "This address is taken" is what a form has to tell the person
+  filling it in — and at the same time an oracle for asking, of anybody, whether
+  they are a member here. A forum's membership is not public information. The
+  answer now goes to the address itself, where only its owner can read it, and
+  the form says exactly the same thing either way. The throttle from 8.3.2
+  capped how often the question could be asked; this stops it being answered.
+
+  The cost, deliberately accepted: somebody who mistypes their address into one
+  that belongs to another member sees "check your mail" and never gets a mail,
+  while that member gets one they did not ask for. That mail is written for
+  exactly that reader.
+
+- ✓ Fixed: **a refused `/metrics` scrape no longer writes to `error.log`.** The
+  guard doing its job is not an application error. It cost nothing while the
+  token was right and everything when it was not: a rotated token at a
+  60-second interval would write 1,440 entries a day, making the log unreadable
+  exactly when somebody needed to read it.
+
+- ＋ Added: **the editor understands PeerTube addresses.** Paste the `/w/…` link
+  from the address bar and it becomes the player, the way YouTube already did.
+  Recognised by the path rather than the host, because PeerTube is federated and
+  there is no domain list to match against. The forum's own
+  `video_domains_allowed` still has to permit the instance.
+
+- Δ Changed: **`grunt-dart-sass` is gone**, replaced by the sass CLI through the
+  `grunt-shell` task the JS bundle already uses. The package was last released
+  in May 2022 and drives the legacy JS API that Dart Sass 2 removes — in the
+  path that builds the themes for every release, so the day that lands it would
+  have broken the release pipeline rather than somebody's local work. All six
+  stylesheets come out byte-identical.
+
+## [8.3.12] - 2026-08-02 "logbuch"
+
+**One migration runs.** It removes two settings rows and there is no way back —
+`down()` is empty on purpose.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+Named for what the three new pieces have in common: none of them invents
+anything. The rank ladder had been configured in the database for eleven years,
+the counters were already cached for the page footer, and the personal data was
+always there — all that was missing was a way to read any of it.
+
+- ＋ Added: **a member can download everything the forum holds about them.**
+  GDPR Art. 15 and 20; the link sits beside "change password" in their own
+  settings. The action takes no parameter — the account comes from the session,
+  so there is nothing to substitute and it cannot be pointed at anyone else, not
+  even by an administrator. Credentials are absent, and so is anything about
+  other people: who ignores this member, which moderator imposed a block, and
+  the text of postings they only edited. Streamed through a spilling buffer,
+  because assembling it in memory peaked at 174 MB for the busiest account
+  against a 128M limit.
+
+- ＋ Added: **`/metrics` for Prometheus**, guarded by `SAITO_METRICS_TOKEN`.
+  Empty token means the address answers 404, so this stays absent on any
+  installation that has not asked for it. Counters come from the cache the front
+  page already fills: 315 ms cold, 2–7 ms warm. `saito_db_version_matches` is
+  the one worth an alert — 0 means every request lands on the updater, which is
+  a forum that is down while nothing logs an error.
+
+- ＋ Added: **the rank a member has written their way to**, back after eleven
+  years, in the profile. A threshold is now the count a rank is *earned* at
+  rather than an upper bound, so somebody who has written nothing has no rank
+  instead of the bottom one. Both settings are editable in the admin area at
+  last — they never were.
+
+- Δ Changed: **the subject field spans the form again.** It was capped to stop
+  it promising room the forum would not accept; the character countdown says
+  that in words now, so the cap only took away space.
+
+- − Removed: **`api_enabled` and `api_crossdomain`.** Nothing reads either. The
+  first is the uncomfortable one: an administrator setting it to 0 had every
+  reason to believe the API was off, and it never was. The API itself is
+  untouched and working — its routes come from the ImageUploader and Bookmarks
+  plugins.
+
+- ＋ Added: `dev/audit-probes.sh`, the comparisons that found the residue above,
+  and a CI check that fails when a translation key is used without being
+  declared — the defect that put a raw `user.block.t` in front of moderators.
+
+- ✓ Fixed: the release tarball now carries the operator documentation. It
+  excluded all of `docs/*.md`, so the shipped README linked to a
+  `configuration.md` that was not in the package.
+
+## [8.3.11] - 2026-08-02 "time chaos"
+
+No migration and no data touched. **Times from the other half of the year move
+by an hour** — that is the correction below, not a new fault.
+
+Also worth checking on your own install before you update: `APP_DEFAULT_TIMEZONE`
+**must be `UTC`**. It is not the forum's timezone — that is a setting in the
+admin area. See [configuration.md](docs/configuration.md).
+
+- ✓ Fixed: **postings from the other half of the year were shown with the wrong
+  hour.** `TimeHHelper` added the timezone offset to the epoch and then formatted
+  with `date()`, which runs under PHP's UTC — two mistakes that cancel, which is
+  why the text looked right for years. But the offset was computed once from
+  *now* and applied to every posting on the page, so in summer every winter
+  posting was an hour late and in winter every summer one an hour early. Measured
+  on the reference install: a posting stored at 16:48 UTC in January was served
+  as 18:48 instead of 17:48. The helper renders the instant in the forum's
+  timezone now, so PHP looks up the offset that applied *at that instant*.
+
+- ✓ Fixed: **the `datetime` attribute carried the wrong offset** — the shifted
+  value labelled `+00:00`, so feed readers, search engines and the browser's own
+  tooltip were out by the local offset. The RSS `pubDate` was always correct.
+
+- ✓ Fixed: **"today" began at midnight UTC.** `mktime()` follows PHP's timezone,
+  so between local midnight and the UTC one a posting was filed under the
+  previous day — and that is this forum's busiest hour.
+
+- ＋ Added: **`docs/configuration.md`**, every environment variable an operator
+  can set, with defaults and what each one does. Twelve of the thirty-three were
+  documented nowhere, among them the whole SMTP block and `SAITO_TRUST_PROXY`,
+  which lets clients forge their own IP if it is switched on without a proxy in
+  front.
+
+- Δ Changed: the toolchain moved to **Node 24** and **PHPUnit 13**, and
+  `cakephp/bake` is gone. None of it reaches a server — no install has Node, and
+  the release tarball is built `--no-dev`. Developers need Node >= 22.11 now;
+  `.nvmrc` names the version.
+
+## [8.3.10] - 2026-08-01 "hybi"
+
+No migration. The stylesheet and the island bundle both changed; the parser
+markup changed with them, so the posting cache has to go too.
+
+```bash
+php bin/cake.php cache clear_all
+```
+
+- Δ Changed: **a covered picture covers itself again on the next click.** The
+  cover was one-way in practice: revealing worked, putting it back meant aiming
+  at a small tab in the corner, and a click that missed hit the picture — which
+  is wrapped in a link to the full-size file, so it opened full-size in a new
+  tab. Now a click anywhere on a revealed picture toggles it: blurred, clear,
+  blurred, clear. The trade, deliberately, is that for a marked picture the
+  full-size view is no longer one click away. Video, audio and files keep the
+  corner tab, because their controls — play, seek, download — sit inside the
+  media and a cover over them would take away what the reveal was for.
+
+- ✓ Fixed: **a rejected reply handed the form the subject it had computed**
+  rather than the one that was typed, which turns the pale placeholder into a
+  value that has to be deleted. Not reachable with today's validation rules, and
+  a trap for whoever adds one for the posting text.
+
+## [8.3.9] - 2026-08-01 "handbreit"
+
+Two things that only show up when the forum is used rather than built. No
+migration; the stylesheet and the island bundle both changed, so deploy them
+together.
+
+- ✓ Fixed: **the submit button of the contact form could not be reached.** Its
+  message field is named `text`, the same as the posting editor's, so the
+  editor's auto-grow applied to it and the box expanded to 80% of the window
+  height. Inside a fixed overlay with no scroll of its own that pushed "send a
+  copy to me" and the submit button past the bottom edge of the screen, and
+  nothing could scroll to them — the page behind was not what was overflowing.
+  `.island-modal` scrolls now, which makes any over-tall dialog reachable rather
+  than just this one, and inside a modal the field grows to 40% instead of 80%
+  so the form fits without scrolling at all.
+
+- ✓ Fixed: **a block-duration select labelled `user.block.t`.** The key was
+  invented when blocking moved to the profile page and never added to a
+  catalogue, so the raw key was what moderators saw. Renamed to
+  `user.block.duration` — `.t` means "title" everywhere else in Saito and this
+  is a field label — and translated in de and en. All 128 dotted keys used in
+  templates were checked against the catalogues; this was the only one missing.
+
+## [8.3.8] - 2026-08-01 "flattrfrei"
+
+**Two migrations run.** Both are guarded: they check what is there before
+changing it, because the columns they touch are older than these migrations and
+exist only on installations that have been running for years.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+- − Removed: **the last of Flattr.** `entries.flattr` and three settings rows
+  configuring a micropayment service that no longer exists, read by no code
+  since the Saito 5 rewrite. On a grown forum the column holds marks set between
+  2011 and 2018 — 16,104 of them on the macnemo installation. If you want them,
+  take them out of your backup first; there is no way back afterwards. This is
+  the twin of `entries.nsfw`, which sat in the same state and was answered the
+  other way in 8.3.2, because that marking still meant something a reader wants.
+
+- ✓ Fixed: **a fresh installation could not hold what a grown one does.**
+  `entries.text`, `drafts.text` and `users.profile` were `TEXT` here and
+  `MEDIUMTEXT` on an established forum — 64 KB against 16 MB. The longest
+  posting on the macnemo installation is 294,739 characters, so its dump could
+  not have been restored into an installation built from these migrations, and
+  outside MySQL's strict mode it would have been cut rather than refused.
+
+- ✓ Fixed: **the database now holds the promise the application makes about
+  usernames.** `UsersTable` validates them as unique, case-insensitively. A
+  fresh installation backed that with a UNIQUE index; a grown one had a plain,
+  non-unique one. Nothing had gone wrong — 821 members, 821 distinct names — but
+  two simultaneous registrations could both have passed validation and both been
+  written.
+
+- − Removed: **`cakephp/bake` as a development dependency.** Its base class
+  declares `protected Arguments $args` where `cakephp/migrations` declares the
+  same property nullable, and PHP refuses that outright: `bin/cake migrations`
+  ended in a fatal error on any installation with development dependencies
+  installed — the very command the upgrade documentation tells operators to run.
+  Nothing in this project bakes, and no other package asked for it.
+
+- Δ Changed: **`upgrade.md` says seven migrations, and says why going straight
+  from 5.7 works.** That claim used to be an assertion; it is now a measurement.
+  A database was migrated to the 5.7 level, taken to the current release in one
+  run, and compared column by column with a fresh installation: 124 columns on
+  both sides, no difference.
+
+## [8.3.7] - 2026-08-01 "daumenkino"
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.6...8.3.7)
+
+No migration runs. **Clear the thumbnail cache after replacing the files** —
+`bin/cake.php cache clear uploadsThumbnails`, or delete `tmp/cache/uploads/`.
+The cache holds the old full-size images, and without clearing it nothing
+changes for anything that has already been looked at once. The first pass
+afterwards is slower while every thumbnail is computed again; after that it is
+faster for good.
+
+- ✓ Fixed: **thumbnails are thumbnails now.** A `size > 150000` threshold meant
+  anything under 150 KB was served at its original resolution and called a
+  preview: measured on the running forum, 2961 of 5542 uploads fell under it,
+  one of them sending 121,874 bytes for a tile drawn at 84 pixels, and a page of
+  sixty came to about 8 MB. The threshold was never a decision about what a
+  thumbnail should be — it was an assumption from a time when uploads were
+  smaller. The largest file in that archive is 57 MB.
+
+  Every image is scaled to 300×300 now. The condition asks whether the upload is
+  an image rather than whether it is large, which also closes something the
+  threshold had been hiding by accident: an upload can be a video, an audio file
+  or plain text, and those never reached the image library only because they
+  were usually small. A file the library cannot read is served as it lies rather
+  than leaving a hole in the grid.
+
+- Δ Changed: **three build-tooling dependencies moved up**, Dependabot's first
+  three pull requests: `websocket-driver` 0.7.3 → 0.7.5, `qs` 6.9.1 → 6.15.3,
+  `braces` 3.0.2 → 3.0.3. All transitive — `package.json` is untouched, only the
+  lock file moved. The tree's one critical advisory is gone with them; what
+  remains is build tooling that never reaches a browser or a server.
+
+## [8.3.6] - 2026-08-01 "waffel"
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.5...8.3.6)
+
+No migration runs. Replace the files and clear the cache.
+
+Named after a member of the forum it was cut for — the one whose thousand-image
+archive made the case for the upload changes in it.
+
+- Δ Changed: **the upload archive loads by itself, sixty at a time.** It came in
+  pages of twenty with a "load more" button — a member with 493 uploads pressed
+  it twenty-four times to see their own archive, and then asked whether it was
+  loading everything at all. It was; the log shows pages 2 to 25, all answered.
+  That question is the bug report. Sixty per page turns 25 pages into 9, the
+  control now fires when it scrolls into view, and the count is stated once at
+  the top so "that is all of them" can be told from "it stopped".
+
+  `intersect once` rather than htmx's `revealed`: the control sits in a grid
+  that scrolls on its own, and `revealed` measures against the window — it would
+  have fired for a control the reader cannot see and pulled the whole archive in
+  one burst. The button stays a button for keyboard use.
+
+- Δ Changed: **the upload archive is the last section of a profile.** A section
+  that grows as it is scrolled pushes everything under it out of reach; the RSS
+  links used to sit below it.
+
+- − Removed: **three permissions that were declared and never checked.**
+  `saito.core.user.email.set`, `…name.set` and `…lock.view` were live in 5.7.1
+  and were left behind when the SPA went. Nothing ran unguarded because of them
+  — there is no path that changes another member's address or name. The harm was
+  to the reader: `config/permissions.php` is where one looks up what an
+  administrator may do, and it promised three things that were not there. More
+  so since 8.3.3 gave `saito.core.user.password.set` its feature back, leaving
+  four siblings of which one worked. Every permission that remains is checked
+  somewhere; counted, not assumed.
+
+- Δ Changed: **macnemo's guided tour caught up with the forum.** It described a
+  profile whose sections are in a different order now, and said nothing at all
+  about marking a posting NSFW.
+
+## [8.3.5] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.4...8.3.5)
+
+**Upgrade from 8.3.2, 8.3.3 or 8.3.4 without waiting.** No migration runs, but
+those releases wrote replies without their thread id — see below for how to
+find and repair them.
+
+- ✓ Fixed: **replies were saved without their thread.** The mass-assignment
+  guard added in 8.3.2 denied `tid` on the posting entity — correctly, so a
+  request cannot move a posting between threads — but `createEntry()` needs to
+  set it, because it arrives from the parent. It was dropped silently instead.
+  A reply was written to the database with `tid` 0: present, and absent from its
+  own thread, while the island answered its author with an error. The thread's
+  `last_answer` was not bumped either, so it did not rise in the list.
+
+  `tid` is named explicitly now, next to `user_id` and for the same reason: by
+  the time `createEntry()` sees them both are set by the application, `tid` from
+  the parent in `PostingComponent::prepareChildPosting()`, which overwrites
+  anything a request may have sent. A root posting still gets its own id in
+  `afterSave()`.
+
+  Four replies on the macnemo installation were affected and have been repaired.
+  If you ran 8.3.2 to 8.3.4, look for them:
+
+  ```sql
+  SELECT id, pid, tid FROM entries WHERE pid > 0 AND (tid = 0 OR tid IS NULL);
+  UPDATE entries k JOIN entries e ON e.id = k.pid SET k.tid = e.tid
+    WHERE k.pid > 0 AND (k.tid = 0 OR k.tid IS NULL);
+  ```
+
+  Check `last_answer` on the roots afterwards, and note that a reply whose
+  parent has since been deleted has no thread left to return to — the delete
+  went by `tid` and could not find it.
+
+## [8.3.4] - 2026-07-31
+
+- [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.3...8.3.4)
+
+No migration runs. A stylesheet change — replace the files and clear the cache.
+
+- Δ Changed: **macnemo's postings read a little wider.** The text column was
+  672px inside 1800px of available content — typographically sound and, on a
+  wide screen, looking as though the page were not using its room. Its theme now
+  sets `$readingWidth: 50em`, about 95 characters a line against 80. Only the
+  macnemo theme: Bota and Nova keep 42em, and macfix keeps the 56em it needs to
+  match the forum it is imitating.
+
 ## [8.3.3] - 2026-07-31
 
 - [Full commit-log](https://github.com/Panxatony/Saito/compare/8.3.2...8.3.3)

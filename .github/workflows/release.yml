@@ -11,7 +11,8 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+-*'
 
 # Only first-party actions (actions/*) plus the pre-installed `gh` CLI are
-# used, so there is no third-party action in the supply chain.
+# used here, so nothing third-party runs in the job that builds and signs a
+# release. (security-audit.yml does use one, pinned to a commit.)
 permissions:
   contents: read
 
@@ -125,21 +126,24 @@ jobs:
       - name: composer install (production only)
         run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
 
-      - name: Build frontend assets (Node 20 + yarn + grunt)
+      # Debian 13 ships Node 20, and the build tooling requires >= 22.11 —
+      # `yarn install` refuses below that with an engine error naming cssnano.
+      # So the version comes from upstream rather than from apt, and from
+      # .nvmrc rather than a number repeated here: one place to change it, the
+      # same one the other workflows and a developer's shell read.
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Build frontend assets (yarn)
         run: |
-          # Node from Debian, not from NodeSource. The container is Debian 13,
-          # for which NodeSource publishes nothing, so its script configured a
-          # repository with no candidate and apt quietly fell back to Debian's
-          # own package — which does not bundle npm, and the build died on
-          # `npm: not found`. Debian ships both, so ask for both and drop the
-          # remote install script (and with it piping a URL into bash as root).
-          apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs npm
-          npm install -g --silent yarn grunt-cli
+          node --version
+          npm install -g --silent yarn
           yarn install --frozen-lockfile --non-interactive
-          # `grunt release` still orchestrates CSS, locale JSON and asset copy;
-          # its JS-bundle step now runs Vite (see Gruntfile shell:bundle), so the
-          # OpenSSL legacy-provider flag Webpack 4 needed is no longer required.
-          grunt release
+          # The release chain is package.json scripts now (no grunt): Sass,
+          # PostCSS (autoprefixer + cssnano), purge, the three Vite bundles and
+          # the asset copy. Output is byte-identical to the old `grunt release`.
+          yarn build:release
 
       - name: Package tarball
         run: |
@@ -156,6 +160,19 @@ jobs:
           # pattern and straight back on, because `*/tests` further down relies
           # on the default.
           #
+          # The exclusion used to be `./docs/*.md`, which took the
+          # operator-facing pages with it — and the shipped README links to two
+          # of them, so an operator who had only the tarball followed a dead
+          # link to the file that says APP_DEFAULT_TIMEZONE must be UTC, the one
+          # setting that silently breaks every timestamp in the forum. Naming
+          # the developer pages instead is also the safer shape: adding a page
+          # for operators now ships it by default, and forgetting to ship one is
+          # the failure that goes unnoticed.
+          #
+          # Naming the wanted files back as operands does not work: GNU tar
+          # applies --exclude to explicitly named files too. Tried, and the
+          # files were still absent from the archive.
+          #
           # These comments live here rather than between the arguments: a `#`
           # line following a trailing backslash comments out the remainder of the
           # command. That swallowed the `.` operand and tar refused to build an
@@ -169,9 +186,9 @@ jobs:
             --exclude='./.phpunit.result.cache' \
             --exclude='./build' \
             --exclude='./dev' \
-            --no-wildcards-match-slash \
-            --exclude='./docs/*.md' \
-            --wildcards-match-slash \
+            --exclude='./docs/dev-setup.md' \
+            --exclude='./docs/dev-hooks.md' \
+            --exclude='./docs/CHANGELOG_OLD.md' \
             --exclude='./docs/local' \
             --exclude='./frontend' \
             --exclude='./node_modules' \
@@ -179,7 +196,6 @@ jobs:
             --exclude='./tmp' \
             --exclude='./tests' \
             --exclude='./pipeline-failed.log' \
-            --exclude='./Gruntfile.js' \
             --exclude='./package.json' \
             --exclude='./phpcs.xml.dist' \
             --exclude='./phpstan.neon' \
@@ -254,9 +270,21 @@ jobs:
           case "$VERSION" in
             *-*) PRERELEASE="--prerelease" ;;
           esac
+          # Releases carry a name from 8.3.6 on. It lives in the CHANGELOG
+          # heading between double quotes -- `## [8.3.6] - 2026-08-01 "waffel"`
+          # -- which is the one place describing the release that already has to
+          # be right, so the title cannot drift away from the notes.
+          #
+          # Absent, the title is what it always was. Older tags have no name and
+          # must keep publishing.
+          TITLE="Saito ${VERSION}"
+          NAME=$(sed -n "1s/^## \[[^]]*\].*\"\(.*\)\".*/\1/p" release-notes.md)
+          if [ -n "$NAME" ]; then
+            TITLE="Saito ${VERSION} \"${NAME}\""
+          fi
           gh release create "$VERSION" \
             build/saito-*.tar.gz \
             build/saito-*.tar.gz.sha256 \
-            --title "Saito ${VERSION}" \
+            --title "$TITLE" \
             --notes-file release-notes.md \
             $PRERELEASE

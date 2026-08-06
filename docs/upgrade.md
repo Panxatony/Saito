@@ -4,6 +4,25 @@
 intermediate version to stop at, and the database barely changes. The work is
 almost entirely on the server, not in the data.
 
+That is not an assumption, and it has been measured twice — the second time
+against a database this project did not build, which is the measurement that
+counts.
+
+On 2026-08-01, a database was migrated to the 5.7 level, then taken to the
+current release in a single `migrations migrate`, and compared column by column
+with a fresh installation: 124 columns on both sides, no difference. That proved
+the migrations are self-consistent and nothing more, because both sides came
+from the same migrations.
+
+On 2026-08-03 the same run was done from a schema dump of a forum that had grown
+from an old version. **It failed**, at the eighth of nine migrations, and it
+turned up a second fault that would have been worse for being silent. Both are
+fixed (see *Two faults that only a grown schema shows*, below). After the fix
+the run completes and the result matches a fresh installation with no
+character-set differences and four cosmetic column differences.
+
+Stopping somewhere in between still buys nothing.
+
 This document covers the 5.7 → 8 jump specifically. For the general "copy the
 new files over" routine, see [update.md](update.md).
 
@@ -11,11 +30,12 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: five migrations
+### The database: ten migrations
 
-Between 5.7.0 and 8.3.x there are **five** schema changes. The second exists only
-to repair the first; the last two arrived in 8.3.0 and are the ones that take
-time on a grown installation.
+Between 5.7.0 and the current release there are **ten** schema changes. The
+second exists only to repair the first; one of them is the expensive one; two
+are about columns that predate these migrations entirely; and the last one
+finishes a character-set conversion that the first left incomplete.
 
 | Migration | What it does |
 |---|---|
@@ -24,6 +44,30 @@ time on a grown installation.
 | `20260730000000_ConvertCoreTablesToInnodb` | Moves the core tables off MyISAM — **the expensive one, read below** |
 | `20260730010000_DropLegacySaito5UserColumns` | Drops six `users` columns dead since 2012 |
 | `20260730020000_DropUnusedEcachesTable` | Drops `ecaches`, a cache table nothing has written to since 2014 |
+| `20260731210000_AddNsfwToEntries` | Adds `entries.nsfw` — **only where it is missing**, see below |
+| `20260801080000_DropFlattrResidue` | Drops `entries.flattr` and three settings rows, if they are there |
+| `20260801090000_AlignSchemaWithGrownInstalls` | Widens three text columns to `MEDIUMTEXT` and makes the username index unique — converting each table's character set first, see below |
+| `20260802140000_DropApiSettings` | Drops two settings rows belonging to the retired API |
+| `20260803090000_ConvertRemainingTablesToUtf8mb4` | Converts every remaining table from utf8mb3, so a four-byte character can be stored at all |
+
+#### The last two are guarded, and that is not decoration
+
+Both columns are older than these migrations. A forum running since Saito 4 has
+`entries.nsfw` and `entries.flattr` already; one created from these migrations
+has neither. So one migration adds a column only if it is absent and the other
+drops one only if it is present — running either blindly is an error, not a
+no-op.
+
+If you are coming from 5.7 you almost certainly have both. `nsfw` will be left
+exactly as it is, **including its data**: on the macnemo installation 1928
+postings carry the marking, set between 2011 and 2020, and 8.3.2 gave it a
+meaning again after six years of doing nothing. Nothing needs doing on your
+side.
+
+`flattr` is the other case — a micropayment service that no longer exists, read
+by no code since the Saito 5 rewrite. It goes. If you want to keep the sixteen
+thousand marks it holds on a grown forum, take them out of the backup you made
+before upgrading; there is no way back afterwards.
 
 #### The InnoDB conversion is the one to plan for
 
@@ -79,6 +123,12 @@ That is the whole schema delta. Older installations kept two stragglers on the
 3-byte character set, so they could not store 4-byte characters — emoji, mostly.
 Both hold short ASCII values today, which is what makes the conversion safe.
 
+**Which version to land on: the newest.** There is one release you must not
+stop *below* — see the paragraph directly after this one — and above it there is
+no reason to aim at anything but the latest. Each release since carries fixes
+that a 5.7 installation would otherwise walk straight into, and the migrations
+run as one chain regardless of how many of them there are.
+
 **Upgrade to 8.0.12 or later — do not stop at an earlier 8.0.x.** Up to and
 including 8.0.11, the first migration also narrowed `user_category_custom` from
 1024 characters back to 512 as an unintended side effect of restating the
@@ -99,9 +149,45 @@ SELECT COUNT(*) FROM users WHERE CHAR_LENGTH(user_category_custom) = 512;
 
 Zero means nothing was truncated.
 
-No table is added or restructured, and no posting, user, category or setting is
-altered — the three 8.3.0 migrations change how tables are stored and remove a
-column set and a cache table nothing has read since 2012 and 2014. **Your content is untouched.**
+No table is added or restructured, and no posting, user or category is altered.
+The 8.3.0 migrations change how tables are stored and remove a column set and a
+cache table nothing has read since 2012 and 2014; the two from 8.3.7 and 8.3.8
+touch columns older than these migrations, one of which is dropped along with
+three settings rows. **Your postings, members and categories are untouched.**
+
+#### Two faults that only a grown schema shows
+
+Both were found on 2026-08-03 and both are fixed. They are written down because
+the *reason* they went unnoticed applies to anything else in here: until that
+day, every check ran against a database these migrations had built.
+
+**The upgrade used to stop at `AlignSchemaWithGrownInstalls`.** It widened
+`entries.text` with a statement that also named `utf8mb4`. On a table still in
+utf8mb3 that converts one column and leaves its neighbours — and `entries`
+carries a FULLTEXT index over `subject`, `name` and `text`, which may not span
+two character sets:
+
+    ERROR 1283: Column 'text' cannot be part of FULLTEXT index
+
+The migration aborted and the ones after it never ran. It now converts the whole
+table first, and only where that is still needed.
+
+**And the conversion was never finished.** `ConvertLegacyTablesToUtf8mb4` reaches
+`useronline` and one column of `users`; ten tables stayed three-byte. On such an
+installation a four-byte character — an emoji in a bookmark note, a category
+name, a block reason — is *refused*:
+
+    ERROR 1366: Incorrect string value: '\xF0\x9F\x91\x8D ...'
+
+under MySQL's default strict mode, and silently truncated without it.
+`ConvertRemainingTablesToUtf8mb4` closes that.
+
+**What still differs** after the upgrade, compared with a fresh installation —
+four columns, none worth an `ALTER`: `categories.accession` (`tinyint` against
+`int`), `user_blocks.hash` (`char` against `varchar`), and
+`users.last_refresh`/`last_refresh_tmp` (`timestamp` against `datetime`). The
+first two are storage-identical for the values they hold; the last two are the
+2038 question and belong to their own pass.
 
 #### Clear the schema cache afterwards, or the forum will not come back
 
@@ -207,7 +293,7 @@ already installed and the frontend assets already built — no Composer, no Node
 no build step on your server.
 
 ```bash
-V=8.2.0
+V=8.3.8   # or whatever the newest release is
 curl -LO "https://github.com/Panxatony/Saito/releases/download/$V/saito-$V.tar.gz"
 curl -LO "https://github.com/Panxatony/Saito/releases/download/$V/saito-$V.tar.gz.sha256"
 
@@ -321,13 +407,24 @@ good way to see what your members are about to get, with a one-line way back.
 
 ## Notes for old installations
 
-**Times are stored as local time.** Installations that go back far enough hold
-local time in `entries.time` while the application is configured for UTC. The
-displayed times are correct as long as the server timezone and the forum's
-timezone setting agree; machine-readable output (RSS `pubDate`, the `datetime`
-attribute) is off by the local offset. This predates Saito 8 and is not changed
-by the upgrade — but if you are moving the forum to a new server anyway, do not
-"tidy up" the server timezone in the same step.
+**Times: the stored data is fine, and `APP_DEFAULT_TIMEZONE` must stay `UTC`.**
+An earlier version of this note claimed installations hold local time in
+`entries.time`. They do not. That column is a MySQL `timestamp`, which stores an
+unambiguous UTC instant, and CakePHP pins its own connection to `+00:00` — so
+the value the application reads is correct on every installation, however old.
+The measurement behind the wrong claim had been taken through a `mysql` client
+whose session ran on local time.
+
+What the variable controls is how PHP *labels* that value. Set it to a local
+zone and every instant in the forum is read wrong by the offset. The forum's own
+timezone is a separate setting in the admin area, and Saito renders displayed
+times into it.
+
+Up to and including 8.3.10 the display had three faults of its own — winter
+postings shown with the summer offset and vice versa, a `datetime` attribute
+carrying the wrong offset, and "today" beginning at midnight UTC. Fixed after
+8.3.10. **Expect times from the other half of the year to move by an hour when
+you upgrade past it**; that is the correction, not a new fault.
 
 **The `Local` theme was renamed.** If your installation carries a custom theme
 under `plugins/Local`, it keeps working — the rename affected the theme shipped

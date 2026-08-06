@@ -29,8 +29,15 @@ Bild also als Bild und ein Video als abspielbares Video.
 In der Editor-Leiste — neben Fett, Uploads und Vorschau — steht ein Knopf
 **NBS**. Ist er eingerastet, erscheint der ganze Beitrag verdeckt: Bilder,
 Videos und Dateien unscharf mit einem Hinweis darüber, dazu ein rotes Abzeichen
-am Betreff. Erst ein Klick zeigt das Verdeckte, ein weiterer verdeckt es wieder.
-Bei Videos bleibt auch der Abspielknopf gesperrt, solange die Decke liegt.
+am Betreff. Erst ein Klick zeigt das Verdeckte.
+
+Bei **Bildern** verdeckt jeder weitere Klick es wieder — verschwommen, klar,
+verschwommen. Der Preis dafür: die Großansicht ist bei einem gekennzeichneten
+Bild nicht mehr per Klick erreichbar, denn jeder Klick bedient die Decke. Bei
+**Video, Audio und Dateien** ist das anders: dort liegen Abspielen, Spulen und
+Herunterladen *im* Medium, also bleibt die Decke nach dem Aufdecken als kleine
+Ecke oben rechts stehen und wird darüber wieder zugezogen. Solange sie liegt,
+ist auch der Abspielknopf gesperrt.
 
 Der Knopf steht in **jedem** Editor: beim Eröffnen eines Themas, beim Antworten
 und beim Bearbeiten. Eine Antwort **erbt** die Kennzeichnung aber nicht — sie
@@ -57,5 +64,8 @@ Im eigenen Profil liegt das vollständige Archiv. Dort lassen sich Dateien
 auswählen und gemeinsam löschen. Vor dem Löschen wird einmal für die ganze
 Auswahl nachgefragt, denn rückgängig machen lässt es sich nicht.
 
-Eine gelöschte Datei verschwindet auch aus Beiträgen, die sie eingebunden haben
-— dort bleibt dann eine Fundstelle ohne Inhalt zurück.
+Zu jeder Datei zeigt das Lupen-Symbol, in welchen eigenen Beiträgen sie
+eingebunden ist — so lässt sich vor dem Löschen nachsehen, ob sie noch irgendwo
+gebraucht wird. Wird eine Datei gelöscht, die noch eingebunden ist, fragt das
+Forum vorher eigens nach; früher verschwand sie kommentarlos und hinterließ in
+den betroffenen Beiträgen eine Fundstelle ohne Inhalt.

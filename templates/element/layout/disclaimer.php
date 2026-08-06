@@ -22,6 +22,10 @@ Stopwatch::start('layout/disclaimer.ctp');
                         <a href="#" class="js-helpOpen"><?= h(__('Help')) ?></a>
                     </li>
                     <li>
+                        <a href="<?= $this->request->getAttribute('webroot') ?>pages/tos">
+                            <?= h(__('register_tos_linktext')) ?></a>
+                    </li>
+                    <li>
                         <a href="<?= $this->request->getAttribute('webroot') ?>pages/impressum">Impressum</a>
                     </li>
                     <li>

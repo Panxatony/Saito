@@ -51,6 +51,14 @@ jobs:
       - name: PHPStan
         run: vendor/bin/phpstan analyse --no-progress --error-format=github --memory-limit=2G
 
+      # A key with no msgid renders as itself on the page: `__('user.block.t')`
+      # printed the literal string `user.block.t` as the label of the
+      # block-duration select for as long as blocking lived on the profile, and
+      # it took a user to notice. Nothing failed and nothing logged, because from
+      # the code's side everything worked. Runs in about a second.
+      - name: Translation keys are declared
+        run: php dev/check-translations.php
+
   frontend:
     # The type-checker and the linter. `tsconfig.json` has had `strict: true` for
     # years and nothing ever ran against it: vite builds with esbuild, which
@@ -63,7 +71,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
 
       - name: yarn install
         run: |

@@ -30,7 +30,7 @@ echo $this->Setting->table(
 
 echo $this->Setting->table(
     __('Registration'),
-    ['tos_enabled', 'tos_url'],
+    ['tos_enabled', 'tos_url', 'tos_version'],
     $Settings
 );
 
@@ -69,6 +69,13 @@ echo $this->Setting->table(
     __('Category Chooser'),
     ['category_chooser_global', 'category_chooser_user_override'],
     $Settings
+);
+
+echo $this->Setting->table(
+    __d('nondynamic', 'userranks.t'),
+    ['userranks_show', 'userranks_ranks'],
+    $Settings,
+    ['sh' => 6]
 );
 
 // The "Debug" section held one switch, stopwatch_get, which turned on the

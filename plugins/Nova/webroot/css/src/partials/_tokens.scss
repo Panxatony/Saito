@@ -8,10 +8,12 @@
  * hard-coding hexes.
  ******************************************************************************/
 
+@use "sass:color";
+
 :root {
   /// Brand
   --nova-accent: #{$primary};
-  --nova-accent-strong: #{darken($primary, 12%)};
+  --nova-accent-strong: #{color.adjust($primary, $lightness: -12%)};
   --nova-accent-soft: #{rgba($primary, 0.1)};
 
   /// Text

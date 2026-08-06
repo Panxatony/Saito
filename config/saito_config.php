@@ -62,6 +62,18 @@ $config = [
         'trustProxy' => filter_var(env('SAITO_TRUST_PROXY', false), FILTER_VALIDATE_BOOLEAN),
 
         /**
+         * Bearer token a Prometheus scraper has to send to /metrics.
+         *
+         * Empty — the default — means the endpoint answers 404, so an
+         * installation that has not asked for it is indistinguishable from one
+         * that never had it. Set SAITO_METRICS_TOKEN to something long and
+         * random, and restrict the address to the monitoring network at the web
+         * server as well: the exposition tells a stranger how many members the
+         * forum has, how busy it is and which version it runs.
+         */
+        'metricsToken' => (string)env('SAITO_METRICS_TOKEN', ''),
+
+        /**
          * Imprint / legal notice (Impressum)
          *
          * Trusted HTML rendered on the /pages/impressum page (linked from the
@@ -84,11 +96,75 @@ $config = [
         'privacy' => '',
 
         /**
+         * Terms of service (Nutzungsbedingungen)
+         *
+         * Trusted HTML rendered on the /pages/tos page and linked from the
+         * registration form when `tos_enabled` is on (Admin → Settings).
+         * Per-installation: a forum's terms name its operator and its
+         * jurisdiction. Left empty, a shipped German default renders (element
+         * templates/element/pages/tos_default.php) with the forum name filled in
+         * and the operator taken from the imprint — set this to override it with
+         * your own terms. docs/terms-of-service-template.md is the same text to
+         * start from.
+         */
+        'tos' => '',
+
+        /**
          * Custom HTML injected into every page's <head> (e.g. a privacy-friendly
          * analytics snippet). Trusted, operator-controlled — set it per
          * installation. Empty by default (nothing injected).
          */
         'headHtml' => '',
+
+        /**
+         * Outbound notifications for user lifecycle events.
+         *
+         * Posts a small signed JSON body when somebody registers, activates
+         * their account or deletes it — for a companion app or a moderation
+         * queue that lives outside the forum. Leaving `url` empty switches the
+         * whole plugin off, listener included.
+         *
+         * The body carries the member's id, username and a timestamp, and
+         * deliberately nothing else: no email address, no IP. A receiver that
+         * needs more should ask the API with its own credentials, where the
+         * request is authenticated and can be refused.
+         *
+         * **Delivery is best-effort.** The call happens inside the request that
+         * registered the member, so a slow endpoint must not fail their
+         * registration — failures are logged and dropped. Poll the API instead
+         * if an event must not be missed.
+         *
+         * @see plugins/Webhooks/readme.txt
+         */
+        'webhooks' => [
+            'user' => [
+                'url' => '',
+                /** Shared with the receiver; sent as X-Saito-Signature. */
+                'secret' => '',
+                /** Omit the key entirely to subscribe to all three. */
+                'events' => ['register', 'activate', 'delete'],
+                /** Seconds. */
+                'timeout' => 3,
+
+                /**
+                 * @deprecated Temporary, and it will be removed.
+                 *
+                 * Puts the member's email address and IP back into the payload.
+                 * Off, and it should stay off: it exists only so a forum that
+                 * already runs a receiver expecting those fields can upgrade
+                 * Saito now and rewrite that receiver afterwards, instead of
+                 * having to do both at once.
+                 *
+                 * Every send with this enabled writes a warning to the log, on
+                 * purpose — it is not meant to be forgotten about.
+                 *
+                 * The IP still follows `store_ip` and `store_ip_anonymized`: a
+                 * forum that does not keep addresses does not start posting
+                 * them, and one that keeps them shortened sends them shortened.
+                 */
+                'legacyContactFields' => false,
+            ],
+        ],
 
         /**
          * Custom HTML placed between the header bar and the page content, in a

@@ -177,6 +177,14 @@ msgid "tos_url_exp"
 msgstr "URL zu den Nutzungsbedingen. Falls leer, werden die eingebauten Standardseiten verwendet."
 
 #
+msgid "tos_version"
+msgstr "Nutzungsbedingungen-Version"
+
+#
+msgid "tos_version_exp"
+msgstr "Version der Nutzungsbedingungen. Wird sie nach einer wesentlichen Änderung erhöht, müssen alle Mitglieder den neuen Bedingungen erneut zustimmen."
+
+#
 msgid "edit_period"
 msgstr "Nachbearbeitungszeit"
 
@@ -279,22 +287,6 @@ msgstr "Anzahl an Uploads pro Benutzer"
 #
 msgid "upload_max_number_of_uploads_exp"
 msgstr "Maximale Anzahl von Dateien, die ein einzelner Benutzer gleichzeitig auf dem Server hochgeladen haben kann."
-
-#
-msgid "flattr_enabled"
-msgstr "Flattr aktivieren"
-
-#
-msgid "flattr_enabled_exp"
-msgstr "Ermöglicht es Benutzern flattr zu verwenden."
-
-#
-msgid "flattr_language"
-msgstr "Flattr-Sprache"
-
-#
-msgid "flattr_language_exp"
-msgstr "Sprache, die flattr den hereinzeigenden Verweisen zuordnet. Siehe Doku auf flattr.com für Kürzel."
 
 #
 msgid "stopwatch_get"
@@ -405,3 +397,23 @@ msgstr "Administrator"
 
 msgid "permission.role.4"
 msgstr "Eigentümer"
+
+#
+msgid "userranks.t"
+msgstr "Ränge"
+
+#
+msgid "userranks_show"
+msgstr "Ränge anzeigen"
+
+#
+msgid "userranks_show_exp"
+msgstr "Zeigt im Profil den Rang an, den ein Mitglied durch die Anzahl seiner Beiträge erreicht hat."
+
+#
+msgid "userranks_ranks"
+msgstr "Rangleiter"
+
+#
+msgid "userranks_ranks_exp"
+msgstr "Liste aus <Anzahl>=<Titel>, getrennt durch senkrechte Striche. Der Rang gilt ab der genannten Anzahl: \"10=Fischbrötchen|100=Schiffsjunge\" macht ab zehn Beiträgen zum Fischbrötchen und ab hundert zum Schiffsjungen. Wer die unterste Anzahl noch nicht erreicht hat, bekommt keinen Rang angezeigt. Leer lassen schaltet die Ränge ab."

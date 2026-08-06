@@ -116,6 +116,62 @@ class PostingBehaviorTest extends SaitoTableTestCase
     }
 
     /**
+     * A reply belongs to its parent's thread, and `tid` is how it says so.
+     *
+     * This is the test that was missing. `tid` is denied on the entity so a
+     * request cannot move a posting between threads — but `createEntry()` has
+     * to be able to set it, because PostingComponent hands it in from the
+     * parent. When it could not, replies were saved with `tid` 0: present in
+     * the database, absent from their own thread, and the island answered the
+     * author with an error while their text sat there unreachable.
+     *
+     * Four of them reached production before anyone noticed.
+     *
+     * @return void
+     */
+    public function testAReplyInheritsItsParentsThreadId()
+    {
+        $parent = $this->Table->get(1);
+        $reply = $this->Table->createEntry([
+            'pid' => $parent->get('id'),
+            'tid' => $parent->get('tid'),
+            'subject' => 'Antwort',
+            'text' => 'Text',
+            'name' => 'Ulysses',
+            'user_id' => 3,
+            'category_id' => $parent->get('category_id'),
+        ]);
+
+        $this->assertNotNull($reply);
+        $this->assertEmpty($reply->getErrors());
+        $this->assertSame(
+            $parent->get('tid'),
+            $reply->get('tid'),
+            'a reply saved without its thread id is invisible in its own thread'
+        );
+    }
+
+    /**
+     * And the author is still taken from the caller rather than the request —
+     * the other field `createEntry()` names explicitly.
+     *
+     * @return void
+     */
+    public function testCreateEntryKeepsTheAuthorItWasGiven()
+    {
+        $posting = $this->Table->createEntry([
+            'pid' => 0,
+            'subject' => 'Neu',
+            'text' => 'Text',
+            'name' => 'Ulysses',
+            'user_id' => 3,
+            'category_id' => 1,
+        ]);
+
+        $this->assertSame(3, $posting->get('user_id'));
+    }
+
+    /**
      * The other half of the two tests above: without naming the field, a plain
      * array must not be able to set it.
      *

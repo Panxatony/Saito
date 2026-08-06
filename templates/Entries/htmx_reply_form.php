@@ -75,7 +75,6 @@ if (!isset($submitted) && !empty($draft)) {
         $subjectPlaceholder = ($replySubject ?? '') !== '' ? $replySubject : __('subject');
         ?>
         <input type="text" name="subject" class="form-control js-subject" maxlength="<?= $subjectMax ?>"
-               style="--subject-max: <?= $subjectMax ?>"
                placeholder="<?= h($subjectPlaceholder) ?>" value="<?= h($subject) ?>"
                autofocus>
     </div>

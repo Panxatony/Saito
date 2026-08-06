@@ -62,3 +62,12 @@ plugins/*/webroot/css/*.css.map
 
 # PHPUnit writes this on every run; it is per-machine state, not source.
 .phpunit.result.cache
+
+# dev/pixel-diff.py used to write its screenshots, Chromium profiles, mirrored
+# pages and cookie jar next to itself; `git add -A` then committed 491 files and
+# 15.5 MB, a session cookie among them. The script writes to TMPDIR now — these
+# lines are the second lock, not the first.
+/dev/*.png
+/dev/cookies
+/dev/work/
+/dev/profile-*/

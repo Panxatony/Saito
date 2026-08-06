@@ -162,23 +162,6 @@ abstract class IntegrationTestCase extends TestCase
     }
 
     /**
-     * Mocks a property on a controller (e.g. empty Component).
-     *
-     * @param string $name Property to mock
-     * @param array $methods Methods to mock
-     * @return mixed
-     */
-    protected function getMockOnController(string $name, array $methods = [])
-    {
-        $mock = $this->getMockBuilder('stdClass')
-            ->addMethods($methods)
-            ->getMock();
-        $this->attachToController($name, $mock);
-
-        return $mock;
-    }
-
-    /**
      * Attaches an property to the controller
      *
      * @param string $name Property name

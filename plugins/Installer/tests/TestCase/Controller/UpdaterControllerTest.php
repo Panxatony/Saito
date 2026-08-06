@@ -88,9 +88,10 @@ class UpdaterControllerTest extends IntegrationTestCase
         // the test that caused it can pay for it.
         foreach (
             [
-                'bookmarks', 'categories', 'drafts', 'entries', 'phinxlog', 'settings',
-                'smiley_codes', 'smilies', 'uploads', 'user_blocks', 'user_ignores',
-                'user_reads', 'useronline', 'users',
+                'bookmarks', 'categories', 'drafts', 'entries', 'password_reset_tokens',
+                'phinxlog', 'settings', 'smiley_codes', 'smilies',
+                'two_factor_credentials', 'two_factor_recovery_codes', 'uploads',
+                'user_blocks', 'user_ignores', 'user_reads', 'useronline', 'users',
                 'esevents', 'esnotifications', 'shouts',
             ] as $table
         ) {

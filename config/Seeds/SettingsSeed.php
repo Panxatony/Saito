@@ -53,6 +53,7 @@ class SettingsSeed extends BaseSeed
             ['name' => 'topics_per_page', 'value' => '20'],
             ['name' => 'tos_enabled', 'value' => '0'],
             ['name' => 'tos_url', 'value' => ''],
+            ['name' => 'tos_version', 'value' => '0'],
             [
                     'name' => 'video_domains_allowed',
                     'value' => 'youtube | youtube-nocookie | vimeo | vine'

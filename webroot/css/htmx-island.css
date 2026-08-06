@@ -32,6 +32,13 @@
     align-items: flex-start;
     justify-content: center;
     padding: 6vh 1rem 1rem;
+    /* A dialog taller than the viewport has to be reachable. Without this the
+       overlay clips it and whatever sits at the bottom — in the contact form the
+       submit button — cannot be scrolled to, because the page behind is not what
+       is overflowing. `contain` keeps that scroll from continuing into the page
+       once the dialog's end is reached. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 .htmx-island .island-modal-backdrop {
     position: fixed;
@@ -165,6 +172,90 @@
 .htmx-island .upload-tile-del:focus { opacity: 1; }
 .htmx-island .upload-tile-del:hover { background: rgba(200, 40, 40, 1); }
 
+/* "Where is this upload used?" — a magnifier opposite the delete control, its
+   answer a popover that a native <details> toggles open and shut (issue #64). */
+.htmx-island .upload-usage-wrap {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    z-index: 3;
+}
+.htmx-island .upload-usage-wrap > summary {
+    list-style: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .12s;
+}
+.htmx-island .upload-usage-wrap > summary::-webkit-details-marker { display: none; }
+.htmx-island .upload-manage-item:hover .upload-usage-wrap > summary,
+.htmx-island .upload-usage-wrap[open] > summary,
+.htmx-island .upload-usage-wrap > summary:focus { opacity: 1; }
+.htmx-island .upload-usage-wrap > summary:hover { background: rgba(0, 0, 0, 0.8); }
+
+/* The result, a floating card just below the magnifier. */
+.htmx-island .upload-usage {
+    position: absolute;
+    left: 0;
+    top: 1.9rem;
+    z-index: 5;
+    min-width: 14rem;
+    max-width: 20rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--nova-surface, #fff);
+    border: 1px solid var(--isl-border-soft, rgba(120, 90, 40, 0.2));
+    border-radius: 0.3rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    font-size: 0.82rem;
+    text-align: left;
+    white-space: normal;
+}
+.htmx-island .upload-usage-loading { color: var(--isl-text-muted, #6b6560); }
+.htmx-island .upload-usage-count { margin: 0 0 0.2rem; font-weight: 600; }
+.htmx-island .upload-usage-none { margin: 0; }
+.htmx-island .upload-usage-list { list-style: none; margin: 0; padding: 0; }
+.htmx-island .upload-usage-list > li { padding: 0.15rem 0; }
+.htmx-island .upload-usage-list time { color: var(--isl-text-muted, #6b6560); margin-left: 0.35rem; }
+
+/* Delete guard: fills the tile's square when a delete is asked for an upload
+   that is still embedded somewhere (issue #64). */
+.htmx-island .upload-delete-confirm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem;
+    background: var(--nova-surface, #fff);
+    border: 1px solid var(--isl-danger, #b3261e);
+    border-radius: 0.3rem;
+    text-align: center;
+}
+.htmx-island .upload-delete-confirm-msg {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: var(--isl-danger, #b3261e);
+}
+.htmx-island .upload-delete-confirm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 100%;
+}
+.htmx-island .upload-delete-confirm-actions .btn {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.72rem;
+}
+
 /* Selected tiles: accent outline + a check badge. Insertion happens on the
    "insert selected" button, not on click. */
 .htmx-island .js-uploadTile.is-selected {
@@ -218,47 +309,52 @@
 
 /* Editor toolbar: modern ghost icon-buttons instead of solid grey Bootstrap
    buttons. Transparent with a soft border; accent tint on hover/focus. */
-/* Subject field: as wide as the subject may be long, no wider.
+/* Subject field: the full width of the form again.
 
-   A `form-control` spans the whole form, so on a desktop the box invited a
-   headline several times longer than the forum accepts — the writer types on,
-   hits the maxlength, and the field simply stops responding with no explanation.
-   The limit is an admin setting, so the templates pass it in as `--subject-max`
-   and the width follows it.
+   It was capped for a while at roughly the width of the longest subject the
+   forum accepts. The reason was real — a box spanning the whole form invites a
+   headline several times longer than the limit, and the writer only found out
+   by typing until the field stopped responding, with nothing to explain why.
 
-   `ch` is the width of the digit zero, and running text is narrower than that:
-   measured against this theme's font, a hundred characters of ordinary prose
-   come to 713px while `100ch` is 891px. A plain `1ch` per character therefore
-   still left a fifth of the box empty — which is the complaint this rule exists
-   to answer, so the measured 0.8 goes in rather than the round number.
+   The countdown answers that directly: the number of characters left sits in
+   the field and turns red as it runs out, so the field no longer promises
+   anything it cannot keep. With the explanation there, the cap was only taking
+   away room on a wide screen for a warning that is now given in words.
 
-   The 2rem covers the field's own padding and border plus a little slack, so a
-   subject of wide characters is not clipped at the last letter. `max-width`
-   keeps it from overflowing a narrow screen, where 100% is the smaller value. */
-.htmx-island .js-subject {
-    max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
-}
+   `--subject-max` went with it. The templates no longer pass it and
+   subjectCount.ts no longer copies it: the counter reads `maxlength` from the
+   field itself, which is where the limit already was. */
 
-/* The remaining-characters count, inside the field at its right edge.
-   subjectCount.ts wraps the field so the number can be pinned to the field
-   rather than to the wider row it sits in; the width rule therefore moves to the
-   wrapper and the field goes back to filling what it is given. The right padding
-   is what keeps a long subject from running under the number. */
+/* The remaining-characters count, beside the field rather than inside it.
+   subjectCount.ts wraps the field so the number stays with it instead of
+   aligning to the wider row.
+
+   It sat *inside* the field once, held clear by `padding-right`. That only
+   works where the browser honours the padding for scrolled content, and iOS
+   Safari does not: it scrolls an overflowing input's text straight under its own
+   right padding, so a long subject ran over the number. Masking the number with
+   an opaque chip fixed the collision and broke something worse — the chip then
+   covered the text at the caret, exactly where the writer is typing. There is no
+   in-field position that survives both, so the number moved out of the field
+   into its own flex cell: nothing can overlap it and it can hide nothing. */
 .htmx-island .subject-field {
-    position: relative;
-    display: block;
-    max-width: calc(var(--subject-max, 100) * 0.8ch + 2rem);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 .htmx-island .subject-field .js-subject {
-    max-width: none;
-    width: 100%;
-    padding-right: 3.2rem;
+    /* `min-width: 0` so the field may shrink below its intrinsic width — without
+       it a flex item refuses, and the count would be pushed out of the row. */
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
 }
 .htmx-island .subject-count {
-    position: absolute;
-    right: 0.7rem;
-    top: 50%;
-    transform: translateY(-50%);
+    flex: 0 0 auto;
+    /* Room for three digits, so the field's right edge does not jump as the
+       count runs 100 → 99 → 9. */
+    min-width: 1.8rem;
+    text-align: right;
     font-size: 0.85rem;
     line-height: 1;
     color: var(--isl-text-muted, #6b6560);
@@ -1356,4 +1452,13 @@ body.has-color-current .et-current .et { color: var(--saito-color-current); }
 .htmx-island .editorToolbar-nsfwInput:focus-visible + .editorToolbar-nsfw {
     outline: 2px solid var(--isl-accent, #fe5603);
     outline-offset: 1px;
+}
+
+/* Upload archive: how many there are, said once above the grid. */
+.htmx-island .upload-count {
+    flex: 0 0 auto;
+    grid-column: 1 / -1;
+    margin: 0.4rem 0 0;
+    font-size: 0.85rem;
+    color: var(--nova-text-muted, #777);
 }

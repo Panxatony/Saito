@@ -44,9 +44,8 @@ class Entry extends Entity implements BasicPostingInterface
      * - `locked` / `fixed` — {@see EntriesTable::setPostingState()}
      *
      * `views`, `ip`, `created` and `modified` are set by the application and by
-     * nobody else. `flattr` is residue from Saito 4 that only grown
-     * installations carry — no code reads it, and an assignable column no code
-     * reads is exactly the kind of thing that goes unnoticed.
+     * nobody else. (`flattr` used to be named here too; it was dropped in
+     * 8.3.8 along with the settings that configured it.)
      *
      * @var array<string, bool>
      */

@@ -1,13 +1,13 @@
 Willkommen! Dieses Forum ist wie eine Kneipe, nur mit weniger verschütteten
-Getränken und einem *Ungelesen-Strich*. Hier ein kurzer Rundgang – keine Sorge,
-es gibt keine Prüfung am Ende. Wahrscheinlich.
+Getränken und mit Fettdruck für alles, was du noch nicht gelesen hast. Hier ein
+kurzer Rundgang – keine Sorge, es gibt keine Prüfung am Ende. Wahrscheinlich.
 
 <!-- icon: list -->
 ### Die Threadliste
 
-Alles Wichtige steht vorne. Ein oranger Strich links heißt „hier ist was Neues“ –
-sobald du reinschaust, verduftet er beleidigt. Über *„Mehr laden“* holst du dir
-Nachschub aus dem Archiv.
+Alles Wichtige steht vorne. **Fett** heißt „hier ist was Neues“ – sobald du
+reinschaust, wird es beleidigt dünn. Über *„Mehr laden“* holst du dir Nachschub
+aus dem Archiv.
 
 Wuchert ein Thread mit hundert Antworten? Der kleine Klapp-Pfeil links daneben
 faltet ihn zusammen, bis nur das Eröffnungsposting übrig ist – und in den
@@ -34,8 +34,20 @@ wurde.
 ob es ein Bild, ein Video oder ein YouTube-Clip ist. Noch fauler? Einfach einen
 Link ins Editor-Feld *einfügen* (Strg/Cmd + V), der Rest passiert automatisch.
 Der Upload-Manager zeigt dein Bilderarchiv – aussuchen, „Auswahl einfügen“,
-fertig. Aufräumen geht in deinem Profil: dort liegen alle Uploads, und was weg
-soll, darf weg.
+fertig. Scrollen genügt, das Archiv holt sich den Nachschub selbst; Knöpfchen
+drücken musst du dafür nicht mehr. Aufräumen geht in deinem Profil: dort liegen
+alle Uploads, und was weg soll, darf weg.
+
+Und wenn das Bild eher in den Feierabend gehört als ins Großraumbüro: In der
+Editor-Leiste sitzt ein Knopf **NBS** – *nicht bürosicher*. Eingerastet leuchtet
+er rot, der Beitrag bekommt ein Abzeichen, und alles Bildhafte darin erscheint
+zunächst verdeckt. Ein Klick der Leserschaft holt es hervor, ein zweiter packt
+es wieder ein. Den Knopf gibt es beim neuen Thema, beim Antworten und beim
+Bearbeiten – nur vererbt wird er nicht: Wer unter einem NBS-Beitrag „stimmt“
+schreibt, hat nichts angestellt.
+
+Ehrlichkeitshalber: Die Decke hält das Bild vom Bildschirm fern, nicht vom
+Entschlossenen. Sie ist ein Vorhang, kein Tresor.
 
 <!-- icon: filter -->
 ### Kategorien filtern
@@ -58,9 +70,21 @@ weitergeholfen, darfst du sie per Haken als *hilfreich* auszeichnen – ein klei
 Dankeschön an den Verfasser.
 
 <!-- icon: check -->
+<!-- icon: user -->
+### Dein Rang
+
+Im Profil steht seit Neuestem ein Rang – vom *Fischbrötchen* ab zehn Beiträgen
+bis hinauf zum *Smutje*. Er richtet sich allein danach, wie viel jemand
+geschrieben hat, und wandert von selbst mit. Wer noch unter zehn Beiträgen
+liegt, hat schlicht noch keinen; das ist keine Strafe, sondern ein Anfang.
+
+Ganz oben wartet *Kpt. Ahab* bei hunderttausend Beiträgen. Den hat bisher
+niemand, und der fleißigste Schreiber im Forum ist noch nicht einmal auf halbem
+Weg.
+
 ### Gelesen-Markierung
 
-Zu viele orange Striche? Der *„Alles gelesen“*-Knopf macht mit einem Klick reinen
+Zu viel Fettgedrucktes? Der *„Alles gelesen“*-Knopf macht mit einem Klick reinen
 Tisch – der Reset-Knopf für dein schlechtes Gewissen.
 
 <!-- icon: columns -->
@@ -103,9 +127,11 @@ spielen. Bei den Farben gibt es neben dem Farbtopf jeweils ein *„Standard“*-
 falls dir dein eigener Geschmack doch zu bunt wurde. Das Passwort änderst du dort
 ebenfalls – es klappt als Overlay auf, ohne dass du die Seite verlässt.
 
-Auf der Profilseite selbst findest du außerdem deine Lesezeichen, deine Uploads
-und deine persönlichen RSS-Adressen, die auch die Bereiche mitliefern, die nur
-angemeldet sichtbar sind.
+Auf der Profilseite selbst findest du außerdem deine Lesezeichen und deine
+persönlichen RSS-Adressen, die auch die Bereiche mitliefern, die nur angemeldet
+sichtbar sind. Ganz unten liegt dein Upload-Archiv – es steht dort, weil es beim
+Scrollen immer weiter nachwächst und alles unter sich sonst in die Ferne
+schöbe.
 
 <!-- icon: envelope -->
 ### Miteinander reden – oder eben nicht

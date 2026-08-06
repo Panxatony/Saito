@@ -26,8 +26,14 @@ video.
 The editor toolbar — beside bold, uploads and preview — carries an **NSFW**
 button. With it pressed the whole posting arrives covered: images, video and
 files blurred under a note, plus a red badge beside the subject. One click shows
-what is underneath, another puts it away. On a video the play button stays out
-of reach for as long as the cover is on.
+what is underneath.
+
+For a **picture** every further click puts it back — blurred, clear, blurred.
+The price is that the full-size view of a marked picture is no longer one click
+away, because every click works the cover. **Video, audio and files** behave
+differently: their controls — play, seek, download — sit *inside* the media, so
+the cover shrinks to a small tab in the corner and is drawn back from there.
+While it is on, the play button stays out of reach.
 
 The button is in *every* editor: starting a thread, answering one, and editing.
 A reply does not **inherit** the marking, though — it is its author's own posting
@@ -53,5 +59,7 @@ Your profile holds the full archive. Files can be selected there and deleted
 together. Deleting asks once for the whole selection, because it cannot be
 undone.
 
-A deleted file also disappears from the postings that embedded it, leaving a
-reference with nothing behind it.
+Each file carries a magnifier that lists the postings of yours it is embedded
+in, so you can check whether it is still needed before removing it. Deleting a
+file that is still embedded now asks first; it used to disappear without a word,
+leaving a reference with nothing behind it in the postings that used it.

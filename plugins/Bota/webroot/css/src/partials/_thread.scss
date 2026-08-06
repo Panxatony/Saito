@@ -1,6 +1,9 @@
 // Hide postings of ignored users
 // -------------------------------------
 // Match whole thread if ignored user is root author.
+
+@use "sass:map";
+
 .threadBox.ignored,
 // Match answer of ignored user.
 li.ignored,
@@ -190,7 +193,7 @@ $btn-strip-top-width: 25px;
 .viewEntry {
   @extend .panel;
 
-  @media only screen and (max-width: map-get($grid-breakpoints, sm)) {
+  @media only screen and (max-width: map.get($grid-breakpoints, sm)) {
     padding-left: 0 !important;
     padding-right: 0 !important;
   }

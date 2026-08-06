@@ -308,6 +308,9 @@ msgstr "Login required"
 msgid "user.authe.e.generic"
 msgstr "Name or password are wrong."
 
+msgid "entry.post.throttled"
+msgstr "Too many postings in a short time. Please wait a few minutes and try again."
+
 msgid "user.authe.throttled"
 msgstr "Too many failed login attempts. Please wait a few minutes and try again."
 
@@ -913,6 +916,12 @@ msgstr "NSFW"
 msgid "posting.badge.nsfw.exp"
 msgstr "Not safe for work (NSFW)"
 
+msgid "{0} file"
+msgstr "{0} file"
+
+msgid "{0} files"
+msgstr "{0} files"
+
 msgid "saito.nsfw.reveal"
 msgstr "Content hidden – click to show"
 
@@ -1392,6 +1401,14 @@ msgstr ""
 msgid "user.block.hours"
 msgstr "{hours} hours"
 
+#: templates/Users/htmx_profile.php:177
+msgid "user.block.duration"
+msgstr "Block duration"
+
+#: templates/Users/htmx_profile.php
+msgid "user.rank.t"
+msgstr "Rank"
+
 #: src/Template/Users/view.ctp:367
 msgid "user.del.exp.1"
 msgstr "Delete user \"{0}\""
@@ -1429,252 +1446,28 @@ msgid "Show all"
 msgstr ""
 
 #, fuzzy
-#~ msgid "User not found."
-#~ msgstr "Nothing found."
-
-#~ msgid "authentication.error"
-#~ msgstr "Access to this function is restricted!"
 
 #, fuzzy
-#~ msgid "Uploads"
-#~ msgstr "Upload"
-
-#~ msgid "admin.set.map"
-#~ msgstr "Map"
-
-#~ msgid "geshi_link_popup"
-#~ msgstr "Please enter an URL for your link.:!:http://example.com/"
-
-#~ msgid "geshi_link_placeholder"
-#~ msgstr "Enter link text here."
 
 #, fuzzy
-#~ msgid "admin.feat.map"
-#~ msgstr "map"
-
-#~ msgid "admin.setting.disabled"
-#~ msgstr "Feature \"%s\" is disabled by admin."
-
-#~ msgid "date_short"
-#~ msgstr "%b. %d, %Y"
-
-#~ msgid "user.map.b.locate"
-#~ msgstr "Locate"
-
-#~ msgid "user.map.b.clear"
-#~ msgstr "Clear"
-
-#~ msgid "user.map.b.search"
-#~ msgstr "Search \":string\""
-
-#~ msgid "search.q.minLength"
-#~ msgstr "Search terms must be at least %s characters long."
-
-#~ msgid "upload_fileTypeNotAllowed"
-#~ msgstr "File type not allowed."
-
-#~ msgid "upload_fileToLarge"
-#~ msgstr "File :name to large."
-
-#~ msgid "upload_browserNotSupported"
-#~ msgstr "Browser not supported."
-
-#~ msgid "upload_toManyFiles"
-#~ msgstr "To many files."
-
-#~ msgid "Edit {0} Profil"
-#~ msgstr "Mitglied seit {0}"
-
-#~ msgid "admin.stats.yearly"
-#~ msgstr "Yearly Stats"
-
-#~ msgid "admin.stats.epa"
-#~ msgstr "Postings"
-
-#~ msgid "admin.stats.epac"
-#~ msgstr "Postings per Category"
-
-#~ msgid "admin.stats.au"
-#~ msgstr "Active Users"
-
-#~ msgid "admin.stats.audisc"
-#~ msgstr "Users with at least one posting or more."
-
-#~ msgid "admin.stats.apu"
-#~ msgstr "Average Number of Postings per User"
-
-#~ msgid "admin.stats.ur"
-#~ msgstr "Registrations"
-
-#~ msgid "admin.stats.detailed"
-#~ msgstr "Detailed Stats"
-
-#~ msgid "error_password_empty"
-#~ msgstr "Password must not be empty."
-
-#~ msgid "category.create"
-#~ msgstr "Create Category"
-
-#~ msgid "search_simple"
-#~ msgstr "Simple Search"
-
-#~ msgid "subject"
-#~ msgstr "Subject"
-
-#~ msgid "search.nstrict"
-#~ msgstr "Exact username"
-
-#~ msgid "upload_btn_delete_upload"
-#~ msgstr "Delete Upload"
-
-#~ msgid "admin.stats.insfd"
-#~ msgstr "Insufficient data."
-
-#~ msgid "user_since %s"
-#~ msgstr "Joined %s"
-
-#~ msgid "gn.btn.save"
-#~ msgstr "Save"
-
-#~ msgid "admin.sysInfo.sitemap"
-#~ msgstr "Sitemap-URL: {0}"
-
-#~ msgid "button_save"
-#~ msgstr "Save"
-
-#~ msgid "geshi_img_popup"
-#~ msgstr "Please enter an URL for your image.:!:http://example.com/image.png"
 
 #, fuzzy
-#~ msgid "separator"
-#~ msgstr "Moderation"
 
 #, fuzzy
-#~ msgid "some_class_name"
-#~ msgstr "Real Name"
-
-#~ msgid "user.block.reason.2"
-#~ msgstr "Ignored by to many users."
-
-#~ msgid "back_to_overview_linkname"
-#~ msgstr "Back to Overview"
-
-#~ msgid "discl.entries"
-#~ msgstr ":entries entries in :threads threads"
-
-#~ msgid "discl.user"
-#~ msgstr ":registered members, :loggedin logged-in, :anon guests"
 
 #, fuzzy
-#~ msgid "Help file not found."
-#~ msgstr "Nothing found."
-
-#~ msgid "register_success_content"
-#~ msgstr ""
-#~ "Your registration is now finished. You are able to log gin now. Have fun!"
 
 #, fuzzy
-#~ msgid "admin.sysInfo.coreEngine"
-#~ msgstr "Saito version: %s"
 
 #, fuzzy
-#~ msgid "admin.sysInfo.saitoEngine"
-#~ msgstr "Sitemap-URL: %s"
 
 #, fuzzy
-#~ msgid "user_block"
-#~ msgstr "Place"
-
-#~ msgid "ud_user"
-#~ msgstr "User"
 
 #, fuzzy
-#~ msgid "Moderator"
-#~ msgstr "Moderation"
-
-#~ msgid "ud_admin"
-#~ msgstr "Administrator"
-
-#~ msgid "ud_mod"
-#~ msgstr "Moderator"
 
 #, fuzzy
-#~ msgid "User Registrations"
-#~ msgstr "Registration"
-
-#~ msgid "btn_manualy_mark_as_read_shp"
-#~ msgstr "Marks all new entries as read."
-
-#~ msgid "search_fulltext_textfield_shp"
-#~ msgstr ""
-#~ "+ stands for AND<br/>- stands for NOT<br/>[no operator] implies "
-#~ "OR             <br/><br/> 'apple banana' Find entries that contain at "
-#~ "least one of the two words.              <br /> <br />'+apple +juice' "
-#~ "Find entries that contain both words.              <br /> <br />'+apple "
-#~ "macintosh' Find entries that contain the word “apple”, but rank entries "
-#~ "higher if they also contain “macintosh”.              <br /> <br /"
-#~ ">'+apple -macintosh' Find entries that contain the word “apple” but not "
-#~ "“macintosh”.              <br /> <br />'apple*' Find entries that contain "
-#~ "words such as “apple”, “apples”, “applesauce”, or “applet.              "
-#~ "<br /> <br />                '\"some words\"' Find entries that contain "
-#~ "the exact phrase “some words” (for example, entries that contain “some "
-#~ "words of wisdom” but not “some noise words”).\""
-
-#~ msgid "button_mod_panel_shp"
-#~ msgstr "Moderator Menu"
-
-#~ msgid "answering_forbidden_locked_shp"
-#~ msgstr "Answering forbidden by moderator."
-
-#~ msgid "user_show_entries"
-#~ msgstr "Show User's Entries"
 
 #, fuzzy
-#~ msgid "User :name"
-#~ msgstr "Username"
-
-#~ msgid "answer_marking"
-#~ msgstr "Answer"
-
-#~ msgid "forum_disabled"
-#~ msgstr "Disable Forum"
-
-#~ msgid "forum_disabled_exp"
-#~ msgstr "Shows the maintenance page except for logged in admins."
-
-#~ msgid "forum_disabled_text"
-#~ msgstr "Maintenance Notice"
-
-#~ msgid "forum_disabled_text_exp"
-#~ msgstr "Text notice shown on the forum disabled page."
-
-#~ msgid "forum_name"
-#~ msgstr "Forum Title"
-
-#~ msgid "forum_name_exp"
-#~ msgstr "The name of this forum."
-
-#~ msgid "timezone"
-#~ msgstr "Timezone"
-
-#~ msgid "timezone_exp"
-#~ msgstr "All time values displayed are offset to match this timezone."
-
-#~ msgid "forum_email"
-#~ msgstr "Email"
-
-#~ msgid "forum_email_exp"
-#~ msgstr ""
-#~ "Email address used as sender address for emails send by the forum (e.g. "
-#~ "when registering)."
-
-#~ msgid "email_admin_config_exp"
-#~ msgstr ""
-#~ "Additional settings are possible by providing a <code>$saito</code> "
-#~ "config in <code>app/config/email.php</code>. You should use <code>app/"
-#~ "config/email.php.default</code> as template. <a href=\"http://book."
-#~ "cakephp.org/2.0/en/core-utility-libraries/email.html#configuration\">See "
-#~ "also.</a>"
 
 msgid "delete_confirm.title"
 msgstr "Really delete?"
@@ -1935,3 +1728,223 @@ msgstr "A saved draft was put back in."
 #: templates/Entries/htmx_reply_form.php
 msgid "draft.discard"
 msgstr "Discard"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.link"
+msgstr "Download my data"
+
+#: templates/Users/htmx_edit.php
+msgid "user.export.exp"
+msgstr "Everything this forum holds about you, as a JSON file."
+
+#: templates/email/text/user_register_existing.php
+msgid "register_email_existing_subject"
+msgstr "Someone tried to register at {0}"
+
+#: templates/email/text/user_register_existing.php
+msgid "register_email_existing_content"
+msgstr "Hello,\n\nsomebody tried to create an account at {0} with this email address. There is already an account here using it, under the name "{1}".\n\nYou do not have to do anything. If this was you and you had forgotten the account: just sign in.\n\n{2}\n\nIf it was not you, somebody most likely mistyped their own address. Your account is unaffected and nothing has been changed."
+
+#: templates/Entries/htmx_uploads.php
+msgid "upload.usage.link"
+msgstr "Where is this used?"
+
+#: templates/Entries/htmx_upload_usage.php
+msgid "upload.usage.none"
+msgstr "Not embedded in any of your postings."
+
+msgid "(no subject)"
+msgstr "(no subject)"
+
+msgid "Embedded in {0} posting"
+msgid_plural "Embedded in {0} postings"
+msgstr[0] "Embedded in {0} posting"
+msgstr[1] "Embedded in {0} postings"
+
+#: templates/Entries/htmx_upload_delete_confirm.php
+msgid "upload.delete.anyway"
+msgstr "Delete anyway"
+
+msgid "Still used in {0} posting."
+msgid_plural "Still used in {0} postings."
+msgstr[0] "Still used in {0} posting."
+msgstr[1] "Still used in {0} postings."
+
+#: templates/Users/htmx_login_form.php
+msgid "user.pwreset.request.link"
+msgstr "Forgot your password?"
+
+#: templates/Users/htmx_forgot_password.php
+msgid "user.pwreset.request.title"
+msgstr "Reset your password"
+
+msgid "user.pwreset.request.intro"
+msgstr "Enter the email address of your account and we will send a link to set a new password."
+
+msgid "user.pwreset.request.submit"
+msgstr "Send reset link"
+
+msgid "user.pwreset.request.sent.title"
+msgstr "Check your mail"
+
+msgid "user.pwreset.request.sent.text"
+msgstr "If that address belongs to an account here, a link to set a new password is on its way. It is valid for one hour."
+
+msgid "user.pwreset.request.again"
+msgstr "Request a new link"
+
+#: templates/element/user/reset_password_body.php
+msgid "user.pwreset.form.title"
+msgstr "Set a new password"
+
+msgid "user.pwreset.form.intro"
+msgstr "Choose a new password for your account."
+
+msgid "user.pwreset.form.submit"
+msgstr "Set password"
+
+msgid "user.pwreset.invalid.title"
+msgstr "This link is no longer valid"
+
+msgid "user.pwreset.invalid.text"
+msgstr "The reset link has expired or has already been used. Reset links last one hour and work once."
+
+msgid "user.pwreset.done"
+msgstr "Your password has been changed. You can sign in with it now."
+
+#: templates/email/text/user_password_reset.php
+msgid "user.pwreset.email.subject"
+msgstr "Reset your password at {0}"
+
+msgid "user.pwreset.email.content"
+msgstr "Hello,\n\nsomebody — probably you — asked to reset the password for your account at {0}.\n\nOpen this link to set a new password. It is valid for one hour:\n\n{1}\n\nIf it was not you, just ignore this mail; your password stays as it is."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.t"
+msgstr "Terms of service have changed"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.lead"
+msgstr "This forum's terms of service have changed. Please read them and agree to carry on using the forum."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.accept"
+msgstr "Agree to the terms"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.decline"
+msgstr "Do not agree and log out"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.challenge.t"
+msgstr "Two-factor authentication"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.challenge.exp"
+msgstr "Enter the six-digit code from your authenticator app."
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.code"
+msgstr "Code"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.submit"
+msgstr "Verify"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.recovery.hint"
+msgstr "No access to the app? Enter one of your recovery codes instead."
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.error"
+msgstr "That code is not right."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.unreadable"
+msgstr "Your second factor can no longer be read on this server — the installation's security key has most likely changed. Sign in with a recovery code and set the app up again."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.settings.t"
+msgstr "Two-factor authentication"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.settings.exp"
+msgstr "Protects your account with a code from an authenticator app, on top of your password."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.state.on"
+msgstr "Two-factor authentication is on for your account."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.state.off"
+msgstr "Two-factor authentication is off for your account."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.start"
+msgstr "Set up"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.scan"
+msgstr "Scan this code with your authenticator app."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.manual"
+msgstr "No camera? Enter this key instead:"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.confirm"
+msgstr "Finish setting up"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.disable"
+msgstr "Turn two-factor authentication off"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.disabled"
+msgstr "Two-factor authentication is now off."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.password.confirm"
+msgstr "For safety: your password"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.password.wrong"
+msgstr "That password is not right."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.t"
+msgstr "Your recovery codes"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.exp"
+msgstr "Keep them somewhere safe — they are the way back in if you lose your device. Each works once, and they are shown this one time only."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.new"
+msgstr "Generate new recovery codes"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "{0} recovery code left."
+msgid_plural "{0} recovery codes left."
+msgstr[0] "{0} recovery code left."
+msgstr[1] "{0} recovery codes left."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.t"
+msgstr "Reset two-factor authentication for {0}"
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.btn"
+msgstr "Reset 2FA"
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.exp"
+msgstr "Turns two-factor authentication off for this member — for when they have lost both their device and their recovery codes. They can then sign in with their password alone and set it up again. The action is logged."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.none"
+msgstr "Two-factor authentication is not on for this member."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.done"
+msgstr "Two-factor authentication for {0} has been reset."

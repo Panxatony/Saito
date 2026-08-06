@@ -2,18 +2,25 @@
 use Cake\Core\Configure;
 
 $signature = $signature ?? false;
+// Opened inline under its own thread line, the subject heading only repeats the
+// line right above it; the caller sets this to drop it there. On the posting's
+// own page the heading stays — it is the page title. See EntriesController::
+// htmxPosting().
+$hideSubjectHeading = $hideSubjectHeading ?? false;
 $schemaMeta = [];
 ?>
 <article itemscope itemtype="http://schema.org/Article" class="postingBody">
+    <?php // The subject URL is still recorded for schema.org even when the visible
+          // heading is suppressed, so structured data does not lose the headline. ?>
+    <?php $schemaMeta['url'] = $this->Url->build(
+        '/entries/htmx-posting/' . $entry->get('id'),
+        ['fullBase' => true]
+    ); ?>
+    <?php if (!$hideSubjectHeading) : ?>
     <header>
         <h2 itemprop="headline name" class="postingBody-heading">
             <?php
             $subject = $this->Posting->getSubject($entry);
-            $url = $this->Url->build(
-                '/entries/htmx-posting/' . $entry->get('id'),
-                ['fullBase' => true]
-            );
-            $schemaMeta['url'] = $url;
             // only make subject a link if it is not already the single-posting page
             if (
                 $this->request->getParam('action') !== 'preview' &&
@@ -44,6 +51,7 @@ $schemaMeta = [];
             ?>
         </h2>
     </header>
+    <?php endif; ?>
     <aside class="postingBody-info">
         <span class="c-category acs-<?= $entry->get('category')['accession']; ?>"
                 title="<?= h($entry->get('category')['description']) ?>">

@@ -24,6 +24,7 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\MethodNotAllowedException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
+use Cake\Cache\Cache;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Basic\BasicPostingInterface;
 use Saito\User\CurrentUser\CurrentUserInterface;
@@ -43,6 +44,12 @@ use Stopwatch\Lib\Stopwatch;
  */
 class EntriesController extends AppController
 {
+    /** @var int postings a member may write per window */
+    private const POST_MAX_ATTEMPTS = 10;
+
+    /** @var int the window in seconds */
+    private const POST_THROTTLE_WINDOW = 300;
+
     /**
      * The front page's right-rail widgets, in the order they are rendered.
      *
@@ -353,6 +360,12 @@ class EntriesController extends AppController
             // damit durch, weil sie den ajax-Layout-Umschalter benutzte.
             $this->viewBuilder()->disableAutoLayout();
 
+            // Inline im Thread-Baum geöffnet: die angeklickte Baumzeile direkt
+            // darüber trägt den Betreff schon, die Überschrift des Postings
+            // würde ihn nur eine Zeile tiefer wiederholen. Auf der eigenen
+            // Posting-Seite (Vollseite) bleibt die Überschrift der Seitentitel.
+            $this->set('hideSubjectHeading', true);
+
             return $this->render('/element/entry/view_posting');
         }
 
@@ -379,6 +392,38 @@ class EntriesController extends AppController
      *
      * @return \Cake\Http\Response|void
      */
+    /**
+     * Whether the member has written too many postings too fast.
+     *
+     * The forum throttles login, registration and the contact form; posting was
+     * the one write path left open. It is cheaper to abuse than any of those — a
+     * script needs one confirmed account, then a `create()` per request — and
+     * each write invalidates the thread cache, so the cost is not only rows.
+     *
+     * Keyed on the member id, not the client IP: posting already requires an
+     * account, and several members behind one connection (a university, a mobile
+     * network) must not throttle each other. Moderators and above are exempt —
+     * they answer and clean up in bursts, and the limit is aimed at a script.
+     *
+     * @return bool
+     */
+    private function isPostThrottled(): bool
+    {
+        if ($this->CurrentUser->permission('saito.core.posting.unthrottled')) {
+            return false;
+        }
+
+        $key = 'post-throttle-' . $this->CurrentUser->getId();
+        $record = Cache::read($key);
+        if (!is_array($record) || (time() - $record['first']) >= self::POST_THROTTLE_WINDOW) {
+            $record = ['count' => 0, 'first' => time()];
+        }
+        $record['count']++;
+        Cache::write($key, $record);
+
+        return $record['count'] > self::POST_MAX_ATTEMPTS;
+    }
+
     public function htmxAdd()
     {
         $this->set('categories', $this->CurrentUser->getCategories()->getAll('thread', 'select'));
@@ -403,10 +448,15 @@ class EntriesController extends AppController
                 // Saito 4 made, and for the same reason.
                 'nsfw' => (bool)$this->getRequest()->getData('nsfw'),
             ];
-            try {
-                $posting = $this->Posting->create($data, $this->CurrentUser);
-            } catch (SaitoForbiddenException $e) {
+            if ($this->isPostThrottled()) {
                 $posting = null;
+                $this->Flash->set(__('entry.post.throttled'), ['element' => 'error']);
+            } else {
+                try {
+                    $posting = $this->Posting->create($data, $this->CurrentUser);
+                } catch (SaitoForbiddenException $e) {
+                    $posting = null;
+                }
             }
 
             if ($posting !== null && !$posting->getErrors()) {
@@ -695,7 +745,11 @@ class EntriesController extends AppController
             $userId = $requested;
         }
 
-        $perPage = 20;
+        // 60, not 20. The tiles are a grid, and twenty of them do not fill one
+        // screen — a member with 493 uploads had to press "load more" 24 times
+        // to see their own archive, which is what prompted this. The images load
+        // lazily, so the extra rows cost markup and nothing else.
+        $perPage = 60;
         $page = max(1, (int)$this->getRequest()->getQuery('page'));
 
         $Uploads = $this->fetchTable('ImageUploader.Uploads');
@@ -705,6 +759,7 @@ class EntriesController extends AppController
 
         $this->set('uploads', $uploads);
         $this->set('page', $page);
+        $this->set('total', $total);
         $this->set('hasMore', ($page * $perPage) < $total);
         // Only set when looking at somebody else's archive, so "load more" keeps
         // asking about the same member instead of falling back to the admin's own.
@@ -745,6 +800,22 @@ class EntriesController extends AppController
             );
         }
 
+        // Deleting an upload that is still embedded leaves a dangling [img] in
+        // old postings. When something references it, answer the first request
+        // with a warning instead of deleting; the caller re-posts with
+        // `confirm=1` to go ahead. Nothing embedding it → straight through.
+        if ($this->getRequest()->getData('confirm') !== '1') {
+            $usageCount = $this->findPostingsEmbeddingUpload($upload)->count();
+            if ($usageCount > 0) {
+                $this->set('uploadId', $id);
+                $this->set('usageCount', $usageCount);
+                $this->set('ownerId', (int)$upload->user->getId());
+                $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_upload_delete_confirm');
+
+                return $this->render();
+            }
+        }
+
         if (!$Uploads->delete($upload)) {
             throw new BadRequestException();
         }
@@ -754,6 +825,80 @@ class EntriesController extends AppController
         $this->autoRender = false;
 
         return $this->response->withStringBody('');
+    }
+
+    /**
+     * List the postings that embed a given upload (issue #64).
+     *
+     * So a member can see where an image is used before deleting it: a deleted
+     * upload that is still embedded leaves a dangling `[img]` in old postings,
+     * with nothing warning them first.
+     *
+     * An upload is referenced in a posting as `[img src=upload]<name>[/img]`
+     * (see `uploads.ts`), so its filename appears verbatim in `entries.text`.
+     * The name is matched literally — every upload name carries underscores,
+     * which are LIKE wildcards unless escaped. Scoped to the upload's owner: a
+     * member embeds their own uploads in their own postings, and this keeps the
+     * scan to one member's rows. `LIKE '%…%'` cannot use an index, so this runs
+     * per-upload and on demand, never in bulk.
+     *
+     * @param string|null $id upload id
+     * @return void
+     */
+    public function htmxUploadUsage($id = null): void
+    {
+        $id = (int)$id;
+        if ($id <= 0) {
+            throw new BadRequestException();
+        }
+
+        $Uploads = $this->fetchTable('ImageUploader.Uploads');
+        /** @var \ImageUploader\Model\Entity\Upload $upload */
+        $upload = $Uploads->get($id, contain: ['Users']);
+
+        // Same right as viewing that member's uploads at all.
+        $allowed = $this->CurrentUser->permission(
+            'saito.plugin.uploader.view',
+            (new ResourceAI())->onRole($upload->user->getRole())->onOwner($upload->user->getId()),
+        );
+        if (!$allowed) {
+            throw new SaitoForbiddenException(
+                sprintf('Attempt to list usage of upload "%s".', $id),
+                ['CurrentUser' => $this->CurrentUser],
+            );
+        }
+
+        $postings = $this->findPostingsEmbeddingUpload($upload)
+            ->select(['id', 'subject', 'time'])
+            ->orderBy(['Entries.time' => 'DESC'])
+            ->limit(50)
+            ->all();
+
+        $this->set('postings', $postings);
+        $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_upload_usage');
+    }
+
+    /**
+     * Postings by an upload's owner whose text embeds it.
+     *
+     * The upload appears in a posting as `[img src=upload]<name>[/img]`, so the
+     * filename is matched in `entries.text` with LIKE — its underscores escaped
+     * so they stay literal rather than single-character wildcards — scoped to
+     * the owner's rows. Shared by the usage listing and the delete guard.
+     *
+     * @param \ImageUploader\Model\Entity\Upload $upload the upload
+     * @return \Cake\ORM\Query\SelectQuery
+     */
+    private function findPostingsEmbeddingUpload(
+        \ImageUploader\Model\Entity\Upload $upload,
+    ): \Cake\ORM\Query\SelectQuery {
+        $pattern = '%' . addcslashes((string)$upload->get('name'), '\\%_') . '%';
+
+        return $this->Entries->find()
+            ->where([
+                'Entries.user_id' => (int)$upload->user->getId(),
+                'Entries.text LIKE' => $pattern,
+            ]);
     }
 
     /**
@@ -793,10 +938,10 @@ class EntriesController extends AppController
             // submitted when the writer leaves it alone — and without this the
             // posting would get the parent's subject *without* the "Re:" the
             // field had just promised.
-            $subject = trim((string)$this->getRequest()->getData('subject'));
-            if ($subject === '') {
-                $subject = $this->replySubject((string)$parent->get('subject'));
-            }
+            $typedSubject = trim((string)$this->getRequest()->getData('subject'));
+            $subject = $typedSubject !== ''
+                ? $typedSubject
+                : $this->replySubject((string)$parent->get('subject'));
 
             $data = [
                 'pid' => $parent->get('id'),
@@ -810,10 +955,15 @@ class EntriesController extends AppController
                 // part of Saito 4's rule still holds.
                 'nsfw' => (bool)$this->getRequest()->getData('nsfw'),
             ];
-            try {
-                $posting = $this->Posting->create($data, $this->CurrentUser);
-            } catch (SaitoForbiddenException $e) {
+            if ($this->isPostThrottled()) {
                 $posting = null;
+                $this->Flash->set(__('entry.post.throttled'), ['element' => 'error']);
+            } else {
+                try {
+                    $posting = $this->Posting->create($data, $this->CurrentUser);
+                } catch (SaitoForbiddenException $e) {
+                    $posting = null;
+                }
             }
 
             if ($posting !== null && !$posting->getErrors()) {
@@ -824,7 +974,13 @@ class EntriesController extends AppController
             }
 
             $this->set('errors', $posting !== null ? $posting->getErrors() : []);
-            $this->set('submitted', $data);
+            // What the writer typed, not what was made of it. `$data` carries
+            // the filled-in subject because that is what gets saved; putting the
+            // same thing back into the form would turn the pale placeholder into
+            // a real value the writer now has to delete before typing their own
+            // — and it would stay there while they type, which is exactly what a
+            // placeholder must not do.
+            $this->set('submitted', ['subject' => $typedSubject] + $data);
         }
 
         if (!$this->getRequest()->is('post')) {

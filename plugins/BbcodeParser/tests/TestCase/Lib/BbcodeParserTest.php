@@ -106,6 +106,66 @@ class BbcodeParserTest extends SaitoTestCase
     }
 
     /**
+     * SECURITY: no tag turns a hostile input into live markup.
+     *
+     * `testCodeBlockNeverProducesLiveMarkup()` guards `[code]` specifically,
+     * where the 7.2.5 hole was. This is the broader sweep — the vectors an audit
+     * throws at every tag: raw markup, `javascript:` and `data:` schemes,
+     * attribute breakout through a stray quote, hostile content inside a
+     * container, and an autolinked scheme in running text.
+     *
+     * The check is made against the parsed DOM, not the string: a search for
+     * `onerror=` finds it in the *escaped* text too and reports a hole that is
+     * not there. A rule fails only if a real element, event attribute, or
+     * `javascript:` target survives.
+     *
+     * @return void
+     */
+    public function testNoTagProducesLiveMarkup()
+    {
+        $attempts = [
+            'raw script' => '<script>alert(1)</script>',
+            'img onerror' => '<img src=x onerror=alert(1)>',
+            'svg onload' => '<svg onload=alert(1)>',
+            'url javascript' => '[url]javascript:alert(1)[/url]',
+            'url= javascript' => '[url=javascript:alert(1)]click[/url]',
+            'url data-html' => '[url=data:text/html,<script>alert(1)</script>]x[/url]',
+            'url attr breakout' => '[url=http://a" onmouseover="alert(1)]x[/url]',
+            'img javascript' => '[img]javascript:alert(1)[/img]',
+            'img attr breakout' => '[img]http://a" onerror="alert(1)[/img]',
+            'email markup' => '[email]<script>alert(1)</script>@x.de[/email]',
+            'email breakout' => '[email]a" onmouseover="alert(1)@x.de[/email]',
+            'quote markup' => '[quote]<img src=x onerror=alert(1)>[/quote]',
+            'color breakout' => '[color=red" onmouseover="alert(1)]x[/color]',
+            'autolink javascript' => 'see javascript:alert(1) here',
+        ];
+
+        $problems = [];
+        foreach ($attempts as $name => $input) {
+            $html = (string)$this->_Parser->parse($input);
+
+            $doc = new \DOMDocument();
+            @$doc->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NOERROR);
+
+            foreach (['script', 'svg'] as $tag) {
+                if ($doc->getElementsByTagName($tag)->length > 0) {
+                    $problems[] = "$name produced a live <$tag>";
+                }
+            }
+            foreach ((new \DOMXPath($doc))->query('//*/@*') as $attr) {
+                if (stripos($attr->nodeName, 'on') === 0) {
+                    $problems[] = "$name produced event attribute {$attr->nodeName}";
+                }
+                if (stripos((string)$attr->nodeValue, 'javascript:') === 0) {
+                    $problems[] = "$name produced a javascript: {$attr->nodeName}";
+                }
+            }
+        }
+
+        $this->assertSame([], $problems, "\n" . implode("\n", $problems) . "\n");
+    }
+
+    /**
      * SECURITY: undoing the first escape must not let markup through.
      *
      * This is the spot the stored XSS of 7.2.5 lived in, so the check is made
@@ -181,6 +241,27 @@ class BbcodeParserTest extends SaitoTestCase
         ];
         $result = $this->_Parser->parse($input);
         $this->assertHtml($expected, $result);
+    }
+
+    /**
+     * The spoiler's safety rests on the content being escaped *twice* — once by
+     * the parser, once by `htmlentities` in the definition — so that `<` reaches
+     * the browser as `&amp;lt;`. The island reveals it with `innerHTML`, which
+     * undoes only the one layer `getAttribute` left, landing on inert entity
+     * text rather than a live element. If this contract ever weakens to a single
+     * encode, that `innerHTML` becomes stored XSS — so pin it here.
+     *
+     * @return void
+     */
+    public function testSpoilerContentIsDoubleEscaped()
+    {
+        $result = $this->_Parser->parse('[spoiler]<img src=x onerror=alert(1)>[/spoiler]');
+
+        // `<` and `>` leave the server double-encoded; the raw angle brackets of
+        // an `<img>` element never appear inside the attribute.
+        $this->assertStringContainsString('data-spoiler="&amp;lt;img', $result);
+        $this->assertStringContainsString('onerror=alert(1)&amp;gt;"', $result);
+        $this->assertStringNotContainsString('<img src=x', $result);
     }
 
     public function testList()
@@ -1785,10 +1866,7 @@ EOF;
         $SmileyLoader = new \Saito\Smiley\SmileyLoader();
 
         //= userlist fixture
-        $Userlist = $this->getMockBuilder(UserlistModel::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['get'])
-            ->getMock();
+        $Userlist = $this->createStub(UserlistModel::class);
         $Userlist->method('get')->willReturn(['Alice', 'Bobby Junior', 'Dr. No']);
 
         //= ParserHelper

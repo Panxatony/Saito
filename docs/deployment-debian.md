@@ -127,10 +127,14 @@ Edit `/var/www/saito/config/app.php` and replace the `__SALT__` placeholders plu
 
 - `SECURITY_SALT`, `SECURITY_COOKIE_SALT`, `SECURITY_JWT_SALT` (each at least 32 random characters; `SECURITY_JWT_SALT` signs the API tokens issued by the JWT authentication path)
 - `DATABASE_URL` (e.g. `mysql://saito:CHANGE_ME@localhost/saito?encoding=utf8mb4`)
-- `APP_DEFAULT_TIMEZONE` (e.g. `Europe/Berlin`) — falls back to UTC
+- `APP_DEFAULT_TIMEZONE` — **leave this at `UTC`**, which is also the fallback. It is not the forum's timezone; that is a setting in the admin area (`Saito.Settings.timezone`), and Saito renders every displayed time into it. What this variable does is tell PHP how to *read* the instants coming out of the database, and those are UTC: CakePHP pins its own connection to `+00:00` whatever the DSN says. Setting it to a local zone makes every timestamp in the forum wrong by the offset — an hour in winter, two in summer. This example used to read `Europe/Berlin`, and an installation set up from it was found reading exactly that way on 2026-08-02.
 - `APP_DEFAULT_LOCALE` (e.g. `de_DE`) — drives `intl` date/number formatting; default `en_US`
 - `SAITO_LANGUAGE` (`de` or `en`) — picks the UI translation bundle; default `en`
 - `DEBUG=false`
+
+The list above is what a typical install needs. **Every** variable Saito reads,
+with defaults, is in [configuration.md](configuration.md) — including the mail
+block and the switches for a staging copy.
 
 If you prefer keeping the variables in a file rather than the systemd/FPM unit, copy the bundled template and edit it:
 
@@ -242,6 +246,30 @@ sudo chmod 700 /etc/cron.daily/saito-backup
 ```
 
 Add database credentials via `/root/.my.cnf` (mode `600`) so `mysqldump` doesn't need them on the command line.
+
+### A content-level export beside the dump
+
+The SQL dump restores the forum; it does not let you read it anywhere else. For a
+move to another installation, or a backup you can still open in ten years:
+
+```shell
+sudo -u www-data php bin/cake.php export_forum            # tmp/export/forum-<stamp>.jsonl
+sudo -u www-data php bin/cake.php export_forum -o /path/forum.jsonl
+```
+
+One self-describing JSON object per line — members, categories, postings and
+upload metadata — streamed, so the size of the forum does not matter.
+
+Two things it leaves out on purpose. **Credentials**: no password hashes or
+activation codes, so a forum rebuilt from this alone sends everybody through a
+password reset — accounts come back from the SQL dump. **The upload files
+themselves**: the metadata and URLs are there, the bytes travel with the
+`useruploads` tarball above.
+
+It is a full dump of personal data — every member's e-mail address, and their IP
+addresses where `store_ip` is on. The command writes it `0600` into a `0700`
+directory and refuses to write at all if it cannot; keep it that way wherever you
+move it, and treat it like the SQL dump.
 
 ## 10. Refresh the Public Suffix List (optional)
 

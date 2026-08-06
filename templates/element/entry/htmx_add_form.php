@@ -50,7 +50,6 @@ $addUrl = $this->Url->build(['controller' => 'Entries', 'action' => 'htmxAdd'], 
     echo $this->Form->control('subject', [
         'class' => 'form-control js-subject', 'label' => __('subject'),
         'maxlength' => $subjectMax,
-        'style' => '--subject-max: ' . $subjectMax,
     ]);
     // The NSFW toggle lives in the toolbar; hand it what was submitted so a
     // form re-rendered with validation errors does not lose the tick.

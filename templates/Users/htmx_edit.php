@@ -104,11 +104,13 @@
             // in front of everything it read as the swatch's own label. Between
             // the two it belongs to neither by accident and to both on purpose.
             echo '<div class="input"><label>' . h(__('user_colors')) . '</label>';
-            foreach ([
+            foreach (
+                [
                 'user_color_new_postings' => 'user_color_new_postings_exp',
                 'user_color_old_postings' => 'user_color_old_postinings_exp',
                 'user_color_actual_posting' => 'user_color_actual_posting_exp',
-            ] as $colourField => $expKey) {
+                ] as $colourField => $expKey
+            ) {
                 $stored = (string)$user->get($colourField);
                 $isSet = (bool)preg_match('/^#[0-9a-f]{6}$/i', $stored);
                 echo '<div class="settings-colour-row">';
@@ -183,6 +185,22 @@
                    data-modal-url="<?= $this->request->getAttribute('webroot') ?>users/htmx-change-password">
                     <?= h(__('change_password_link')) ?>
                 </a>
+            </p>
+            <p>
+                <a href="<?= $this->request->getAttribute('webroot') ?>users/htmx-two-factor">
+                    <?= h(__('user.2fa.settings.t')) ?>
+                </a>
+                <span class="infoText"><?= h(__('user.2fa.settings.exp')) ?></span>
+            </p>
+            <?php // A member's right to a copy of their own data is worthless if
+                  // they cannot find it, so it sits beside the password link
+                  // rather than in a legal page nobody opens. A plain link:
+                  // the response is a file download, and htmx would swallow it. ?>
+            <p>
+                <a href="<?= $this->request->getAttribute('webroot') ?>users/export" download>
+                    <?= h(__('user.export.link')) ?>
+                </a>
+                <span class="infoText"><?= h(__('user.export.exp')) ?></span>
             </p>
         </div>
     </div>

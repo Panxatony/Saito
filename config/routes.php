@@ -55,6 +55,14 @@ $routes->scope('/', function (RouteBuilder $routes) {
     $routes->connect('/', ['controller' => 'Entries', 'action' => 'htmxIndex']);
 
     /**
+     * Prometheus metrics. Outside /api/v2 on purpose: the exposition format is
+     * plain text, so the JSON error renderer and the CSRF exemption that scope
+     * carries would be inherited for nothing. Answers 404 unless
+     * SAITO_METRICS_TOKEN is set — see MetricsController.
+     */
+    $routes->connect('/metrics', ['controller' => 'Metrics', 'action' => 'index']);
+
+    /**
      * ...and connect the rest of 'Pages' controller's URLs.
      */
     $routes->connect('/pages/*', ['controller' => 'Pages', 'action' => 'display']);

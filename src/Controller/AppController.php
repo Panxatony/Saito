@@ -125,6 +125,16 @@ class AppController extends Controller
             }
         );
 
+        // Changed terms of service: same shape, one step behind the closed-forum
+        // gate, because a closed forum outranks everything.
+        $this->getEventManager()->on(
+            'Controller.initialize',
+            ['priority' => 2],
+            function (\Cake\Event\EventInterface $event): ?Response {
+                return $this->requireTermsAcceptance($event);
+            }
+        );
+
         // Leave in front to have it available in all Components
         $this->loadComponent('Detectors.Detectors');
         // CookieComponent was removed in Cake 4; cookies go through
@@ -176,6 +186,78 @@ class AppController extends Controller
         $event->stopPropagation();
 
         return $body->withStatus(503);
+    }
+
+    /**
+     * Asks a member to agree to the terms again after the operator raised
+     * `tos_version` — see issue #80 and § 7 of the shipped terms.
+     *
+     * Only where the forum requires terms at all (`tos_enabled`), only for a
+     * logged-in member, and only while their `tos_accepted_version` is behind
+     * the setting. An installation that never touches `tos_version` never sees
+     * this: an absent setting reads as 0 and nothing is ever behind 0.
+     *
+     * Sessions are deliberately *not* invalidated. The check runs on every
+     * request, so the next thing a member does already lands here — forcing a
+     * re-login as well would buy nothing and cost everyone their session.
+     *
+     * @param \Cake\Event\EventInterface $event the initialize event
+     * @return Response|null the interstitial, or null to let the request proceed
+     */
+    protected function requireTermsAcceptance(\Cake\Event\EventInterface $event): ?Response
+    {
+        if (!Configure::read('Saito.Settings.tos_enabled')) {
+            return null;
+        }
+        if (!$this->CurrentUser->isLoggedIn()) {
+            return null;
+        }
+
+        $required = (int)Configure::read('Saito.Settings.tos_version');
+        if ($required <= (int)$this->CurrentUser->get('tos_accepted_version')) {
+            return null;
+        }
+        if ($this->isExemptFromTermsGate()) {
+            return null;
+        }
+
+        $this->viewBuilder()->setLayout('htmx_island');
+        $body = $this->render('/Pages/tos_reconsent');
+        $event->stopPropagation();
+
+        return $body;
+    }
+
+    /**
+     * Requests that must survive the terms gate, or a member who does not want
+     * to agree would have nowhere to go.
+     *
+     * Four things stay open: reading the static legal pages (the terms one is
+     * asked to agree to among them), accepting, logging out, and taking one's
+     * own data out — the last because GDPR Art. 15/20 is not something a forum
+     * gets to withhold pending a signature.
+     *
+     * @return bool
+     */
+    private function isExemptFromTermsGate(): bool
+    {
+        $request = $this->getRequest();
+        if ($request->getParam('plugin') !== null) {
+            // Admin and plugin routes are gated like everything else; an
+            // administrator agrees to the terms too, and can then change them.
+            return false;
+        }
+
+        $controller = (string)$request->getParam('controller');
+        $action = (string)$request->getParam('action');
+
+        // The imprint, the privacy policy and the terms themselves.
+        if ($controller === 'Pages' && $action === 'display') {
+            return true;
+        }
+
+        return $controller === 'Users'
+            && in_array($action, ['tosAccept', 'logout', 'login', 'export'], true);
     }
 
     /**

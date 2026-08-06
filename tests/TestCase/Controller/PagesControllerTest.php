@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Test\TestCase\Controller;
 
+use Cake\Core\Configure;
 use Saito\Test\IntegrationTestCase;
 
 class PagesControllerTest extends IntegrationTestCase
@@ -56,5 +57,25 @@ class PagesControllerTest extends IntegrationTestCase
         $card = substr($body, (int)strpos($body, 'card-body panel-content'));
         $card = substr($card, 0, (int)strpos($card, '</div>'));
         $this->assertStringNotContainsString('"/feeds/postings/new.rss"', $card);
+    }
+
+    public function testTosPageRendersTheConfiguredTerms()
+    {
+        Configure::write('Saito.tos', '<p>Diese Nutzungsbedingungen gelten.</p>');
+        $this->get('/pages/tos');
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('Diese Nutzungsbedingungen gelten.');
+    }
+
+    public function testTosPageFallsBackToTheShippedDefault()
+    {
+        Configure::write('Saito.tos', '');
+        $this->get('/pages/tos');
+
+        $this->assertResponseOk();
+        // The shipped German default renders in full, not a placeholder notice.
+        $this->assertResponseContains('§ 1 Geltungsbereich');
+        $this->assertResponseContains('§ 6 Laufzeit');
     }
 }

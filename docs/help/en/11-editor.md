@@ -38,6 +38,12 @@ straight away. When the linked page provides a preview — title, description,
 image — you can choose between a plain link and a preview card. The preview
 shows what it will become before you insert it.
 
+For **YouTube and PeerTube** the address from the address bar is enough —
+including the short `/w/…` form PeerTube shows. The editor turns it into the
+player's own address by itself. Whether the video then appears still depends on
+the forum allowing that domain; if it is not on the list, a note appears in
+place of the video.
+
 ### Files
 
 The *Uploads* button opens your archive and takes new files at the same time.

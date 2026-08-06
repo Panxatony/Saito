@@ -62,6 +62,11 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @var array<string, string>
      */
     private const MEMBER_OPEN = [
+        // Takes no parameter: the account comes from the session, so there is
+        // nothing to substitute and no per-record check to make. Deliberately
+        // *not* available to an administrator for somebody else — GDPR Art. 15
+        // is a right of the person the data is about, exercised by them.
+        'App\\Controller\\UsersController::export' => 'hands the current member their own data (self-scoped by construction)',
         'App\\Controller\\UsersController::name' => 'view a public user profile by name (read)',
         'App\\Controller\\UsersController::ignore' => 'adds to the current user\'s own ignore list (self-scoped)',
         'App\\Controller\\UsersController::unignore' => 'removes from the current user\'s own ignore list (self-scoped)',
@@ -72,6 +77,8 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::htmxWidgetState' => 'stores the current user\'s own widget-rail arrangement (self-scoped)',
         'App\\Controller\\UsersController::htmxBookmarkComment' => 'edits the note on the current user\'s own bookmark; the row is looked up by posting id AND user id (self-scoped)',
         'App\\Controller\\UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
+        'App\\Controller\\UsersController::htmxTwoFactor' => 'the current member\'s own second factor: enrol, new recovery codes, switch off. Self-scoped by construction (the account comes from the session), and the two weakening actions re-ask for the password',
+        'App\\Controller\\UsersController::tosAccept' => 'records the current user\'s own agreement to the terms; account from the session, version from the setting (nothing to substitute)',
         'App\\Controller\\EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
         'App\\Controller\\EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
         'App\\Controller\\EntriesController::htmxDraft' => 'stores the current user\'s own unfinished posting; the row is looked up by parent id AND user id (self-scoped)',
@@ -89,6 +96,13 @@ class AuthorizationCoverageTest extends SaitoTestCase
      * @var array<string, string>
      */
     private const PUBLIC_OPEN = [
+        // Unauthenticated in Saito's terms because a Prometheus scraper cannot
+        // hold a session — but not open: it is gated on a fixed bearer token
+        // compared with hash_equals, and answers 404 both when the token is
+        // wrong and when none is configured, so an installation that has not
+        // asked for metrics is indistinguishable from one that never had them.
+        // See MetricsController and docs/configuration.md.
+        'App\\Controller\\MetricsController::index' => 'Prometheus exposition, guarded by SAITO_METRICS_TOKEN (404 without it)',
         // Reading the forum: content itself is filtered by the reader's
         // category read-permission (guests see public categories only).
         'App\\Controller\\EntriesController::htmxIndex' => 'island front page (read; category-filtered)',
@@ -102,7 +116,17 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::logout' => 'logout',
         'App\\Controller\\UsersController::rs' => 'account activation via the emailed code',
         'App\\Controller\\UsersController::htmxLogin' => 'island login form',
+        // Step two of a login, so by definition before any identity exists. What
+        // stands in for one is the pending marker login() writes after a password
+        // checks out: it names the account, lives five minutes, and is throttled.
+        'App\\Controller\\UsersController::twoFactor' => 'second-factor challenge; gated by the pending-login marker, not by a session',
         'App\\Controller\\UsersController::htmxRegister' => 'island registration form',
+        // Self-service password reset (#63): both must work for a member who
+        // cannot log in. Enumeration-safe (identical answer whether or not the
+        // address is on file) and throttled per client; the reset step is gated
+        // on a single-use, 60-minute, hashed token, not on a session.
+        'App\\Controller\\UsersController::htmxForgotPassword' => 'request a password-reset link (enumeration-safe, throttled)',
+        'App\\Controller\\UsersController::htmxResetPassword' => 'set a new password via an emailed single-use token (token-gated, not session)',
         // Public search + contact + static content.
         'SaitoSearch\\Controller\\SearchesController::htmxSimple' => 'island fulltext search (results category-filtered)',
         'App\\Controller\\ContactsController::htmxContactOwner' => 'island contact the operator (honeypot + timing guard)',

@@ -35,6 +35,7 @@ class SettingFixture extends TestFixture
         ['id' => '16', 'name' => 'topics_per_page', 'value' => '20'],
         ['id' => '17', 'name' => 'tos_enabled', 'value' => '1'],
         ['id' => '18', 'name' => 'tos_url', 'value' => 'http://example.com/tos-url.html/'],
+        ['id' => '35', 'name' => 'tos_version', 'value' => '0'],
         ['id' => '19', 'name' => 'category_chooser_global', 'value' => '0'],
         ['id' => '20', 'name' => 'category_chooser_user_override', 'value' => '1'],
         ['id' => '21', 'name' => 'category_chooser_user_override', 'value' => '1'],

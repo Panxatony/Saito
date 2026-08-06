@@ -48,6 +48,22 @@ if ($CurrentUser->permission('saito.core.user.lastLogin.view')) {
     ];
 }
 $rows[] = [__('user_postings'), $this->Html->link($user->numberOfPostings(), $historyUrl)];
+
+// The rank a member has written their way to. Off unless the installation
+// configured it: `userranks_show` has to be on *and* `userranks_ranks` has to
+// parse into something, so an install that never set this up — macfix — shows
+// no row at all rather than an empty one.
+//
+// `numberOfPostings()` reads the `entry_count` column, so this costs nothing
+// beyond the string work.
+if (\Cake\Core\Configure::read('Saito.Settings.userranks_show')) {
+    $rank = \Saito\User\Userranks\Ranks::fromSetting(
+        \Cake\Core\Configure::read('Saito.Settings.userranks_ranks')
+    )->titleFor($user->numberOfPostings());
+    if ($rank !== null) {
+        $rows[] = [__('user.rank.t'), h($rank)];
+    }
+}
 if ($solved) {
     $rows[] = [$this->Posting->solvedBadge(), $solved];
 }
@@ -174,7 +190,7 @@ if ($user->get('signature')) {
                             'type' => 'select',
                             'options' => $durationLabels,
                             'default' => 86400,
-                            'label' => __('user.block.t'),
+                            'label' => __('user.block.duration'),
                         ]) ?>
                     </div>
                     <?= $this->Form->button(
@@ -197,8 +213,23 @@ if ($user->get('signature')) {
             <p class="text-muted"><?= h(__('Loading …')) ?></p>
         </div>
 
-        <?php // The uploads fragment is bare tiles (the grid normally comes from the
-              // editor overlay), so give it a .upload-grid to lay out in. ?>
+        <?php // Personalized RSS feeds (carry the user's token → include their
+              // readable non-public categories). The Feeds cell builds the links. ?>
+        <div class="card mb-3">
+            <div class="card-header">
+                <?= $this->Layout->panelHeading(__('s.rss.t')) ?>
+            </div>
+            <div class="card-body">
+                <?= $this->cell('Feeds.FeedLinks', [$CurrentUser]) ?>
+            </div>
+        </div>
+        <?php // Last on the page, and that is the whole reason it sits here rather
+              // than after the bookmarks where it used to: the archive loads more
+              // tiles as it is scrolled, so anything below it walks away from the
+              // reader. A section that grows without end belongs at the end.
+              //
+              // The fragment is bare tiles (the grid normally comes from the editor
+              // overlay), so give it a .upload-grid to lay out in. ?>
         <div class="card mb-3">
             <div class="card-header">
                 <?php // "Uploads", not "upload images": this manages the archive. ?>
@@ -225,16 +256,6 @@ if ($user->get('signature')) {
             </div>
         </div>
 
-        <?php // Personalized RSS feeds (carry the user's token → include their
-              // readable non-public categories). The Feeds cell builds the links. ?>
-        <div class="card mb-3">
-            <div class="card-header">
-                <?= $this->Layout->panelHeading(__('s.rss.t')) ?>
-            </div>
-            <div class="card-body">
-                <?= $this->cell('Feeds.FeedLinks', [$CurrentUser]) ?>
-            </div>
-        </div>
     <?php endif; ?>
 
     <?php // Somebody else's profile, seen by an admin: their upload archive.

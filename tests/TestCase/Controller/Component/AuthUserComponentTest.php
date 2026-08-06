@@ -204,6 +204,58 @@ class AuthUserComponentTest extends IntegrationTestCase
         $this->assertEquals('Lax', $cookie['samesite']);
     }
 
+    /**
+     * A password change elsewhere invalidates this session: it carries a
+     * fingerprint of the old password, no longer matches the account's current
+     * hash, and so the next request drops it — the mechanism that makes a reset
+     * "log out everywhere".
+     *
+     * @return void
+     */
+    public function testStalePasswordFingerprintLogsOut()
+    {
+        $this->_loginUser(1);
+        $this->session([AuthUserComponent::PW_FINGERPRINT_KEY => 'from-a-password-that-no-longer-exists']);
+
+        // htmx-edit requires a login; a dropped session is anonymous again.
+        $this->get('/users/htmx-edit');
+        $this->assertRedirectContains('/login');
+    }
+
+    /**
+     * The counterpart: a session whose fingerprint still matches the account's
+     * current password is left alone — an ordinary logged-in request must not
+     * be logged out by the guard.
+     *
+     * @return void
+     */
+    public function testCurrentPasswordFingerprintStaysLoggedIn()
+    {
+        $Users = TableRegistry::getTableLocator()->get('Users');
+        $fingerprint = hash('sha256', (string)$Users->get(1)->get('password'));
+
+        $this->_loginUser(1);
+        $this->session([AuthUserComponent::PW_FINGERPRINT_KEY => $fingerprint]);
+
+        $this->get('/users/htmx-edit');
+        $this->assertResponseOk();
+    }
+
+    /**
+     * A session that predates the mechanism carries no fingerprint. It adopts
+     * the current one rather than being kicked, so shipping the feature does not
+     * log everyone out at once.
+     *
+     * @return void
+     */
+    public function testSessionWithoutFingerprintIsAdopted()
+    {
+        $this->_loginUser(1);
+        // No fingerprint written into the session at all.
+        $this->get('/users/htmx-edit');
+        $this->assertResponseOk();
+    }
+
     private function _setup(?ServerRequestInterface $request = null)
     {
         // buildApp() needs the routes (uses Router::url(['_name' => 'login']))

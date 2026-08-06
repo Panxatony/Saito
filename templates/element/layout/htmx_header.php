@@ -42,6 +42,15 @@ if ($theme) {
         </a>
     </div>
     <?php
+    // Unfold the header again. Hidden unless `html.headerClosed` is set, so it
+    // only appears once there is something to unfold — the theme decides that,
+    // because it is the theme that knows how tall the collapsed bar is.
+    ?>
+    <button type="button" class="btn btn-link" id="js-top-menu-open"
+            title="<?= h(__('Show header')) ?>" aria-expanded="false">
+        <i class="fa fa-plus-square-o" aria-hidden="true"></i>
+    </button>
+    <?php
     // Labelled buttons like the classic header: the theme hides .saito-icon-text
     // globally, so render icon + a plain .island-btn-label span (not textWithIcon).
     $iconLabel = function (string $icon, string $label): string {
@@ -108,6 +117,11 @@ if ($theme) {
                     <i class="fa fa-bookmark"></i>
                 </a>
             <?php endif; ?>
+            <?php // Fold the header away. Its counterpart sits next to the logo. ?>
+            <button type="button" class="btn btn-link" id="js-top-menu-close"
+                    title="<?= h(__('Hide header')) ?>" aria-expanded="true">
+                <i class="fa fa-minus-square-o" aria-hidden="true"></i>
+            </button>
         </div>
     </div>
 </header>

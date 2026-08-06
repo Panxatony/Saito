@@ -116,6 +116,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         $this->addPlugin(\Detectors\DetectorsPlugin::class);
         $this->addPlugin(\MailObfuscator\MailObfuscatorPlugin::class);
         $this->addPlugin(\Stopwatch\StopwatchPlugin::class);
+        $this->addPlugin(\Webhooks\WebhooksPlugin::class);
 
         $this->addPlugin('Macnemo');
         $this->loadDefaultThemePlugin();

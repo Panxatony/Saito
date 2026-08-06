@@ -1,0 +1,138 @@
+# Nightly: is anything we *ship* known to be vulnerable?
+#
+# The release workflow already refuses to build over a CVE in a production PHP
+# package. That gate only fires when a release is being cut, though, and
+# advisories are published on their own schedule — between two releases nobody
+# would hear anything.
+#
+# ## Why this fails on some things and only reports others
+#
+# A job that cries wolf is read for a week and ignored afterwards. Measured on
+# 2026-08-01, this repository's JavaScript tree carried 65 advisories, one of
+# them critical — every single one in build tooling: grunt's watcher, eslint,
+# autoprefixer. None of it is in the bundle the browser loads, none of it runs
+# on the server, and a red build every night because grunt-contrib-watch has a
+# ReDoS would teach everyone to close the mail unread.
+#
+# So the job is split by what an advisory would actually mean:
+#
+#   * PHP production dependencies — this is the code running on the forum's
+#     server. **Fails.**
+#   * JavaScript runtime dependencies — the six packages that end up in the
+#     bundle (alpinejs, htmx.org, bootstrap, font-awesome, the two typefaces).
+#     **Fails.**
+#   * Everything else, dev and build — printed into the summary so it can be
+#     seen and worked through, but it does not stop anything.
+#
+# A red run therefore means: something that is deployed has a known hole.
+#
+# ## What this catches that Dependabot does not
+#
+# Dependabot opens a pull request when a fixed version exists. When one does not
+# — the advisory is out, the maintainer has not shipped — it stays quiet, and
+# quiet is exactly what an unfixed vulnerability should not be. This says so
+# every night until it is dealt with.
+name: Security audit
+
+on:
+  schedule:
+    # 04:17 UTC. Not on the hour: GitHub queues the whole world's midnight cron
+    # jobs and a run can sit for a long time before it starts.
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Pinned to a commit, not the moving `v2` tag: this is the one
+      # third-party action in the repository, and a tag can be repointed by
+      # whoever owns it. The blast radius is small — this workflow holds no
+      # secrets and only `contents: read` — but a pin costs nothing.
+      - uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      # ----------------------------------------------------------------
+      # The two that matter. Both run even if the first one fails, so one
+      # report shows the whole picture instead of only its first half.
+      # ----------------------------------------------------------------
+      - name: PHP — production dependencies
+        id: php
+        run: |
+          set -eu
+          # --locked: audit what the lock file pins, not what a fresh
+          # resolve would pick — the lock is what the release installs.
+          composer audit --locked --no-dev --format=plain
+
+      - name: JavaScript — runtime dependencies
+        id: js
+        if: always()
+        run: |
+          set -eu
+          yarn install --frozen-lockfile --ignore-scripts --silent
+          # `--groups dependencies` is the whole point: devDependencies are
+          # the build, and the build is not deployed. yarn's exit code is a
+          # bitmask of the severities it found, so any non-zero means
+          # something was reported.
+          yarn audit --groups dependencies
+
+      # ----------------------------------------------------------------
+      # Everything else: worth seeing, not worth blocking on. `|| true`
+      # is deliberate — see the header.
+      # ----------------------------------------------------------------
+      - name: Build and dev tooling (report only)
+        if: always()
+        run: |
+          {
+            echo "### Build and dev tooling"
+            echo
+            echo "Not deployed — neither in the bundle nor on the server."
+            echo "Listed so it can be worked through, not to block anything."
+            echo
+            echo '```'
+            yarn audit --groups devDependencies --summary 2>&1 | tail -20 || true
+            echo '```'
+            echo
+            echo "#### PHP, including dev"
+            echo
+            echo '```'
+            composer audit --locked --format=plain 2>&1 | tail -20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # --------------------------------------------------------------------
+  # Are the security headers still reaching browsers?
+  #
+  # A dependency advisory is not the only thing that appears between two
+  # releases. Server configuration drifts too, and silently: the shipped
+  # nginx example gained headers on its static and upload locations, one
+  # deployed vhost never did, and uploads were served without
+  # `X-Content-Type-Options` until somebody happened to look. Nothing fails
+  # visibly when that happens, so it needs a schedule rather than a memory.
+  #
+  # Only the publicly reachable installations are checked. The test system
+  # resolves to a private address and cannot be probed from a hosted runner
+  # — run `sh dev/check-security-headers.sh <url>` against it by hand, or
+  # from a cron on a machine that can see it.
+  # --------------------------------------------------------------------
+  headers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Security headers are still served
+        run: |
+          sh dev/check-security-headers.sh \
+            https://macnemo.de \
+            https://saito8-alpha.macnemo.de

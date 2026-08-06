@@ -1,6 +1,10 @@
 
 # Customizing #
 
+Every key `config/saito_config.php` accepts is listed in
+[configuration.md](configuration.md); this page is the longer form for the ones
+that need more than a table row.
+
 ## Themes ##
 
 The default theme is *Nova*, a [CakePHP theme plugin](https://book.cakephp.org/5/en/views/themes.html) in `plugins/Nova`. It builds on the SCSS partials of *Bota* (`plugins/Bota`), the older theme, which also hosts the shared assets — the web fonts and the smiley icon font are served from `/bota/` for every theme. The UI is [Bootstrap 4](https://getbootstrap.com/docs/4.3/getting-started/introduction/) based.

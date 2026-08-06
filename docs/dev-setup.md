@@ -8,7 +8,10 @@ How to run Saito locally for development.
   simplexml, ...)
 - **MySQL** or **MariaDB**
 - [**Composer**](https://getcomposer.org/) for the PHP dependencies
-- **Node.js** with [**Yarn**](https://yarnpkg.com/) for the frontend assets
+- **Node.js >= 22.11** with [**Yarn**](https://yarnpkg.com/) for the frontend
+  assets. `.nvmrc` names the exact version the pipelines run (24 LTS). Below the
+  floor `yarn install` stops with an engine error naming `cssnano` rather than
+  Node, which is easy to misread as a broken lockfile.
 
 ## 1. Get the Code
 
@@ -50,25 +53,38 @@ bin/cake migrations migrate
 
 ## 3. Frontend Assets
 
-The island bundles and the theme stylesheets are built with Grunt (Vite +
-dart-sass under the hood). Install the Node dependencies — `yarn.lock` pins the
-exact, reproducible versions — and build the development assets:
+The island bundles and the theme stylesheets are built from `package.json`
+scripts (Vite + dart-sass under the hood). Install the Node dependencies —
+`yarn.lock` pins the exact, reproducible versions — and build the development
+assets:
 
 ```shell
 yarn install
-grunt dev-setup      # pull vendor assets into place for development
+yarn setup            # pull vendor assets into place for development
 ```
 
 For production (minified, purged) assets:
 
 ```shell
-grunt release
+yarn build:release
 ```
 
-Every theme is compiled by one task, `grunt dart-sass:theme` — Bota, Nova and
-Macnemo together, because Nova imports Bota's partials and Macnemo imports
-Nova's. Change a partial and rebuild all of them, or the themes drift apart.
-`grunt release` runs that task and then minifies the results.
+Every theme is compiled by one script, `yarn css` — Bota, Nova and Macnemo
+together, because Nova imports Bota's partials and Macnemo imports Nova's. Change
+a partial and rebuild all of them, or the themes drift apart.
+
+**`yarn build:release` does one more thing than a local build, and it matters.**
+After minifying, it runs `dev/purge-css.js`, which drops every rule no template
+or PHP class refers to — the compiled themes carry about 1600 classes and the
+forum uses roughly 150, so this is 810 KB down to 271. Bootstrap stays a
+dependency; only the shipped CSS is trimmed.
+
+So what you compile locally is the full stylesheet and what ships is not. That
+gap is a real hazard: a rule only the purge removes looks fine in `yarn css` and
+is missing on the server, with nothing in any log. `dev/pixel-diff.sh` is what
+closes it — it renders real pages against both and counts differing pixels.
+**Run it after touching `purgecss.config.js`, and treat anything but zero as a
+missing safelist entry rather than an acceptable number.**
 
 ## 4. Run the App
 

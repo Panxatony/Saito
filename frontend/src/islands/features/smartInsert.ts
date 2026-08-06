@@ -25,27 +25,105 @@ function youtubeId(url: string): string | null {
     return wa ? wa[1] : null;
 }
 
+/**
+ * A PeerTube watch URL, turned into the address that can actually be embedded.
+ *
+ * PeerTube hands people `/w/<id>` — a whole HTML page. Pasting that into
+ * `[video]` produces a `<video src=…>` pointing at a web page, which plays
+ * nothing, and pasting it into `[iframe]` embeds the entire site chrome. The
+ * player lives at `/videos/embed/<id>`.
+ *
+ * Recognised by the path rather than the host: PeerTube is federated, so there
+ * is no domain list to match against — macnemo runs its own instance and so
+ * does everyone else. `/w/<id>` is distinctive enough, and the cost of a false
+ * positive is small: the forum's own `video_domains_allowed` still has to
+ * permit the host, or the posting shows "domain not allowed" instead of a
+ * frame.
+ *
+ * @param url the pasted address
+ * @returns the embed address, or null when it is not a PeerTube watch URL
+ */
+function peertubeEmbed(url: string): string | null {
+    const match = url.match(/^(https?:\/\/[^/]+)\/w\/([\w-]+)/i);
+
+    return match ? `${match[1]}/videos/embed/${match[2]}` : null;
+}
+
+/**
+ * The player frame both video services get, differing only in the address.
+ *
+ * Written once because the attributes are not free-form: the size matches the
+ * SPA's, and `allowfullscreen` has to survive the BBCode parser's attribute
+ * whitelist. Two copies of this drift apart the first time one is adjusted.
+ */
+function iframeBbcode(src: string): string {
+    return `[iframe src=${src} allowfullscreen=allowfullscreen`
+        + ' frameborder=0 height=315 width=560][/iframe]';
+}
+
+/**
+ * The address as an embedded player, when a video service recognises it.
+ *
+ * @param url the trimmed address
+ * @returns type and bbcode, or null when no service claims it
+ */
+function embedBbcode(url: string): { type: string; bbcode: string } | null {
+    const youtube = youtubeId(url);
+    if (youtube) {
+        return { type: 'YouTube', bbcode: iframeBbcode(`//www.youtube-nocookie.com/embed/${youtube}`) };
+    }
+    const peertube = peertubeEmbed(url);
+    if (peertube) {
+        return { type: 'PeerTube', bbcode: iframeBbcode(peertube) };
+    }
+
+    return null;
+}
+
+/**
+ * The media formats recognised by file extension, and the tag each one gets.
+ *
+ * A table rather than three `if`s, because all three ask the same question and
+ * differ only in the answer. Adding a format is a row here; it was a fourth
+ * branch in `urlToBbcode` before.
+ *
+ * The extension has to be followed by the end of the address or by one of
+ * `/?#` — otherwise `example.com/mp3-player/` would be taken for audio.
+ */
+const mediaFormats: { pattern: RegExp; type: string; tag: string }[] = [
+    { pattern: /\.(png|gif|jpe?g|webp|svg)([/?#]|$)/i, type: 'Bild', tag: 'img' },
+    { pattern: /\.(mp4|webm|m4v)([/?#]|$)/i, type: 'Video', tag: 'video' },
+    { pattern: /\.(m4a|ogg|mp3|wav|opus)([/?#]|$)/i, type: 'Audio', tag: 'audio' },
+];
+
+/**
+ * The address as a media tag, when its extension says what it is.
+ *
+ * @param url the trimmed address
+ * @returns type and bbcode, or null when no extension matches
+ */
+function mediaBbcode(url: string): { type: string; bbcode: string } | null {
+    for (const { pattern, type, tag } of mediaFormats) {
+        if (pattern.test(url)) {
+            return { type, bbcode: `[${tag}]${url}[/${tag}]` };
+        }
+    }
+
+    return null;
+}
+
 function urlToBbcode(url: string, text: string): { type: string; bbcode: string } {
     const trimmedUrl = url.trim();
     if (!trimmedUrl) {
         return { type: '', bbcode: '' };
     }
-    const id = youtubeId(trimmedUrl);
-    if (id) {
-        return {
-            type: 'YouTube',
-            bbcode: `[iframe src=//www.youtube-nocookie.com/embed/${id} allowfullscreen=allowfullscreen`
-                + ' frameborder=0 height=315 width=560][/iframe]',
-        };
+    const embed = embedBbcode(trimmedUrl);
+    if (embed) {
+        return embed;
     }
-    if (/\.(png|gif|jpe?g|webp|svg)([/?#]|$)/i.test(trimmedUrl)) {
-        return { type: 'Bild', bbcode: `[img]${trimmedUrl}[/img]` };
-    }
-    if (/\.(mp4|webm|m4v)([/?#]|$)/i.test(trimmedUrl)) {
-        return { type: 'Video', bbcode: `[video]${trimmedUrl}[/video]` };
-    }
-    if (/\.(m4a|ogg|mp3|wav|opus)([/?#]|$)/i.test(trimmedUrl)) {
-        return { type: 'Audio', bbcode: `[audio]${trimmedUrl}[/audio]` };
+    const media = mediaBbcode(trimmedUrl);
+    if (media) {
+        return media;
     }
     const label = text.trim();
     return { type: 'Link', bbcode: label ? `[url=${trimmedUrl}]${label}[/url]` : `[url]${trimmedUrl}[/url]` };

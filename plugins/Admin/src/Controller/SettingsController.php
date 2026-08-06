@@ -60,6 +60,14 @@ class SettingsController extends AdminAppController
         'topics_per_page' => 1,
         'tos_enabled' => ['type' => 'bool'],
         'tos_url' => 1,
+        // The rank ladder. Both rows have been in the database since the
+        // feature left the code in 2014 and were editable nowhere; the
+        // reference install still held a fully configured ladder that nothing
+        // displayed. Listed here so the thresholds can be changed without a
+        // deploy — which matters, because a ladder whose top rung sits above
+        // anything anyone has written is a ladder with an unreachable top.
+        'userranks_show' => ['type' => 'bool'],
+        'userranks_ranks' => 1,
         'video_domains_allowed' => 1,
     ];
 

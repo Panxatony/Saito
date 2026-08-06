@@ -139,6 +139,36 @@ enabled = true
 # is genuinely two functions, leave it when the score is just counting guard
 # clauses. The fourteen other functions above the threshold were left alone.
 
+# How JS-R1005 actually fails a check, learned the expensive way on 2026-08-02
+# after two commits spent guessing. An occurrence's identity includes its
+# *complexity value*, so changing a flagged function at all — even making it
+# simpler — is booked as one occurrence resolved plus one introduced, and the
+# check goes red on the introduction. Adding one branch to `urlToBbcode` (7 -> 8)
+# turned it red; simplifying it to 6 kept it red for the same reason.
+#
+# So there are only three ways out, and "make it a bit better" is not one:
+#   1. Get the function *below* the threshold, so no occurrence exists at all.
+#      Reporting starts at 6, so 5 is the target, not "lower than before".
+#   2. Suppress it at the call site with `skipcq: JS-R1005` and the reason.
+#   3. Leave the check red deliberately.
+#
+# Do not diagnose this from the commit status, which says only "blocking issues
+# or failing metrics found", and do not try to read the run page — it is a JS
+# application and curl returns nothing useful. Ask the API, with the token in
+# ~/deepsource.txt (personal, not in the repo):
+#
+#   curl -s -X POST https://api.deepsource.io/graphql/ \
+#     -H "Authorization: Bearer $(cat ~/deepsource.txt)" \
+#     -H 'Content-Type: application/json' \
+#     -d '{"query":"query($u:UUID!){run(runUid:$u){checks(first:20){edges{node{
+#          analyzer{shortcode} status summary{occurrencesIntroduced}
+#          issues(first:100){edges{node{shortcode path beginLine title}}}}}}}}",
+#          "variables":{"u":"<run-uid aus der target_url des Commit-Status>"}}'
+#
+# `summary.occurrencesIntroduced` is the number that decides the check. The
+# issue list shows *all* occurrences, including long-standing ones that are not
+# why it failed — reading that list as the cause is the trap.
+
 # JS-0052 ("alert/confirm/prompt") is *not* a false positive and is therefore
 # not ignored here: it is suppressed with a `skipcq` comment at the one call
 # site, where the reason for accepting it can be read next to the code.
