@@ -1,24 +1,31 @@
 # Terms of service — template
 
-A starting point for a German-language forum's *Nutzungsbedingungen*. It is not
-shipped and it is not legal advice: a forum's terms name its operator and its
-jurisdiction, so they are configured per installation, not baked into Saito.
+The text a German-language forum's *Nutzungsbedingungen* start from. It is not
+legal advice: adapt it and have someone qualified look it over before it is the
+terms your members agree to.
 
-**How to use it.** Fill in the two placeholders, adapt the clauses to your forum,
-have someone qualified look over the result, then paste it — as HTML — into
-`config/saito_config.php` under `Saito.tos`. It renders on `/pages/tos`, which
-the registration form links to when `tos_enabled` is on (Admin → Settings).
+**This is the shipped default.** With `Saito.tos` left empty, `/pages/tos`
+renders this text through `templates/element/pages/tos_default.php` — the forum
+name filled in from the settings, the operator taken from the imprint. To use
+different terms, put your own HTML in `config/saito_config.php` under `Saito.tos`
+and it overrides the default. Either way the registration form links the page
+when `tos_enabled` is on (Admin → Settings).
 
-Placeholders:
+Two content notes carried into the shipped default, worth knowing if you write
+your own: activation happens on the member's **e-mail confirmation** (Saito's
+double opt-in), not a separate provider step; and the search-engine clause is
+scoped so it does not read as denying data-protection rights against the forum.
 
-- **XYZ** — the forum's name.
-- **FORENANBIETERNAME** — the operator (the "Anbieter").
+Placeholder in this document:
+
+- **FORENANBIETERNAME** — the operator (the "Anbieter"); the shipped default
+  takes it from the imprint instead.
 
 ---
 
 ## § 1 Geltungsbereich
 
-Für die Nutzung des Forums XYZ von FORENANBIETERNAME (nachfolgend "Anbieter"
+Für die Nutzung des Forums [Forenname] von FORENANBIETERNAME (nachfolgend "Anbieter"
 genannt) gelten nachfolgende Bedingungen. Die Nutzung des Forums ist nur
 zulässig, wenn Sie als Nutzer diese Nutzungsbedingungen akzeptieren.
 
@@ -28,7 +35,7 @@ zulässig, wenn Sie als Nutzer diese Nutzungsbedingungen akzeptieren.
    entsprechende Online-Formular. Nach der Registrierung über das Online-Formular
    im Forum bekommen Sie eine Bestätigungsemail zur Verifizierung Ihrer Daten
    zugeschickt, mit der Sie Ihre Registrierung per Mouseclick bestätigen können.
-   Mit der Aktivierung Ihres Accounts durch den Anbieter, kommt der unentgeltliche
+   Mit der Bestätigung Ihrer E-Mail-Adresse kommt der unentgeltliche
    Foren-Nutzungsvertrag zustande (Vertragsschluss).
 2. Vertragsgegenstand ist die kostenlose Nutzung der Funktionen des Forums als
    Online-Kommunikationsplattform. Hierzu wird Ihnen als Nutzer ein „Account"
@@ -84,9 +91,10 @@ zulässig, wenn Sie als Nutzer diese Nutzungsbedingungen akzeptieren.
 3. Als Nutzer verpflichten Sie sich, vor der Veröffentlichung Ihrer Beiträge und
    Themen diese daraufhin zu überprüfen, ob diese Angaben enthalten, die Sie nicht
    veröffentlichen möchten. Ihre Beiträge und Themen können in Suchmaschinen
-   erfasst und damit weltweit zugreifbar werden. Ein Anspruch auf Löschung oder
-   Korrektur solcher Suchmaschineneinträge gegenüber dem Anbieter ist
-   ausgeschlossen.
+   erfasst und damit weltweit zugreifbar werden. Ein Anspruch gegenüber dem Anbieter auf
+   Löschung oder Korrektur solcher Suchmaschineneinträge ist ausgeschlossen;
+   Ihre datenschutzrechtlichen Rechte gegenüber dem Anbieter bleiben hiervon
+   unberührt (siehe Datenschutzerklärung).
 4. Beim Verstoß, insbesondere gegen die zuvor genannten Regeln § 3 Abs. 1 bis 3,
    kann der Anbieter unabhängig von einer Kündigung, auch die folgenden Sanktionen
    gegen den Nutzer verhängen:
@@ -147,5 +155,4 @@ zulässig, wenn Sie als Nutzer diese Nutzungsbedingungen akzeptieren.
    Vertrags), bleiben seine öffentlichen Äußerungen, insbesondere Beiträge im
    Forum, weiterhin für alle Leser sichtbar, der Account ist jedoch nicht mehr
    abrufbar und im Forum mit „Gast" gekennzeichnet. Alle anderen Daten werden
-   gelöscht. Wenn der Nutzer wünscht, dass auch seine öffentlichen Beiträge
-   gelöscht werden, möge er dies beim Löschwunsch dem Anbieter mitteilen.
+   gelöscht.

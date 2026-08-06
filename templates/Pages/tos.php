@@ -7,10 +7,12 @@ use Cake\Core\Configure;
 $title = __('register_tos_linktext');
 $this->set('titleForPage', $title);
 
-// Terms-of-service content is environment-specific and configured as trusted
-// HTML in config/saito_config.php under 'Saito.tos' — a forum's terms name its
-// operator and its jurisdiction, so they cannot be shipped. See
-// docs/terms-of-service-template.md for a German starting point.
+// A forum sets its own terms as trusted HTML in config/saito_config.php under
+// 'Saito.tos' — it names the operator and the jurisdiction, so it is
+// per-installation. Left empty, the shipped German default (element
+// pages/tos_default) renders instead, with the forum name filled in and the
+// operator taken from the imprint; docs/terms-of-service-template.md is the same
+// text to start from when writing custom terms.
 $tos = (string)Configure::read('Saito.tos');
 ?>
 <?= $this->element('layout/htmx_back') ?>
@@ -22,7 +24,7 @@ $tos = (string)Configure::read('Saito.tos');
         <?php if ($tos !== ''): ?>
             <?= $tos ?>
         <?php else: ?>
-            <p><?= h(__('No terms of service have been configured for this installation.')) ?></p>
+            <?= $this->element('pages/tos_default') ?>
         <?php endif; ?>
     </div>
 </div>

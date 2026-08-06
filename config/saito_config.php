@@ -100,10 +100,12 @@ $config = [
          *
          * Trusted HTML rendered on the /pages/tos page and linked from the
          * registration form when `tos_enabled` is on (Admin → Settings).
-         * Environment-specific: a forum's terms name its operator and its
-         * jurisdiction, so they cannot be shipped — set them here per
-         * installation. docs/terms-of-service-template.md is a German starting
-         * point. Empty shows a "not configured" notice.
+         * Per-installation: a forum's terms name its operator and its
+         * jurisdiction. Left empty, a shipped German default renders (element
+         * templates/element/pages/tos_default.php) with the forum name filled in
+         * and the operator taken from the imprint — set this to override it with
+         * your own terms. docs/terms-of-service-template.md is the same text to
+         * start from.
          */
         'tos' => '',
 
