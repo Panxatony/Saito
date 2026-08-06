@@ -172,9 +172,14 @@ class UsersController extends AdminAppController
      * Saito had this until the SPA was retired: `UsersController::setpassword()`
      * went with the SPA profile page it hung off, and the permission it checked
      * stayed behind in `permissions.php`, declared and unused. What went with it
-     * is the only way back in for a member who has forgotten their password —
-     * the forum has no self-service reset, by design, so without this there is
-     * nobody who can help them.
+     * was, at the time, the only way back in for a member who had forgotten
+     * their password.
+     *
+     * It is no longer the only way: 8.4.0 added a self-service reset (#63), and
+     * a member who can still read their own e-mail should use that. This is
+     * what remains for the cases it cannot reach — a stale address, a mailbox
+     * nobody has access to any more, an account whose owner is standing next to
+     * you.
      *
      * Two guards, both deliberate:
      *

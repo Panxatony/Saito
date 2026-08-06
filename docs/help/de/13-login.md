@@ -42,6 +42,34 @@ noch offene Sitzung — das alte Handy, der Rechner in der Bücherei — wird be
 nächsten Aufruf abgemeldet. So beendet ein zurückgesetztes Passwort auch genau
 den Zugriff, vor dem man sich schützen wollte.
 
+### 2 Faktor Authentifizierung
+
+Du kannst dein Konto zusätzlich zum Passwort mit einem Code aus einer
+Authenticator-App absichern (Aegis, 1Password, Google Authenticator und andere).
+Das ist freiwillig und standardmäßig aus.
+
+**Einrichten** in den eigenen Einstellungen unter *2 Faktor Authentifizierung*:
+Das Forum zeigt einen QR-Code, den du mit der App scannst; danach gibst du
+einmal einen Code ein, um zu bestätigen, dass es funktioniert. Erst dann ist der
+Schutz aktiv — wer zwischendurch abbricht, sperrt sich also nicht aus.
+
+**Beim Anmelden** fragt das Forum nach dem Code, gleich im Anmeldefenster. Ohne
+ihn kommt niemand hinein, auch nicht mit deinem Passwort.
+
+**Wiederherstellungs-Codes.** Beim Einrichten bekommst du zehn Stück, jeweils
+einmal verwendbar, und sie werden **nur dieses eine Mal angezeigt**. Bewahre sie
+sicher auf — sie sind dein Weg zurück, wenn das Handy weg ist. Statt des
+App-Codes gibst du dann einen davon ein. Neue Codes kannst du jederzeit in den
+Einstellungen erzeugen; die alten verfallen dabei.
+
+**Ganz ausgesperrt?** Wenn Gerät *und* Codes fehlen, kann ein Administrator die
+2 Faktor Authentifizierung für dein Konto zurücksetzen. Danach meldest du dich
+wieder allein mit dem Passwort an und richtest sie neu ein.
+
+Ein Hinweis: Mit aktiver 2 Faktor Authentifizierung hält „angemeldet bleiben"
+dich nicht mehr über das Schließen des Browsers hinaus angemeldet. Das ist
+Absicht — ein solcher Dauer-Zugang würde den zweiten Faktor sonst umgehen.
+
 ### Geänderte Nutzungsbedingungen
 
 Ändern sich die Nutzungsbedingungen wesentlich, wirst du beim nächsten Aufruf

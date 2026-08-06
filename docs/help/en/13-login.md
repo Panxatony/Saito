@@ -39,6 +39,33 @@ phone, the computer at the library — is signed out on its next request. That w
 a reset password also ends exactly the access you were trying to protect
 yourself against.
 
+### Two-factor authentication
+
+You can protect your account with a code from an authenticator app (Aegis,
+1Password, Google Authenticator and others) on top of your password. It is
+optional and off unless you turn it on.
+
+**Setting it up** happens in your own settings under *Two-factor
+authentication*: the forum shows a QR code for your app to scan, and you then
+enter one code to prove it works. Only then does the protection go live — so
+stopping half-way cannot lock you out.
+
+**Signing in** then asks for the code, right in the login window. Without it
+nobody gets in, your password included.
+
+**Recovery codes.** You get ten when you set it up, each usable once, and they
+are shown **that one time only**. Keep them somewhere safe — they are your way
+back in if the phone is gone: enter one instead of the app's code. You can
+generate a fresh set in your settings at any time, which retires the old ones.
+
+**Locked out completely?** If both the device and the codes are gone, an
+administrator can reset two-factor authentication for your account. You then
+sign in with your password alone and set it up again.
+
+One thing to know: with two-factor authentication on, "stay signed in" no longer
+carries you across browser sessions. That is deliberate — such a standing pass
+would walk straight past the second factor.
+
 ### When the terms of service change
 
 If the terms change materially, you are asked about it on your next visit: instead
