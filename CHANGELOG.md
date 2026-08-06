@@ -5,6 +5,89 @@
 - Δ Changed
 - − Removed
 
+## [8.4.1] - 2026-08-06 "hausordnung"
+
+**One migration runs.** It adds `users.tos_accepted_version`; there is no
+`down()`. The stylesheets changed too (Nova and Macnemo); the JS bundles did
+not, so they can stay as they are.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+A point release by number and a house-rules release by content: the forum now
+ships terms of service, links them where they belong, and can ask members to
+agree again when they change. Named for what § 2 of those terms calls the
+operator's Hausrecht.
+
+Nothing here changes what a member sees day to day unless the operator raises
+`tos_version` — the new machinery is dormant until then, deliberately, so
+upgrading does not greet everybody with a consent form.
+
+- ＋ Added: **terms of service that actually exist.** `/pages/tos` renders them,
+  the registration form and the footer link to them, and the retired
+  `/pages/de/tos` is gone. An installation that writes its own puts trusted HTML
+  in `Saito.tos`; **left empty, a German default ships** with the forum's name
+  filled in and the operator taken from the imprint, so a fresh forum is not
+  left with a dead link. `docs/terms-of-service-template.md` is the same text to
+  start from.
+
+- ＋ Added: **members are asked to agree again when the terms change.** The terms
+  carry a version (`tos_version`, in Admin → Settings) and each account records
+  the version it agreed to. Raise the setting after a material change and every
+  account behind it meets the new terms and an accept button instead of the
+  forum — § 7 of the shipped terms, implemented.
+
+  Sessions are deliberately *not* invalidated: the check runs on every request,
+  so the next thing a member does already lands there, and forcing a re-login
+  would cost everyone their session to no purpose. Four ways out stay open, or
+  somebody who does not want to agree would be trapped in a forum they cannot
+  leave: the terms themselves, the imprint and privacy policy, logging out, and
+  the GDPR data export.
+
+- ＋ Added: **the whole forum as a file.** `bin/cake export_forum` streams
+  members, categories, postings and upload metadata as JSON Lines — for a move,
+  or a backup you can still read in ten years. It pages every table and yields a
+  record at a time, so the reference forum's 680,000 postings cost a few
+  megabytes of memory rather than the 66 the text weighs. Credentials and the
+  upload files stay out on purpose; both belong to the SQL dump and the file
+  backup that this sits beside.
+
+- ✓ Fixed: **read-only fields were unreadable on the dark theme.** The personal
+  RSS-feed addresses in the settings sat on Bootstrap's fixed light-grey
+  `[readonly]` fill under light text. They follow the theme's own colours now.
+
+- ✓ Fixed: **the forum export was written world-readable.** It holds every
+  member's e-mail address, and their IP addresses where the forum stores them,
+  and the default umask made it `0644` — on a shared host, the membership list
+  for any local account. It is `0600` in a `0700` directory now, and the command
+  refuses to write at all if it cannot set that. Found in the security audit of
+  this release; it was never reachable over the web and never carried
+  credentials, so this was local exposure, not a remote hole.
+
+- Δ Changed: **the release build lost grunt.** The chain is `package.json`
+  scripts now — `yarn build:release` runs Sass, PostCSS, the purge, the three
+  Vite bundles and the asset copy. grunt and its five packages leave the tree,
+  and with them the last `minimatch@3`, so the build-time advisory pin goes too.
+  The gate was byte-identical output: the seven stylesheets, three bundles and
+  twenty copied assets all `cmp`-equal to what `grunt release` produced.
+
+- Δ Changed: **a LICENSE file at last.** `composer.json` had said MIT for years
+  with no file to carry the notice. It also names the third-party code a
+  distribution actually contains — Bootstrap, Alpine, htmx, Font Awesome, and
+  the OFL-licensed fonts.
+
+- − Removed: **823 dead translation entries**, already marked obsolete by
+  gettext and never read by CakePHP — its parser skips `#~` lines entirely.
+  Verified rather than assumed: the catalogue was dumped through that parser
+  before and after and the two are byte-identical. `default.po` drops from 76K
+  to 52K (de) and 56K to 48K (en).
+
+- Δ Changed: `todo.md` is retired. What it held is now issues #65–#77, each
+  carrying its measurements; the file is a pointer so nobody looks for the list
+  where it used to be.
+
 ## [8.4.0] - 2026-08-05 "schlosswechsel"
 
 **One migration runs.** It adds `password_reset_tokens`; there is no `down()`.
