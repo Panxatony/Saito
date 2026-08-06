@@ -5,7 +5,7 @@
 - Δ Changed
 - − Removed
 
-## [8.4.3] - 2026-08-06 "stammgast"
+## [8.4.4] - 2026-08-07 "stammgast"
 
 **One migration runs.** It adds `two_factor_trusted_devices`; there is no
 `down()`. **The stylesheets changed** — Bota, Nova and Macnemo, all three — so
@@ -61,6 +61,17 @@ devices that have actually proved themselves.
   The recovery codes also had a class with no styles behind it, and now read as
   something meant to be copied off a screen: monospace, tracked, with room
   between the lines.
+
+- Δ Changed: **`league/commonmark` is updated to 2.9.0.** Six advisories were
+  published against it an hour before this release was built — five denial of
+  service, one bypassing the `AttributesExtension` filter on `href` and `src` —
+  and the release refused to package over them.
+
+  None of them is reachable from the forum: markdown is parsed only for the help
+  pages and the guided tour, which are files shipped with the release, while
+  postings go through Saito's own parser. So this is hygiene rather than an
+  incident. It still blocks a release, because knowingly shipping a dependency
+  an hour after it was declared vulnerable is not a thing to do.
 
 ## [8.4.2] - 2026-08-06 "zweitschlüssel"
 
