@@ -2024,7 +2024,7 @@ msgstr "Nicht zustimmen und abmelden"
 
 #: templates/Users/htmx_two_factor.php
 msgid "user.2fa.challenge.t"
-msgstr "Bestätigung in zwei Schritten"
+msgstr "2 Faktor Authentifizierung"
 
 #: templates/Users/htmx_two_factor.php
 msgid "user.2fa.challenge.exp"
@@ -2052,7 +2052,7 @@ msgstr "Dein zweiter Faktor kann auf diesem Server nicht mehr gelesen werden —
 
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.settings.t"
-msgstr "Bestätigung in zwei Schritten"
+msgstr "2 Faktor Authentifizierung"
 
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.settings.exp"
@@ -2060,11 +2060,11 @@ msgstr "Schützt dein Konto zusätzlich zum Passwort mit einem Code aus einer Au
 
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.state.on"
-msgstr "Für dein Konto ist die Bestätigung in zwei Schritten aktiv."
+msgstr "Für dein Konto ist die 2 Faktor Authentifizierung aktiv."
 
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.state.off"
-msgstr "Für dein Konto ist die Bestätigung in zwei Schritten nicht aktiv."
+msgstr "Für dein Konto ist die 2 Faktor Authentifizierung nicht aktiv."
 
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.enrol.start"
@@ -2084,11 +2084,11 @@ msgstr "Einrichtung abschließen"
 
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.disable"
-msgstr "Bestätigung in zwei Schritten abschalten"
+msgstr "2 Faktor Authentifizierung abschalten"
 
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.disabled"
-msgstr "Die Bestätigung in zwei Schritten ist jetzt abgeschaltet."
+msgstr "Die 2 Faktor Authentifizierung ist jetzt abgeschaltet."
 
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.password.confirm"
