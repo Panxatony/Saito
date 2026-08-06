@@ -5,6 +5,70 @@
 - Δ Changed
 - − Removed
 
+## [8.4.2] - 2026-08-06 "zweitschlüssel"
+
+**One migration runs.** It adds `two_factor_credentials` and
+`two_factor_recovery_codes`; there is no `down()`. Neither the stylesheets nor
+the JS bundles changed, so those can stay as they are.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+A second key to the same door. Members can now protect their account with a
+code from an authenticator app on top of the password — off by default, and
+entirely their own choice.
+
+Nothing changes for anybody who does not switch it on.
+
+- ＋ Added: **two-factor authentication (TOTP).** Set it up in your profile: the
+  forum shows a QR code, your app produces a six-digit code, and only once you
+  have proved you can produce one does the second factor go live. Ten single-use
+  recovery codes come with it, shown once, for the day the phone is gone.
+
+  From then on the login has two steps. The second one happens inside the login
+  overlay rather than on a page of its own, because it is a second *step*, not a
+  second destination.
+
+  The part that matters and cannot be seen: **the password alone no longer
+  signs anybody in.** It is verified, and then nothing happens — no identity, no
+  session, and above all no "remember me" cookie, which is minted at exactly the
+  moment 2FA has not reached yet. A remember-me cookie made *before* an account
+  enrolled is refused outright: it validates against a username and a password
+  hash, so no server can revoke it, and the only way to stop it walking past the
+  second factor is to turn it away at the door.
+
+  Secrets are encrypted at rest, recovery codes are hashed like passwords, and
+  neither table is mass-assignable. Turning the second factor off, or minting
+  fresh recovery codes, asks for the password again — a borrowed session should
+  not be able to do either quietly.
+
+  Lost the phone *and* the codes? An administrator can clear the second factor
+  from the user list. It asks for the administrator's own password and is logged
+  either way, successful or not: removing somebody's second factor is exactly
+  the step an attacker who reached an admin session would take, so it leaves a
+  trace that can be read afterwards.
+
+- ✓ Fixed: **the whole-forum export was written world-readable.** It holds every
+  member's e-mail address, and their IP addresses where the forum stores them,
+  and the default umask made it `0644` — on a shared host, the membership list
+  for any local account. It is `0600` in a `0700` directory now, and the command
+  refuses to write rather than write unprotected.
+
+- Δ Changed: **the nightly security job also checks that the security headers
+  still arrive.** Advisories were the only thing it watched, but server
+  configuration drifts too and far more quietly: one installation was serving
+  every static file and every upload without `X-Content-Type-Options`, and
+  another had no HSTS at all. Nothing fails when that happens — pages render,
+  uploads load — so it took a scheduled check to notice. Three probes per
+  installation, because nginx applies headers per location and locations drift
+  apart independently.
+
+- Δ Changed: a command-injection advisory in `squizlabs/php_codesniffer` is
+  patched (dev-only, never runs on a server), and the one third-party GitHub
+  Action is pinned to a commit rather than a tag its owner could repoint.
+
 ## [8.4.1] - 2026-08-06 "hausordnung"
 
 **One migration runs.** It adds `users.tos_accepted_version`; there is no
