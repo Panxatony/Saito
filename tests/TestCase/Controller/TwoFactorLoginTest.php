@@ -247,6 +247,52 @@ class TwoFactorLoginTest extends IntegrationTestCase
         $this->assertNull($this->pendingMarker());
     }
 
+    /**
+     * In the overlay the second factor is a second *step*, not a second page:
+     * the code form swaps into the modal the member already has open.
+     *
+     * @return void
+     */
+    public function testTheOverlayGetsTheCodeFormInPlace(): void
+    {
+        $this->enrol();
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->postPassword();
+
+        $this->assertResponseOk();
+        // A fragment, not a page…
+        $this->assertResponseNotContains('<html');
+        // …carrying the code field and posting back into the same modal body.
+        $this->assertResponseContains('name="code"');
+        $this->assertResponseContains('js-loginModalBody');
+        // …and emphatically not a navigation away from the overlay.
+        $this->assertNull($this->_response->getHeaderLine('HX-Redirect') ?: null);
+    }
+
+    /**
+     * Once the code is right the overlay has nothing left to show, so the
+     * member is navigated properly — the same way an ordinary login ends.
+     *
+     * @return void
+     */
+    public function testTheOverlayNavigatesOnceTheCodeIsRight(): void
+    {
+        $this->enrol();
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->postPassword();
+        $this->carrySession();
+
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->mockSecurity();
+        $this->post('/users/two-factor', ['code' => $this->currentCode()]);
+
+        $this->assertNotEmpty(
+            $this->_response->getHeaderLine('HX-Redirect'),
+            'a completed login must navigate, not swap into the modal',
+        );
+        $this->assertArrayHasKey('Auth', $_SESSION);
+    }
+
     public function testAWrongCodeDoesNotLogIn(): void
     {
         $this->enrol();

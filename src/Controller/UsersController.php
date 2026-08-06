@@ -142,14 +142,23 @@ class UsersController extends AppController
             // The password was right, so it does not count against the throttle
             // — the second factor has a budget of its own.
             $this->_clearLoginThrottle();
-            $target = $this->_loginRedirectTarget();
-            $this->getRequest()->getSession()->write('Saito.pending2faTarget', $target);
-            $twoFactorUrl = Router::url(['controller' => 'Users', 'action' => 'twoFactor']);
+            $this->getRequest()->getSession()->write(
+                'Saito.pending2faTarget',
+                $this->_loginRedirectTarget(),
+            );
+
             if ($isHx) {
-                return $this->response->withHeader('HX-Redirect', $twoFactorUrl);
+                // Swap the code form into the overlay the member already has
+                // open, rather than navigating away from it: this is a second
+                // *step*, not a second destination. The fragment posts back to
+                // the same modal body.
+                $this->set('errorMessage', null);
+                $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_two_factor_form');
+
+                return null;
             }
 
-            return $this->redirect($twoFactorUrl);
+            return $this->redirect(['controller' => 'Users', 'action' => 'twoFactor']);
         }
 
         if ($result === LoginResult::LoggedIn) {
@@ -1234,14 +1243,27 @@ class UsersController extends AppController
      */
     public function twoFactor(): ?Response
     {
-        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_two_factor');
+        // In the login overlay this is a fragment that swaps in place; a direct
+        // visit (or a browser without JavaScript) gets the standalone page.
+        $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+        if ($isHx) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_two_factor_form');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_two_factor');
+        }
         $this->set('errorMessage', null);
 
         $userId = $this->AuthUser->pendingSecondFactorUserId();
         if ($userId === null) {
             // Nothing pending, or it went stale. Back to the start rather than
-            // a form that cannot lead anywhere.
-            return $this->redirect(['controller' => 'Users', 'action' => 'htmxLogin']);
+            // a form that cannot lead anywhere. HX-Redirect, not a 302: htmx
+            // would follow a redirect and swap a whole login page into the
+            // modal body.
+            $login = Router::url(['controller' => 'Users', 'action' => 'htmxLogin']);
+
+            return $isHx
+                ? $this->response->withHeader('HX-Redirect', $login)
+                : $this->redirect($login);
         }
 
         if (!$this->request->is('post')) {
@@ -1282,15 +1304,24 @@ class UsersController extends AppController
         }
 
         if (!$this->AuthUser->completeSecondFactor($userId)) {
-            return $this->redirect(['controller' => 'Users', 'action' => 'htmxLogin']);
+            $login = Router::url(['controller' => 'Users', 'action' => 'htmxLogin']);
+
+            return $isHx
+                ? $this->response->withHeader('HX-Redirect', $login)
+                : $this->redirect($login);
         }
         $this->_clearLoginThrottle();
 
         $session = $this->getRequest()->getSession();
         $target = (string)$session->read('Saito.pending2faTarget');
         $session->delete('Saito.pending2faTarget');
+        $target = $target !== '' ? $target : '/';
 
-        return $this->redirect($target !== '' ? $target : '/');
+        // A full navigation once the member is in, the same way an ordinary
+        // login finishes — the overlay has nothing left to show.
+        return $isHx
+            ? $this->response->withHeader('HX-Redirect', $target)
+            : $this->redirect($target);
     }
 
     /**
