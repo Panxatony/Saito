@@ -47,6 +47,40 @@ class ExportForumCommandTest extends TestCase
         parent::tearDown();
     }
 
+    /**
+     * The default destination is created for the owner alone. It collects full
+     * dumps of personal data, so the group has no business reading — or
+     * replacing — what lands there.
+     *
+     * @return void
+     */
+    public function testDefaultExportDirectoryIsOwnerOnly(): void
+    {
+        $dir = TMP . 'export';
+        $preexisting = is_dir($dir);
+
+        $this->exec('export_forum');
+        $this->assertExitSuccess();
+        $this->assertDirectoryExists($dir);
+
+        if (!$preexisting) {
+            // Only meaningful for a directory this run created: an existing one
+            // keeps whatever mode the operator gave it.
+            $this->assertSame(
+                '0700',
+                substr(sprintf('%o', fileperms($dir)), -4),
+                'the export directory must not be readable beyond its owner',
+            );
+        }
+
+        foreach ((array)glob($dir . DS . 'forum-*.jsonl') as $file) {
+            unlink((string)$file);
+        }
+        if (!$preexisting) {
+            rmdir($dir);
+        }
+    }
+
     public function testExportsValidJsonLines(): void
     {
         $this->exec('export_forum -o ' . escapeshellarg($this->outPath));

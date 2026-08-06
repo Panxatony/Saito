@@ -74,7 +74,9 @@ class ExportForumCommand extends Command
         $path = (string)$args->getOption('output');
         if ($path === '') {
             $dir = TMP . 'export';
-            if (!is_dir($dir) && !mkdir($dir, 0770, true) && !is_dir($dir)) {
+            // 0700, not 0770: what lands here is a full dump of personal data,
+            // and the group has no business reading — or replacing — it.
+            if (!is_dir($dir) && !mkdir($dir, 0700, true) && !is_dir($dir)) {
                 $io->error("Could not create the export directory: $dir");
 
                 return static::CODE_ERROR;
@@ -91,14 +93,22 @@ class ExportForumCommand extends Command
         // Owner only. This file is every member's e-mail address and, where the
         // forum stores them, their IP addresses; the default umask made it
         // world-readable (0644), which on a shared host hands the lot to any
-        // local account. Set before a single record is written, not after.
-        @chmod($path, 0600);
+        // local account. Set before a single record is written — and checked,
+        // not suppressed: a chmod that quietly failed would leave exactly the
+        // file this guards against, so give up and take the file with us.
+        if (!chmod($path, 0600)) {
+            fclose($handle);
+            unlink($path);
+            $io->error("Could not restrict permissions on $path — refusing to write personal data.");
+
+            return static::CODE_ERROR;
+        }
 
         // No pretty-print and no escaping: this is a machine file read a line at
         // a time, and unescaped UTF-8/slashes keep it small and legible.
         $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
         $write = function (array $record) use ($handle, $flags): void {
-            fwrite($handle, (string)json_encode($record, $flags) . "\n");
+            fwrite($handle, json_encode($record, $flags) . "\n");
         };
 
         $export = new ForumExport();
