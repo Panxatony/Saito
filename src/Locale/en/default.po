@@ -1862,3 +1862,69 @@ msgstr "That code is not right."
 #: src/Controller/UsersController.php
 msgid "user.2fa.unreadable"
 msgstr "Your second factor can no longer be read on this server — the installation's security key has most likely changed. Sign in with a recovery code and set the app up again."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.settings.t"
+msgstr "Two-step verification"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.settings.exp"
+msgstr "Protects your account with a code from an authenticator app, on top of your password."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.state.on"
+msgstr "Two-step verification is on for your account."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.state.off"
+msgstr "Two-step verification is off for your account."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.start"
+msgstr "Set up"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.scan"
+msgstr "Scan this code with your authenticator app."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.manual"
+msgstr "No camera? Enter this key instead:"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.confirm"
+msgstr "Finish setting up"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.disable"
+msgstr "Turn two-step verification off"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.disabled"
+msgstr "Two-step verification is now off."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.password.confirm"
+msgstr "For safety: your password"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.password.wrong"
+msgstr "That password is not right."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.t"
+msgstr "Your recovery codes"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.exp"
+msgstr "Keep them somewhere safe — they are the way back in if you lose your device. Each works once, and they are shown this one time only."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.new"
+msgstr "Generate new recovery codes"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "{0} recovery code left."
+msgid_plural "{0} recovery codes left."
+msgstr[0] "{0} recovery code left."
+msgstr[1] "{0} recovery codes left."

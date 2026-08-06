@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Form\BlockForm;
+use Authentication\PasswordHasher\DefaultPasswordHasher;
 use App\Model\Entity\User;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
@@ -1325,6 +1326,99 @@ class UsersController extends AppController
     }
 
     /**
+     * The member's own second-factor settings: enrol, or turn it off.
+     *
+     * One page with three states — off, half-enrolled, on — because they are
+     * three views of one question ("is my account protected?") and splitting
+     * them across pages would make the answer harder to find than the setting.
+     *
+     * @return \Cake\Http\Response|null
+     */
+    public function htmxTwoFactor(): ?Response
+    {
+        $userId = (int)$this->CurrentUser->getId();
+        $Credentials = $this->fetchTable('TwoFactorCredentials');
+        $Codes = $this->fetchTable('TwoFactorRecoveryCodes');
+
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_two_factor_settings');
+        $this->set('errorMessage', null);
+        $this->set('recoveryCodes', null);
+
+        $action = (string)$this->request->getData('do');
+        if ($this->request->is('post') && $action === 'start') {
+            // A fresh secret, shown once as a QR code. Any earlier half-finished
+            // attempt is replaced, so an abandoned QR cannot be confirmed later.
+            $secret = $Credentials->beginEnrolment($userId);
+            $this->request->getSession()->write('Saito.2faEnrolSecret', $secret);
+        }
+
+        if ($this->request->is('post') && $action === 'confirm') {
+            $code = (string)$this->request->getData('code');
+            if ($Credentials->confirmEnrolment($userId, $code)) {
+                // Only now is the account actually protected — and only now are
+                // recovery codes worth handing out. Shown once; they exist as
+                // hashes afterwards.
+                $this->set('recoveryCodes', $Codes->issueFor($userId));
+                $this->request->getSession()->delete('Saito.2faEnrolSecret');
+            } else {
+                $this->set('errorMessage', __('user.2fa.error'));
+            }
+        }
+
+        if ($this->request->is('post') && $action === 'disable') {
+            // The password again, deliberately. Turning the second factor off
+            // is the one action in here that makes the account weaker, and a
+            // borrowed session should not be able to do it quietly.
+            if (!$this->verifyCurrentPassword((string)$this->request->getData('password'))) {
+                $this->set('errorMessage', __('user.2fa.password.wrong'));
+            } else {
+                $Credentials->disableFor($userId);
+                $Codes->clearFor($userId);
+                $this->Flash->set(__('user.2fa.disabled'), ['element' => 'success']);
+
+                return $this->redirect(['action' => 'htmxTwoFactor']);
+            }
+        }
+
+        if ($this->request->is('post') && $action === 'newCodes') {
+            if (!$this->verifyCurrentPassword((string)$this->request->getData('password'))) {
+                $this->set('errorMessage', __('user.2fa.password.wrong'));
+            } else {
+                $this->set('recoveryCodes', $Codes->issueFor($userId));
+            }
+        }
+
+        $pending = $Credentials->pendingFor($userId);
+        $secret = (string)$this->request->getSession()->read('Saito.2faEnrolSecret');
+        $this->set('isEnabled', $Credentials->isEnabledFor($userId));
+        $this->set('isEnrolling', $pending !== null && $secret !== '');
+        $this->set('secret', $secret);
+        $this->set('provisioningUri', $secret !== ''
+            ? $Credentials->provisioningUri($secret, (string)$this->CurrentUser->get('username'))
+            : null);
+        $this->set('remainingCodes', $Codes->remainingFor($userId));
+        $this->set('titleForLayout', __('user.2fa.settings.t'));
+
+        return null;
+    }
+
+    /**
+     * Does the given password belong to the member who is logged in?
+     *
+     * @param string $password what they typed
+     * @return bool
+     */
+    private function verifyCurrentPassword(string $password): bool
+    {
+        if ($password === '') {
+            return false;
+        }
+        $user = $this->Users->get((int)$this->CurrentUser->getId(), fields: ['id', 'password']);
+
+        return (new DefaultPasswordHasher())->check($password, (string)$user->get('password'));
+    }
+
+    /**
      * Records that the current member agrees to the terms as they stand now.
      *
      * The button on the re-consent interstitial
@@ -1698,7 +1792,7 @@ class UsersController extends AppController
             'htmxEdit', 'htmxChangePassword', 'htmxAvatar',
             // Posted by the island with a CSRF token in the header, like the
             // other island write endpoints.
-            'htmxWidgetState', 'htmxBookmarkComment',
+            'htmxWidgetState', 'htmxBookmarkComment', 'htmxTwoFactor',
             // The terms re-consent button. Its form is rendered from
             // `Controller.initialize` (AppController::requireTermsAcceptance),
             // which runs before FormProtection sets its token up in

@@ -2049,3 +2049,69 @@ msgstr "Der Code stimmt nicht."
 #: src/Controller/UsersController.php
 msgid "user.2fa.unreadable"
 msgstr "Dein zweiter Faktor kann auf diesem Server nicht mehr gelesen werden — vermutlich hat sich der Sicherheitsschlüssel der Installation geändert. Melde dich mit einem Wiederherstellungs-Code an und richte die App neu ein."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.settings.t"
+msgstr "Bestätigung in zwei Schritten"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.settings.exp"
+msgstr "Schützt dein Konto zusätzlich zum Passwort mit einem Code aus einer Authenticator-App."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.state.on"
+msgstr "Für dein Konto ist die Bestätigung in zwei Schritten aktiv."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.state.off"
+msgstr "Für dein Konto ist die Bestätigung in zwei Schritten nicht aktiv."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.start"
+msgstr "Einrichten"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.scan"
+msgstr "Scanne diesen Code mit deiner Authenticator-App."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.manual"
+msgstr "Geht die Kamera nicht? Trage stattdessen diesen Schlüssel ein:"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.confirm"
+msgstr "Einrichtung abschließen"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.disable"
+msgstr "Bestätigung in zwei Schritten abschalten"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.disabled"
+msgstr "Die Bestätigung in zwei Schritten ist jetzt abgeschaltet."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.password.confirm"
+msgstr "Zur Sicherheit: dein Passwort"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.password.wrong"
+msgstr "Das Passwort stimmt nicht."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.t"
+msgstr "Deine Wiederherstellungs-Codes"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.exp"
+msgstr "Bewahre sie sicher auf — sie sind der Weg zurück, wenn du dein Gerät verlierst. Jeder Code gilt einmal, und sie werden nur dieses eine Mal angezeigt."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.new"
+msgstr "Neue Wiederherstellungs-Codes erzeugen"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "{0} recovery code left."
+msgid_plural "{0} recovery codes left."
+msgstr[0] "{0} Wiederherstellungs-Code übrig."
+msgstr[1] "{0} Wiederherstellungs-Codes übrig."
