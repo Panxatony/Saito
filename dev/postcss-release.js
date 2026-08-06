@@ -51,6 +51,6 @@ const processor = postcss([
         process.stdout.write(`  postcss: ${file}\n`);
     }
 })().catch((error) => {
-    process.stderr.write(`${error && error.stack ? error.stack : error}\n`);
+    process.stderr.write(`${error?.stack ?? error}\n`);
     process.exit(1);
 });
