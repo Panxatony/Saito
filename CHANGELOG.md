@@ -5,6 +5,138 @@
 - Δ Changed
 - − Removed
 
+## [8.4.4] - 2026-08-07 "stammgast"
+
+**One migration runs.** It adds `two_factor_trusted_devices`; there is no
+`down()`. **The stylesheets changed** — Bota, Nova and Macnemo, all three — so
+those have to go out with it. The JS bundles did not.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+A regular is somebody the house recognises on the way in. Turning on the second
+factor in 8.4.2 quietly took "stay signed in" away, and this puts it back for
+devices that have actually proved themselves.
+
+- ✓ Fixed: **"stay signed in" works again with a second factor.** 8.4.2 shipped
+  it broken in two ways at once, and the note in that release — that a
+  remember-me cookie is refused outright for an enrolled account — described the
+  second of them as if it were the whole design. It was half a design.
+
+  The checkbox sits on the password form, but the cookie it asks for can only be
+  minted a step later, once the code is in, and nothing carried the answer
+  across: no remember-me cookie was ever written for an enrolled account. Even
+  had one been, it was turned away at the door. The result was that switching on
+  2FA meant signing in again and again — most visibly on a phone, where the
+  browser drops sessions freely.
+
+  The reasoning behind the refusal still holds: a remember-me cookie is
+  stateless, validating against a username and a password hash, so a cookie made
+  *before* an account enrolled cannot be told from a later one and no server can
+  revoke either. What was missing was somewhere to write down which is which.
+
+  `two_factor_trusted_devices` is that place. A row is written only after a
+  second factor has actually been proved, and its token travels in a companion
+  cookie; a remember-me cookie is honoured for an enrolled account only when a
+  matching, unexpired row sits behind it. Cookies from before enrolment have no
+  row and are still refused, so nothing that was closed has been reopened.
+
+  Because the trust is a row now rather than a signature, it can be taken back.
+  Signing out drops the device doing it and leaves the others alone; switching
+  the second factor off, changing the password, or an administrator resetting it
+  drops every one. The token is stored as a SHA-256, so reading the table yields
+  nothing that could be put in a cookie, and the cookie itself carries the same
+  flags as the remember-me cookie it travels with.
+
+- ✓ Fixed: **code was unreadable inside an alert in every dark theme.** The base
+  stylesheet gives `code` the page's text colour, which is near-white in a dark
+  preset; Bootstrap's contextual alerts keep their light backgrounds there,
+  deliberately. Neither is wrong alone — the base rule reaching inside the alert
+  is. Measured, the two-factor recovery codes came out at about 1.2:1 on pale
+  green, which is not "hard to read" but absent, and they are shown exactly once
+  with no second chance. Inside an alert, code now takes the alert's own colour.
+
+  The recovery codes also had a class with no styles behind it, and now read as
+  something meant to be copied off a screen: monospace, tracked, with room
+  between the lines.
+
+- Δ Changed: **`league/commonmark` is updated to 2.9.0.** Six advisories were
+  published against it an hour before this release was built — five denial of
+  service, one bypassing the `AttributesExtension` filter on `href` and `src` —
+  and the release refused to package over them.
+
+  None of them is reachable from the forum: markdown is parsed only for the help
+  pages and the guided tour, which are files shipped with the release, while
+  postings go through Saito's own parser. So this is hygiene rather than an
+  incident. It still blocks a release, because knowingly shipping a dependency
+  an hour after it was declared vulnerable is not a thing to do.
+
+## [8.4.2] - 2026-08-06 "zweitschlüssel"
+
+**One migration runs.** It adds `two_factor_credentials` and
+`two_factor_recovery_codes`; there is no `down()`. Neither the stylesheets nor
+the JS bundles changed, so those can stay as they are.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+A second key to the same door. Members can now protect their account with a
+code from an authenticator app on top of the password — off by default, and
+entirely their own choice.
+
+Nothing changes for anybody who does not switch it on.
+
+- ＋ Added: **two-factor authentication (TOTP).** Set it up in your profile: the
+  forum shows a QR code, your app produces a six-digit code, and only once you
+  have proved you can produce one does the second factor go live. Ten single-use
+  recovery codes come with it, shown once, for the day the phone is gone.
+
+  From then on the login has two steps. The second one happens inside the login
+  overlay rather than on a page of its own, because it is a second *step*, not a
+  second destination.
+
+  The part that matters and cannot be seen: **the password alone no longer
+  signs anybody in.** It is verified, and then nothing happens — no identity, no
+  session, and above all no "remember me" cookie, which is minted at exactly the
+  moment 2FA has not reached yet. A remember-me cookie made *before* an account
+  enrolled is refused outright: it validates against a username and a password
+  hash, so no server can revoke it, and the only way to stop it walking past the
+  second factor is to turn it away at the door.
+
+  Secrets are encrypted at rest, recovery codes are hashed like passwords, and
+  neither table is mass-assignable. Turning the second factor off, or minting
+  fresh recovery codes, asks for the password again — a borrowed session should
+  not be able to do either quietly.
+
+  Lost the phone *and* the codes? An administrator can clear the second factor
+  from the user list. It asks for the administrator's own password and is logged
+  either way, successful or not: removing somebody's second factor is exactly
+  the step an attacker who reached an admin session would take, so it leaves a
+  trace that can be read afterwards.
+
+- ✓ Fixed: **the whole-forum export was written world-readable.** It holds every
+  member's e-mail address, and their IP addresses where the forum stores them,
+  and the default umask made it `0644` — on a shared host, the membership list
+  for any local account. It is `0600` in a `0700` directory now, and the command
+  refuses to write rather than write unprotected.
+
+- Δ Changed: **the nightly security job also checks that the security headers
+  still arrive.** Advisories were the only thing it watched, but server
+  configuration drifts too and far more quietly: one installation was serving
+  every static file and every upload without `X-Content-Type-Options`, and
+  another had no HSTS at all. Nothing fails when that happens — pages render,
+  uploads load — so it took a scheduled check to notice. Three probes per
+  installation, because nginx applies headers per location and locations drift
+  apart independently.
+
+- Δ Changed: a command-injection advisory in `squizlabs/php_codesniffer` is
+  patched (dev-only, never runs on a server), and the one third-party GitHub
+  Action is pinned to a commit rather than a tag its owner could repoint.
+
 ## [8.4.1] - 2026-08-06 "hausordnung"
 
 **One migration runs.** It adds `users.tos_accepted_version`; there is no

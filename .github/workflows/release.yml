@@ -1,14 +1,29 @@
 name: Release
 
-# Tag-driven releases (mirrors the GitLab CI release pipeline). Push a version
-# tag on main — e.g. `git tag 7.0.6 && git push github 7.0.6` — to run the
-# tests, build the deployable tarball and publish a GitHub Release with the
-# tarball + checksum as assets.
+# Tag-driven releases (mirrors the GitLab CI release pipeline). Push an
+# annotated version tag on main — `git tag -a 7.0.6 -m 'Saito 7.0.6' && git push
+# github 7.0.6` — to run the tests, build the deployable tarball and publish a
+# GitHub Release with the tarball + checksum as assets.
+#
+# Annotated, with `-a`: this line said plain `git tag` until 8.4.4 and the whole
+# series before it was annotated anyway, so following the documentation was what
+# broke the pattern. `git describe` skips lightweight tags unless given --tags.
 on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-*'
+  # A tag push gets one chance at creating a run, and during the Actions outage
+  # on 2026-08-06 the tag for 8.4.3 produced none at all — pushed, accepted, and
+  # no run: no tarball, no release, nothing to deploy production from. The only
+  # way back was to delete the remote tag and push it again, which is a strange
+  # thing to have to do to a tag that was already correct.
+  #
+  # Dispatch this against the **tag**, not a branch (`gh workflow run release.yml
+  # --ref 8.4.3`): every job reads GITHUB_REF_NAME as the version. Given a branch
+  # the `changelog` job fails within seconds, which is the right way for that
+  # mistake to end.
+  workflow_dispatch:
 
 # Only first-party actions (actions/*) plus the pre-installed `gh` CLI are
 # used here, so nothing third-party runs in the job that builds and signs a

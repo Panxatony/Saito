@@ -28,6 +28,11 @@ später aussieht — mit Betreff und Kopfzeile — in einem Feld oberhalb des
 Editors. Das Textfeld wächst mit, wenn mehr geschrieben wird. Eigene Beiträge
 lassen sich über *Bearbeiten* ändern; sie tragen danach einen Hinweis darauf.
 
+Dort liegt auch die *2 Faktor Authentifizierung*: ein Code aus einer
+Authenticator-App zusätzlich zum Passwort, freiwillig und standardmäßig aus.
+Beim Einrichten erscheinen zehn Wiederherstellungs-Codes – einmalig, und der
+einzige Weg zurück, wenn das Gerät abhandenkommt.
+
 Beim Antworten steht der Betreff des Beitrags blass im Feld, mit *Re:* davor. Er
 wird übernommen, wenn nichts eingetippt wird; sobald man schreibt, verschwindet
 er.

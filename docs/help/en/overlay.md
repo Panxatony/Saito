@@ -103,6 +103,11 @@ is.
 the password is changed there too. The page also lists your bookmarks, your
 uploads and your personal RSS addresses.
 
+*Two-factor authentication* lives there as well: a code from an authenticator
+app on top of your password, optional and off unless you turn it on. Setting
+it up shows ten recovery codes once — the only way back in if the device is
+lost.
+
 <!-- icon: envelope -->
 ### Contact and ignoring
 

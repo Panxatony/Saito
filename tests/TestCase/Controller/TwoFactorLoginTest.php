@@ -15,11 +15,9 @@ namespace App\Test\TestCase\Controller;
 use App\Controller\Component\AuthUserComponent;
 use App\Model\Table\TwoFactorCredentialsTable;
 use App\Model\Table\TwoFactorRecoveryCodesTable;
-use Authentication\PasswordHasher\DefaultPasswordHasher;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\ORM\TableRegistry;
-use Cake\Utility\Security;
 use OTPHP\TOTP;
 use Saito\Test\IntegrationTestCase;
 
@@ -174,29 +172,59 @@ class TwoFactorLoginTest extends IntegrationTestCase
      * password hash, not against anything the server keeps — so it has to be
      * refused at the door, or it would walk past 2FA until it expired.
      *
+     * The cookie is taken from a real remember-me login rather than assembled
+     * here. An earlier version of this test hand-built one, and it turned out to
+     * pass for the wrong reason: the shape was out of date, so the cookie never
+     * authenticated at all and the test would have gone on passing with the
+     * guard removed entirely. A test of a refusal has to be sure the thing being
+     * refused would otherwise have worked.
+     *
      * @return void
      */
     public function testARememberMeCookieIsRefusedForAnAccountWithASecondFactor(): void
     {
-        // A cookie of exactly the shape the CookieAuthenticator mints, made
-        // before enrolment.
-        $Users = TableRegistry::getTableLocator()->get('Users');
-        $user = $Users->get(self::USER_ID);
-        $value = $user->get('username') . $user->get('password');
-        $hmac = hash_hmac('sha1', $value, Security::getSalt());
-        $token = (new DefaultPasswordHasher())->hash($value . $hmac);
+        // Sign in the ordinary way, ticking "stay signed in", while the account
+        // still has no second factor — exactly how such a cookie comes to exist.
+        $this->mockSecurity();
+        $this->post('/login', [
+            'username' => self::USERNAME,
+            'password' => self::PASSWORD,
+            'remember_me' => 1,
+        ]);
         $cookieName = (string)Configure::read('Security.cookieAuthName');
+        $cookie = $this->issuedCookie($cookieName);
+        $this->assertNotNull($cookie, 'the premise of this test is a cookie that does work');
 
+        // Now the account enrols, and the old cookie comes back.
         $this->enrol();
-        $this->cookie($cookieName, json_encode([$user->get('username'), $token]));
-
+        $this->cookie($cookieName, $cookie);
         $this->get('/');
 
         $this->assertResponseOk();
         $this->assertFalse(
             $this->_controller->CurrentUser->isLoggedIn(),
-            'a remember-me cookie must not stand in for the second factor',
+            'a remember-me cookie from before enrolment must not stand in for the second factor',
         );
+    }
+
+    /**
+     * A cookie the last response set, read out of the raw `Set-Cookie` header
+     * the authenticator writes.
+     *
+     * @param string $name cookie name
+     * @return string|null
+     */
+    private function issuedCookie(string $name): ?string
+    {
+        foreach ($this->_response->getHeader('Set-Cookie') as $line) {
+            [$pair] = explode(';', $line, 2);
+            [$cookieName, $value] = array_pad(explode('=', $pair, 2), 2, '');
+            if ($cookieName === $name) {
+                return rawurldecode($value);
+            }
+        }
+
+        return null;
     }
 
     /**

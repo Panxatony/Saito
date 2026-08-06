@@ -4,6 +4,14 @@ on:
   pull_request:
   push:
     branches: [ main, develop ]
+  # A push only gets one chance at creating a run. During the Actions outage on
+  # 2026-08-06 two pushes to develop produced no run at all — not queued, not
+  # failed, simply absent — and the only ways back were a second push or an
+  # empty commit, both of which put noise in the history to work around a fault
+  # somewhere else entirely. This makes the workflow re-runnable by hand on any
+  # ref, which is also what you want when a run failed for a reason that has
+  # since been fixed outside the repository.
+  workflow_dispatch:
 
 permissions:
   contents: read
