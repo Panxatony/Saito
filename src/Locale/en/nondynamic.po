@@ -169,6 +169,14 @@ msgid "tos_url_exp"
 msgstr "Sets the url for the ToS link. If empty, use the build-in default pages."
 
 #
+msgid "tos_version"
+msgstr "Terms of service version"
+
+#
+msgid "tos_version_exp"
+msgstr "Version of the terms of service. Raising it after a material change asks every member to agree to the new terms again."
+
+#
 msgid "edit_period"
 msgstr "Edit Period"
 

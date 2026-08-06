@@ -30,7 +30,7 @@ echo $this->Setting->table(
 
 echo $this->Setting->table(
     __('Registration'),
-    ['tos_enabled', 'tos_url'],
+    ['tos_enabled', 'tos_url', 'tos_version'],
     $Settings
 );
 

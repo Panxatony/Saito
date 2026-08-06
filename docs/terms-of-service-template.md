@@ -36,7 +36,7 @@ zulässig, wenn Sie als Nutzer diese Nutzungsbedingungen akzeptieren.
    im Forum bekommen Sie eine Bestätigungsemail zur Verifizierung Ihrer Daten
    zugeschickt, mit der Sie Ihre Registrierung per Mouseclick bestätigen können.
    Mit der Bestätigung Ihrer E-Mail-Adresse kommt der unentgeltliche
-   Foren-Nutzungsvertrag zustande (Vertragsschluss).
+   Foren-Nutzungsvertrag zustande (Vertragsschluss). Die Registrierung setzt voraus, dass Sie das 18. Lebensjahr vollendet haben.
 2. Vertragsgegenstand ist die kostenlose Nutzung der Funktionen des Forums als
    Online-Kommunikationsplattform. Hierzu wird Ihnen als Nutzer ein „Account"
    bereitgestellt, mit dem Sie Beiträge und Themen im Forum einstellen können.
@@ -77,10 +77,7 @@ zulässig, wenn Sie als Nutzer diese Nutzungsbedingungen akzeptieren.
    - Presseartikel Dritter ohne Zustimmung des Urhebers im Forum zu
      veröffentlichen;
    - Werbung im Forum ohne ausdrückliche schriftliche Genehmigung durch den
-     Anbieter zu betreiben. Dies gilt auch für sog. Schleichwerbung wie
-     insbesondere das Verlinken der eigenen Homepage mit oder ohne Beitext in der
-     Signatur oder innerhalb von Beiträgen. Homepage-URLs und Adress- bzw.
-     Kontaktdaten dürfen nur im Benutzer-Profil des Forums veröffentlicht werden.
+     Anbieter zu betreiben.
 2. Das Einstellen von Bildern und anderen Medien ist im Rahmen dieser
    Nutzungsbedingungen grundsätzlich gestattet. Sie sind als Nutzer jedoch
    verpflichtet, vor dem Hochladen sicherzustellen, dass Sie über die
@@ -156,3 +153,15 @@ zulässig, wenn Sie als Nutzer diese Nutzungsbedingungen akzeptieren.
    Forum, weiterhin für alle Leser sichtbar, der Account ist jedoch nicht mehr
    abrufbar und im Forum mit „Gast" gekennzeichnet. Alle anderen Daten werden
    gelöscht.
+## § 7 Änderung dieser Nutzungsbedingungen
+
+1. Der Anbieter behält sich vor, diese Nutzungsbedingungen zu ändern, soweit dies
+   zur Anpassung an geänderte rechtliche oder technische Rahmenbedingungen oder an
+   einen geänderten Funktionsumfang des Forums erforderlich ist und der Nutzer
+   dadurch nicht unangemessen benachteiligt wird.
+2. Über Änderungen wird der Nutzer in geeigneter Weise informiert, insbesondere
+   durch einen Hinweis im Forum. Bei wesentlichen Änderungen ist die weitere
+   Nutzung des Forums erst nach Zustimmung zu den geänderten Nutzungsbedingungen
+   möglich.
+3. Stimmt der Nutzer den geänderten Nutzungsbedingungen nicht zu, steht ihm das
+   Recht zur Kündigung nach § 6 zu.

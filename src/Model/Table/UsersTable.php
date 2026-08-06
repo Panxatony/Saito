@@ -671,6 +671,11 @@ class UsersTable extends AppTable
         if (!empty($errors)) {
             return $user;
         }
+        // Set rather than mass-assigned: the field is deliberately not
+        // accessible (see User::$_accessible). They ticked the box for the terms
+        // as they stand, so they start level with them instead of being asked
+        // again on their first request.
+        $user->set('tos_accepted_version', (int)Configure::read('Saito.Settings.tos_version'));
         $user = $this->save($user);
         if ($user !== false) {
             $this->dispatchDbEvent('saito.core.user.register.after', [

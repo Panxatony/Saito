@@ -19,7 +19,7 @@ $forum = h((string)Configure::read('Saito.Settings.forum_name'));
 <p>Für die Nutzung des Forums <?= $forum ?> von dem im Impressum genannten Anbieter (nachfolgend „Anbieter" genannt) gelten nachfolgende Bedingungen. Die Nutzung des Forums ist nur zulässig, wenn Sie als Nutzer diese Nutzungsbedingungen akzeptieren.</p>
 
 <h2>§ 2 Registrierung, Vertragsschluss und -gegenstand</h2>
-<p>1. Voraussetzung für die Nutzung des Forums ist die Registrierung über das entsprechende Online-Formular. Nach der Registrierung über das Online-Formular im Forum bekommen Sie eine Bestätigungsemail zur Verifizierung Ihrer Daten zugeschickt, mit der Sie Ihre Registrierung per Mouseclick bestätigen können. Mit der Bestätigung Ihrer E-Mail-Adresse kommt der unentgeltliche Foren-Nutzungsvertrag zustande (Vertragsschluss).</p>
+<p>1. Voraussetzung für die Nutzung des Forums ist die Registrierung über das entsprechende Online-Formular. Nach der Registrierung über das Online-Formular im Forum bekommen Sie eine Bestätigungsemail zur Verifizierung Ihrer Daten zugeschickt, mit der Sie Ihre Registrierung per Mouseclick bestätigen können. Mit der Bestätigung Ihrer E-Mail-Adresse kommt der unentgeltliche Foren-Nutzungsvertrag zustande (Vertragsschluss). Die Registrierung setzt voraus, dass Sie das 18. Lebensjahr vollendet haben.</p>
 <p>2. Vertragsgegenstand ist die kostenlose Nutzung der Funktionen des Forums als Online-Kommunikationsplattform. Hierzu wird Ihnen als Nutzer ein „Account" bereitgestellt, mit dem Sie Beiträge und Themen im Forum einstellen können.</p>
 <p>3. Es gibt grundsätzlich keinen Rechtsanspruch auf Freischaltung oder Teilnahme am Forum. Es gilt das uneingeschränkte Hausrecht des Betreibers.</p>
 <p>4. Ihr Foren-Account darf nur von Ihnen selbst genutzt werden. Ebenso sind Sie als Inhaber des Accounts für den Schutz vor dessen Missbrauch verantwortlich. Ihre Zugangsdaten sind daher vor dem Zugriff Dritter zu schützen. Die Verwendung von markenrechtlich geschützten Worten und Internetadressen als Benutzername (Nickname) sind nicht erlaubt.</p>
@@ -36,7 +36,7 @@ $forum = h((string)Configure::read('Saito.Settings.forum_name'));
     <li>wettbewerbswidrige Handlungen vorzunehmen;</li>
     <li>Ihr Thema mehrfach im Forum einzustellen (Verbot von Doppelpostings);</li>
     <li>Presseartikel Dritter ohne Zustimmung des Urhebers im Forum zu veröffentlichen;</li>
-    <li>Werbung im Forum ohne ausdrückliche schriftliche Genehmigung durch den Anbieter zu betreiben. Dies gilt auch für sog. Schleichwerbung wie insbesondere das Verlinken der eigenen Homepage mit oder ohne Beitext in der Signatur oder innerhalb von Beiträgen. Homepage-URLs und Adress- bzw. Kontaktdaten dürfen nur im Benutzer-Profil des Forums veröffentlicht werden.</li>
+    <li>Werbung im Forum ohne ausdrückliche schriftliche Genehmigung durch den Anbieter zu betreiben.</li>
 </ul>
 <p>2. Das Einstellen von Bildern und anderen Medien ist im Rahmen dieser Nutzungsbedingungen grundsätzlich gestattet. Sie sind als Nutzer jedoch verpflichtet, vor dem Hochladen sicherzustellen, dass Sie über die erforderlichen Rechte an den Bildern und Medien verfügen und durch deren Veröffentlichung keine Urheber-, Marken-, Persönlichkeits- oder sonstigen Rechte Dritter verletzt werden. Die Verantwortung für die eingestellten Bilder und Medien trägt allein der einstellende Nutzer.</p>
 <p>3. Als Nutzer verpflichten Sie sich, vor der Veröffentlichung Ihrer Beiträge und Themen diese daraufhin zu überprüfen, ob diese Angaben enthalten, die Sie nicht veröffentlichen möchten. Ihre Beiträge und Themen können in Suchmaschinen erfasst und damit weltweit zugreifbar werden. Ein Anspruch gegenüber dem Anbieter auf Löschung oder Korrektur solcher Suchmaschineneinträge ist ausgeschlossen; Ihre datenschutzrechtlichen Rechte gegenüber dem Anbieter bleiben hiervon unberührt (siehe Datenschutzerklärung).</p>
@@ -60,3 +60,7 @@ $forum = h((string)Configure::read('Saito.Settings.forum_name'));
 <p>1. Diese Vereinbarung wird auf unbestimmte Zeit geschlossen.</p>
 <p>2. Beide Parteien können diese Vereinbarung ohne Einhaltung einer Frist kündigen.</p>
 <p>3. Wenn der Nutzer seinen Account löscht bzw. löschen lässt (Kündigung des Vertrags), bleiben seine öffentlichen Äußerungen, insbesondere Beiträge im Forum, weiterhin für alle Leser sichtbar, der Account ist jedoch nicht mehr abrufbar und im Forum mit „Gast" gekennzeichnet. Alle anderen Daten werden gelöscht.</p>
+<h2>§ 7 Änderung dieser Nutzungsbedingungen</h2>
+<p>1. Der Anbieter behält sich vor, diese Nutzungsbedingungen zu ändern, soweit dies zur Anpassung an geänderte rechtliche oder technische Rahmenbedingungen oder an einen geänderten Funktionsumfang des Forums erforderlich ist und der Nutzer dadurch nicht unangemessen benachteiligt wird.</p>
+<p>2. Über Änderungen wird der Nutzer in geeigneter Weise informiert, insbesondere durch einen Hinweis im Forum. Bei wesentlichen Änderungen ist die weitere Nutzung des Forums erst nach Zustimmung zu den geänderten Nutzungsbedingungen möglich.</p>
+<p>3. Stimmt der Nutzer den geänderten Nutzungsbedingungen nicht zu, steht ihm das Recht zur Kündigung nach § 6 zu.</p>
