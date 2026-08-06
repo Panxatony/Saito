@@ -77,6 +77,7 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::htmxWidgetState' => 'stores the current user\'s own widget-rail arrangement (self-scoped)',
         'App\\Controller\\UsersController::htmxBookmarkComment' => 'edits the note on the current user\'s own bookmark; the row is looked up by posting id AND user id (self-scoped)',
         'App\\Controller\\UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
+        'App\\Controller\\UsersController::htmxTwoFactor' => 'the current member\'s own second factor: enrol, new recovery codes, switch off. Self-scoped by construction (the account comes from the session), and the two weakening actions re-ask for the password',
         'App\\Controller\\UsersController::tosAccept' => 'records the current user\'s own agreement to the terms; account from the session, version from the setting (nothing to substitute)',
         'App\\Controller\\EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
         'App\\Controller\\EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
@@ -115,6 +116,10 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::logout' => 'logout',
         'App\\Controller\\UsersController::rs' => 'account activation via the emailed code',
         'App\\Controller\\UsersController::htmxLogin' => 'island login form',
+        // Step two of a login, so by definition before any identity exists. What
+        // stands in for one is the pending marker login() writes after a password
+        // checks out: it names the account, lives five minutes, and is throttled.
+        'App\\Controller\\UsersController::twoFactor' => 'second-factor challenge; gated by the pending-login marker, not by a session',
         'App\\Controller\\UsersController::htmxRegister' => 'island registration form',
         // Self-service password reset (#63): both must work for a member who
         // cannot log in. Enumeration-safe (identical answer whether or not the

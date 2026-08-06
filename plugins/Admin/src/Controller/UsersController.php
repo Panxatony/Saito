@@ -14,6 +14,7 @@ namespace Admin\Controller;
 
 use App\Model\Entity\User;
 use App\Model\Table\UsersTable;
+use Cake\Log\Log;
 use InvalidArgumentException;
 use Saito\App\Registry;
 use Saito\Exception\SaitoForbiddenException;
@@ -248,6 +249,78 @@ class UsersController extends AdminAppController
         $this->set(compact('user'));
 
         return null;
+    }
+
+    /**
+     * Clear a member's second factor, for when they are locked out of their own
+     * account: the phone is gone and the recovery codes with it.
+     *
+     * Gated on the same permission as setting somebody's password, and for the
+     * same reason — an administrator who can do that can already take the
+     * account over, so this adds no power they did not have. It asks for the
+     * administrator's own password as well, because the effect is to weaken
+     * another person's account and a borrowed admin session should not be able
+     * to do it quietly.
+     *
+     * Logged either way. Removing somebody's second factor is exactly the step
+     * an attacker who reached an admin session would take, so it has to leave a
+     * trace that is readable after the fact.
+     *
+     * @param string|null $id member whose second factor to clear
+     * @return \Cake\Http\Response|null
+     */
+    public function twoFactorReset($id = null)
+    {
+        /** @var \App\Model\Entity\User $user */
+        $user = $this->Users->get($id);
+
+        if (
+            !$this->CurrentUser->permission(
+                'saito.core.user.password.set',
+                (new ResourceAI())->onRole($user->getRole())
+            )
+        ) {
+            throw new SaitoForbiddenException(
+                sprintf('Attempt to reset the second factor for user %s.', $id),
+                ['CurrentUser' => $this->CurrentUser]
+            );
+        }
+
+        $this->set(compact('user'));
+        $Credentials = $this->fetchTable('TwoFactorCredentials');
+        $this->set('isEnabled', $Credentials->isEnabledFor((int)$user->get('id')));
+
+        if (!$this->getRequest()->is(['put', 'post'])) {
+            return null;
+        }
+
+        if (!$this->isCurrentPassword($this->getRequest()->getData('confirm_password'))) {
+            $this->Flash->set(__('user.pw.set.confirm.error'), ['element' => 'error']);
+
+            return null;
+        }
+
+        $Credentials->disableFor((int)$user->get('id'));
+        $this->fetchTable('TwoFactorRecoveryCodes')->clearFor((int)$user->get('id'));
+
+        Log::write(
+            'info',
+            sprintf(
+                'Second factor reset for user "%s" (id %d) by "%s" (id %d).',
+                $user->get('username'),
+                (int)$user->get('id'),
+                (string)$this->CurrentUser->get('username'),
+                (int)$this->CurrentUser->getId(),
+            ),
+            ['scope' => ['saito.info']],
+        );
+
+        $this->Flash->set(
+            __('user.2fa.admin.reset.done', $user->get('username')),
+            ['element' => 'success'],
+        );
+
+        return $this->redirect(['action' => 'index']);
     }
 
     /**

@@ -2115,3 +2115,23 @@ msgid "{0} recovery code left."
 msgid_plural "{0} recovery codes left."
 msgstr[0] "{0} Wiederherstellungs-Code übrig."
 msgstr[1] "{0} Wiederherstellungs-Codes übrig."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.t"
+msgstr "2 Faktor Authentifizierung für {0} zurücksetzen"
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.btn"
+msgstr "2FA zurücksetzen"
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.exp"
+msgstr "Schaltet die 2 Faktor Authentifizierung für dieses Mitglied ab — für den Fall, dass es sein Gerät und seine Wiederherstellungs-Codes verloren hat. Das Mitglied kann sich danach allein mit dem Passwort anmelden und die 2 Faktor Authentifizierung neu einrichten. Der Vorgang wird protokolliert."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.none"
+msgstr "Für dieses Mitglied ist die 2 Faktor Authentifizierung nicht aktiv."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.done"
+msgstr "Die 2 Faktor Authentifizierung für {0} wurde zurückgesetzt."

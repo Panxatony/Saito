@@ -1928,3 +1928,23 @@ msgid "{0} recovery code left."
 msgid_plural "{0} recovery codes left."
 msgstr[0] "{0} recovery code left."
 msgstr[1] "{0} recovery codes left."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.t"
+msgstr "Reset two-factor authentication for {0}"
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.btn"
+msgstr "Reset 2FA"
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.exp"
+msgstr "Turns two-factor authentication off for this member — for when they have lost both their device and their recovery codes. They can then sign in with their password alone and set it up again. The action is logged."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.none"
+msgstr "Two-factor authentication is not on for this member."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.done"
+msgstr "Two-factor authentication for {0} has been reset."

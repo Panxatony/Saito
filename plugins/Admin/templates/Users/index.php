@@ -67,6 +67,10 @@ $this->Breadcrumbs->add(__('Users'), false);
                     ['action' => 'password', $user->get('id')],
                     ['class' => 'btn btn-sm btn-outline-secondary']
                 ) . ' ' . $this->Html->link(
+                    __('user.2fa.admin.reset.btn'),
+                    ['action' => 'twoFactorReset', $user->get('id')],
+                    ['class' => 'btn btn-sm btn-outline-secondary']
+                ) . ' ' . $this->Html->link(
                     __('user.del.btn.t'),
                     ['action' => 'delete', $user->get('id')],
                     ['class' => 'btn btn-sm btn-outline-danger']
