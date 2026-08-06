@@ -106,6 +106,17 @@ textarea {
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
+// A read-only field — the personal RSS-feed URLs are the visible case — must
+// follow the theme, not Bootstrap's fixed light-grey `[readonly]` fill. On the
+// dark theme that grey sat under light text and the value could not be read.
+// Tie it to the tokens so it stays legible in both themes; the class+attribute
+// selector outweighs the bare `[readonly]` rule it corrects.
+.form-control[readonly] {
+  background-color: var(--nova-surface);
+  color: var(--nova-text);
+  opacity: 1;
+}
+
 // 16px minimum on touch keyboards: anything smaller makes iOS zoom the page
 // when a field is focused.
 @media (max-width: 640px) {

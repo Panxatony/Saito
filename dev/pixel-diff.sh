@@ -25,7 +25,7 @@ WIDTHS=(375 800 1440)
 
 echo "== Referenz bauen (ungepurgt)"
 yarn css >/dev/null
-npx grunt postcss:release >/dev/null
+yarn css:postcss >/dev/null
 for t in "${THEMES[@]}"; do
   for p in "${PRESETS[@]}"; do
     cp "plugins/$t/webroot/css/$p.css" "$WORK/$t-$p-ref.css"

@@ -60,6 +60,7 @@ privacy text in [privacy-policy-template.md](privacy-policy-template.md).
 |---|---|---|
 | `imprint` | `''` | Trusted HTML for `/pages/impressum`, linked from the footer. Empty shows a "not configured" notice. Legally required in some jurisdictions — nobody else can fill this in for you. |
 | `privacy` | `''` | The same for `/pages/privacy`. What you have to declare depends on your hosting and your admin settings; [privacy-policy-template.md](privacy-policy-template.md) lists what Saito itself processes. |
+| `tos` | `''` | Trusted HTML for `/pages/tos`, linked from the footer and from the registration form when `tos_enabled` is on. **Empty renders a shipped German default** with your forum's name filled in and the operator taken from the imprint — set this only to replace it; [terms-of-service-template.md](terms-of-service-template.md) is the same text to start from. Changing the terms materially? Raise the `tos_version` setting (Admin → Settings) and every member is asked to agree again. |
 | `headHtml` | `''` | Injected into every page's `<head>` — an analytics snippet, say. **Rendered unescaped.** If a content-security policy is in force, an inline script here is exactly what it blocks; put the code in a file and reference it. |
 | `bannerHtml` | `''` | HTML between the header bar and the content, in `div.ads_top`. Also unescaped, also operator-only. The container is omitted entirely when empty. |
 

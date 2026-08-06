@@ -1478,1028 +1478,146 @@ msgstr "Noch keine Beiträge verfasst."
 msgid "Show all"
 msgstr "Alle anzeigen"
 
-#~ msgid "User not found."
-#~ msgstr "Benutzer nicht gefunden."
-
-#~ msgid "You can't delete yourself."
-#~ msgstr "Man kann sich nicht selbst löschen."
-
-#~ msgid "You can't delete the installation account."
-#~ msgstr "Der Installationsbenutzer kann nicht gelöscht werden."
-
-#~ msgid "User {0} deleted."
-#~ msgstr "Nutzer {0} gelöscht."
-
-#~ msgid "You can't lock administrators."
-#~ msgstr "Administratoren können nicht gesperrt werden."
+#, fuzzy
 
 #, fuzzy
-#~ msgid "Category"
-#~ msgstr "Kategorie"
 
 #, fuzzy
-#~ msgid "Delete User"
-#~ msgstr "Löschen"
-
-#~ msgid "Delete User {0}"
-#~ msgstr "Entferne Benutzer {0}"
-
-#~ msgid "Abort"
-#~ msgstr "Abbrechen"
-
-#~ msgid "Ressources"
-#~ msgstr "Ressourcen"
-
-#~ msgid "About"
-#~ msgstr "Über"
 
 #, fuzzy
-#~ msgid "Delete Category"
-#~ msgstr "Flattr-Kategorie"
 
 #, fuzzy
-#~ msgid "Uploads"
-#~ msgstr "Hochladen"
-
-#~ msgid "admin.set.map"
-#~ msgstr "Karten"
-
-#~ msgid "geshi_link_popup"
-#~ msgstr "Bitte URI zum Verweis eingeben.:!:http://beispiel.de/"
-
-#~ msgid "geshi_link_placeholder"
-#~ msgstr "Hier den Verweistext eingeben."
 
 #, fuzzy
-#~ msgid "admin.feat.map"
-#~ msgstr "Karten"
-
-#~ msgid "admin.setting.disabled"
-#~ msgstr "Funktion \"%s\" ist nicht aktiviert."
-
-#~ msgid "date_short"
-#~ msgstr "%d.%m.%Y"
-
-#~ msgid "The bookmark could not be saved. Please, try again."
-#~ msgstr ""
-#~ "Das Lesezeichen konnte nicht gespeichert werden. Bitte versuchen Sie es "
-#~ "erneut."
-
-#~ msgid "Bookmarks"
-#~ msgstr "Lesezeichen"
-
-#~ msgid "Edit Bookmark"
-#~ msgstr "Lesezeichen bearbeiten"
-
-#~ msgid "Enter your comment here"
-#~ msgstr "Hier Kommentar eingeben"
-
-#~ msgid "Comment"
-#~ msgstr "Kommentar"
-
-#~ msgid "user.map.b.locate"
-#~ msgstr "Orten"
-
-#~ msgid "user.map.b.clear"
-#~ msgstr "Entfernen"
-
-#~ msgid "Insert"
-#~ msgstr "Einfügen"
 
 #, fuzzy
-#~ msgid "user.map.b.search"
-#~ msgstr "Suche \":string\""
-
-#~ msgid ""
-#~ "This web-application depends on Cookies and localStorage. Please make "
-#~ "those available in your browser."
-#~ msgstr ""
-#~ "Diese Web-Anwendung benötigt Cookies und localStorage. Bitte aktivieren "
-#~ "Sie diese im Browser."
-
-#~ msgid "search.q.minLength"
-#~ msgstr "Suchbegriffe müssen mindestens %s Buchstaben enthalten."
-
-#~ msgid "upload_fileTypeNotAllowed"
-#~ msgstr "Dateityp nicht erlaubt."
-
-#~ msgid "upload_fileToLarge"
-#~ msgstr "Datei :name zu groß."
-
-#~ msgid "upload_browserNotSupported"
-#~ msgstr "Browser wird nicht unterstützt."
-
-#~ msgid "upload_toManyFiles"
-#~ msgstr "Zu viele Dateien."
-
-#~ msgid "Latest log entries. See full logs at \"%s\"."
-#~ msgstr "Letzte Log-Einträge. Vollständige Logs befinden sich in \"%s\"."
-
-#~ msgid "admin.stats.yearly"
-#~ msgstr "Jährliche Statistik"
-
-#~ msgid "admin.stats.epa"
-#~ msgstr "Beiträge"
-
-#~ msgid "admin.stats.epac"
-#~ msgstr "Beiträge pro Kategorie"
-
-#~ msgid "admin.stats.au"
-#~ msgstr "Aktive Nutzer"
-
-#~ msgid "admin.stats.audisc"
-#~ msgstr "Nutzer mit mindestens einem Posting oder mehr."
-
-#~ msgid "admin.stats.apu"
-#~ msgstr "Durchschnittliche Postings pro Nutzer"
-
-#~ msgid "admin.stats.ur"
-#~ msgstr "Registrierungen"
-
-#~ msgid "admin.stats.detailed"
-#~ msgstr "Detailierte Statistik"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobil"
-
-#~ msgid "error_password_empty"
-#~ msgstr "Passwort darf nicht leer sein."
-
-#~ msgid "Stats"
-#~ msgstr "Statistik"
-
-#~ msgid "error_password_check_old"
-#~ msgstr "Das alte Passwort ist nicht korrekt."
-
-#~ msgid "Accession"
-#~ msgstr "Zugriff"
-
-#~ msgid "category.create"
-#~ msgstr "Kategorie anlegen"
-
-#~ msgid "search_simple"
-#~ msgstr "Einfache Suche"
-
-#~ msgid "subject"
-#~ msgstr "Betreff"
-
-#~ msgid "Text"
-#~ msgstr "Text"
-
-#~ msgid "search.nstrict"
-#~ msgstr "Exakter Name"
-
-#~ msgid "Sort by: %s"
-#~ msgstr "Sortieren nach: %s"
-
-#~ msgid "List Smilies"
-#~ msgstr "Smilies auflisten"
-
-#~ msgid "upload_btn_delete_upload"
-#~ msgstr "Datei löschen"
-
-#~ msgid "New"
-#~ msgstr "Neu"
-
-#~ msgid "Cumulated"
-#~ msgstr "Kumuliert"
 
 #, fuzzy
-#~ msgid "Invalid id for category"
-#~ msgstr "Passwort stimmt nicht mit Wiederholung überein."
-
-#~ msgid "New reply to \"%s\""
-#~ msgstr "Neue Antwort zu \"%s\""
 
 #, fuzzy
-#~ msgid "Copy of your message: \":subject\""
-#~ msgstr "Kopie Ihrer Nachricht: :subject"
 
 #, fuzzy
-#~ msgid "Message couldn't be send! "
-#~ msgstr "Fehler, Nachricht konnte nicht versandt werden."
 
 #, fuzzy
-#~ msgid "Invalid smily"
-#~ msgstr "Passwort stimmt nicht mit Wiederholung überein."
 
 #, fuzzy
-#~ msgid "Invalid id for smily"
-#~ msgstr "Passwort stimmt nicht mit Wiederholung überein."
-
-#~ msgid "Edit {0} Profil"
-#~ msgstr "{0} Profil bearbeiten"
-
-#~ msgid "admin.stats.insfd"
-#~ msgstr "Nicht genügend Daten vorhanden."
-
-#~ msgid "button_save"
-#~ msgstr "Speichern"
-
-#~ msgid "user_since %s"
-#~ msgstr "Mitglied seit %s"
-
-#~ msgid "%s banned"
-#~ msgstr "%s gesperrt"
-
-#~ msgid "Step 3: Create Admin User"
-#~ msgstr "Schritt 3: Administrator anlegen"
-
-#~ msgid "New Password"
-#~ msgstr "Neues Password"
-
-#~ msgid "Verify Password"
-#~ msgstr "Passwort überprüfen"
-
-#~ msgid "Save"
-#~ msgstr "Speichern"
-
-#~ msgid "Click here to build your database"
-#~ msgstr "Datenbank anlegen"
-
-#~ msgid "Click here to delete installation files"
-#~ msgstr "Installationsdateien löschen"
-
-#~ msgid "Your tmp directory is writable."
-#~ msgstr "Das tmp Verzeichnis hat nicht die erforderlichen Schreibrechte"
-
-#~ msgid "Your tmp directory is NOT writable."
-#~ msgstr "Das tmp Verzeichnis hat NICHT die erforderlichen Schreibrechte"
-
-#~ msgid "Your config directory is writable."
-#~ msgstr "Das config Verzeichnis hat nicht die erforderlichen Schreibrechte"
-
-#~ msgid "Your config directory is NOT writable."
-#~ msgstr "Das config Verzeichnis hat NICHT die erforderlichen Schreibrechte"
-
-#~ msgid "Installation cannot continue as minimum requirements are not met."
-#~ msgstr ""
-#~ "Installation kann nicht fortgesetzt werden, da die Mindestanforderungen "
-#~ "nicht erfüllt werden."
-
-#~ msgid "Install"
-#~ msgstr "Installieren"
-
-#~ msgid "admin.sysInfo.sitemap"
-#~ msgstr "Sitemap-URL: {0}"
-
-#~ msgid "{0} online {1}"
-#~ msgstr "{0} anwesend ({1})"
-
-#~ msgid "Notify on reply"
-#~ msgstr "Beitrag abonnieren"
-
-#~ msgid "Notify on thread replies"
-#~ msgstr "Thread abonnieren"
-
-#~ msgid "Merge onto entry with ID:"
-#~ msgstr "Anfügen an den Beitrag mit ID:"
-
-#~ msgid "Lock"
-#~ msgstr "Sperren"
 
 #, fuzzy
-#~ msgid "Invalid esnotification"
-#~ msgstr "Ungültiger Benutzer"
-
-#~ msgid "Succesfully unsubscribed."
-#~ msgstr "Erfolgreich abbestellt."
-
-#~ msgid "Error. Could not unsubscribe."
-#~ msgstr "Fehler beim Abbestellen."
 
 #, fuzzy
-#~ msgid ""
-#~ "Your browser does not support HTML5 audio. Please updgrade to a "
-#~ "modernbrowser. In order to watch this stream you need an HTML5 capable "
-#~ "browser."
-#~ msgstr ""
-#~ "Ihr Browser unterstützt kein HTML5-Video. Bitte verwenden Sie einen "
-#~ "modernen Browser."
 
 #, fuzzy
-#~ msgid ""
-#~ "Your browser does not support HTML5 video. Please updgrade to a "
-#~ "modernbrowser. In order to watch this stream you need an HTML5 capable "
-#~ "browser."
-#~ msgstr ""
-#~ "Ihr Browser unterstützt kein HTML5-Video. Bitte verwenden Sie einen "
-#~ "modernen Browser."
-
-#~ msgid "Step 1: Database"
-#~ msgstr "Schritt 1: Datenbank"
-
-#~ msgid "Could not connect to database: %s"
-#~ msgstr "Konnte keine Verbindung zur Datenbank %s aufbauen"
-
-#~ msgid "Could not connect to database."
-#~ msgstr "Keine Verbindung zur Datenbank möglich"
-
-#~ msgid "Could not write database.php file."
-#~ msgstr "Die Datei database.php konnte nicht geschrieben werden."
-
-#~ msgid "Step 2: Build database"
-#~ msgstr "Schritt 2: Datenbank anlegen"
-
-#~ msgid "Could not create table: %s"
-#~ msgstr "Konnte Tabelle %s nicht anlegen"
-
-#~ msgid "Installation completed successfully"
-#~ msgstr "Installation erfolgreich abgeschlossen"
-
-#~ msgid "geshi_img_popup"
-#~ msgstr "Bitte URI zum Link eingeben.:!:http://beispiel.de/bild.png"
 
 #, fuzzy
-#~ msgid "separator"
-#~ msgstr "Moderation"
 
 #, fuzzy
-#~ msgid "some_class_name"
-#~ msgstr "Realer Name"
-
-#~ msgid "user.block.reason.2"
-#~ msgstr "Ignoriert durch zu viele Nutzer."
-
-#~ msgid "back_to_overview_linkname"
-#~ msgstr "Zurück zur Übersicht"
-
-#~ msgid "Unlock"
-#~ msgstr "Freigeben"
-
-#~ msgid ""
-#~ ":entries Entries in :threads Threads; :registered members, :loggedin "
-#~ "logged in, :anon anonymous"
-#~ msgstr ""
-#~ ":entries Beiträge in :threads Threads; :registered Mitglieder, :loggedin "
-#~ "angemeldet, :anon Gäste."
-
-#~ msgid "Forum Settings"
-#~ msgstr "Einstellungen"
-
-#~ msgid "user_show_email"
-#~ msgstr "E-Mail-Link anzeigen"
-
-#~ msgid "user_show_email_exp"
-#~ msgstr ""
-#~ "Soll in Postings ein Link angezeigt werden, um E-Mails per Formular an "
-#~ "die E-Mail-Adresse zu senden? Die E-Mail-Adresse kann dabei nicht "
-#~ "eingesehen werden."
 
 #, fuzzy
-#~ msgid "Help file not found."
-#~ msgstr "Benutzer nicht gefunden."
-
-#~ msgid "user_lock"
-#~ msgstr "Sperre"
 
 #, fuzzy
-#~ msgid "user_block"
-#~ msgstr "Sperre"
-
-#~ msgid "User"
-#~ msgstr "Benutzer"
-
-#~ msgid "ud_user"
-#~ msgstr "Benutzer"
-
-#~ msgid "Moderator"
-#~ msgstr "Moderator"
-
-#~ msgid "Mod"
-#~ msgstr "Moderator"
-
-#~ msgid "ud_admin"
-#~ msgstr "Administrator"
-
-#~ msgid "ud_mod"
-#~ msgstr "Moderator"
-
-#~ msgid "Entries"
-#~ msgstr "Einträge"
-
-#~ msgid "User Registrations"
-#~ msgstr "Benutzerregistrierungen"
-
-#~ msgid "List Categories"
-#~ msgstr "Kategorien anzeigen"
 
 #, fuzzy
-#~ msgid "List Entries"
-#~ msgstr "Letzte Einträge"
-
-#~ msgid "New Entry"
-#~ msgstr "Neuer Beitrag"
-
-#~ msgid "previous"
-#~ msgstr "vorherige"
-
-#~ msgid "next"
-#~ msgstr "nächste"
-
-#~ msgid "Category Order"
-#~ msgstr "Kategorienreihenfolge"
 
 #, fuzzy
-#~ msgid "Standard Category"
-#~ msgstr "Standardkategorien"
 
 #, fuzzy
-#~ msgid "Related Entries"
-#~ msgstr "Letzte Einträge"
 
 #, fuzzy
-#~ msgid "Modified"
-#~ msgstr "Thread fixiert"
 
 #, fuzzy
-#~ msgid "Last Answer"
-#~ msgstr "Sortierreihenfolge"
 
 #, fuzzy
-#~ msgid "Edited"
-#~ msgstr "Zitieren"
 
 #, fuzzy
-#~ msgid "User Id"
-#~ msgstr "Benutzer"
-
-#~ msgid "Name"
-#~ msgstr "Benutzername"
-
-#~ msgid "Email Notify"
-#~ msgstr "E-Mail Benachrichtigung"
-
-#~ msgid "Locked"
-#~ msgstr "Gesperrt"
 
 #, fuzzy
-#~ msgid "Fixed"
-#~ msgstr "Thread fixiert"
 
 #, fuzzy
-#~ msgid "No Text"
-#~ msgstr "Text"
 
 #, fuzzy
-#~ msgid "Flattr"
-#~ msgstr "flattrn"
-
-#~ msgid "No help for this page available."
-#~ msgstr "Keine Hilfe für diese Seite verfügbar."
-
-#~ msgid "btn_manualy_mark_as_read_shp"
-#~ msgstr "Alle Einträge als gelesen markieren."
-
-#~ msgid "search_fulltext_textfield_shp"
-#~ msgstr ""
-#~ "+ bedeutet UND<br/>- bedeutet NICHT<br/>[kein Operator] impliziert "
-#~ "ODER<br/><br/>'apple banana' Findet Datensätze, die mindestens eines der "
-#~ "beiden Wörter enthalten.<br/><br/>'+apple +juice' Findet Datensätze, die "
-#~ "beide Wörter enthalten.<br/><br/>'+apple macintosh' Findet Datensätze, "
-#~ "die das Wort „apple“ enthalten, stuft aber solche Datensätze höher ein, "
-#~ "die auch „macintosh“ enthalten.<br/><br/>'+apple -macintosh' Findet "
-#~ "Datensätze, die das Wort „apple“, aber nicht das Wort „macintosh“ "
-#~ "enthalten.<br/><br/>'apple*' Findet Datensätze, die Wörter wie „apple“, "
-#~ "„apples“, „applesauce“ oder „applet“ enthalten.<br/><br/>'\"some words\"' "
-#~ "Findet Datensätze, die die exakte Phrase „some words“ enthalten. Dies "
-#~ "wäre etwa „some words of wisdom“, nicht aber „some noise words“."
-
-#~ msgid "button_mod_panel_shp"
-#~ msgstr ""
-#~ "Das Moderator-Menü. – Alle Befehle für den Moderator, um den Beitrag oder "
-#~ "Thread zu bearbeiten."
-
-#~ msgid "Newest member is: %s."
-#~ msgstr "Neuestes Mitglied ist: %s."
-
-#~ msgid "Create"
-#~ msgstr "Anlegen"
-
-#~ msgid "answering_forbidden_locked_shp"
-#~ msgstr "Antworten gesperrt durch Moderator."
-
-#~ msgid "Profil"
-#~ msgstr "Profil"
-
-#~ msgid "cateogry"
-#~ msgstr "Kategorie"
-
-#~ msgid "user_show_entries"
-#~ msgstr "Beiträge anzeigen"
-
-#~ msgid "User %s"
-#~ msgstr "Benutzer %s"
-
-#~ msgid "User :name"
-#~ msgstr "Benutzer :name"
-
-#~ msgid "Joined %s"
-#~ msgstr "Beigetreten am %s"
-
-#~ msgid "answer_marking"
-#~ msgstr "Antwort verfassen"
-
-#~ msgid ""
-#~ "This web-application needs JavaScript to run. Please activate JavaScript "
-#~ "in your browser."
-#~ msgstr ""
-#~ "Diese Web-Anwendung benötigt JavaScript. Bitte aktivieren Sie JavaScript "
-#~ "im Browser."
-
-#~ msgid "Hit ⌃s to focus"
-#~ msgstr "⌃s für Fokus"
-
-#~ msgid "Caches have been emptied."
-#~ msgstr "Caches wurden geleert."
-
-#~ msgid "Picture"
-#~ msgstr "Bild"
-
-#~ msgid "geshi_picture_popup"
-#~ msgstr ""
-#~ "Bitte URI zum Bild (.jpg, .png oder .gif) eingeben.:!:http://beispiel.de/"
-#~ "bild.png"
-
-#~ msgid "forum_disabled"
-#~ msgstr "Forum deaktivieren"
-
-#~ msgid "forum_disabled_exp"
-#~ msgstr "Forum deaktivieren."
-
-#~ msgid "forum_disabled_text"
-#~ msgstr "Forum deaktivieren Infotext"
-
-#~ msgid "forum_disabled_text_exp"
-#~ msgstr "Infotext, welcher auf der Hinweisseite mit ausgegeben wird."
-
-#~ msgid "forum_name"
-#~ msgstr "Forumtitel"
-
-#~ msgid "forum_name_exp"
-#~ msgstr "Der Name dieses Forums."
-
-#~ msgid "timezone"
-#~ msgstr "Zeitzone"
-
-#~ msgid "timezone_exp"
-#~ msgstr "Zeitzone, indem sich das Forum befindet."
 
 #, fuzzy
-#~ msgid "forum_email"
-#~ msgstr "Email"
 
 #, fuzzy
-#~ msgid "forum_email_exp"
-#~ msgstr ""
-#~ "Emailadresse, welche als Absenderadresse für vom Forum versendet Emails "
-#~ "(bspw. bei der Registrierung) verwendet wird. "
-
-#~ msgid "email_admin_config_exp"
-#~ msgstr ""
-#~ "Erweiterte Email-Einstellungen sind durch das Anlegen einer <code>$saito</"
-#~ "code>-Konfiguration in <code>app/config/email.php</code> möglich. Als "
-#~ "Vorlage sollte <code>app/config/email.php.default</code> verwendet "
-#~ "werden. <a href=\"http://book.cakephp.org/2.0/en/core-utility-libraries/"
-#~ "email.html#configuration\">Siehe auch.</a>"
-
-#~ msgid "store_ip"
-#~ msgstr "IP speichern"
-
-#~ msgid "store_ip_exp"
-#~ msgstr ""
-#~ "Beim Einträgen ins Forum werden die IP-Adresse des Eintragenden "
-#~ "gespeichert. Moderatoren wird die Adresse im Eintrag angezeigt."
-
-#~ msgid "store_ip_anonymized"
-#~ msgstr "IP anonymisieren"
-
-#~ msgid "store_ip_anonymized_exp"
-#~ msgstr "Anonymisieren der gespeicherten IP-Adresse."
 
 #, fuzzy
-#~ msgid "tos_enabled"
-#~ msgstr "Nutzungsbedingungen aktivieren"
 
 #, fuzzy
-#~ msgid "tos_enabled_exp"
-#~ msgstr ""
-#~ "Setzt einen Verweis und eine zu bestätigende Checkbox für die "
-#~ "Nutzungsbedingungen auf die Registrierungsseite."
-
-#~ msgid "tos_url"
-#~ msgstr "Nutzungsbedingungen-URL"
-
-#, fuzzy
-#~ msgid "tos_url_exp"
-#~ msgstr ""
-#~ "URL zu den Nutzungsbedingen. Falls leer, werden die eingebauten "
-#~ "Standardseiten verwendet."
 
 #
-#~ msgid "edit_period"
-#~ msgstr "Nachbearbeitungszeit"
 
 #
-#~ msgid "edit_period_exp"
-#~ msgstr ""
-#~ "Minuten, die ein neuer Eintrag nach dem Anlegen nachbearbeitet werden "
-#~ "kann."
-
-#~ msgid "topics_per_page"
-#~ msgstr "Threads pro Seite"
-
-#~ msgid "topics_per_page_exp"
-#~ msgstr "Anzahl der Threads, die auf der Startseite angezeigt werden."
-
-#~ msgid "thread_depth_indent"
-#~ msgstr "Einrücktiefe Threads"
-
-#~ msgid "thread_depth_indent_exp"
-#~ msgstr ""
-#~ "Ab dieser Tiefe werden werden Einträge in der Thread-Ansicht nicht weiter "
-#~ "nach rechts eingerückt dargestellt."
-
-#~ msgid "autolink"
-#~ msgstr "Autolink"
-
-#~ msgid "autolink_exp"
-#~ msgstr "Verweise im Text automatisch erkennen und verlinken."
-
-#~ msgid "bbcode_img"
-#~ msgstr "Bilder"
-
-#~ msgid "bbcode_img_exp"
-#~ msgstr "Einbinden von Bildern erlauben."
-
-#~ msgid "quote_symbol"
-#~ msgstr "Zitatzeichen"
-
-#~ msgid "quote_symbol_exp"
-#~ msgstr "Zitatzeichen"
-
-#~ msgid "signature_separator"
-#~ msgstr "Signaturtrenner"
-
-#~ msgid "signature_separator_exp"
-#~ msgstr "Signaturtrenner"
-
-#~ msgid "subject_maxlength_exp"
-#~ msgstr "Maximale Zeichenanzahl in Betreff."
 
 #
-#~ msgid "video_domains_allowed"
-#~ msgstr "Einbettbare (Video-) Quellen"
 
 #
-#~ msgid "video_domains_allowed_exp"
-#~ msgstr ""
-#~ "Domainnamen einbindbar für Video und iFrame. Ein Asterisk * bedeuted "
-#~ "freies Einbinden (Vorsicht, dies kann ebenfalls zum Einbinden von "
-#~ "Schadsoftware genutzt werden!)."
-
-#~ msgid "category_chooser_global"
-#~ msgstr "Standard"
-
-#~ msgid "category_chooser_global_exp"
-#~ msgstr "Kategorienfilter auf der Frontseite immer anzeigen."
-
-#~ msgid "category_chooser_user_override"
-#~ msgstr "Benutzereinstellung"
-
-#~ msgid "category_chooser_user_override_exp"
-#~ msgstr ""
-#~ "Erlaubt einem Benutzern den Kategorienfilter in seinen Einstellungen zu "
-#~ "aktivieren, selbst wenn der Filter standardmässig deaktiviert ist."
-
-#~ msgid "stopwatch_get"
-#~ msgstr "Stopuhr"
-
-#~ msgid "stopwatch_get_exp"
-#~ msgstr ""
-#~ "Ausgabe der Stopuhrzeiten durch Anfügen von <code>/stopwatch:true/</code> "
-#~ "an URL in Production-Modus für eingeloggte Nutzer."
-
-#~ msgid "logged_in_users_only"
-#~ msgstr "Nur für eingeloggte Benutzer."
-
-#~ msgid ":users Users online"
-#~ msgstr ":users anwesend"
-
-#~ msgid ":users+:guests online"
-#~ msgstr ":users+:guests anwesend"
-
-#~ msgid "whole_thread_marking"
-#~ msgstr "gesamter Thread"
-
-#~ msgid "register_email_send_content"
-#~ msgstr ""
-#~ "Vielen Dank für Ihre Registrierung. Ihnen wurde eine Email mit weiteren "
-#~ "Daten zugesendet. Bitte klicken Sie auf den Link in dieser Email. Vorher "
-#~ "ist ein Einlochen ins Forum nicht möglich!"
-
-#~ msgid "Edit Smiley Codes"
-#~ msgstr "Smiley-Code bearbeiten"
-
-#~ msgid "Admin Add Smiley Code"
-#~ msgstr "Smiley Code hinzufügen"
-
-#~ msgid "Smiley Codes Edit"
-#~ msgstr "Smiley-Codes bearbeiten"
-
-#~ msgid "Admin Edit Smiley Code"
-#~ msgstr "Admin Smiley Code bearbeiten"
-
-#~ msgid "Admin Add Smiley"
-#~ msgstr "Admini Smiley hinzufügen"
 
 #, fuzzy
-#~ msgid "_set_entry_link"
-#~ msgstr "Neuer Eintrag"
 
 #, fuzzy
-#~ msgid "_unset_entry_link"
-#~ msgstr "Neuer Eintrag"
-
-#~ msgid "All"
-#~ msgstr "Alles"
-
-#~ msgid "fixed_set_entry_link"
-#~ msgstr "Anpinnen"
-
-#~ msgid "fixed_unset_entry_link"
-#~ msgstr "Abpinnen"
-
-#~ msgid "locked_set_entry_link"
-#~ msgstr "Sperren"
-
-#~ msgid "locked_unset_entry_link"
-#~ msgstr "Entsperren"
-
-#~ msgid "Bookmark was not deleted"
-#~ msgstr "Das Lesezeichen wurde nicht gelöscht."
-
-#~ msgid "board_edited_marking"
-#~ msgstr "editiert von"
 
 #, fuzzy
-#~ msgid "Admin User Add"
-#~ msgstr "Benutzer hinzufügen"
-
-#~ msgid "Add Smily"
-#~ msgstr "Smiley hinzufügen"
-
-#~ msgid "Edit Smily"
-#~ msgstr "Smiley bearbeiten"
-
-#~ msgid "New Smily"
-#~ msgstr "Neuer Smiley"
-
-#~ msgid "user_standard_categories"
-#~ msgstr "Standardkategorien"
-
-#~ msgid "user_standard_categories_exp"
-#~ msgstr "Persönlicher Kategoriensatz und Standardansicht"
-
-#~ msgid "register_tos_text"
-#~ msgstr "Ich bin mit den Nutzungsbedingungen einverstanden"
 
 #, fuzzy
-#~ msgid "edit_usersettings"
-#~ msgstr "Bearbeiten"
 
 #
 #, fuzzy
-#~ msgid "edit_userinfo"
-#~ msgstr "Nachbearbeitungszeit"
-
-#~ msgid "user_area_title"
-#~ msgstr "Profil"
-
-#~ msgid "Adminbereich @lo"
-#~ msgstr "Adminbereich"
 
 #, fuzzy
-#~ msgid "List Users"
-#~ msgstr "Letzte Einträge"
-
-#~ msgid "Groups"
-#~ msgstr "Gruppen"
-
-#~ msgid "New Group"
-#~ msgstr "Neue Gruppe"
-
-#~ msgid "Group"
-#~ msgstr "Gruppe"
-
-#~ msgid "Edit Group"
-#~ msgstr "Gruppe bearbeiten"
-
-#~ msgid "Delete Group"
-#~ msgstr "Gruppe löschen"
 
 #, fuzzy
-#~ msgid "User Type"
-#~ msgstr "Typ"
 
 #, fuzzy
-#~ msgid "User Real Name"
-#~ msgstr "realer Name"
-
-#~ msgid "Password"
-#~ msgstr "Passwort"
-
-#~ msgid "Hide Email"
-#~ msgstr "E-Mail verbergen"
 
 #, fuzzy
-#~ msgid "User Hp"
-#~ msgstr "Homepage"
 
 #, fuzzy
-#~ msgid "User Place"
-#~ msgstr "Ort"
 
 #, fuzzy
-#~ msgid "Signature"
-#~ msgstr "Signatur"
-
-#~ msgid "Entry Count"
-#~ msgstr "Beitragszähler"
-
-#~ msgid "Last Login"
-#~ msgstr "Letzter Login"
-
-#~ msgid "Last Logout"
-#~ msgstr "Letzter Logout"
 
 #, fuzzy
-#~ msgid "Registered"
-#~ msgstr "Registriert"
 
 #, fuzzy
-#~ msgid "Last Refresh"
-#~ msgstr "Letzte Einträge"
 
 #, fuzzy
-#~ msgid "Last Refresh Tmp"
-#~ msgstr "Letzte Einträge"
 
 #, fuzzy
-#~ msgid "User View"
-#~ msgstr "Benutzer"
 
 #, fuzzy
-#~ msgid "New Posting Notify"
-#~ msgstr "wenn sich ein neuer Benutzer angemeldet hat"
-
-#~ msgid "Personal Messages"
-#~ msgstr "Persönliche Nachrichten"
-
-#~ msgid "Time Difference"
-#~ msgstr "Zeitverschiebung"
 
 #, fuzzy
-#~ msgid "User Lock"
-#~ msgstr "Benutzer sperren"
-
-#~ msgid "Activate Code"
-#~ msgstr "Aktivierungscode"
 
 #, fuzzy
-#~ msgid "User Font Size"
-#~ msgstr "Schriftgröße"
 
 #, fuzzy
-#~ msgid "User Signatures Hide"
-#~ msgstr "Signaturen ausblenden"
 
 #, fuzzy
-#~ msgid "User Signatures Images Hide"
-#~ msgstr "Nur Bilder in Signaturen der anderen Benutzer ausblenden."
-
-#~ msgid "User Categories"
-#~ msgstr "Standardkategorien"
 
 #, fuzzy
-#~ msgid "User Forum Refresh Time"
-#~ msgstr "Aktualisierungszeit"
 
 #, fuzzy
-#~ msgid "User Forum Hr Ruler"
-#~ msgstr "Trennstrich"
 
 #, fuzzy
-#~ msgid "User Automaticaly Mark As Read"
-#~ msgstr "Hervorhebung aktueller Beiträge zurücksetzen"
 
 #, fuzzy
-#~ msgid "User Sort Last Answer"
-#~ msgstr "Sortierreihenfolge"
 
 #, fuzzy
-#~ msgid "User Color New Postings"
-#~ msgstr "Neue Beiträge"
 
 #, fuzzy
-#~ msgid "User Color Actual Posting"
-#~ msgstr "Aktueller Beitrag"
 
 #, fuzzy
-#~ msgid "User Color Old Postings"
-#~ msgstr "Alte Beiträge"
 
 #, fuzzy
-#~ msgid "Show Recentposts"
-#~ msgstr "Neueste Beiträge"
 
 #, fuzzy
-#~ msgid "Inline View On Click"
-#~ msgstr "Posting aufklappen"
 
 #, fuzzy
-#~ msgid "Flattr Uid"
-#~ msgstr "Flattr ID"
 
 #, fuzzy
-#~ msgid "Flattr Allow User"
-#~ msgstr "Flattrn"
 
 #, fuzzy
-#~ msgid "Flattr Allow Posting"
-#~ msgstr "Postings flattrn"
-
-#~ msgid "Generated in %s ms."
-#~ msgstr "Generiert in %s ms."
-
-#~ msgid "register_ip"
-#~ msgstr "Registrierungs-IP"
-
-#~ msgid "homepage_alt"
-#~ msgstr "Homepage"
-
-#~ msgid "back_to_posting_linkname"
-#~ msgstr "zurück zum Posting von"
-
-#~ msgid "search_formtitle"
-#~ msgstr "Forumssuche"
-
-#~ msgid "geshi_video_popup"
-#~ msgstr ""
-#~ "Bitte URI zum Video (h.264 oder WebM) eingeben.:!:http://beispiel.de/"
-#~ "video.mp4"
-
-#~ msgid "captcha_result_too_fast"
-#~ msgstr "Sie waren zu schnell mit der Eingabe."
-
-#~ msgid "user_info_hl"
-#~ msgstr "Benutzerinfo"
-
-#~ msgid "btn_inline_view_answer"
-#~ msgstr "Antworten"
-
-#~ msgid "btn_show_all_postings"
-#~ msgstr "Alle Postings"
-
-#~ msgid "change_password_failure"
-#~ msgstr "Passwort konnte aus unbekannten Gründen nicht aktualisiert werden."
-
-#~ msgid "btn_hide_thread"
-#~ msgstr "Einklappen"
-
-#~ msgid "edit_marking"
-#~ msgstr "Posting editieren"
-
-#~ msgid "previous_page_linktitle"
-#~ msgstr "vorige Seite"
-
-#~ msgid "next_page_linktitle"
-#~ msgstr "nächste Seite"
-
-#~ msgid "notice_editing_not_your_entry"
-#~ msgstr "Achtung: Fremdeintrag!"
-
-#~ msgid "button_reset"
-#~ msgstr "Zurücksetzen"
-
-#~ msgid "user_sort_time"
-#~ msgstr "Zeit"
 
 #, fuzzy
-#~ msgid "userlist_email_exp"
-#~ msgstr "E-Mail"
-
-#~ msgid "optional"
-#~ msgstr "(optional)"
-
-#~ msgid "test"
-#~ msgstr "registrieren"
-
-#~ msgid "entries/add"
-#~ msgstr "neuer Eintrag"
-
-#~ msgid "lock_linkname"
-#~ msgstr "sperren"
 
 msgid "delete_confirm.title"
 msgstr "Wirklich löschen?"
@@ -2887,3 +2005,19 @@ msgstr "Passwort zurücksetzen bei {0}"
 
 msgid "user.pwreset.email.content"
 msgstr "Hallo,\n\njemand — vermutlich du — hat darum gebeten, das Passwort für dein Konto bei {0} zurückzusetzen.\n\nÖffne diesen Link, um ein neues Passwort zu setzen. Er gilt eine Stunde:\n\n{1}\n\nWarst du das nicht, ignoriere diese Mail einfach; dein Passwort bleibt unverändert."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.t"
+msgstr "Geänderte Nutzungsbedingungen"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.lead"
+msgstr "Die Nutzungsbedingungen dieses Forums haben sich geändert. Bitte lies sie und stimme ihnen zu, um das Forum weiter zu nutzen."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.accept"
+msgstr "Nutzungsbedingungen zustimmen"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.decline"
+msgstr "Nicht zustimmen und abmelden"

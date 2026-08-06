@@ -75,7 +75,7 @@ rather than in the commit history.
 You need a more or less generic environement providing:
 
 -  PHP with `composer` for the server-backend (mainly build on [CakePHP][cake])
--  **Node.js >= 22.11** with `yarn` and `grunt-cli` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts). `.nvmrc` names the version the pipelines use; the build tooling sets that floor and `yarn install` refuses below it.
+-  **Node.js >= 22.11** with `yarn` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts). `.nvmrc` names the version the pipelines use; the build tooling sets that floor and `yarn install` refuses below it.
 -  a database
 
 ### Install Files
@@ -90,7 +90,7 @@ yarn install;
 Move dependency-assets into the right places:
 
 ```shell
-grunt dev-setup
+yarn setup
 ```
 
 Run all test cases:
@@ -110,15 +110,14 @@ would mean a command that can only ever fail. `composer cs-fix` applies what
 PHPCBF can fix — it rewrites source files, so run it deliberately and never as
 part of a test.
 
-See the `Gruntfile`, `package.json` and `composer.json` for further development
-commands.
+See `package.json` and `composer.json` for further development commands.
 
 ### Create Production Files
 
 To generate all the minimized assets for production:
 
 ```shell
-grunt release
+yarn build:release
 ```
 
 That builds the theme stylesheets and three JavaScript bundles:

@@ -52,7 +52,7 @@ $webroot = $this->request->getAttribute('webroot');
 
                     if ($tosRequired) {
                         $tosUrl = Configure::read('Saito.Settings.tos_url')
-                            ?: '/pages/' . Configure::read('Saito.language') . '/tos';
+                            ?: '/pages/tos';
                         echo $this->Html->div('form-group form-check', $this->Form->control('tos_confirm', [
                             'type' => 'checkbox',
                             'x-model' => 'tos',

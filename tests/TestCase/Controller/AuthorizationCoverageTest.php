@@ -77,6 +77,7 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::htmxWidgetState' => 'stores the current user\'s own widget-rail arrangement (self-scoped)',
         'App\\Controller\\UsersController::htmxBookmarkComment' => 'edits the note on the current user\'s own bookmark; the row is looked up by posting id AND user id (self-scoped)',
         'App\\Controller\\UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
+        'App\\Controller\\UsersController::tosAccept' => 'records the current user\'s own agreement to the terms; account from the session, version from the setting (nothing to substitute)',
         'App\\Controller\\EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
         'App\\Controller\\EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
         'App\\Controller\\EntriesController::htmxDraft' => 'stores the current user\'s own unfinished posting; the row is looked up by parent id AND user id (self-scoped)',

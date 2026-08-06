@@ -96,6 +96,20 @@ $config = [
         'privacy' => '',
 
         /**
+         * Terms of service (Nutzungsbedingungen)
+         *
+         * Trusted HTML rendered on the /pages/tos page and linked from the
+         * registration form when `tos_enabled` is on (Admin → Settings).
+         * Per-installation: a forum's terms name its operator and its
+         * jurisdiction. Left empty, a shipped German default renders (element
+         * templates/element/pages/tos_default.php) with the forum name filled in
+         * and the operator taken from the imprint — set this to override it with
+         * your own terms. docs/terms-of-service-template.md is the same text to
+         * start from.
+         */
+        'tos' => '',
+
+        /**
          * Custom HTML injected into every page's <head> (e.g. a privacy-friendly
          * analytics snippet). Trusted, operator-controlled — set it per
          * installation. Empty by default (nothing injected).

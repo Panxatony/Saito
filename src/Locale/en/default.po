@@ -1446,252 +1446,28 @@ msgid "Show all"
 msgstr ""
 
 #, fuzzy
-#~ msgid "User not found."
-#~ msgstr "Nothing found."
-
-#~ msgid "authentication.error"
-#~ msgstr "Access to this function is restricted!"
 
 #, fuzzy
-#~ msgid "Uploads"
-#~ msgstr "Upload"
-
-#~ msgid "admin.set.map"
-#~ msgstr "Map"
-
-#~ msgid "geshi_link_popup"
-#~ msgstr "Please enter an URL for your link.:!:http://example.com/"
-
-#~ msgid "geshi_link_placeholder"
-#~ msgstr "Enter link text here."
 
 #, fuzzy
-#~ msgid "admin.feat.map"
-#~ msgstr "map"
-
-#~ msgid "admin.setting.disabled"
-#~ msgstr "Feature \"%s\" is disabled by admin."
-
-#~ msgid "date_short"
-#~ msgstr "%b. %d, %Y"
-
-#~ msgid "user.map.b.locate"
-#~ msgstr "Locate"
-
-#~ msgid "user.map.b.clear"
-#~ msgstr "Clear"
-
-#~ msgid "user.map.b.search"
-#~ msgstr "Search \":string\""
-
-#~ msgid "search.q.minLength"
-#~ msgstr "Search terms must be at least %s characters long."
-
-#~ msgid "upload_fileTypeNotAllowed"
-#~ msgstr "File type not allowed."
-
-#~ msgid "upload_fileToLarge"
-#~ msgstr "File :name to large."
-
-#~ msgid "upload_browserNotSupported"
-#~ msgstr "Browser not supported."
-
-#~ msgid "upload_toManyFiles"
-#~ msgstr "To many files."
-
-#~ msgid "Edit {0} Profil"
-#~ msgstr "Mitglied seit {0}"
-
-#~ msgid "admin.stats.yearly"
-#~ msgstr "Yearly Stats"
-
-#~ msgid "admin.stats.epa"
-#~ msgstr "Postings"
-
-#~ msgid "admin.stats.epac"
-#~ msgstr "Postings per Category"
-
-#~ msgid "admin.stats.au"
-#~ msgstr "Active Users"
-
-#~ msgid "admin.stats.audisc"
-#~ msgstr "Users with at least one posting or more."
-
-#~ msgid "admin.stats.apu"
-#~ msgstr "Average Number of Postings per User"
-
-#~ msgid "admin.stats.ur"
-#~ msgstr "Registrations"
-
-#~ msgid "admin.stats.detailed"
-#~ msgstr "Detailed Stats"
-
-#~ msgid "error_password_empty"
-#~ msgstr "Password must not be empty."
-
-#~ msgid "category.create"
-#~ msgstr "Create Category"
-
-#~ msgid "search_simple"
-#~ msgstr "Simple Search"
-
-#~ msgid "subject"
-#~ msgstr "Subject"
-
-#~ msgid "search.nstrict"
-#~ msgstr "Exact username"
-
-#~ msgid "upload_btn_delete_upload"
-#~ msgstr "Delete Upload"
-
-#~ msgid "admin.stats.insfd"
-#~ msgstr "Insufficient data."
-
-#~ msgid "user_since %s"
-#~ msgstr "Joined %s"
-
-#~ msgid "gn.btn.save"
-#~ msgstr "Save"
-
-#~ msgid "admin.sysInfo.sitemap"
-#~ msgstr "Sitemap-URL: {0}"
-
-#~ msgid "button_save"
-#~ msgstr "Save"
-
-#~ msgid "geshi_img_popup"
-#~ msgstr "Please enter an URL for your image.:!:http://example.com/image.png"
 
 #, fuzzy
-#~ msgid "separator"
-#~ msgstr "Moderation"
 
 #, fuzzy
-#~ msgid "some_class_name"
-#~ msgstr "Real Name"
-
-#~ msgid "user.block.reason.2"
-#~ msgstr "Ignored by to many users."
-
-#~ msgid "back_to_overview_linkname"
-#~ msgstr "Back to Overview"
-
-#~ msgid "discl.entries"
-#~ msgstr ":entries entries in :threads threads"
-
-#~ msgid "discl.user"
-#~ msgstr ":registered members, :loggedin logged-in, :anon guests"
 
 #, fuzzy
-#~ msgid "Help file not found."
-#~ msgstr "Nothing found."
-
-#~ msgid "register_success_content"
-#~ msgstr ""
-#~ "Your registration is now finished. You are able to log gin now. Have fun!"
 
 #, fuzzy
-#~ msgid "admin.sysInfo.coreEngine"
-#~ msgstr "Saito version: %s"
 
 #, fuzzy
-#~ msgid "admin.sysInfo.saitoEngine"
-#~ msgstr "Sitemap-URL: %s"
 
 #, fuzzy
-#~ msgid "user_block"
-#~ msgstr "Place"
-
-#~ msgid "ud_user"
-#~ msgstr "User"
 
 #, fuzzy
-#~ msgid "Moderator"
-#~ msgstr "Moderation"
-
-#~ msgid "ud_admin"
-#~ msgstr "Administrator"
-
-#~ msgid "ud_mod"
-#~ msgstr "Moderator"
 
 #, fuzzy
-#~ msgid "User Registrations"
-#~ msgstr "Registration"
-
-#~ msgid "btn_manualy_mark_as_read_shp"
-#~ msgstr "Marks all new entries as read."
-
-#~ msgid "search_fulltext_textfield_shp"
-#~ msgstr ""
-#~ "+ stands for AND<br/>- stands for NOT<br/>[no operator] implies "
-#~ "OR             <br/><br/> 'apple banana' Find entries that contain at "
-#~ "least one of the two words.              <br /> <br />'+apple +juice' "
-#~ "Find entries that contain both words.              <br /> <br />'+apple "
-#~ "macintosh' Find entries that contain the word “apple”, but rank entries "
-#~ "higher if they also contain “macintosh”.              <br /> <br /"
-#~ ">'+apple -macintosh' Find entries that contain the word “apple” but not "
-#~ "“macintosh”.              <br /> <br />'apple*' Find entries that contain "
-#~ "words such as “apple”, “apples”, “applesauce”, or “applet.              "
-#~ "<br /> <br />                '\"some words\"' Find entries that contain "
-#~ "the exact phrase “some words” (for example, entries that contain “some "
-#~ "words of wisdom” but not “some noise words”).\""
-
-#~ msgid "button_mod_panel_shp"
-#~ msgstr "Moderator Menu"
-
-#~ msgid "answering_forbidden_locked_shp"
-#~ msgstr "Answering forbidden by moderator."
-
-#~ msgid "user_show_entries"
-#~ msgstr "Show User's Entries"
 
 #, fuzzy
-#~ msgid "User :name"
-#~ msgstr "Username"
-
-#~ msgid "answer_marking"
-#~ msgstr "Answer"
-
-#~ msgid "forum_disabled"
-#~ msgstr "Disable Forum"
-
-#~ msgid "forum_disabled_exp"
-#~ msgstr "Shows the maintenance page except for logged in admins."
-
-#~ msgid "forum_disabled_text"
-#~ msgstr "Maintenance Notice"
-
-#~ msgid "forum_disabled_text_exp"
-#~ msgstr "Text notice shown on the forum disabled page."
-
-#~ msgid "forum_name"
-#~ msgstr "Forum Title"
-
-#~ msgid "forum_name_exp"
-#~ msgstr "The name of this forum."
-
-#~ msgid "timezone"
-#~ msgstr "Timezone"
-
-#~ msgid "timezone_exp"
-#~ msgstr "All time values displayed are offset to match this timezone."
-
-#~ msgid "forum_email"
-#~ msgstr "Email"
-
-#~ msgid "forum_email_exp"
-#~ msgstr ""
-#~ "Email address used as sender address for emails send by the forum (e.g. "
-#~ "when registering)."
-
-#~ msgid "email_admin_config_exp"
-#~ msgstr ""
-#~ "Additional settings are possible by providing a <code>$saito</code> "
-#~ "config in <code>app/config/email.php</code>. You should use <code>app/"
-#~ "config/email.php.default</code> as template. <a href=\"http://book."
-#~ "cakephp.org/2.0/en/core-utility-libraries/email.html#configuration\">See "
-#~ "also.</a>"
 
 msgid "delete_confirm.title"
 msgstr "Really delete?"
@@ -2042,3 +1818,19 @@ msgstr "Reset your password at {0}"
 
 msgid "user.pwreset.email.content"
 msgstr "Hello,\n\nsomebody — probably you — asked to reset the password for your account at {0}.\n\nOpen this link to set a new password. It is valid for one hour:\n\n{1}\n\nIf it was not you, just ignore this mail; your password stays as it is."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.t"
+msgstr "Terms of service have changed"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.lead"
+msgstr "This forum's terms of service have changed. Please read them and agree to carry on using the forum."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.accept"
+msgstr "Agree to the terms"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.decline"
+msgstr "Do not agree and log out"

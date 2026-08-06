@@ -70,6 +70,11 @@ module.exports = {
             // dropped two — including the one that lets the bar shrink. Greedy
             // keeps every rule the class appears in, compound selectors and all.
             /headerClosed/,
+            // The read-only form field — the personal feed URLs — is styled
+            // through `.form-control[readonly]`, and purging dropped that
+            // attribute-qualified rule together with the token override that
+            // keeps it legible on the dark theme. Greedy holds the compound.
+            /form-control/,
         ],
         // Keep every rule that styles an element rather than a class: `reboot`
         // is the base normalisation and has no class names to match on.
