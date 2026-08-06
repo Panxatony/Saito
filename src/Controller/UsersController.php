@@ -1264,11 +1264,19 @@ class UsersController extends AppController
         $ok = $Credentials->verifyCode($userId, $code) || $Codes->consume($userId, $code);
         if (!$ok) {
             $this->_registerFailedLogin();
+            // A credential encrypted under a salt this installation no longer
+            // has can never match, however right the code is. Saying "wrong
+            // code" to that is a dead end the member cannot reason about, so
+            // name it and point at the way that still works.
+            $unreadable = !$Credentials->isReadableFor($userId);
+            $message = $unreadable ? __('user.2fa.unreadable') : __('user.2fa.error');
             (new ForbiddenLogger())->write(
-                "Failed second factor for user id: $userId",
-                ['msgs' => [__('user.2fa.error')]],
+                $unreadable
+                    ? "Unreadable second-factor secret for user id: $userId (salt changed?)"
+                    : "Failed second factor for user id: $userId",
+                ['msgs' => [$message]],
             );
-            $this->set('errorMessage', __('user.2fa.error'));
+            $this->set('errorMessage', $message);
 
             return null;
         }

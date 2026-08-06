@@ -2045,3 +2045,7 @@ msgstr "Kein Zugriff auf die App? Gib stattdessen einen deiner Wiederherstellung
 #: templates/Users/htmx_two_factor.php
 msgid "user.2fa.error"
 msgstr "Der Code stimmt nicht."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.unreadable"
+msgstr "Dein zweiter Faktor kann auf diesem Server nicht mehr gelesen werden — vermutlich hat sich der Sicherheitsschlüssel der Installation geändert. Melde dich mit einem Wiederherstellungs-Code an und richte die App neu ein."

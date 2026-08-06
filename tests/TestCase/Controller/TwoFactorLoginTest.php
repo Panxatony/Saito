@@ -199,6 +199,40 @@ class TwoFactorLoginTest extends IntegrationTestCase
         );
     }
 
+    /**
+     * A secret encrypted under a salt the installation no longer has can never
+     * match, however right the code is. Telling the member "wrong code" there
+     * is a dead end they cannot reason about — this happened on the test system
+     * and cost an evening, with recovery codes still working and so hiding the
+     * cause.
+     *
+     * @return void
+     */
+    public function testAnUnreadableSecretSaysSoInsteadOfBlamingTheCode(): void
+    {
+        $this->enrol();
+
+        // Corrupt the stored ciphertext, which is what a changed salt looks
+        // like from here: present, confirmed, undecryptable.
+        $this->Credentials->updateAll(
+            ['secret' => base64_encode('not-decryptable-with-any-key')],
+            ['user_id' => self::USER_ID],
+        );
+        $this->assertFalse($this->Credentials->isReadableFor(self::USER_ID));
+
+        $this->postPassword();
+        $this->carrySession();
+        $this->mockSecurity();
+        $this->post('/users/two-factor', ['code' => $this->currentCode()]);
+
+        // The message points at the way that still works, rather than blaming
+        // the code. Asserted on the English catalogue, which is what the suite
+        // renders.
+        $this->assertResponseContains('recovery code');
+        $this->assertResponseNotContains('That code is not right');
+        $this->assertArrayNotHasKey('Auth', $_SESSION);
+    }
+
     public function testTheCodeCompletesTheLogin(): void
     {
         $this->enrol();

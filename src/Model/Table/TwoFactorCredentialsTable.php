@@ -153,6 +153,37 @@ class TwoFactorCredentialsTable extends Table
     }
 
     /**
+     * Can this account's stored secret still be read at all?
+     *
+     * It cannot when the application salt has changed since enrolment — the
+     * secret is encrypted with a key derived from it, so rotating the salt (or
+     * restoring a database into an installation with a different one) turns
+     * every enrolled credential into ciphertext nobody holds the key to.
+     *
+     * This is asked so the member can be told *that*, instead of being shown
+     * "wrong code" for a code that is perfectly correct and can never work.
+     * Found the hard way: a credential written with one salt and checked with
+     * another produced exactly that dead end, with recovery codes — hashed, not
+     * encrypted — still working and so disguising the cause.
+     *
+     * @param int $userId account
+     * @return bool false when there is a confirmed credential that cannot be read
+     */
+    public function isReadableFor(int $userId): bool
+    {
+        /** @var TwoFactorCredential|null $credential */
+        $credential = $this->find()
+            ->where(['user_id' => $userId, 'confirmed_at IS NOT' => null])
+            ->first();
+        if ($credential === null) {
+            // Nothing enrolled is not the same as unreadable.
+            return true;
+        }
+
+        return $this->decrypt((string)$credential->get('secret')) !== null;
+    }
+
+    /**
      * Turn the second factor off for an account — the member's own choice, or
      * an administrator letting somebody back in who lost their device.
      *
