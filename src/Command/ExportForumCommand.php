@@ -88,6 +88,11 @@ class ExportForumCommand extends Command
 
             return static::CODE_ERROR;
         }
+        // Owner only. This file is every member's e-mail address and, where the
+        // forum stores them, their IP addresses; the default umask made it
+        // world-readable (0644), which on a shared host hands the lot to any
+        // local account. Set before a single record is written, not after.
+        @chmod($path, 0600);
 
         // No pretty-print and no escaping: this is a machine file read a line at
         // a time, and unescaped UTF-8/slashes keep it small and legible.
