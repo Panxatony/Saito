@@ -127,6 +127,14 @@ spielen. Bei den Farben gibt es neben dem Farbtopf jeweils ein *„Standard“*-
 falls dir dein eigener Geschmack doch zu bunt wurde. Das Passwort änderst du dort
 ebenfalls – es klappt als Overlay auf, ohne dass du die Seite verlässt.
 
+Wer sein Konto doppelt abschließen möchte, findet dort die *2 Faktor
+Authentifizierung*: einmal einen QR-Code mit einer Authenticator-App scannen,
+und ab dann will das Forum beim Anmelden neben dem Passwort noch sechs Ziffern
+sehen. Freiwillig – wer sie nicht einschaltet, merkt nichts davon. Beim
+Einrichten bekommst du zehn Wiederherstellungs-Codes, und zwar genau einmal:
+Das ist der Zettel für den Tag, an dem das Handy im Fluss liegt. Leg ihn
+irgendwohin, wo *du* ihn wiederfindest und sonst niemand.
+
 Auf der Profilseite selbst findest du außerdem deine Lesezeichen und deine
 persönlichen RSS-Adressen, die auch die Bereiche mitliefern, die nur angemeldet
 sichtbar sind. Ganz unten liegt dein Upload-Archiv – es steht dort, weil es beim
