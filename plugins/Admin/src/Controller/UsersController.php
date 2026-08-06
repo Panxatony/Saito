@@ -295,6 +295,20 @@ class UsersController extends AdminAppController
         }
 
         if (!$this->isCurrentPassword($this->getRequest()->getData('confirm_password'))) {
+            // The *failed* attempt is the interesting one for anybody reading
+            // this later: somebody held an admin session and did not know the
+            // password that goes with it.
+            Log::write(
+                'warning',
+                sprintf(
+                    'Failed second-factor reset for user "%s" (id %d), attempted by "%s" (id %d): wrong password.',
+                    $user->get('username'),
+                    (int)$user->get('id'),
+                    (string)$this->CurrentUser->get('username'),
+                    (int)$this->CurrentUser->getId(),
+                ),
+                ['scope' => ['saito.info']],
+            );
             $this->Flash->set(__('user.pw.set.confirm.error'), ['element' => 'error']);
 
             return null;
