@@ -186,6 +186,12 @@
                     <?= h(__('change_password_link')) ?>
                 </a>
             </p>
+            <p>
+                <a href="<?= $this->request->getAttribute('webroot') ?>users/htmx-two-factor">
+                    <?= h(__('user.2fa.settings.t')) ?>
+                </a>
+                <span class="infoText"><?= h(__('user.2fa.settings.exp')) ?></span>
+            </p>
             <?php // A member's right to a copy of their own data is worthless if
                   // they cannot find it, so it sits beside the password link
                   // rather than in a legal page nobody opens. A plain link:

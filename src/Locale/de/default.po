@@ -2021,3 +2021,117 @@ msgstr "Nutzungsbedingungen zustimmen"
 #: templates/Pages/tos_reconsent.php
 msgid "tos.reconsent.decline"
 msgstr "Nicht zustimmen und abmelden"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.challenge.t"
+msgstr "2 Faktor Authentifizierung"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.challenge.exp"
+msgstr "Gib den sechsstelligen Code aus deiner Authenticator-App ein."
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.code"
+msgstr "Code"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.submit"
+msgstr "Bestätigen"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.recovery.hint"
+msgstr "Kein Zugriff auf die App? Gib stattdessen einen deiner Wiederherstellungs-Codes ein."
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.error"
+msgstr "Der Code stimmt nicht."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.unreadable"
+msgstr "Dein zweiter Faktor kann auf diesem Server nicht mehr gelesen werden — vermutlich hat sich der Sicherheitsschlüssel der Installation geändert. Melde dich mit einem Wiederherstellungs-Code an und richte die App neu ein."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.settings.t"
+msgstr "2 Faktor Authentifizierung"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.settings.exp"
+msgstr "Schützt dein Konto zusätzlich zum Passwort mit einem Code aus einer Authenticator-App."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.state.on"
+msgstr "Für dein Konto ist die 2 Faktor Authentifizierung aktiv."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.state.off"
+msgstr "Für dein Konto ist die 2 Faktor Authentifizierung nicht aktiv."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.start"
+msgstr "Einrichten"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.scan"
+msgstr "Scanne diesen Code mit deiner Authenticator-App."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.manual"
+msgstr "Geht die Kamera nicht? Trage stattdessen diesen Schlüssel ein:"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.enrol.confirm"
+msgstr "Einrichtung abschließen"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.disable"
+msgstr "2 Faktor Authentifizierung abschalten"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.disabled"
+msgstr "Die 2 Faktor Authentifizierung ist jetzt abgeschaltet."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.password.confirm"
+msgstr "Zur Sicherheit: dein Passwort"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.password.wrong"
+msgstr "Das Passwort stimmt nicht."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.t"
+msgstr "Deine Wiederherstellungs-Codes"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.exp"
+msgstr "Bewahre sie sicher auf — sie sind der Weg zurück, wenn du dein Gerät verlierst. Jeder Code gilt einmal, und sie werden nur dieses eine Mal angezeigt."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.codes.new"
+msgstr "Neue Wiederherstellungs-Codes erzeugen"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "{0} recovery code left."
+msgid_plural "{0} recovery codes left."
+msgstr[0] "{0} Wiederherstellungs-Code übrig."
+msgstr[1] "{0} Wiederherstellungs-Codes übrig."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.t"
+msgstr "2 Faktor Authentifizierung für {0} zurücksetzen"
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.btn"
+msgstr "2FA zurücksetzen"
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.exp"
+msgstr "Schaltet die 2 Faktor Authentifizierung für dieses Mitglied ab — für den Fall, dass es sein Gerät und seine Wiederherstellungs-Codes verloren hat. Das Mitglied kann sich danach allein mit dem Passwort anmelden und die 2 Faktor Authentifizierung neu einrichten. Der Vorgang wird protokolliert."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.none"
+msgstr "Für dieses Mitglied ist die 2 Faktor Authentifizierung nicht aktiv."
+
+#: plugins/Admin/templates/Users/two_factor_reset.php
+msgid "user.2fa.admin.reset.done"
+msgstr "Die 2 Faktor Authentifizierung für {0} wurde zurückgesetzt."

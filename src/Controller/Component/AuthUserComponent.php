@@ -14,6 +14,7 @@ namespace App\Controller\Component;
 
 use App\Controller\AppController;
 use App\Model\Entity\User;
+use App\Model\Table\TwoFactorCredentialsTable;
 use App\Model\Table\UsersTable;
 use Authentication\Authenticator\CookieAuthenticator;
 use Authentication\Authenticator\StatelessInterface;
@@ -27,6 +28,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Utility\Security;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\RememberTrait;
+use Saito\User\Auth\LoginResult;
 use Saito\User\Cookie\Storage;
 use Saito\User\CurrentUser\CurrentUser;
 use Saito\User\CurrentUser\CurrentUserFactory;
@@ -57,6 +59,23 @@ class AuthUserComponent extends Component
      * @var string
      */
     public const PW_FINGERPRINT_KEY = 'Saito.pwFingerprint';
+
+    /**
+     * Session key holding the account whose password checked out but whose
+     * second factor is still owed. See {@see self::login()}.
+     *
+     * @var string
+     */
+    public const PENDING_2FA_KEY = 'Saito.pending2fa';
+
+    /**
+     * How long a verified password stays redeemable for its second factor, in
+     * seconds. Long enough to fetch a phone, short enough that walking away
+     * from a shared machine does not leave a login lying around.
+     *
+     * @var int
+     */
+    public const PENDING_2FA_TTL = 300;
 
     /**
      * Component's components
@@ -123,6 +142,18 @@ class AuthUserComponent extends Component
             $controller->getRequest()->getSession()->delete(self::PW_FINGERPRINT_KEY);
             $user = null;
         }
+        // A remember-me cookie is not a second factor. The cookie is stateless
+        // — it validates against username and password hash — so one minted
+        // before the account enrolled cannot be revoked, and would otherwise
+        // walk straight past 2FA for as long as it lives. Refuse it: with a
+        // second factor on, remember-me stops carrying an account across
+        // sessions and the member types a code instead.
+        if (!empty($user) && $this->isCookieAuth()
+            && $this->twoFactorCredentials()->isEnabledFor((int)$user->get('id'))
+        ) {
+            $this->Authentication->logout();
+            $user = null;
+        }
         if (!empty($user)) {
             $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
             $this->UsersTable->UserOnline->setOnline((string)$CurrentUser->getId(), true);
@@ -179,9 +210,16 @@ class AuthUserComponent extends Component
      *
      * Call this from controllers to authenticate manually (from login-form-data).
      *
-     * @return bool Was login successfull?
+     * Where the account carries a confirmed second factor this stops half-way
+     * on purpose: the password is verified, the identity is **not** set, and
+     * the pending account is parked in the session for the challenge to pick
+     * up. Nothing downstream of `setIdentity()` runs — which is what keeps the
+     * remember-me cookie from being minted before the second factor, the bypass
+     * that would otherwise turn 2FA into decoration.
+     *
+     * @return LoginResult what happened; see the enum
      */
-    public function login(): bool
+    public function login(): LoginResult
     {
         // Capture the authentication provider that succeeded BEFORE we
         // destroy session/auth data — logout() resets _successfulAuthenticator
@@ -201,7 +239,16 @@ class AuthUserComponent extends Component
 
         if (!$user) {
             // login failed
-            return false;
+            return LoginResult::Failed;
+        }
+
+        // Stop here when a second factor is owed. Everything below this line —
+        // the identity, the remember-me cookie, the login counter — belongs to
+        // a completed login, and this one is not completed yet.
+        if ($this->twoFactorCredentials()->isEnabledFor((int)$user->get('id'))) {
+            $this->beginSecondFactor((int)$user->get('id'));
+
+            return LoginResult::SecondFactorRequired;
         }
 
         $this->Authentication->setIdentity($user);
@@ -223,7 +270,104 @@ class AuthUserComponent extends Component
         // invalidates it. See {@see self::sessionMatchesPassword()}.
         $this->refreshPasswordFingerprint((int)$user->get('id'));
 
+        return LoginResult::LoggedIn;
+    }
+
+    /**
+     * Finish a login that stopped for its second factor.
+     *
+     * The challenge action calls this once the code (or a recovery code) has
+     * been verified. It does the half of {@see self::login()} that was skipped:
+     * the identity, the login counter, the password fingerprint. There is no
+     * password to re-check here — it was checked to get this far, and the
+     * pending marker in the session is what says so.
+     *
+     * @param int $userId the account from the pending marker
+     * @return bool whether the account could be loaded and logged in
+     */
+    public function completeSecondFactor(int $userId): bool
+    {
+        $user = $this->UsersTable->find('profile')->where(['Users.id' => $userId])->first();
+        // `instanceof`, not a null check: the account is named by a session
+        // marker, and anything that does not resolve to a real user row must
+        // end the attempt rather than be carried further.
+        if (!$user instanceof User) {
+            $this->clearSecondFactor();
+
+            return false;
+        }
+
+        $this->Authentication->setIdentity($user);
+        $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
+        $this->setCurrentUser($CurrentUser);
+
+        $this->UsersTable->incrementLogins($user);
+        $this->refreshPasswordFingerprint($userId);
+        $this->clearSecondFactor();
+
         return true;
+    }
+
+    /**
+     * Park the account whose password checked out, awaiting its second factor.
+     *
+     * A user id and a timestamp, and deliberately nothing else: this marker is
+     * the only thing standing between a correct password and a session, so it
+     * carries no capability of its own and expires.
+     *
+     * @param int $userId account
+     * @return void
+     */
+    private function beginSecondFactor(int $userId): void
+    {
+        $session = $this->getController()->getRequest()->getSession();
+        $session->write(self::PENDING_2FA_KEY, ['userId' => $userId, 'at' => time()]);
+    }
+
+    /**
+     * The account awaiting its second factor, if one is and the wait has not
+     * gone stale.
+     *
+     * The window is short on purpose. A password that checked out five minutes
+     * ago should not still be redeemable on a shared machine somebody walked
+     * away from.
+     *
+     * @return int|null the account id, or null if there is nothing pending
+     */
+    public function pendingSecondFactorUserId(): ?int
+    {
+        $pending = $this->getController()->getRequest()->getSession()->read(self::PENDING_2FA_KEY);
+        if (!is_array($pending) || empty($pending['userId'])) {
+            return null;
+        }
+        if (time() - (int)($pending['at'] ?? 0) > self::PENDING_2FA_TTL) {
+            $this->clearSecondFactor();
+
+            return null;
+        }
+
+        return (int)$pending['userId'];
+    }
+
+    /**
+     * Forget the pending account — completed, expired, or abandoned.
+     *
+     * @return void
+     */
+    public function clearSecondFactor(): void
+    {
+        $this->getController()->getRequest()->getSession()->delete(self::PENDING_2FA_KEY);
+    }
+
+    /**
+     * @return \App\Model\Table\TwoFactorCredentialsTable
+     */
+    private function twoFactorCredentials(): TwoFactorCredentialsTable
+    {
+        /** @var \App\Model\Table\TwoFactorCredentialsTable $table */
+        $table = TableRegistry::getTableLocator()->get('TwoFactorCredentials');
+
+        return $table;
     }
 
     /**
@@ -311,7 +455,20 @@ class AuthUserComponent extends Component
             $this->setCurrentUser(CurrentUserFactory::createVisitor($this->getController()));
         }
         $this->getController()->getRequest()->getSession()->delete(self::PW_FINGERPRINT_KEY);
+        $this->clearSecondFactor();
         $this->Authentication->logout();
+    }
+
+    /**
+     * Was this request authenticated by the remember-me cookie?
+     *
+     * @return bool
+     */
+    private function isCookieAuth(): bool
+    {
+        return $this->Authentication
+            ->getAuthenticationService()
+            ->getAuthenticationProvider() instanceof CookieAuthenticator;
     }
 
     /**

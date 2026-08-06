@@ -41,6 +41,8 @@ abstract class IntegrationTestCase extends SaitoIntegrationTestCase
         'settings',
         'smiley_codes',
         'smilies',
+        'two_factor_credentials',
+        'two_factor_recovery_codes',
         'uploads',
         'user_blocks',
         'user_ignores',
