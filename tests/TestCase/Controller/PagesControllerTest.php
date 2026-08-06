@@ -68,12 +68,14 @@ class PagesControllerTest extends IntegrationTestCase
         $this->assertResponseContains('Diese Nutzungsbedingungen gelten.');
     }
 
-    public function testTosPageShowsANoticeWhenNotConfigured()
+    public function testTosPageFallsBackToTheShippedDefault()
     {
         Configure::write('Saito.tos', '');
         $this->get('/pages/tos');
 
         $this->assertResponseOk();
-        $this->assertResponseContains('No terms of service have been configured');
+        // The shipped German default renders in full, not a placeholder notice.
+        $this->assertResponseContains('§ 1 Geltungsbereich');
+        $this->assertResponseContains('§ 6 Laufzeit');
     }
 }
