@@ -53,27 +53,27 @@ bin/cake migrations migrate
 
 ## 3. Frontend Assets
 
-The island bundles and the theme stylesheets are built with Grunt (Vite +
-dart-sass under the hood). Install the Node dependencies — `yarn.lock` pins the
-exact, reproducible versions — and build the development assets:
+The island bundles and the theme stylesheets are built from `package.json`
+scripts (Vite + dart-sass under the hood). Install the Node dependencies —
+`yarn.lock` pins the exact, reproducible versions — and build the development
+assets:
 
 ```shell
 yarn install
-grunt dev-setup      # pull vendor assets into place for development
+yarn setup            # pull vendor assets into place for development
 ```
 
 For production (minified, purged) assets:
 
 ```shell
-grunt release
+yarn build:release
 ```
 
-Every theme is compiled by one task, `grunt shell:sassTheme` (or `yarn css` for
-all stylesheets at once) — Bota, Nova and Macnemo together, because Nova imports
-Bota's partials and Macnemo imports Nova's. Change a partial and rebuild all of
-them, or the themes drift apart.
+Every theme is compiled by one script, `yarn css` — Bota, Nova and Macnemo
+together, because Nova imports Bota's partials and Macnemo imports Nova's. Change
+a partial and rebuild all of them, or the themes drift apart.
 
-**`grunt release` does one more thing than a local build, and it matters.**
+**`yarn build:release` does one more thing than a local build, and it matters.**
 After minifying, it runs `dev/purge-css.js`, which drops every rule no template
 or PHP class refers to — the compiled themes carry about 1600 classes and the
 forum uses roughly 150, so this is 810 KB down to 271. Bootstrap stays a

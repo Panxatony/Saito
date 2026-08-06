@@ -11,25 +11,17 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@lodder/grunt-postcss": "^3.1.1",
     "autoprefixer": "^10",
     "cssnano": "^8",
     "eslint": "^10",
+    "fast-glob": "^3",
     "globals": "^17.8.0",
-    "grunt": "*",
-    "grunt-contrib-clean": "*",
-    "grunt-contrib-copy": "*",
-    "grunt-shell": "*",
-    "load-grunt-tasks": "^5.1.0",
+    "postcss": "^8",
     "purgecss": "8",
     "sass": "^1",
     "typescript": "^6",
     "typescript-eslint": "^8",
     "vite": "^8.2.0"
-  },
-  "//resolutions": "brace-expansion 1.1.x reaches the tree only through the legacy grunt release chain's minimatch@3.x (glob/grunt/multimatch), never through the shipped browser bundle, so the ReDoS advisory is build-time only. The pin is scoped to `minimatch/brace-expansion` so the eslint line (minimatch@10 -> brace-expansion@5) is left untouched. The other build-time advisories (vulnerable lodash, async, minimatch@3.0.4 via gaze/globule) came in solely through grunt-contrib-watch, a dev-only plugin not used by `grunt release`; it was removed rather than pinned.",
-  "resolutions": {
-    "minimatch/brace-expansion": "^1.1.16"
   },
   "engines": {
     "node": ">=22.11",
@@ -43,7 +35,12 @@
     "css:static": "sass --no-source-map --style=expanded --load-path=node_modules --quiet-deps --fatal-deprecation=slash-div --fatal-deprecation=global-builtin --fatal-deprecation=color-functions webroot/css/src/static.scss:webroot/css/stylesheets/static.css",
     "css:theme": "sass --no-source-map --style=expanded --load-path=node_modules --quiet-deps --fatal-deprecation=slash-div --fatal-deprecation=global-builtin --fatal-deprecation=color-functions plugins/Bota/webroot/css/src/theme.scss:plugins/Bota/webroot/css/theme.css plugins/Bota/webroot/css/src/night.scss:plugins/Bota/webroot/css/night.css plugins/Nova/webroot/css/src/theme.scss:plugins/Nova/webroot/css/theme.css plugins/Nova/webroot/css/src/night.scss:plugins/Nova/webroot/css/night.css plugins/Macnemo/webroot/css/src/theme.scss:plugins/Macnemo/webroot/css/theme.css plugins/Macnemo/webroot/css/src/night.scss:plugins/Macnemo/webroot/css/night.css",
     "css": "yarn css:static && yarn css:theme",
-    "css:purge": "node dev/purge-css.js"
+    "css:purge": "node dev/purge-css.js",
+    "css:postcss": "node dev/postcss-release.js",
+    "clean:js": "node dev/clean-js.js",
+    "assets:copy": "node dev/copy-assets.js",
+    "build:release": "yarn clean:js && yarn css && yarn css:postcss && yarn css:purge && yarn build && yarn assets:copy",
+    "setup": "yarn install && yarn assets:copy"
   },
   "browserslist": [
     "last 2 versions",

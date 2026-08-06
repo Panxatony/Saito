@@ -69,7 +69,7 @@ updates:
     open-pull-requests-limit: 5
     labels: [dependencies, javascript]
     groups:
-      # Grunt, eslint, vite, sass and their trees. They produce the
+      # eslint, vite, sass, postcss and their trees. They produce the
       # bundle; they are not in it.
       js-build-tooling:
         dependency-type: development
