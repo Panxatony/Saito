@@ -596,6 +596,10 @@ class UsersController extends AppController
 
         if (!$user->getErrors() && $this->Users->save($user)) {
             $Tokens->clearFor($userId);
+            // A reset is the "somebody else may have my account" moment. The
+            // remember-me cookies die with the old password hash anyway; drop
+            // the device trust behind them so nothing is left standing.
+            $this->fetchTable('TwoFactorTrustedDevices')->clearFor($userId);
             $this->Flash->set(__('user.pwreset.done'), ['element' => 'success']);
             $loginUrl = Router::url(['_name' => 'login']);
 
@@ -925,6 +929,10 @@ class UsersController extends AppController
                 // Keep *this* session logged in while the changed password kicks
                 // the account's other sessions on their next request.
                 $this->AuthUser->refreshPasswordFingerprint((int)$id);
+                // Remember-me cookies are signed over the password hash, so the
+                // change already voids them; clear the device records they
+                // would have needed rather than leave them lying around.
+                $this->fetchTable('TwoFactorTrustedDevices')->clearFor((int)$id);
                 $this->Flash->set(__('change_password_success'), ['element' => 'success']);
                 if ($isHtmx) {
                     // A 302 would be followed by htmx and swapped into the modal
@@ -1374,6 +1382,9 @@ class UsersController extends AppController
             } else {
                 $Credentials->disableFor($userId);
                 $Codes->clearFor($userId);
+                // Devices were trusted on the strength of a factor that no
+                // longer exists; that trust goes with it.
+                $this->fetchTable('TwoFactorTrustedDevices')->clearFor($userId);
                 $this->Flash->set(__('user.2fa.disabled'), ['element' => 'success']);
 
                 return $this->redirect(['action' => 'htmxTwoFactor']);

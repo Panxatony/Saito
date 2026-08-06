@@ -12,7 +12,9 @@ On 2026-08-01, a database was migrated to the 5.7 level, then taken to the
 current release in a single `migrations migrate`, and compared column by column
 with a fresh installation: 124 columns on both sides, no difference. That proved
 the migrations are self-consistent and nothing more, because both sides came
-from the same migrations.
+from the same migrations. (That count is from the day it was taken and predates
+the three additive migrations of the 8.4 line; they run identically on a grown
+and a fresh installation, so they cannot introduce drift of their own.)
 
 On 2026-08-03 the same run was done from a schema dump of a forum that had grown
 from an old version. **It failed**, at the eighth of nine migrations, and it
@@ -30,12 +32,14 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: ten migrations
+### The database: fourteen migrations
 
-Between 5.7.0 and the current release there are **ten** schema changes. The
-second exists only to repair the first; one of them is the expensive one; two
-are about columns that predate these migrations entirely; and the last one
-finishes a character-set conversion that the first left incomplete.
+Between 5.7.0 and the current release there are **fourteen** schema changes.
+The second exists only to repair the first; one of them is the expensive one;
+two are about columns that predate these migrations entirely; one finishes a
+character-set conversion that the first left incomplete; and the last four
+are additive — new tables and one new column for features that arrived in the
+8.4 line, which cost an upgrade nothing but the time to create them.
 
 | Migration | What it does |
 |---|---|
@@ -49,6 +53,10 @@ finishes a character-set conversion that the first left incomplete.
 | `20260801090000_AlignSchemaWithGrownInstalls` | Widens three text columns to `MEDIUMTEXT` and makes the username index unique — converting each table's character set first, see below |
 | `20260802140000_DropApiSettings` | Drops two settings rows belonging to the retired API |
 | `20260803090000_ConvertRemainingTablesToUtf8mb4` | Converts every remaining table from utf8mb3, so a four-byte character can be stored at all |
+| `20260805100000_CreatePasswordResetTokens` | Adds `password_reset_tokens` for the self-service password reset (8.4.0). Empty until somebody forgets a password |
+| `20260806100000_AddTosAcceptedVersionToUsers` | Adds `users.tos_accepted_version` (8.4.1). Starts at 0, as does the `tos_version` setting, so the upgrade asks nobody to agree to anything |
+| `20260806120000_CreateTwoFactorTables` | Adds `two_factor_credentials` and `two_factor_recovery_codes` (8.4.2). Rows exist only for accounts that enrol, so an installation where nobody does carries no authentication secrets at all |
+| `20260806160000_CreateTwoFactorTrustedDevices` | Adds `two_factor_trusted_devices`, which is what lets "stay signed in" work alongside a second factor (8.4.3). Empty until somebody ticks the box |
 
 #### The last two are guarded, and that is not decoration
 

@@ -15,6 +15,7 @@ namespace App\Controller\Component;
 use App\Controller\AppController;
 use App\Model\Entity\User;
 use App\Model\Table\TwoFactorCredentialsTable;
+use App\Model\Table\TwoFactorTrustedDevicesTable;
 use App\Model\Table\UsersTable;
 use Authentication\Authenticator\CookieAuthenticator;
 use Authentication\Authenticator\StatelessInterface;
@@ -23,6 +24,7 @@ use Cake\Controller\Component;
 use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Event\Event;
+use Cake\Http\Cookie\Cookie;
 use Cake\Http\Exception\ForbiddenException;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Security;
@@ -76,6 +78,15 @@ class AuthUserComponent extends Component
      * @var int
      */
     public const PENDING_2FA_TTL = 300;
+
+    /**
+     * Cookie carrying the token that says "this device has proved the second
+     * factor". Derived from the remember-me cookie's name because it is that
+     * cookie's companion: on its own it authenticates nothing.
+     *
+     * @var string
+     */
+    public const TRUSTED_DEVICE_COOKIE_SUFFIX = '-2FA';
 
     /**
      * Component's components
@@ -142,14 +153,17 @@ class AuthUserComponent extends Component
             $controller->getRequest()->getSession()->delete(self::PW_FINGERPRINT_KEY);
             $user = null;
         }
-        // A remember-me cookie is not a second factor. The cookie is stateless
-        // — it validates against username and password hash — so one minted
-        // before the account enrolled cannot be revoked, and would otherwise
-        // walk straight past 2FA for as long as it lives. Refuse it: with a
-        // second factor on, remember-me stops carrying an account across
-        // sessions and the member types a code instead.
+        // A remember-me cookie is not by itself a second factor. It is
+        // stateless — it validates against username and password hash — so one
+        // minted before the account enrolled cannot be told apart from a later
+        // one, cannot be revoked, and would otherwise walk straight past 2FA
+        // for as long as it lives. So for an enrolled account the cookie is
+        // only honoured alongside a device token issued *after* a second factor
+        // was proved. Cookies from before enrolment carry no token and are
+        // still refused; see {@see \App\Model\Table\TwoFactorTrustedDevicesTable}.
         if (!empty($user) && $this->isCookieAuth()
             && $this->twoFactorCredentials()->isEnabledFor((int)$user->get('id'))
+            && !$this->trustedDevices()->isTrusted((int)$user->get('id'), $this->readTrustedDeviceToken())
         ) {
             $this->Authentication->logout();
             $user = null;
@@ -278,9 +292,9 @@ class AuthUserComponent extends Component
      *
      * The challenge action calls this once the code (or a recovery code) has
      * been verified. It does the half of {@see self::login()} that was skipped:
-     * the identity, the login counter, the password fingerprint. There is no
-     * password to re-check here — it was checked to get this far, and the
-     * pending marker in the session is what says so.
+     * the identity, the remember-me cookie, the login counter, the password
+     * fingerprint. There is no password to re-check here — it was checked to
+     * get this far, and the pending marker in the session is what says so.
      *
      * @param int $userId the account from the pending marker
      * @return bool whether the account could be loaded and logged in
@@ -297,9 +311,26 @@ class AuthUserComponent extends Component
             return false;
         }
 
+        // Read before clearing the marker: it is what carries the member's
+        // "stay signed in" from the password form to here.
+        $remember = $this->wasRememberMeRequested();
+        if ($remember) {
+            // The cookie authenticator looks for the checkbox in the request it
+            // is persisting, and that request is the code form, which has no
+            // such field. Restate the answer the member already gave.
+            $controller = $this->getController();
+            $controller->setRequest($controller->getRequest()->withData('remember_me', '1'));
+        }
+
         $this->Authentication->setIdentity($user);
         $CurrentUser = CurrentUserFactory::createLoggedIn($user->toArray());
         $this->setCurrentUser($CurrentUser);
+
+        if ($remember) {
+            // Only now, with the factor actually proved, does this device earn
+            // the right to be let back in by its cookie alone.
+            $this->issueTrustedDevice($userId);
+        }
 
         $this->UsersTable->incrementLogins($user);
         $this->refreshPasswordFingerprint($userId);
@@ -309,11 +340,29 @@ class AuthUserComponent extends Component
     }
 
     /**
+     * Did the member tick "stay signed in" back on the password form?
+     *
+     * @return bool
+     */
+    private function wasRememberMeRequested(): bool
+    {
+        $pending = $this->getController()->getRequest()->getSession()->read(self::PENDING_2FA_KEY);
+
+        return is_array($pending) && !empty($pending['remember']);
+    }
+
+    /**
      * Park the account whose password checked out, awaiting its second factor.
      *
-     * A user id and a timestamp, and deliberately nothing else: this marker is
-     * the only thing standing between a correct password and a session, so it
-     * carries no capability of its own and expires.
+     * A user id, a timestamp, and whether "stay signed in" was ticked —
+     * deliberately nothing else: this marker is the only thing standing between
+     * a correct password and a session, so it carries no capability of its own
+     * and expires.
+     *
+     * The checkbox has to be remembered here because it lives on the password
+     * form, while the cookie it asks for can only be minted a step later, once
+     * the second factor is in. Forgetting to carry it across is what made
+     * "stay signed in" silently stop working for enrolled accounts.
      *
      * @param int $userId account
      * @return void
@@ -321,7 +370,11 @@ class AuthUserComponent extends Component
     private function beginSecondFactor(int $userId): void
     {
         $session = $this->getController()->getRequest()->getSession();
-        $session->write(self::PENDING_2FA_KEY, ['userId' => $userId, 'at' => time()]);
+        $session->write(self::PENDING_2FA_KEY, [
+            'userId' => $userId,
+            'at' => time(),
+            'remember' => !empty($this->getController()->getRequest()->getData('remember_me')),
+        ]);
     }
 
     /**
@@ -357,6 +410,92 @@ class AuthUserComponent extends Component
     public function clearSecondFactor(): void
     {
         $this->getController()->getRequest()->getSession()->delete(self::PENDING_2FA_KEY);
+    }
+
+    /**
+     * Trust this device, and put the proof in a cookie.
+     *
+     * The cookie carries a token and nothing else — no account, no claim. On
+     * its own it authenticates nobody; it only unlocks a remember-me cookie
+     * that would otherwise be refused, and only for the account the token was
+     * issued to.
+     *
+     * Its flags mirror the remember-me cookie's, because the two travel
+     * together and a weaker flag on either is a weaker flag on both.
+     *
+     * @param int $userId account that just proved its second factor
+     * @return void
+     */
+    private function issueTrustedDevice(int $userId): void
+    {
+        $token = $this->trustedDevices()->issueFor($userId);
+
+        $controller = $this->getController();
+        $cookie = (new Cookie($this->trustedDeviceCookieName(), $token))
+            ->withExpiry(new \DateTimeImmutable('+' . TwoFactorTrustedDevicesTable::TRUST_DAYS . ' days'))
+            ->withPath($controller->getRequest()->getAttribute('webroot'))
+            ->withHttpOnly(true)
+            ->withSecure(str_starts_with((string)Configure::read('App.fullBaseUrl'), 'https'))
+            ->withSameSite('Lax');
+
+        $controller->setResponse($controller->getResponse()->withCookie($cookie));
+    }
+
+    /**
+     * The device token this request brought along, if any.
+     *
+     * @return string|null
+     */
+    private function readTrustedDeviceToken(): ?string
+    {
+        $token = $this->getController()->getRequest()->getCookie($this->trustedDeviceCookieName());
+
+        return is_string($token) && $token !== '' ? $token : null;
+    }
+
+    /**
+     * Stop trusting the device making this request, and take its cookie back.
+     *
+     * Only this device: signing out on a phone has no business signing out the
+     * laptop, which is the whole point of having a record per device.
+     *
+     * @return void
+     */
+    private function forgetTrustedDevice(): void
+    {
+        $token = $this->readTrustedDeviceToken();
+        if ($token === null) {
+            return;
+        }
+
+        $this->trustedDevices()->forgetToken($token);
+
+        $controller = $this->getController();
+        $expired = (new Cookie($this->trustedDeviceCookieName(), ''))
+            ->withExpired()
+            ->withPath($controller->getRequest()->getAttribute('webroot'));
+        $controller->setResponse($controller->getResponse()->withCookie($expired));
+    }
+
+    /**
+     * @return string
+     */
+    private function trustedDeviceCookieName(): string
+    {
+        $authCookie = (string)Configure::read('Security.cookieAuthName');
+
+        return $authCookie . self::TRUSTED_DEVICE_COOKIE_SUFFIX;
+    }
+
+    /**
+     * @return \App\Model\Table\TwoFactorTrustedDevicesTable
+     */
+    private function trustedDevices(): TwoFactorTrustedDevicesTable
+    {
+        /** @var \App\Model\Table\TwoFactorTrustedDevicesTable $table */
+        $table = TableRegistry::getTableLocator()->get('TwoFactorTrustedDevices');
+
+        return $table;
     }
 
     /**
@@ -456,6 +595,7 @@ class AuthUserComponent extends Component
         }
         $this->getController()->getRequest()->getSession()->delete(self::PW_FINGERPRINT_KEY);
         $this->clearSecondFactor();
+        $this->forgetTrustedDevice();
         $this->Authentication->logout();
     }
 

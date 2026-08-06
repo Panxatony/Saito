@@ -42,6 +42,42 @@ noch offene Sitzung — das alte Handy, der Rechner in der Bücherei — wird be
 nächsten Aufruf abgemeldet. So beendet ein zurückgesetztes Passwort auch genau
 den Zugriff, vor dem man sich schützen wollte.
 
+### 2 Faktor Authentifizierung
+
+Du kannst dein Konto zusätzlich zum Passwort mit einem Code aus einer
+Authenticator-App absichern (Aegis, 1Password, Google Authenticator und andere).
+Das ist freiwillig und standardmäßig aus.
+
+**Einrichten** in den eigenen Einstellungen unter *2 Faktor Authentifizierung*:
+Das Forum zeigt einen QR-Code, den du mit der App scannst; danach gibst du
+einmal einen Code ein, um zu bestätigen, dass es funktioniert. Erst dann ist der
+Schutz aktiv — wer zwischendurch abbricht, sperrt sich also nicht aus.
+
+**Beim Anmelden** fragt das Forum nach dem Code, gleich im Anmeldefenster. Ohne
+ihn kommt niemand hinein, auch nicht mit deinem Passwort.
+
+**Wiederherstellungs-Codes.** Beim Einrichten bekommst du zehn Stück, jeweils
+einmal verwendbar, und sie werden **nur dieses eine Mal angezeigt**. Bewahre sie
+sicher auf — sie sind dein Weg zurück, wenn das Handy weg ist. Statt des
+App-Codes gibst du dann einen davon ein. Neue Codes kannst du jederzeit in den
+Einstellungen erzeugen; die alten verfallen dabei.
+
+**Ganz ausgesperrt?** Wenn Gerät *und* Codes fehlen, kann ein Administrator die
+2 Faktor Authentifizierung für dein Konto zurücksetzen. Danach meldest du dich
+wieder allein mit dem Passwort an und richtest sie neu ein.
+
+**„Angemeldet bleiben" funktioniert weiterhin.** Setzt du das Häkchen beim
+Passwort, merkt sich das Forum nach dem Code *dieses Gerät* für 30 Tage — du
+kommst dann ohne Passwort und ohne Code wieder herein. Das gilt nur für Geräte,
+auf denen du den zweiten Faktor tatsächlich eingegeben hast; ein alter
+Dauer-Zugang von vor der Einrichtung wird abgewiesen und würde den zweiten
+Faktor sonst umgehen.
+
+Meldest du dich irgendwo bewusst ab, vergisst das Forum nur *dieses* Gerät —
+die anderen bleiben angemeldet. Schaltest du die 2 Faktor Authentifizierung ab,
+änderst dein Passwort, oder setzt ein Administrator den zweiten Faktor zurück,
+verlieren **alle** Geräte ihr Vertrauen und müssen sich neu ausweisen.
+
 ### Geänderte Nutzungsbedingungen
 
 Ändern sich die Nutzungsbedingungen wesentlich, wirst du beim nächsten Aufruf
