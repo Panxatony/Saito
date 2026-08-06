@@ -1,9 +1,13 @@
 name: Release
 
-# Tag-driven releases (mirrors the GitLab CI release pipeline). Push a version
-# tag on main — e.g. `git tag 7.0.6 && git push github 7.0.6` — to run the
-# tests, build the deployable tarball and publish a GitHub Release with the
-# tarball + checksum as assets.
+# Tag-driven releases (mirrors the GitLab CI release pipeline). Push an
+# annotated version tag on main — `git tag -a 7.0.6 -m 'Saito 7.0.6' && git push
+# github 7.0.6` — to run the tests, build the deployable tarball and publish a
+# GitHub Release with the tarball + checksum as assets.
+#
+# Annotated, with `-a`: this line said plain `git tag` until 8.4.4 and the whole
+# series before it was annotated anyway, so following the documentation was what
+# broke the pattern. `git describe` skips lightweight tags unless given --tags.
 on:
   push:
     tags:

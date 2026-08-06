@@ -135,9 +135,16 @@ suite, builds the tarball from a clean checkout and publishes it on the release
 page with its checksum, using that section as the release notes:
 
 ```shell
-sh dev/check-changelog.sh 8.2.5        # does CHANGELOG.md describe it yet?
-git tag 8.2.5 && git push github 8.2.5 # substitute the version you are releasing
+sh dev/check-changelog.sh 8.2.5           # does CHANGELOG.md describe it yet?
+git tag -a 8.2.5 -m 'Saito 8.2.5'         # substitute the version you are releasing
+git push github 8.2.5
 ```
+
+`-a` matters. Every release tag from 8.4.0 back is annotated, and `git describe`
+ignores lightweight tags unless asked with `--tags` — so one plain `git tag` in
+the series makes the repository describe itself as *n* commits past the previous
+release instead of as the release it is standing on. This page said `git tag`
+until 8.4.4, which is exactly how that happened.
 
 The same check runs as the first job of both pipelines and fails the release
 before anything is built. It exists because the description is the one part of a
