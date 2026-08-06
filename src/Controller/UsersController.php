@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Form\BlockForm;
+use Authentication\PasswordHasher\DefaultPasswordHasher;
 use App\Model\Entity\User;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
@@ -30,6 +31,7 @@ use Saito\Exception\Logger\ForbiddenLogger;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Posting;
 use Saito\User\Blocker\ManualBlocker;
+use Saito\User\Auth\LoginResult;
 use Saito\User\DataExport;
 use Saito\User\Permission\ResourceAI;
 use Saito\User\WidgetPreferences;
@@ -135,7 +137,32 @@ class UsersController extends AppController
             return;
         }
 
-        if ($this->AuthUser->login()) {
+        $result = $this->AuthUser->login();
+
+        if ($result === LoginResult::SecondFactorRequired) {
+            // The password was right, so it does not count against the throttle
+            // — the second factor has a budget of its own.
+            $this->_clearLoginThrottle();
+            $this->getRequest()->getSession()->write(
+                'Saito.pending2faTarget',
+                $this->_loginRedirectTarget(),
+            );
+
+            if ($isHx) {
+                // Swap the code form into the overlay the member already has
+                // open, rather than navigating away from it: this is a second
+                // *step*, not a second destination. The fragment posts back to
+                // the same modal body.
+                $this->set('errorMessage', null);
+                $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_two_factor_form');
+
+                return null;
+            }
+
+            return $this->redirect(['controller' => 'Users', 'action' => 'twoFactor']);
+        }
+
+        if ($result === LoginResult::LoggedIn) {
             $this->_clearLoginThrottle();
             $target = $this->_loginRedirectTarget();
             if ($isHx) {
@@ -1201,6 +1228,197 @@ class UsersController extends AppController
     }
 
     /**
+     * Step two of a login: the second factor.
+     *
+     * Reached only with a pending account in the session, which is set by
+     * {@see \App\Controller\Component\AuthUserComponent::login()} once a
+     * password has checked out. Unauthenticated by necessity — the whole point
+     * is that no identity exists yet — so the session marker, its five-minute
+     * life, and the throttle below are what stand in for one.
+     *
+     * Accepts either the six digits from an authenticator app or one of the
+     * account's single-use recovery codes; a member without their phone needs a
+     * way back in that does not involve waiting for an administrator.
+     *
+     * @return \Cake\Http\Response|null
+     */
+    public function twoFactor(): ?Response
+    {
+        // In the login overlay this is a fragment that swaps in place; a direct
+        // visit (or a browser without JavaScript) gets the standalone page.
+        $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
+        if ($isHx) {
+            $this->viewBuilder()->disableAutoLayout()->setTemplate('htmx_two_factor_form');
+        } else {
+            $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_two_factor');
+        }
+        $this->set('errorMessage', null);
+
+        $userId = $this->AuthUser->pendingSecondFactorUserId();
+        if ($userId === null) {
+            // Nothing pending, or it went stale. Back to the start rather than
+            // a form that cannot lead anywhere. HX-Redirect, not a 302: htmx
+            // would follow a redirect and swap a whole login page into the
+            // modal body.
+            $login = Router::url(['controller' => 'Users', 'action' => 'htmxLogin']);
+
+            return $isHx
+                ? $this->response->withHeader('HX-Redirect', $login)
+                : $this->redirect($login);
+        }
+
+        if (!$this->request->is('post')) {
+            return null;
+        }
+
+        // A budget of its own, per client: the password is already spent, so
+        // without this the second factor would be a six-digit number somebody
+        // could sit and guess.
+        if ($this->_isLoginThrottled()) {
+            $this->set('errorMessage', __('user.authe.throttled'));
+
+            return null;
+        }
+
+        $code = (string)$this->request->getData('code');
+        $Credentials = $this->fetchTable('TwoFactorCredentials');
+        $Codes = $this->fetchTable('TwoFactorRecoveryCodes');
+
+        $ok = $Credentials->verifyCode($userId, $code) || $Codes->consume($userId, $code);
+        if (!$ok) {
+            $this->_registerFailedLogin();
+            // A credential encrypted under a salt this installation no longer
+            // has can never match, however right the code is. Saying "wrong
+            // code" to that is a dead end the member cannot reason about, so
+            // name it and point at the way that still works.
+            $unreadable = !$Credentials->isReadableFor($userId);
+            $message = $unreadable ? __('user.2fa.unreadable') : __('user.2fa.error');
+            (new ForbiddenLogger())->write(
+                $unreadable
+                    ? "Unreadable second-factor secret for user id: $userId (salt changed?)"
+                    : "Failed second factor for user id: $userId",
+                ['msgs' => [$message]],
+            );
+            $this->set('errorMessage', $message);
+
+            return null;
+        }
+
+        if (!$this->AuthUser->completeSecondFactor($userId)) {
+            $login = Router::url(['controller' => 'Users', 'action' => 'htmxLogin']);
+
+            return $isHx
+                ? $this->response->withHeader('HX-Redirect', $login)
+                : $this->redirect($login);
+        }
+        $this->_clearLoginThrottle();
+
+        $session = $this->getRequest()->getSession();
+        $target = (string)$session->read('Saito.pending2faTarget');
+        $session->delete('Saito.pending2faTarget');
+        $target = $target !== '' ? $target : '/';
+
+        // A full navigation once the member is in, the same way an ordinary
+        // login finishes — the overlay has nothing left to show.
+        return $isHx
+            ? $this->response->withHeader('HX-Redirect', $target)
+            : $this->redirect($target);
+    }
+
+    /**
+     * The member's own second-factor settings: enrol, or turn it off.
+     *
+     * One page with three states — off, half-enrolled, on — because they are
+     * three views of one question ("is my account protected?") and splitting
+     * them across pages would make the answer harder to find than the setting.
+     *
+     * @return \Cake\Http\Response|null
+     */
+    public function htmxTwoFactor(): ?Response
+    {
+        $userId = (int)$this->CurrentUser->getId();
+        $Credentials = $this->fetchTable('TwoFactorCredentials');
+        $Codes = $this->fetchTable('TwoFactorRecoveryCodes');
+
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_two_factor_settings');
+        $this->set('errorMessage', null);
+        $this->set('recoveryCodes', null);
+
+        $action = (string)$this->request->getData('do');
+        if ($this->request->is('post') && $action === 'start') {
+            // A fresh secret, shown once as a QR code. Any earlier half-finished
+            // attempt is replaced, so an abandoned QR cannot be confirmed later.
+            $secret = $Credentials->beginEnrolment($userId);
+            $this->request->getSession()->write('Saito.2faEnrolSecret', $secret);
+        }
+
+        if ($this->request->is('post') && $action === 'confirm') {
+            $code = (string)$this->request->getData('code');
+            if ($Credentials->confirmEnrolment($userId, $code)) {
+                // Only now is the account actually protected — and only now are
+                // recovery codes worth handing out. Shown once; they exist as
+                // hashes afterwards.
+                $this->set('recoveryCodes', $Codes->issueFor($userId));
+                $this->request->getSession()->delete('Saito.2faEnrolSecret');
+            } else {
+                $this->set('errorMessage', __('user.2fa.error'));
+            }
+        }
+
+        if ($this->request->is('post') && $action === 'disable') {
+            // The password again, deliberately. Turning the second factor off
+            // is the one action in here that makes the account weaker, and a
+            // borrowed session should not be able to do it quietly.
+            if (!$this->verifyCurrentPassword((string)$this->request->getData('password'))) {
+                $this->set('errorMessage', __('user.2fa.password.wrong'));
+            } else {
+                $Credentials->disableFor($userId);
+                $Codes->clearFor($userId);
+                $this->Flash->set(__('user.2fa.disabled'), ['element' => 'success']);
+
+                return $this->redirect(['action' => 'htmxTwoFactor']);
+            }
+        }
+
+        if ($this->request->is('post') && $action === 'newCodes') {
+            if (!$this->verifyCurrentPassword((string)$this->request->getData('password'))) {
+                $this->set('errorMessage', __('user.2fa.password.wrong'));
+            } else {
+                $this->set('recoveryCodes', $Codes->issueFor($userId));
+            }
+        }
+
+        $pending = $Credentials->pendingFor($userId);
+        $secret = (string)$this->request->getSession()->read('Saito.2faEnrolSecret');
+        $this->set('isEnabled', $Credentials->isEnabledFor($userId));
+        $this->set('isEnrolling', $pending !== null && $secret !== '');
+        $this->set('secret', $secret);
+        $this->set('provisioningUri', $secret !== ''
+            ? $Credentials->provisioningUri($secret, (string)$this->CurrentUser->get('username'))
+            : null);
+        $this->set('remainingCodes', $Codes->remainingFor($userId));
+        $this->set('titleForLayout', __('user.2fa.settings.t'));
+
+        return null;
+    }
+
+    /**
+     * Does the given password belong to the member who is logged in?
+     *
+     * @param string $password what they typed
+     * @return bool
+     */
+    private function verifyCurrentPassword(string $password): bool
+    {
+        if ($password === '') {
+            return false;
+        }
+        $user = $this->Users->get((int)$this->CurrentUser->getId(), fields: ['id', 'password']);
+
+        return (new DefaultPasswordHasher())->check($password, (string)$user->get('password'));
+    }
+
+    /**
      * Records that the current member agrees to the terms as they stand now.
      *
      * The button on the re-consent interstitial
@@ -1574,7 +1792,7 @@ class UsersController extends AppController
             'htmxEdit', 'htmxChangePassword', 'htmxAvatar',
             // Posted by the island with a CSRF token in the header, like the
             // other island write endpoints.
-            'htmxWidgetState', 'htmxBookmarkComment',
+            'htmxWidgetState', 'htmxBookmarkComment', 'htmxTwoFactor',
             // The terms re-consent button. Its form is rendered from
             // `Controller.initialize` (AppController::requireTermsAcceptance),
             // which runs before FormProtection sets its token up in
@@ -1588,15 +1806,23 @@ class UsersController extends AppController
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
         $this->Authentication->allowUnauthenticated(
-            ['login', 'logout', 'rs', 'htmxLogin', 'htmxRegister', 'htmxForgotPassword', 'htmxResetPassword'],
+            ['login', 'logout', 'rs', 'htmxLogin', 'htmxRegister', 'htmxForgotPassword', 'htmxResetPassword', 'twoFactor'],
         );
         $this->AuthUser->authorizeAction('htmxRegister', 'saito.core.user.register');
         $this->AuthUser->authorizeAction('rs', 'saito.core.user.register');
 
         // Login form times-out and degrades user experience.
         // See https://github.com/Schlaefer/Saito/issues/339
+        //
+        // `twoFactor` is the same login, one step later, and has to be treated
+        // the same way — not as a nicety but because it cannot work otherwise:
+        // its form is rendered by `login`, where FormProtection is unloaded and
+        // so emits no `_Token`, and posting that form into an action where
+        // FormProtection is active blackholes it. The visible symptom was a
+        // button that did nothing at all, because htmx does not swap a 403.
+        // CSRF still covers the request; that is middleware, not this component.
         if (
-            ($this->getRequest()->getParam('action') === 'login')
+            in_array($this->getRequest()->getParam('action'), ['login', 'twoFactor'], true)
             && $this->components()->has('FormProtection')
         ) {
             $this->components()->unload('FormProtection');

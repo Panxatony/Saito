@@ -34,8 +34,14 @@ PHP dependencies (`vendor/`)
 
     Installed by Composer for a production build (`composer install --no-dev`).
     Each package keeps its own license file under `vendor/<vendor>/<package>/`;
-    they are predominantly MIT, BSD-3-Clause and Apache-2.0. CakePHP, the
-    framework Saito is built on, is MIT.
+    they are predominantly MIT, with BSD-2-Clause, BSD-3-Clause and Apache-2.0
+    among them. CakePHP, the framework Saito is built on, is MIT.
+
+    Worth naming because they guard the login: the two-factor implementation
+    uses spomky-labs/otphp (MIT) for TOTP and endroid/qr-code (MIT, on
+    bacon/bacon-qr-code, BSD-2-Clause) to render the enrolment QR code on the
+    server — never a third-party QR service, which would post the shared secret
+    to somebody else.
 
 Front-end libraries (compiled into `webroot/js` and `webroot/css`)
 
