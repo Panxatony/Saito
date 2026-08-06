@@ -11,7 +11,8 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+-*'
 
 # Only first-party actions (actions/*) plus the pre-installed `gh` CLI are
-# used, so there is no third-party action in the supply chain.
+# used here, so nothing third-party runs in the job that builds and signs a
+# release. (security-audit.yml does use one, pinned to a commit.)
 permissions:
   contents: read
 

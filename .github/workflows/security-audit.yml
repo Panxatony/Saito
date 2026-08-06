@@ -50,7 +50,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: shivammathur/setup-php@v2
+      # Pinned to a commit, not the moving `v2` tag: this is the one
+      # third-party action in the repository, and a tag can be repointed by
+      # whoever owns it. The blast radius is small — this workflow holds no
+      # secrets and only `contents: read` — but a pin costs nothing.
+      - uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
         with:
           php-version: "8.4"
           coverage: none
