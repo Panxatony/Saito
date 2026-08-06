@@ -482,7 +482,9 @@ class AuthUserComponent extends Component
      */
     private function trustedDeviceCookieName(): string
     {
-        return (string)Configure::read('Security.cookieAuthName') . self::TRUSTED_DEVICE_COOKIE_SUFFIX;
+        $authCookie = (string)Configure::read('Security.cookieAuthName');
+
+        return $authCookie . self::TRUSTED_DEVICE_COOKIE_SUFFIX;
     }
 
     /**

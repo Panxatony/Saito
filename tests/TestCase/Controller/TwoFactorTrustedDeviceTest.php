@@ -301,6 +301,28 @@ class TwoFactorTrustedDeviceTest extends IntegrationTestCase
     }
 
     /**
+     * The cookie is half of a login credential, so it carries the same flags as
+     * the remember-me cookie it travels with — a weaker flag on either is a
+     * weaker flag on both, and this one is the newer and easier to forget.
+     *
+     * Secure is not asserted here because it follows the request's scheme, and
+     * the harness does not speak https; on a real installation `App.fullBaseUrl`
+     * is derived from `env('HTTPS')` in config/bootstrap.php.
+     *
+     * @return void
+     */
+    public function testTheDeviceCookieIsNotReadableByScriptAndDoesNotTravelCrossSite(): void
+    {
+        $this->completeLogin();
+
+        $cookie = $this->_response->getCookies()[$this->deviceCookieName()] ?? null;
+        $this->assertNotNull($cookie);
+        $this->assertTrue($cookie['httponly'], 'a script must not be able to read the device token');
+        $this->assertSame('Lax', $cookie['samesite']);
+        $this->assertNotEmpty($cookie['expires'], 'a session cookie would defeat the point');
+    }
+
+    /**
      * The token is a credential: a database read must not yield something that
      * can be put straight into a cookie.
      *
