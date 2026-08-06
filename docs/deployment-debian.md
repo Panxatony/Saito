@@ -247,6 +247,30 @@ sudo chmod 700 /etc/cron.daily/saito-backup
 
 Add database credentials via `/root/.my.cnf` (mode `600`) so `mysqldump` doesn't need them on the command line.
 
+### A content-level export beside the dump
+
+The SQL dump restores the forum; it does not let you read it anywhere else. For a
+move to another installation, or a backup you can still open in ten years:
+
+```shell
+sudo -u www-data php bin/cake.php export_forum            # tmp/export/forum-<stamp>.jsonl
+sudo -u www-data php bin/cake.php export_forum -o /path/forum.jsonl
+```
+
+One self-describing JSON object per line — members, categories, postings and
+upload metadata — streamed, so the size of the forum does not matter.
+
+Two things it leaves out on purpose. **Credentials**: no password hashes or
+activation codes, so a forum rebuilt from this alone sends everybody through a
+password reset — accounts come back from the SQL dump. **The upload files
+themselves**: the metadata and URLs are there, the bytes travel with the
+`useruploads` tarball above.
+
+It is a full dump of personal data — every member's e-mail address, and their IP
+addresses where `store_ip` is on. The command writes it `0600` into a `0700`
+directory and refuses to write at all if it cannot; keep it that way wherever you
+move it, and treat it like the SQL dump.
+
 ## 10. Refresh the Public Suffix List (optional)
 
 `data/public_suffix_list.dat` ships a snapshot of [publicsuffix.org](https://publicsuffix.org/) used by the URL-parsing helpers (e.g. extracting `youtube.com` from a posted link). The list changes slowly — established TLDs are stable, but new gTLDs land occasionally. If you rely on tight domain matching, refresh the file every few months:

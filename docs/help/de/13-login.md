@@ -41,3 +41,18 @@ des Kontos**. Auf dem gerade genutzten Gerät bleibt man angemeldet; jede andere
 noch offene Sitzung — das alte Handy, der Rechner in der Bücherei — wird beim
 nächsten Aufruf abgemeldet. So beendet ein zurückgesetztes Passwort auch genau
 den Zugriff, vor dem man sich schützen wollte.
+
+### Geänderte Nutzungsbedingungen
+
+Ändern sich die Nutzungsbedingungen wesentlich, wirst du beim nächsten Aufruf
+danach gefragt: statt der gewünschten Seite erscheinen die neuen Bedingungen mit
+einem Knopf, um ihnen zuzustimmen. Erst danach geht es normal weiter — das ist
+keine Störung, sondern die Zustimmung, die § 7 der Bedingungen verlangt.
+
+Du bleibst dabei angemeldet, und gefragt wirst du **einmal pro Änderung**, nicht
+bei jedem Besuch.
+
+Wer nicht zustimmen möchte, ist nicht eingesperrt: Die Bedingungen selbst,
+Impressum und Datenschutzerklärung bleiben lesbar, der Download der eigenen
+Daten bleibt möglich, und abmelden kannst du dich jederzeit — der Hinweis
+enthält dafür einen eigenen Link.

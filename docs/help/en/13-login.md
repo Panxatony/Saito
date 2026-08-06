@@ -38,3 +38,16 @@ The device you are using stays signed in; any other open session — the old
 phone, the computer at the library — is signed out on its next request. That way
 a reset password also ends exactly the access you were trying to protect
 yourself against.
+
+### When the terms of service change
+
+If the terms change materially, you are asked about it on your next visit: instead
+of the page you wanted, the new terms appear with a button to agree to them. Only
+then does everything carry on as usual — that is not a glitch, it is the agreement
+§ 7 of the terms asks for.
+
+You stay signed in, and you are asked **once per change**, not on every visit.
+
+Nobody who does not want to agree is locked in: the terms themselves, the imprint
+and the privacy policy stay readable, downloading your own data still works, and
+you can log out at any time — the notice carries its own link for that.
