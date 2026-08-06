@@ -1719,8 +1719,16 @@ class UsersController extends AppController
 
         // Login form times-out and degrades user experience.
         // See https://github.com/Schlaefer/Saito/issues/339
+        //
+        // `twoFactor` is the same login, one step later, and has to be treated
+        // the same way — not as a nicety but because it cannot work otherwise:
+        // its form is rendered by `login`, where FormProtection is unloaded and
+        // so emits no `_Token`, and posting that form into an action where
+        // FormProtection is active blackholes it. The visible symptom was a
+        // button that did nothing at all, because htmx does not swap a 403.
+        // CSRF still covers the request; that is middleware, not this component.
         if (
-            ($this->getRequest()->getParam('action') === 'login')
+            in_array($this->getRequest()->getParam('action'), ['login', 'twoFactor'], true)
             && $this->components()->has('FormProtection')
         ) {
             $this->components()->unload('FormProtection');

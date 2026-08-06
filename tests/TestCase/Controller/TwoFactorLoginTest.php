@@ -293,6 +293,45 @@ class TwoFactorLoginTest extends IntegrationTestCase
         $this->assertArrayHasKey('Auth', $_SESSION);
     }
 
+    /**
+     * Exactly what the browser posts from the overlay: a real CSRF token and
+     * **no** form-tampering token, because the fragment is rendered by `login`,
+     * where FormProtection is unloaded and emits none.
+     *
+     * Without this the button did nothing at all on the test system — the POST
+     * was blackholed into a 403 and htmx does not swap those, so there was not
+     * even an error to see. The earlier tests missed it because mockSecurity()
+     * fakes a token the real form never has.
+     *
+     * @return void
+     */
+    public function testTheOverlayFormPostsWithoutAFormProtectionToken(): void
+    {
+        $this->enrol();
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        $this->postPassword();
+        $this->carrySession();
+
+        $this->configRequest(['headers' => ['HX-Request' => 'true']]);
+        // A real CSRF token under Saito's cookie name, plus a `_Token` that
+        // cannot validate — the shape that makes FormProtection actually run
+        // and refuse. (Omitting `_Token` entirely does reproduce it in a
+        // browser, but not through this harness, which is how the bug reached
+        // the test system in the first place.)
+        $this->disableCsrf();
+        $this->post('/users/two-factor', [
+            'code' => $this->currentCode(),
+            '_Token' => ['fields' => 'not-a-valid-token', 'unlocked' => ''],
+        ]);
+
+        $this->assertResponseSuccess();
+        $this->assertNotEmpty(
+            $this->_response->getHeaderLine('HX-Redirect'),
+            'the overlay button must complete the login, not be blackholed',
+        );
+        $this->assertArrayHasKey('Auth', $_SESSION);
+    }
+
     public function testAWrongCodeDoesNotLogIn(): void
     {
         $this->enrol();
