@@ -2887,3 +2887,19 @@ msgstr "Passwort zurücksetzen bei {0}"
 
 msgid "user.pwreset.email.content"
 msgstr "Hallo,\n\njemand — vermutlich du — hat darum gebeten, das Passwort für dein Konto bei {0} zurückzusetzen.\n\nÖffne diesen Link, um ein neues Passwort zu setzen. Er gilt eine Stunde:\n\n{1}\n\nWarst du das nicht, ignoriere diese Mail einfach; dein Passwort bleibt unverändert."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.t"
+msgstr "Geänderte Nutzungsbedingungen"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.lead"
+msgstr "Die Nutzungsbedingungen dieses Forums haben sich geändert. Bitte lies sie und stimme ihnen zu, um das Forum weiter zu nutzen."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.accept"
+msgstr "Nutzungsbedingungen zustimmen"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.decline"
+msgstr "Nicht zustimmen und abmelden"

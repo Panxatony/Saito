@@ -177,6 +177,14 @@ msgid "tos_url_exp"
 msgstr "URL zu den Nutzungsbedingen. Falls leer, werden die eingebauten Standardseiten verwendet."
 
 #
+msgid "tos_version"
+msgstr "Nutzungsbedingungen-Version"
+
+#
+msgid "tos_version_exp"
+msgstr "Version der Nutzungsbedingungen. Wird sie nach einer wesentlichen Änderung erhöht, müssen alle Mitglieder den neuen Bedingungen erneut zustimmen."
+
+#
 msgid "edit_period"
 msgstr "Nachbearbeitungszeit"
 

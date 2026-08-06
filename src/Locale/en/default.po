@@ -2042,3 +2042,19 @@ msgstr "Reset your password at {0}"
 
 msgid "user.pwreset.email.content"
 msgstr "Hello,\n\nsomebody — probably you — asked to reset the password for your account at {0}.\n\nOpen this link to set a new password. It is valid for one hour:\n\n{1}\n\nIf it was not you, just ignore this mail; your password stays as it is."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.t"
+msgstr "Terms of service have changed"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.lead"
+msgstr "This forum's terms of service have changed. Please read them and agree to carry on using the forum."
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.accept"
+msgstr "Agree to the terms"
+
+#: templates/Pages/tos_reconsent.php
+msgid "tos.reconsent.decline"
+msgstr "Do not agree and log out"

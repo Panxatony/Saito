@@ -47,5 +47,10 @@ class User extends Entity implements ForumsUserInterface
         'user_type' => false,
         'activate_code' => false,
         'user_lock' => false,
+        // Which terms version this account has agreed to. Never mass-assignable:
+        // it is set by the code that witnesses the agreement (registration, and
+        // UsersController::tosAccept), and a request that could name it could
+        // pre-accept terms it never saw.
+        'tos_accepted_version' => false,
     ];
 }

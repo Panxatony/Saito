@@ -1201,6 +1201,33 @@ class UsersController extends AppController
     }
 
     /**
+     * Records that the current member agrees to the terms as they stand now.
+     *
+     * The button on the re-consent interstitial
+     * ({@see \App\Controller\AppController::requireTermsAcceptance()}) posts
+     * here. Self-scoped by construction: the account comes from the session and
+     * the version from the setting, so there is nothing a caller can substitute
+     * — replaying this POST records agreement to the version already in force,
+     * which is what the member just did anyway.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function tosAccept(): Response
+    {
+        $this->request->allowMethod(['post']);
+
+        $version = (int)Configure::read('Saito.Settings.tos_version');
+        $userId = (int)$this->CurrentUser->getId();
+        $this->Users->updateAll(['tos_accepted_version' => $version], ['id' => $userId]);
+
+        // Keep the session copy in step: the redirect below is still this
+        // request, and the gate would otherwise catch it on the way out.
+        $this->CurrentUser->set('tos_accepted_version', $version);
+
+        return $this->redirect(['controller' => 'Entries', 'action' => 'htmxIndex']);
+    }
+
+    /**
      * The current user's bookmarked postings, as an htmx/Alpine island.
      *
      * Strangler-fig migration of the profile "bookmarks" tab (the live one is a
@@ -1548,6 +1575,15 @@ class UsersController extends AppController
             // Posted by the island with a CSRF token in the header, like the
             // other island write endpoints.
             'htmxWidgetState', 'htmxBookmarkComment',
+            // The terms re-consent button. Its form is rendered from
+            // `Controller.initialize` (AppController::requireTermsAcceptance),
+            // which runs before FormProtection sets its token up in
+            // `Controller.startup`, so the emitted token never matches and every
+            // click was blackholed. Unlocking costs nothing here: the form
+            // carries no data fields at all — a submit button and nothing to
+            // tamper with — and CSRF, which is the protection that matters, is
+            // middleware and stays on.
+            'tosAccept',
         ];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
