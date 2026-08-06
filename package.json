@@ -19,7 +19,7 @@
     "postcss": "^8",
     "purgecss": "8",
     "sass": "^1",
-    "typescript": "^6",
+    "typescript": "^7",
     "typescript-eslint": "^8",
     "vite": "^8.2.0"
   },
