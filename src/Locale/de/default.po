@@ -2021,3 +2021,27 @@ msgstr "Nutzungsbedingungen zustimmen"
 #: templates/Pages/tos_reconsent.php
 msgid "tos.reconsent.decline"
 msgstr "Nicht zustimmen und abmelden"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.challenge.t"
+msgstr "Bestätigung in zwei Schritten"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.challenge.exp"
+msgstr "Gib den sechsstelligen Code aus deiner Authenticator-App ein."
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.code"
+msgstr "Code"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.submit"
+msgstr "Bestätigen"
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.recovery.hint"
+msgstr "Kein Zugriff auf die App? Gib stattdessen einen deiner Wiederherstellungs-Codes ein."
+
+#: templates/Users/htmx_two_factor.php
+msgid "user.2fa.error"
+msgstr "Der Code stimmt nicht."

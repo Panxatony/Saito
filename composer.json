@@ -42,7 +42,9 @@
     "jeremykendall/php-domain-parser": "^6.3",
     "cakephp/authentication": "^3",
     "firebase/php-jwt": "^7.0",
-    "tempest/highlight": "^2.27"
+    "tempest/highlight": "^2.27",
+    "spomky-labs/otphp": "^11.5",
+    "endroid/qr-code": "^6.1"
   },
   "require-dev": {
     "cakephp/cakephp-codesniffer": "^5",

@@ -89,7 +89,8 @@ class UpdaterControllerTest extends IntegrationTestCase
         foreach (
             [
                 'bookmarks', 'categories', 'drafts', 'entries', 'password_reset_tokens',
-                'phinxlog', 'settings', 'smiley_codes', 'smilies', 'uploads',
+                'phinxlog', 'settings', 'smiley_codes', 'smilies',
+                'two_factor_credentials', 'two_factor_recovery_codes', 'uploads',
                 'user_blocks', 'user_ignores', 'user_reads', 'useronline', 'users',
                 'esevents', 'esnotifications', 'shouts',
             ] as $table

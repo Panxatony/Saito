@@ -30,6 +30,7 @@ use Saito\Exception\Logger\ForbiddenLogger;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Posting;
 use Saito\User\Blocker\ManualBlocker;
+use Saito\User\Auth\LoginResult;
 use Saito\User\DataExport;
 use Saito\User\Permission\ResourceAI;
 use Saito\User\WidgetPreferences;
@@ -135,7 +136,23 @@ class UsersController extends AppController
             return;
         }
 
-        if ($this->AuthUser->login()) {
+        $result = $this->AuthUser->login();
+
+        if ($result === LoginResult::SecondFactorRequired) {
+            // The password was right, so it does not count against the throttle
+            // — the second factor has a budget of its own.
+            $this->_clearLoginThrottle();
+            $target = $this->_loginRedirectTarget();
+            $this->getRequest()->getSession()->write('Saito.pending2faTarget', $target);
+            $twoFactorUrl = Router::url(['controller' => 'Users', 'action' => 'twoFactor']);
+            if ($isHx) {
+                return $this->response->withHeader('HX-Redirect', $twoFactorUrl);
+            }
+
+            return $this->redirect($twoFactorUrl);
+        }
+
+        if ($result === LoginResult::LoggedIn) {
             $this->_clearLoginThrottle();
             $target = $this->_loginRedirectTarget();
             if ($isHx) {
@@ -1201,6 +1218,74 @@ class UsersController extends AppController
     }
 
     /**
+     * Step two of a login: the second factor.
+     *
+     * Reached only with a pending account in the session, which is set by
+     * {@see \App\Controller\Component\AuthUserComponent::login()} once a
+     * password has checked out. Unauthenticated by necessity — the whole point
+     * is that no identity exists yet — so the session marker, its five-minute
+     * life, and the throttle below are what stand in for one.
+     *
+     * Accepts either the six digits from an authenticator app or one of the
+     * account's single-use recovery codes; a member without their phone needs a
+     * way back in that does not involve waiting for an administrator.
+     *
+     * @return \Cake\Http\Response|null
+     */
+    public function twoFactor(): ?Response
+    {
+        $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_two_factor');
+        $this->set('errorMessage', null);
+
+        $userId = $this->AuthUser->pendingSecondFactorUserId();
+        if ($userId === null) {
+            // Nothing pending, or it went stale. Back to the start rather than
+            // a form that cannot lead anywhere.
+            return $this->redirect(['controller' => 'Users', 'action' => 'htmxLogin']);
+        }
+
+        if (!$this->request->is('post')) {
+            return null;
+        }
+
+        // A budget of its own, per client: the password is already spent, so
+        // without this the second factor would be a six-digit number somebody
+        // could sit and guess.
+        if ($this->_isLoginThrottled()) {
+            $this->set('errorMessage', __('user.authe.throttled'));
+
+            return null;
+        }
+
+        $code = (string)$this->request->getData('code');
+        $Credentials = $this->fetchTable('TwoFactorCredentials');
+        $Codes = $this->fetchTable('TwoFactorRecoveryCodes');
+
+        $ok = $Credentials->verifyCode($userId, $code) || $Codes->consume($userId, $code);
+        if (!$ok) {
+            $this->_registerFailedLogin();
+            (new ForbiddenLogger())->write(
+                "Failed second factor for user id: $userId",
+                ['msgs' => [__('user.2fa.error')]],
+            );
+            $this->set('errorMessage', __('user.2fa.error'));
+
+            return null;
+        }
+
+        if (!$this->AuthUser->completeSecondFactor($userId)) {
+            return $this->redirect(['controller' => 'Users', 'action' => 'htmxLogin']);
+        }
+        $this->_clearLoginThrottle();
+
+        $session = $this->getRequest()->getSession();
+        $target = (string)$session->read('Saito.pending2faTarget');
+        $session->delete('Saito.pending2faTarget');
+
+        return $this->redirect($target !== '' ? $target : '/');
+    }
+
+    /**
      * Records that the current member agrees to the terms as they stand now.
      *
      * The button on the re-consent interstitial
@@ -1588,7 +1673,7 @@ class UsersController extends AppController
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
         $this->Authentication->allowUnauthenticated(
-            ['login', 'logout', 'rs', 'htmxLogin', 'htmxRegister', 'htmxForgotPassword', 'htmxResetPassword'],
+            ['login', 'logout', 'rs', 'htmxLogin', 'htmxRegister', 'htmxForgotPassword', 'htmxResetPassword', 'twoFactor'],
         );
         $this->AuthUser->authorizeAction('htmxRegister', 'saito.core.user.register');
         $this->AuthUser->authorizeAction('rs', 'saito.core.user.register');
