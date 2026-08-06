@@ -62,9 +62,16 @@ generate a fresh set in your settings at any time, which retires the old ones.
 administrator can reset two-factor authentication for your account. You then
 sign in with your password alone and set it up again.
 
-One thing to know: with two-factor authentication on, "stay signed in" no longer
-carries you across browser sessions. That is deliberate — such a standing pass
-would walk straight past the second factor.
+**"Stay signed in" still works.** Tick the box with your password and, once the
+code checks out, the forum remembers *that device* for 30 days — you come back
+without a password and without a code. It applies only to devices where you
+actually entered the second factor; a standing pass from before you set it up is
+refused, because it would otherwise walk straight past the second factor.
+
+Signing out somewhere forgets only *that* device; the others stay signed in.
+Switching two-factor authentication off, changing your password, or an
+administrator resetting the second factor withdraws the trust from **every**
+device, and each has to prove itself again.
 
 ### When the terms of service change
 

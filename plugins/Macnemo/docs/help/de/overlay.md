@@ -133,7 +133,10 @@ und ab dann will das Forum beim Anmelden neben dem Passwort noch sechs Ziffern
 sehen. Freiwillig – wer sie nicht einschaltet, merkt nichts davon. Beim
 Einrichten bekommst du zehn Wiederherstellungs-Codes, und zwar genau einmal:
 Das ist der Zettel für den Tag, an dem das Handy im Fluss liegt. Leg ihn
-irgendwohin, wo *du* ihn wiederfindest und sonst niemand.
+irgendwohin, wo *du* ihn wiederfindest und sonst niemand. Und keine Sorge, das
+heißt nicht, dass du künftig bei jedem Besuch tippst: Wer beim Anmelden
+*„Angemeldet bleiben“* ankreuzt, wird auf diesem Gerät 30 Tage lang in Ruhe
+gelassen.
 
 Auf der Profilseite selbst findest du außerdem deine Lesezeichen und deine
 persönlichen RSS-Adressen, die auch die Bereiche mitliefern, die nur angemeldet

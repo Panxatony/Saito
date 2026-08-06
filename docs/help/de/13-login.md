@@ -66,9 +66,17 @@ Einstellungen erzeugen; die alten verfallen dabei.
 2 Faktor Authentifizierung für dein Konto zurücksetzen. Danach meldest du dich
 wieder allein mit dem Passwort an und richtest sie neu ein.
 
-Ein Hinweis: Mit aktiver 2 Faktor Authentifizierung hält „angemeldet bleiben"
-dich nicht mehr über das Schließen des Browsers hinaus angemeldet. Das ist
-Absicht — ein solcher Dauer-Zugang würde den zweiten Faktor sonst umgehen.
+**„Angemeldet bleiben" funktioniert weiterhin.** Setzt du das Häkchen beim
+Passwort, merkt sich das Forum nach dem Code *dieses Gerät* für 30 Tage — du
+kommst dann ohne Passwort und ohne Code wieder herein. Das gilt nur für Geräte,
+auf denen du den zweiten Faktor tatsächlich eingegeben hast; ein alter
+Dauer-Zugang von vor der Einrichtung wird abgewiesen und würde den zweiten
+Faktor sonst umgehen.
+
+Meldest du dich irgendwo bewusst ab, vergisst das Forum nur *dieses* Gerät —
+die anderen bleiben angemeldet. Schaltest du die 2 Faktor Authentifizierung ab,
+änderst dein Passwort, oder setzt ein Administrator den zweiten Faktor zurück,
+verlieren **alle** Geräte ihr Vertrauen und müssen sich neu ausweisen.
 
 ### Geänderte Nutzungsbedingungen
 

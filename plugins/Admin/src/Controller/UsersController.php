@@ -321,6 +321,10 @@ class UsersController extends AdminAppController
 
         $Credentials->disableFor((int)$user->get('id'));
         $this->fetchTable('TwoFactorRecoveryCodes')->clearFor((int)$user->get('id'));
+        // An administrator resets the second factor because the member lost
+        // control of it. Devices trusted on the strength of that factor have to
+        // go too, or the reset leaves the thing it was meant to undo in place.
+        $this->fetchTable('TwoFactorTrustedDevices')->clearFor((int)$user->get('id'));
 
         Log::write(
             'info',
