@@ -5,6 +5,63 @@
 - Δ Changed
 - − Removed
 
+## [8.4.3] - 2026-08-06 "stammgast"
+
+**One migration runs.** It adds `two_factor_trusted_devices`; there is no
+`down()`. **The stylesheets changed** — Bota, Nova and Macnemo, all three — so
+those have to go out with it. The JS bundles did not.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+A regular is somebody the house recognises on the way in. Turning on the second
+factor in 8.4.2 quietly took "stay signed in" away, and this puts it back for
+devices that have actually proved themselves.
+
+- ✓ Fixed: **"stay signed in" works again with a second factor.** 8.4.2 shipped
+  it broken in two ways at once, and the note in that release — that a
+  remember-me cookie is refused outright for an enrolled account — described the
+  second of them as if it were the whole design. It was half a design.
+
+  The checkbox sits on the password form, but the cookie it asks for can only be
+  minted a step later, once the code is in, and nothing carried the answer
+  across: no remember-me cookie was ever written for an enrolled account. Even
+  had one been, it was turned away at the door. The result was that switching on
+  2FA meant signing in again and again — most visibly on a phone, where the
+  browser drops sessions freely.
+
+  The reasoning behind the refusal still holds: a remember-me cookie is
+  stateless, validating against a username and a password hash, so a cookie made
+  *before* an account enrolled cannot be told from a later one and no server can
+  revoke either. What was missing was somewhere to write down which is which.
+
+  `two_factor_trusted_devices` is that place. A row is written only after a
+  second factor has actually been proved, and its token travels in a companion
+  cookie; a remember-me cookie is honoured for an enrolled account only when a
+  matching, unexpired row sits behind it. Cookies from before enrolment have no
+  row and are still refused, so nothing that was closed has been reopened.
+
+  Because the trust is a row now rather than a signature, it can be taken back.
+  Signing out drops the device doing it and leaves the others alone; switching
+  the second factor off, changing the password, or an administrator resetting it
+  drops every one. The token is stored as a SHA-256, so reading the table yields
+  nothing that could be put in a cookie, and the cookie itself carries the same
+  flags as the remember-me cookie it travels with.
+
+- ✓ Fixed: **code was unreadable inside an alert in every dark theme.** The base
+  stylesheet gives `code` the page's text colour, which is near-white in a dark
+  preset; Bootstrap's contextual alerts keep their light backgrounds there,
+  deliberately. Neither is wrong alone — the base rule reaching inside the alert
+  is. Measured, the two-factor recovery codes came out at about 1.2:1 on pale
+  green, which is not "hard to read" but absent, and they are shown exactly once
+  with no second chance. Inside an alert, code now takes the alert's own colour.
+
+  The recovery codes also had a class with no styles behind it, and now read as
+  something meant to be copied off a screen: monospace, tracked, with room
+  between the lines.
+
 ## [8.4.2] - 2026-08-06 "zweitschlüssel"
 
 **One migration runs.** It adds `two_factor_credentials` and
