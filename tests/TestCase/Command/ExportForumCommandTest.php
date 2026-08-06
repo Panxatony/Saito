@@ -79,6 +79,16 @@ class ExportForumCommandTest extends TestCase
             $this->assertArrayHasKey($type, $counts, "no $type records were written");
         }
 
+        // Every member's e-mail address, and their IPs where the forum keeps
+        // them, in one file: readable by its owner and nobody else. The default
+        // umask made it 0644, which on a shared host is the whole membership
+        // list handed to any local account.
+        $this->assertSame(
+            '0600',
+            substr(sprintf('%o', fileperms($this->outPath)), -4),
+            'the export must not be readable beyond its owner',
+        );
+
         // What the header promised is what the file holds.
         $this->assertSame($meta['counts']['users'], $counts['user']);
         $this->assertSame($meta['counts']['categories'], $counts['category']);
