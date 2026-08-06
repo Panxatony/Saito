@@ -110,3 +110,29 @@ jobs:
             composer audit --locked --format=plain 2>&1 | tail -20 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # --------------------------------------------------------------------
+  # Are the security headers still reaching browsers?
+  #
+  # A dependency advisory is not the only thing that appears between two
+  # releases. Server configuration drifts too, and silently: the shipped
+  # nginx example gained headers on its static and upload locations, one
+  # deployed vhost never did, and uploads were served without
+  # `X-Content-Type-Options` until somebody happened to look. Nothing fails
+  # visibly when that happens, so it needs a schedule rather than a memory.
+  #
+  # Only the publicly reachable installations are checked. The test system
+  # resolves to a private address and cannot be probed from a hosted runner
+  # — run `sh dev/check-security-headers.sh <url>` against it by hand, or
+  # from a cron on a machine that can see it.
+  # --------------------------------------------------------------------
+  headers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Security headers are still served
+        run: |
+          sh dev/check-security-headers.sh \
+            https://macnemo.de \
+            https://saito8-alpha.macnemo.de
