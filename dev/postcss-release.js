@@ -48,9 +48,9 @@ const processor = postcss([
         const css = fs.readFileSync(file, 'utf8');
         const result = await processor.process(css, { from: file, to: file, map: false });
         fs.writeFileSync(file, result.css);
-        console.log(`  postcss: ${file}`);
+        process.stdout.write(`  postcss: ${file}\n`);
     }
 })().catch((error) => {
-    console.error(error);
+    process.stderr.write(`${error && error.stack ? error.stack : error}\n`);
     process.exit(1);
 });

@@ -52,4 +52,4 @@ for (const job of jobs) {
         copied += 1;
     }
 }
-console.log(`  copied ${copied} asset(s)`);
+process.stdout.write(`  copied ${copied} asset(s)\n`);
