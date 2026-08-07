@@ -213,6 +213,79 @@ in the release tarball does not.
 | `SECURITY_JWT_SALT` | *(falls back to the cookie salt)* | Signs the API tokens issued by the JWT path. |
 | `SAITO_TRUST_PROXY` | `false` | Trust `X-Forwarded-*` for the client's real IP and the https flag. **Only with a trusted proxy in front.** On a directly reachable install a client can then forge its own IP, which defeats every throttle that counts per address. |
 
+### Requiring a second factor of staff
+
+Admin → Settings → *Security* → **Require two-factor authentication from**.
+Three values, `off` by default so an upgrade changes nothing:
+
+| Value | Who has to enrol |
+|---|---|
+| `off` | Nobody. Two-factor authentication stays optional for everyone. |
+| `mod` | Moderators **and** administrators — an administrator holds the moderator permissions, so requiring it of moderators while exempting the people who can reset them would be the wrong way round. |
+| `admin` | Administrators only. |
+
+Ordinary members always keep the choice. The asymmetry is deliberate: the cost
+of a compromised member account is one member, the cost of a compromised
+administrator account is the forum.
+
+Somebody affected who has not enrolled meets a page asking them to, instead of
+whatever they requested — including the admin backend. Three things stay
+reachable so that page is never a dead end: setting the second factor up,
+logging out, and signing in.
+
+**Turning this on can lock you out**, and that is worth a moment's thought
+before you do: if your authenticator app is on a phone in another room, you will
+be sent to the enrolment page and you will need the app to leave it. There is a
+way back that needs no login at all — see below — but it needs a shell on the
+server.
+
+Two more things that surprise people:
+
+- **A promotion takes effect on the promoted member's next request.** Making
+  somebody a moderator while this is set to `mod` sends them to the enrolment
+  page. Correct, and worth mentioning to them first.
+- **Existing sessions are not dropped.** The check runs per request, so the next
+  thing anybody does already lands on the page. Invalidating sessions would cost
+  the whole forum its login to achieve nothing.
+
+### Resetting a second factor from the console
+
+```shell
+bin/cake two_factor_reset <username>
+```
+
+Turns two-factor authentication off for one account, clearing the authenticator
+secret, the recovery codes, the trusted devices and the passkeys. The account
+itself is untouched — it signs in with its password again and can set the second
+factor up anew.
+
+This exists for the case the admin screen cannot cover: an administrator locked
+out with no second administrator to ask. On a forum run by one person there is
+nobody else.
+
+**Use the command, not SQL.** A reset means four tables today and that list has
+grown twice; a `DELETE` written from memory clears the credential, restores the
+sign-in, and leaves the recovery codes and the passkey standing — a passkey
+completes the second step on its own, so the device you were trying to cut off
+would still get in. The command knows the list, and it logs who lost their
+second factor and when.
+
+**It needs the database configuration, and the console may not have it.** Where
+the connection comes from `config/.env`, this just works. Where it is set as an
+environment variable on the PHP-FPM pool instead — as the nginx example in
+`config/php-fpm/saito.pool.conf.example` does — the web server has it and your
+shell does not, and the command stops with a stack of PDO lines that look like
+the rescue itself is broken. Pass it through:
+
+```shell
+DATABASE_URL="mysql://user:password@localhost/saito?encoding=utf8mb4" \
+    bin/cake two_factor_reset <username>
+```
+
+Worth trying **before** you need it. This is the one command whose first use is
+usually under pressure, and finding out then that it cannot reach the database
+is the wrong moment.
+
 ### Email
 
 Without `EMAIL_SMTP_HOST` Saito uses PHP's `mail()`. Setting it switches the

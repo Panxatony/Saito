@@ -105,6 +105,16 @@ die anderen bleiben angemeldet. Schaltest du die 2 Faktor Authentifizierung ab,
 änderst dein Passwort, oder setzt ein Administrator den zweiten Faktor zurück,
 verlieren **alle** Geräte ihr Vertrauen und müssen sich neu ausweisen.
 
+**Wenn das Forum es verlangt.** Manche Foren schreiben die 2 Faktor
+Authentifizierung für Moderatoren und Administratoren vor. Betrifft dich das und
+du hast sie noch nicht eingerichtet, landest du bei jedem Aufruf auf einer Seite,
+die dich darum bittet — statt dort, wo du hinwolltest. Einmal einrichten, und sie
+verschwindet. Für gewöhnliche Mitglieder bleibt es freiwillig.
+
+Kommst du gerade nicht an deine Authenticator-App, kannst du dich von dieser
+Seite aus abmelden; wer den Server betreut, kann den zweiten Faktor notfalls
+zurücksetzen.
+
 ### Geänderte Nutzungsbedingungen
 
 Ändern sich die Nutzungsbedingungen wesentlich, wirst du beim nächsten Aufruf

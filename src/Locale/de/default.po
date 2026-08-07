@@ -2207,3 +2207,31 @@ msgstr "Für dieses Konto ist kein Passkey eingerichtet."
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.passkey.already"
 msgstr "Dieses Gerät hat bereits einen Passkey für dein Konto — es gibt also nichts hinzuzufügen, du kannst deine Anmeldungen hier sofort bestätigen. Apple und Google gleichen Passkeys zwischen deinen Geräten ab; deshalb kann einer auf einem Gerät auftauchen, das du nie eingerichtet hast."
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.t"
+msgstr "2 Faktor Authentifizierung ist erforderlich"
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.lead"
+msgstr "Dieses Forum verlangt von allen mit Moderator- oder Administratorrechten, ihr Konto mit einem zweiten Faktor zu schützen. Deiner ist noch nicht eingerichtet."
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.exp"
+msgstr "Einmal einrichten, dann erscheint diese Seite nicht wieder. Du brauchst eine Authenticator-App auf dem Handy — oder einen Passkey, wenn dein Gerät Touch ID, Face ID oder Windows Hello anbietet."
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.setup"
+msgstr "2 Faktor Authentifizierung einrichten"
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.lockout"
+msgstr "Später doch ausgesperrt? Wer den Server verwaltet, kann den zweiten Faktor mit `bin/cake two_factor_reset <benutzername>` wieder abschalten, ohne sich anmelden zu müssen."
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.logout"
+msgstr "Stattdessen abmelden"
+
+
+
+
