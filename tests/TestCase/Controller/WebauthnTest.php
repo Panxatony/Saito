@@ -428,15 +428,27 @@ class WebauthnTest extends IntegrationTestCase
         $handle = $service->userHandle(self::USER_ID);
 
         $this->assertSame(32, strlen($handle), 'a full SHA-256, not a truncation');
-        // Nothing about the account is recoverable from the bytes: not the
-        // name, and not the id in any plain form. (Asserting the *hex* lacks a
-        // given digit would be theatre — 64 hex characters contain nearly every
-        // digit by chance.)
-        $this->assertStringNotContainsString(self::USERNAME, $handle);
-        $this->assertStringNotContainsString((string)self::USER_ID, $handle);
-        // …and it is not a hash of the id alone, which anybody could recompute:
-        // the installation's salt is in it.
-        $this->assertNotSame(hash('sha256', (string)self::USER_ID, true), $handle);
+
+        // The account is not recoverable from the handle, asserted the only way
+        // that means anything for a hash: it is a keyed derivation nobody can
+        // recompute without this installation's salt, it differs per account,
+        // and it never changes.
+        //
+        // Two earlier versions searched the handle for the member's id — first
+        // in the hex, then in the raw bytes — and both were theatre. The second
+        // was also flaky: a specific byte turns up in 32 random ones about one
+        // time in eight, so it failed in CI while passing here. A property of
+        // random data is not a property of the design.
+        $this->assertNotSame(
+            hash('sha256', (string)self::USER_ID, true),
+            $handle,
+            'a plain hash of the id would be recomputable by anyone',
+        );
+        $this->assertNotSame(
+            hash_hmac('sha256', 'saito.webauthn.handle|' . self::USER_ID, 'not-the-salt', true),
+            $handle,
+            'the installation salt has to be the key, or the handle is portable between forums',
+        );
 
         $this->assertNotSame($handle, $service->userHandle(self::OTHER_USER_ID));
         // Stable, or every login after the first would fail.
