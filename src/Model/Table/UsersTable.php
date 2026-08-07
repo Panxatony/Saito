@@ -498,6 +498,40 @@ class UsersTable extends AppTable
      * @param string $password password
      * @return void
      */
+    /**
+     * Take an account's second factor away, whole.
+     *
+     * One method because "reset the second factor" means four tables and the
+     * list keeps growing: the credential and its recovery codes arrived in
+     * 8.4.2, trusted devices in 8.4.4, passkeys in 8.4.5. Anything that knows
+     * this list by writing it out again — an administrator screen, a console
+     * command, a paragraph of SQL in the documentation — is a copy that will be
+     * right until the next release and then quietly wrong.
+     *
+     * Quietly is the word. A reset that clears only the credential still looks
+     * like it worked: the second factor is off, the member signs in again, and
+     * nobody notices the recovery codes and the passkey left standing. That is
+     * the same shape as #86, where a list of tables nobody updated meant a
+     * deleted account kept every way of signing in as it.
+     *
+     * Leaving a passkey behind matters most of the three: it is a credential
+     * that completes the second step on its own, so a reset meant to help
+     * somebody who lost their device would leave a way in that the device still
+     * has.
+     *
+     * @param int $userId account
+     * @return void
+     */
+    public function resetSecondFactor(int $userId): void
+    {
+        $locator = TableRegistry::getTableLocator();
+
+        $locator->get('TwoFactorCredentials')->disableFor($userId);
+        $locator->get('TwoFactorRecoveryCodes')->clearFor($userId);
+        $locator->get('TwoFactorTrustedDevices')->clearFor($userId);
+        $locator->get('WebauthnCredentials')->clearFor($userId);
+    }
+
     public function autoUpdatePassword(int $userId, string $password): void
     {
         $user = $this->get($userId, fields: ['id', 'password']);
