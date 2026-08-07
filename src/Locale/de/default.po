@@ -2203,3 +2203,7 @@ msgstr "Du hast so viele Geräte eingerichtet, wie dieses Forum erlaubt. Entfern
 #: src/Controller/UsersController.php
 msgid "user.2fa.passkey.none"
 msgstr "Für dieses Konto ist kein Passkey eingerichtet."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.already"
+msgstr "Dieses Gerät hat bereits einen Passkey für dein Konto — es gibt also nichts hinzuzufügen, du kannst deine Anmeldungen hier sofort bestätigen. Apple und Google gleichen Passkeys zwischen deinen Geräten ab; deshalb kann einer auf einem Gerät auftauchen, das du nie eingerichtet hast."

@@ -123,7 +123,10 @@ async function call(url: string, body?: unknown): Promise<Record<string, unknown
 
     const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     if (!response.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : 'request failed');
+        // An empty message rather than an English placeholder when the server
+        // said nothing usable: the caller falls back to the translated text on
+        // the button, and a member should never be shown a developer's string.
+        throw new Error(typeof data.error === 'string' ? data.error : '');
     }
     return data;
 }
@@ -286,9 +289,30 @@ function attach(button: HTMLButtonElement): void {
                 // and must not be told they did — they simply changed their
                 // mind, and the code field is still sitting right there.
                 const name = (error as { name?: string })?.name;
-                if (name !== 'NotAllowedError' && name !== 'AbortError') {
-                    say(button, button.dataset.failed ?? 'Failed', 'danger');
+                if (name === 'NotAllowedError' || name === 'AbortError') {
+                    return;
                 }
+
+                // "A credential for this account already exists on this
+                // authenticator" — which is what excludeCredentials asked the
+                // browser to enforce, so it is the mechanism working, not a
+                // fault. It turns up where nobody expects it: register on a Mac
+                // and the passkey reaches the iPhone through iCloud Keychain,
+                // so the phone quite rightly refuses to make a second one. Said
+                // plainly, because "that did not work" sends somebody hunting
+                // for a problem that is not there.
+                if (name === 'InvalidStateError') {
+                    say(button, button.dataset.already ?? '', 'success');
+                    return;
+                }
+
+                // Anything else: prefer what the server said. It knows why it
+                // refused — the second factor is not on yet, the device limit is
+                // reached, the challenge went stale — and replacing that with one
+                // generic sentence, as this did at first, leaves the member with
+                // nothing to act on and leaves the log as the only witness.
+                const message = (error as { message?: string })?.message;
+                say(button, message || (button.dataset.failed ?? 'Failed'), 'danger');
             } finally {
                 button.disabled = false;
             }

@@ -2016,3 +2016,7 @@ msgstr "You have registered as many devices as this forum allows. Remove one fir
 #: src/Controller/UsersController.php
 msgid "user.2fa.passkey.none"
 msgstr "No passkey is registered for this account."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.already"
+msgstr "This device already has a passkey for your account, so there is nothing to add — you can confirm your logins here right away. Apple and Google sync passkeys between your devices, which is why one may appear on a device you never registered."

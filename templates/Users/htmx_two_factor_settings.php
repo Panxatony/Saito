@@ -95,8 +95,10 @@ if ($provisioningUri !== null) {
                             <span class="passkey-label">
                                 <?= h($passkey->get('label') ?: __('user.2fa.passkey.unnamed')) ?>
                             </span>
+                            <?php // No h(): formatTime() returns a <time> element, and escaping it
+                                  // printed the markup as text across the whole row. ?>
                             <span class="exp">
-                                <?= h($this->TimeH->formatTime($passkey->get('created'), 'd.m.Y')) ?>
+                                <?= $this->TimeH->formatTime($passkey->get('created'), 'd.m.Y') ?>
                             </span>
                             <?= $this->Form->create(null, [
                                 'url' => $webroot . 'users/htmx-two-factor',
@@ -128,6 +130,7 @@ if ($provisioningUri !== null) {
                     data-status="#js-passkeyStatus"
                     data-done="<?= h(__('user.2fa.passkey.added')) ?>"
                     data-failed="<?= h(__('user.2fa.passkey.failed')) ?>"
+                    data-already="<?= h(__('user.2fa.passkey.already')) ?>"
                     data-note="#js-passkeyUnsupported"
                     hidden>
                 <?= h(__('user.2fa.passkey.add')) ?>
