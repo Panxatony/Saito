@@ -270,6 +270,22 @@ completes the second step on its own, so the device you were trying to cut off
 would still get in. The command knows the list, and it logs who lost their
 second factor and when.
 
+**It needs the database configuration, and the console may not have it.** Where
+the connection comes from `config/.env`, this just works. Where it is set as an
+environment variable on the PHP-FPM pool instead — as the nginx example in
+`config/php-fpm/saito.pool.conf.example` does — the web server has it and your
+shell does not, and the command stops with a stack of PDO lines that look like
+the rescue itself is broken. Pass it through:
+
+```shell
+DATABASE_URL="mysql://user:password@localhost/saito?encoding=utf8mb4" \
+    bin/cake two_factor_reset <username>
+```
+
+Worth trying **before** you need it. This is the one command whose first use is
+usually under pressure, and finding out then that it cannot reach the database
+is the wrong moment.
+
 ### Email
 
 Without `EMAIL_SMTP_HOST` Saito uses PHP's `mail()`. Setting it switches the
