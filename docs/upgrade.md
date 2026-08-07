@@ -32,14 +32,15 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: fifteen migrations
+### The database: sixteen migrations
 
-Between 5.7.0 and the current release there are **fifteen** schema changes.
+Between 5.7.0 and the current release there are **sixteen** schema changes.
 The second exists only to repair the first; one of them is the expensive one;
 two are about columns that predate these migrations entirely; one finishes a
-character-set conversion that the first left incomplete; and the last five
-are additive — new tables and one new column for features that arrived in the
-8.4 line, which cost an upgrade nothing but the time to create them.
+character-set conversion that the first left incomplete; five are additive —
+new tables and one new column for features that arrived in the 8.4 line, which
+cost an upgrade nothing but the time to create them; and the last one deletes,
+though only rows belonging to accounts that no longer exist.
 
 | Migration | What it does |
 |---|---|
@@ -58,6 +59,7 @@ are additive — new tables and one new column for features that arrived in the
 | `20260806120000_CreateTwoFactorTables` | Adds `two_factor_credentials` and `two_factor_recovery_codes` (8.4.2). Rows exist only for accounts that enrol, so an installation where nobody does carries no authentication secrets at all |
 | `20260806160000_CreateTwoFactorTrustedDevices` | Adds `two_factor_trusted_devices`, which is what lets "stay signed in" work alongside a second factor (8.4.4). Empty until somebody ticks the box |
 | `20260807010000_CreateWebauthnCredentials` | Adds `webauthn_credentials` for passkeys (Touch ID, Face ID, Windows Hello). Empty until somebody registers a device |
+| `20260807080000_DeleteOrphanedCredentials` | Removes credentials belonging to accounts that were deleted before #86 was fixed — second-factor secrets, recovery-code hashes, device tokens, passkeys and reset tokens. Touches nothing that belongs to a live account |
 
 #### The last two are guarded, and that is not decoration
 

@@ -130,6 +130,32 @@ class UsersTable extends AppTable
             ]
         );
 
+        // Everything the account can be signed in with. Declared here for one
+        // reason: `dependent` is what makes deleting the account take them with
+        // it, and without it a member who asked to be erased left behind their
+        // encrypted second-factor secret, ten hashed recovery codes, their
+        // trusted-device tokens and their passkey — thirteen rows, measured, for
+        // an account that no longer existed.
+        //
+        // These tables arrived one per release through the 8.4 line, each built
+        // and tested on its own, and none of those test runs asked what happens
+        // when the account goes. Anything added here later belongs in this list
+        // too; `UsersTableTest::testDeletingAnAccountTakesEveryCredentialWithIt`
+        // is what will notice if it is forgotten.
+        //
+        // `cascadeCallbacks` stays at its default of false: none of these tables
+        // has delete logic of its own, so a single DELETE per table is both
+        // enough and cheaper than hydrating every row to throw it away.
+        foreach ([
+            'TwoFactorCredentials',
+            'TwoFactorRecoveryCodes',
+            'TwoFactorTrustedDevices',
+            'WebauthnCredentials',
+            'PasswordResetTokens',
+        ] as $credentialTable) {
+            $this->hasMany($credentialTable, ['foreignKey' => 'user_id', 'dependent' => true]);
+        }
+
         $this->getSchema()->setColumnType('avatar', 'avatar.file');
         $this->getSchema()->setColumnType('user_category_custom', 'serialize');
     }
