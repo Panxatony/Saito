@@ -236,6 +236,100 @@ abstract class IntegrationTestCase extends TestCase
     }
 
     /**
+     * Make the next request the way htmx makes it.
+     *
+     * `HX-Request: true` is what makes an action answer with a fragment instead
+     * of a page. Testing only the direct visit tests the path almost nobody
+     * takes — every click in the forum goes through this one.
+     *
+     * The FormProtection token stays on, because an ordinary htmx form is
+     * rendered by an action where FormProtection is active and therefore does
+     * carry a `_Token`. For the case where it does not, see
+     * {@see self::configureHtmxRequestWithoutFormToken()} — and read the note
+     * there before reaching for it.
+     *
+     * @param array<string, string> $headers extra headers, merged
+     * @return void
+     */
+    protected function configureHtmxRequest(array $headers = []): void
+    {
+        $this->configRequest([
+            'headers' => ['HX-Request' => 'true'] + $headers,
+        ]);
+    }
+
+    /**
+     * An htmx request carrying no form-tampering token.
+     *
+     * Only correct where the **rendering** action emits no `_Token`, which is a
+     * narrow set: actions with FormProtection unloaded (`login`, `twoFactor`),
+     * and forms built before FormProtection sets up, like the terms gate
+     * rendered from `Controller.initialize`. Posting one of those into an action
+     * where FormProtection is active is blackholed into a 403, htmx does not
+     * swap a 403, and the member sees a button that does nothing at all with no
+     * log entry to find it by. Two releases shipped that way.
+     *
+     * Do not use it as "the htmx flavour" of a request. Applied to a form that
+     * *is* rendered with a token, it withholds something the browser really
+     * sends and manufactures a failure the product does not have — which is
+     * exactly what it did the first time it was written, against
+     * `htmxForgotPassword`, whose form `htmxForgotPassword` renders itself.
+     *
+     * @param array<string, string> $headers extra headers, merged
+     * @return void
+     */
+    protected function configureHtmxRequestWithoutFormToken(array $headers = []): void
+    {
+        // Undo setUp()'s enableSecurityToken(). There is no public switch for
+        // it in IntegrationTestTrait; the property is the switch.
+        $this->_securityToken = false;
+        // …while the CSRF cookie stays on, under Saito's cookie name: htmx does
+        // send that one, and dropping it would test the wrong refusal.
+        $this->disableCsrf();
+        $this->configureHtmxRequest($headers);
+    }
+
+    /**
+     * Assert the response is a bare fragment rather than a whole page.
+     *
+     * The one property every htmx endpoint owes its caller: htmx swaps the
+     * response into an element, so a full document lands a second `<html>`
+     * inside the page — which renders, looks almost right, and quietly breaks
+     * everything that searches the DOM afterwards.
+     *
+     * @return void
+     */
+    protected function assertHtmxFragment(): void
+    {
+        $body = (string)$this->_response->getBody();
+
+        $this->assertStringNotContainsString('<html', $body, 'an htmx response must be a fragment, not a page');
+        $this->assertStringNotContainsString('<!DOCTYPE', $body);
+    }
+
+    /**
+     * Assert the request was not refused by FormProtection.
+     *
+     * Named for the symptom rather than the status: a blackholed POST answers
+     * 403, htmx does not swap a 403, and what the member sees is a button that
+     * does nothing at all. Two releases shipped that way.
+     *
+     * Deliberately not called `assertResponseNotEquals` — Cake already has that
+     * one and it compares the body, so reusing the name would quietly mean
+     * something else.
+     *
+     * @return void
+     */
+    protected function assertNotBlackholed(): void
+    {
+        $this->assertNotSame(
+            403,
+            $this->_response->getStatusCode(),
+            'the request was blackholed — this is what "the button does nothing" looks like',
+        );
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function _sendRequest($url, $method, $data = [])
