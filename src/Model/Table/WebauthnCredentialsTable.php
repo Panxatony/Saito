@@ -78,10 +78,17 @@ class WebauthnCredentialsTable extends Table
     /**
      * Write back what a successful login changed.
      *
-     * The signature counter is the point. An authenticator increments it on
-     * every use, so a counter that has not moved — or has gone backwards — is
-     * how a cloned credential announces itself. Storing it back is what makes
-     * the next comparison meaningful; skipping this quietly disables the check.
+     * The signature counter is one reason. An authenticator that keeps one
+     * increments it on every use, so a counter that has not moved — or has gone
+     * backwards — is how a cloned credential announces itself, and storing it
+     * back is what makes the next comparison meaningful.
+     *
+     * Do not read more into it than is there. Plenty of authenticators keep no
+     * counter and report zero forever; Apple's Secure Enclave is one, and the
+     * specification allows it, so for most passkeys this value never leaves
+     * zero and nothing is being detected. `last_used_at` is the part that
+     * always says something, and it is what a member reads when deciding which
+     * device on the list they no longer recognise.
      *
      * @param \App\Model\Entity\WebauthnCredential $entity the row that was used
      * @param \Webauthn\CredentialRecord $record the record as the ceremony left it

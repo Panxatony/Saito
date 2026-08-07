@@ -21,9 +21,16 @@ use Migrations\BaseMigration;
  *
  * `credential_id` is the lookup key, stored base64url-encoded because that is
  * how it arrives from the browser and how it goes back out in the allow-list.
- * `sign_count` is denormalised out of the record for one reason: a counter that
- * fails to advance is how a cloned authenticator announces itself, and that is
- * worth being able to read without deserialising anything.
+ *
+ * `sign_count` is denormalised out of the record so a counter that fails to
+ * advance — the way a cloned authenticator announces itself — can be read
+ * without deserialising anything. Worth knowing before relying on it: **many
+ * authenticators keep no counter at all** and report zero forever. Apple's
+ * Secure Enclave is one of them, which is to say the platform this feature was
+ * built for, and the specification explicitly allows it (WebAuthn §6.1.1). The
+ * library skips the comparison when both values are zero, so for those devices
+ * this column stays at zero and detects nothing. It is a real check for
+ * hardware keys and nothing more; a passkey column full of zeroes is normal.
  */
 class CreateWebauthnCredentials extends BaseMigration
 {

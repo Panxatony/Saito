@@ -93,3 +93,33 @@ tt {
   letter-spacing: 0.08em;
   line-height: 1.9;
 }
+
+// The registered passkeys. One row per device: what it is called, when it was
+// registered, and the way to remove it — on one line, because the list is
+// scanned to find one entry rather than read through, and a three-line block
+// per device would bury the one being looked for.
+.passkey-list {
+  margin: 0.75rem 0;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid $border-color;
+  }
+
+  // The name is what the member scans for, so it takes the space the other two
+  // do not need and pushes the button to the far edge.
+  .passkey-label {
+    flex: 1 1 auto;
+    font-weight: 700;
+    // A device name is the member's own text and may be anything at all;
+    // without this a long one pushes the remove button off the row.
+    overflow-wrap: anywhere;
+  }
+
+  form {
+    flex: 0 0 auto;
+  }
+}
