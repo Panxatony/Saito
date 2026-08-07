@@ -223,6 +223,18 @@ sudo certbot --nginx -d forum.example.com
 
 Certbot wires the certificate paths into the vhost and reloads nginx. A systemd timer takes care of renewals.
 
+> **HTTPS is what makes passkeys possible at all.** Members can add a passkey —
+> Touch ID, Face ID, Windows Hello — as a second factor, and the browser API
+> behind it refuses to run outside a secure context. On plain HTTP the button
+> never appears and nothing explains why, because from the browser's side there
+> is nothing to explain: the feature simply does not exist there. The
+> six-digit code keeps working either way.
+>
+> The certificate also decides *where* a passkey is valid. It is bound to the
+> domain it was registered on, so one made on `forum.example.com` will not work
+> on `www.forum.example.com` — that is the anti-phishing property, not a
+> misconfiguration. Pick one canonical hostname and redirect the rest to it.
+
 ## 8. Run the installer
 
 Open `https://forum.example.com/` in a browser. Saito's web installer will create the database schema, the first admin account, and the basic forum settings. After it finishes, the installer disables itself; if you ever need to re-run it, delete `config/installer/installed.txt`.

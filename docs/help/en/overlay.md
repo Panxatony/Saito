@@ -108,6 +108,13 @@ app on top of your password, optional and off unless you turn it on. Setting
 it up shows ten recovery codes once — the only way back in if the device is
 lost.
 
+With it on you can add a *passkey*, and then the device confirms the login
+itself — Touch ID, Face ID, Windows Hello — instead of you typing the code. The
+check happens on the device; the forum only ever sees a signature, never a
+fingerprint. A passkey belongs to the device it was made on, so register each
+one you use, and keep the recovery codes. The code field stays for everything
+else.
+
 <!-- icon: envelope -->
 ### Contact and ignoring
 

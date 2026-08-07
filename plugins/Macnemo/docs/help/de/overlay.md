@@ -138,6 +138,15 @@ heißt nicht, dass du künftig bei jedem Besuch tippst: Wer beim Anmelden
 *„Angemeldet bleiben“* ankreuzt, wird auf diesem Gerät 30 Tage lang in Ruhe
 gelassen.
 
+Noch bequemer geht es mit einem *Passkey*, den du dort ebenfalls einrichten
+kannst, sobald die 2 Faktor Authentifizierung läuft: Dann tippst du gar nichts
+mehr, sondern legst den Finger auf – Touch ID, Face ID oder Windows Hello –, und
+das war es. Dein Fingerabdruck bleibt dabei, wo er hingehört: auf dem Gerät. Das
+Forum sieht nur eine Unterschrift und könnte mit einem Fingerabdruck auch gar
+nichts anfangen. Ein kleiner Haken zum Merken: So ein Passkey gehört zu *einem*
+Gerät. Der auf dem Mac hilft dem iPad nicht, also richte ihn dort noch einmal
+ein – und behalte trotzdem den Zettel mit den Wiederherstellungs-Codes.
+
 Auf der Profilseite selbst findest du außerdem deine Lesezeichen und deine
 persönlichen RSS-Adressen, die auch die Bereiche mitliefern, die nur angemeldet
 sichtbar sind. Ganz unten liegt dein Upload-Archiv – es steht dort, weil es beim
