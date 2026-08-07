@@ -43,7 +43,7 @@ foreach (Cache::configured() as $cacheKey) {
         'bookmarks', 'categories', 'drafts', 'entries', 'password_reset_tokens',
         'phinxlog', 'settings', 'smiley_codes', 'smilies',
         'two_factor_credentials', 'two_factor_recovery_codes',
-        'two_factor_trusted_devices', 'uploads',
+        'two_factor_trusted_devices', 'uploads', 'webauthn_credentials',
         'user_blocks', 'user_ignores', 'user_reads', 'useronline', 'users',
     ];
     // Legacy Saito 4 tables dropped by migration 5.1.0 — must be dropped

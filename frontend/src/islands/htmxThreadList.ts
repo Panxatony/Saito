@@ -43,5 +43,6 @@ import './features/flash';
 import './features/appearance';
 import './features/headerCollapse';
 import './features/userColors';
+import './features/passkeys';
 
 Alpine.start();

@@ -14,6 +14,7 @@ namespace App\Controller;
 use App\Form\BlockForm;
 use Authentication\PasswordHasher\DefaultPasswordHasher;
 use App\Model\Entity\User;
+use App\Model\Table\WebauthnCredentialsTable;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
@@ -22,6 +23,7 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
 use Cake\I18n\DateTime;
+use Cake\Log\Log;
 use Cake\Routing\Router;
 use Exception;
 use Laminas\Diactoros\Stream;
@@ -32,11 +34,14 @@ use Saito\Exception\SaitoForbiddenException;
 use Saito\Posting\Posting;
 use Saito\User\Blocker\ManualBlocker;
 use Saito\User\Auth\LoginResult;
+use Saito\User\Auth\WebauthnService;
 use Saito\User\DataExport;
 use Saito\User\Permission\ResourceAI;
 use Saito\User\WidgetPreferences;
 use Stopwatch\Lib\Stopwatch;
 use Throwable;
+use Webauthn\PublicKeyCredentialCreationOptions;
+use Webauthn\PublicKeyCredentialRequestOptions;
 
 /**
  * User controller
@@ -51,6 +56,20 @@ class UsersController extends AppController
      * 21600) and the island profile's select. A fixed list would accept the
      * select's five values and reject fifteen of the slider's twenty.
      */
+    /**
+     * Session keys holding the challenge a WebAuthn ceremony is answering.
+     *
+     * Server-side, because a challenge the caller supplies is not a challenge.
+     *
+     * @var string
+     */
+    public const WEBAUTHN_REGISTER_KEY = 'Saito.webauthnRegister';
+
+    /**
+     * @var string
+     */
+    public const WEBAUTHN_LOGIN_KEY = 'Saito.webauthnLogin';
+
     public const LOCK_MIN = 21600;
     public const LOCK_MAX = 432000;
     public const LOCK_STEP = 21600;
@@ -1383,8 +1402,12 @@ class UsersController extends AppController
                 $Credentials->disableFor($userId);
                 $Codes->clearFor($userId);
                 // Devices were trusted on the strength of a factor that no
-                // longer exists; that trust goes with it.
+                // longer exists; that trust goes with it. The passkeys go too:
+                // they are registrations *of* that factor, and leaving them
+                // behind would mean switching 2FA off left credentials standing
+                // that could still complete a second step.
                 $this->fetchTable('TwoFactorTrustedDevices')->clearFor($userId);
+                $this->fetchTable('WebauthnCredentials')->clearFor($userId);
                 $this->Flash->set(__('user.2fa.disabled'), ['element' => 'success']);
 
                 return $this->redirect(['action' => 'htmxTwoFactor']);
@@ -1399,8 +1422,21 @@ class UsersController extends AppController
             }
         }
 
+        if ($this->request->is('post') && $action === 'removePasskey') {
+            // No password here, unlike disabling the second factor. Removing one
+            // of several devices does not weaken the account — the code and the
+            // recovery codes still stand — and asking for a password to tidy up
+            // a device list is the kind of friction that stops people tidying up.
+            $this->fetchTable('WebauthnCredentials')
+                ->removeFor($userId, (int)$this->request->getData('credentialId'));
+            $this->Flash->set(__('user.2fa.passkey.removed'), ['element' => 'success']);
+
+            return $this->redirect(['action' => 'htmxTwoFactor']);
+        }
+
         $pending = $Credentials->pendingFor($userId);
         $secret = (string)$this->request->getSession()->read('Saito.2faEnrolSecret');
+        $this->set('passkeys', $this->fetchTable('WebauthnCredentials')->listFor($userId));
         $this->set('isEnabled', $Credentials->isEnabledFor($userId));
         $this->set('isEnrolling', $pending !== null && $secret !== '');
         $this->set('secret', $secret);
@@ -1411,6 +1447,246 @@ class UsersController extends AppController
         $this->set('titleForLayout', __('user.2fa.settings.t'));
 
         return null;
+    }
+
+    /**
+     * Hand the browser what it needs to register a passkey.
+     *
+     * The challenge is kept server-side and never trusted back from the client:
+     * a challenge the caller chooses is not a challenge. It is parked in the
+     * session for the two minutes the ceremony has to run.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function webauthnRegisterOptions(): Response
+    {
+        $userId = (int)$this->CurrentUser->getId();
+        $Passkeys = $this->fetchTable('WebauthnCredentials');
+
+        // A passkey is an *additional* second factor, not a way to acquire one.
+        // Without the code and its recovery codes behind it, a member whose only
+        // device fails has nothing left, and the passkey lives in one machine's
+        // secure enclave.
+        if (!$this->fetchTable('TwoFactorCredentials')->isEnabledFor($userId)) {
+            return $this->jsonError(__('user.2fa.passkey.needs2fa'), 409);
+        }
+        if (count($Passkeys->listFor($userId)) >= WebauthnCredentialsTable::MAX_CREDENTIALS) {
+            return $this->jsonError(__('user.2fa.passkey.toomany'), 409);
+        }
+
+        $service = new WebauthnService();
+        $options = $service->creationOptions(
+            $userId,
+            (string)$this->CurrentUser->get('username'),
+            $Passkeys->descriptorsFor($userId),
+        );
+
+        $this->request->getSession()->write(self::WEBAUTHN_REGISTER_KEY, [
+            'options' => $service->serializer()->serialize($options, 'json'),
+            'at' => time(),
+        ]);
+
+        return $this->jsonBody($service->serializer()->serialize($options, 'json'));
+    }
+
+    /**
+     * Check a finished registration and keep the credential.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function webauthnRegister(): Response
+    {
+        $this->request->allowMethod('post');
+        $userId = (int)$this->CurrentUser->getId();
+
+        $options = $this->takeWebauthnOptions(
+            self::WEBAUTHN_REGISTER_KEY,
+            PublicKeyCredentialCreationOptions::class,
+        );
+        if ($options === null) {
+            return $this->jsonError(__('user.2fa.passkey.expired'), 400);
+        }
+
+        $service = new WebauthnService();
+        try {
+            $record = $service->verifyRegistration(
+                (string)$this->request->getData('credential'),
+                $options,
+            );
+        } catch (\Throwable $e) {
+            // Deliberately not echoing the library's message: it describes the
+            // ceremony in detail, and the member can do nothing with it.
+            (new ForbiddenLogger())->write(
+                sprintf('Passkey registration failed for user id %d: %s', $userId, $e->getMessage()),
+            );
+
+            return $this->jsonError(__('user.2fa.passkey.failed'), 400);
+        }
+
+        $this->fetchTable('WebauthnCredentials')->store(
+            $userId,
+            $record,
+            (string)$this->request->getData('label'),
+        );
+        Log::write(
+            'info',
+            sprintf('Passkey registered for user "%s" (id %d).', $this->CurrentUser->get('username'), $userId),
+            ['scope' => ['saito.info']],
+        );
+
+        return $this->jsonBody('{"ok":true}');
+    }
+
+    /**
+     * Hand the browser what it needs to confirm a pending login with a passkey.
+     *
+     * Unauthenticated by necessity — the whole point is that there is no
+     * identity yet. What stands in for one is the pending marker written when
+     * the password checked out; without it there is nothing to confirm.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function webauthnLoginOptions(): Response
+    {
+        $userId = $this->AuthUser->pendingSecondFactorUserId();
+        if ($userId === null) {
+            return $this->jsonError(__('user.2fa.passkey.expired'), 400);
+        }
+
+        $allowed = $this->fetchTable('WebauthnCredentials')->descriptorsFor($userId);
+        if (!$allowed) {
+            return $this->jsonError(__('user.2fa.passkey.none'), 404);
+        }
+
+        $service = new WebauthnService();
+        $options = $service->requestOptions($allowed);
+
+        $this->request->getSession()->write(self::WEBAUTHN_LOGIN_KEY, [
+            'options' => $service->serializer()->serialize($options, 'json'),
+            'at' => time(),
+        ]);
+
+        return $this->jsonBody($service->serializer()->serialize($options, 'json'));
+    }
+
+    /**
+     * Confirm a pending login with a passkey.
+     *
+     * The same second step the code field feeds, reached a different way — so
+     * it carries the same throttle, and ends in the same
+     * {@see AuthUserComponent::completeSecondFactor()}.
+     *
+     * @return \Cake\Http\Response
+     */
+    public function webauthnLogin(): Response
+    {
+        $this->request->allowMethod('post');
+
+        $userId = $this->AuthUser->pendingSecondFactorUserId();
+        if ($userId === null) {
+            return $this->jsonError(__('user.2fa.passkey.expired'), 400);
+        }
+        if ($this->_isLoginThrottled()) {
+            return $this->jsonError(__('user.authe.throttled'), 429);
+        }
+
+        $options = $this->takeWebauthnOptions(
+            self::WEBAUTHN_LOGIN_KEY,
+            PublicKeyCredentialRequestOptions::class,
+        );
+        if ($options === null) {
+            return $this->jsonError(__('user.2fa.passkey.expired'), 400);
+        }
+
+        $Passkeys = $this->fetchTable('WebauthnCredentials');
+        $json = (string)$this->request->getData('credential');
+        $entity = $Passkeys->findForUser($userId, (string)$this->request->getData('credentialId'));
+        if ($entity === null) {
+            $this->_registerFailedLogin();
+
+            return $this->jsonError(__('user.2fa.passkey.failed'), 400);
+        }
+
+        $service = new WebauthnService();
+        try {
+            $record = $service->verifyAssertion($json, $options, $Passkeys->toRecord($entity), $userId);
+        } catch (\Throwable $e) {
+            $this->_registerFailedLogin();
+            (new ForbiddenLogger())->write(
+                sprintf('Passkey assertion failed for user id %d: %s', $userId, $e->getMessage()),
+            );
+
+            return $this->jsonError(__('user.2fa.passkey.failed'), 400);
+        }
+
+        // Before the login, not after: this is what keeps the clone detector
+        // armed even if something below throws.
+        $Passkeys->recordUse($entity, $record);
+
+        if (!$this->AuthUser->completeSecondFactor($userId)) {
+            return $this->jsonError(__('user.2fa.passkey.failed'), 400);
+        }
+        $this->_clearLoginThrottle();
+
+        $session = $this->getRequest()->getSession();
+        $target = (string)$session->read('Saito.pending2faTarget');
+        $session->delete('Saito.pending2faTarget');
+
+        return $this->jsonBody(json_encode(['ok' => true, 'redirect' => $target !== '' ? $target : '/']));
+    }
+
+    /**
+     * Take the options for a ceremony out of the session, once.
+     *
+     * Once, and with a life: a challenge that can be replayed is not a
+     * challenge, and one that never expires is a standing invitation.
+     *
+     * @param string $key session key
+     * @param class-string $class what to deserialise into
+     * @return object|null the options, or null if there are none or they went stale
+     */
+    private function takeWebauthnOptions(string $key, string $class): ?object
+    {
+        $session = $this->getRequest()->getSession();
+        $stored = $session->read($key);
+        $session->delete($key);
+
+        if (!is_array($stored) || empty($stored['options'])) {
+            return null;
+        }
+        if (time() - (int)($stored['at'] ?? 0) > WebauthnService::CHALLENGE_TTL) {
+            return null;
+        }
+
+        try {
+            return (new WebauthnService())->serializer()
+                ->deserialize((string)$stored['options'], $class, 'json');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * @param string $json already-encoded body
+     * @param int $status HTTP status
+     * @return \Cake\Http\Response
+     */
+    private function jsonBody(string $json, int $status = 200): Response
+    {
+        return $this->response
+            ->withStatus($status)
+            ->withType('application/json')
+            ->withStringBody($json);
+    }
+
+    /**
+     * @param string $message shown to the member
+     * @param int $status HTTP status
+     * @return \Cake\Http\Response
+     */
+    private function jsonError(string $message, int $status): Response
+    {
+        return $this->jsonBody((string)json_encode(['error' => $message]), $status);
     }
 
     /**
@@ -1813,11 +2089,26 @@ class UsersController extends AppController
             // tamper with — and CSRF, which is the protection that matters, is
             // middleware and stays on.
             'tosAccept',
+            // The WebAuthn ceremonies. These post JSON from the island, not a
+            // rendered form, so there is no `_Token` to emit and none to check;
+            // CSRF still covers them through the middleware, and each one is
+            // additionally gated on something FormProtection could not check
+            // anyway — a live challenge held server-side, spent once.
+            'webauthnRegisterOptions', 'webauthnRegister',
+            'webauthnLoginOptions', 'webauthnLogin',
         ];
         $this->FormProtection->setConfig('unlockedActions', $unlocked);
 
         $this->Authentication->allowUnauthenticated(
-            ['login', 'logout', 'rs', 'htmxLogin', 'htmxRegister', 'htmxForgotPassword', 'htmxResetPassword', 'twoFactor'],
+            [
+                'login', 'logout', 'rs', 'htmxLogin', 'htmxRegister', 'htmxForgotPassword',
+                'htmxResetPassword', 'twoFactor',
+                // Unauthenticated by necessity: they *are* the step that decides
+                // whether an identity is granted. The pending marker written when
+                // the password checked out is what stands in for one, and without
+                // it both actions refuse.
+                'webauthnLoginOptions', 'webauthnLogin',
+            ],
         );
         $this->AuthUser->authorizeAction('htmxRegister', 'saito.core.user.register');
         $this->AuthUser->authorizeAction('rs', 'saito.core.user.register');

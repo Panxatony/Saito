@@ -30,9 +30,68 @@ class UsersTableTest extends SaitoTableTestCase
         'app.UserIgnore',
         'app.UserOnline',
         'app.UserRead',
+        'app.PasswordResetToken',
+        'app.TwoFactorCredential',
+        'app.TwoFactorRecoveryCode',
+        'app.TwoFactorTrustedDevice',
+        'app.WebauthnCredential',
         'plugin.Bookmarks.Bookmark',
         'plugin.ImageUploader.Uploads',
     ];
+
+    /**
+     * Deleting an account has to take everything it can be signed in with.
+     *
+     * This failed when it was written. The five credential tables arrived one
+     * per release through the 8.4 line, each built and tested on its own, and
+     * none of those runs asked what happens when the account goes — so a member
+     * who exercised their right to erasure left behind an encrypted second-factor
+     * secret, ten hashed recovery codes, a trusted-device token and a passkey.
+     *
+     * Written per table rather than as one count, so a future failure names the
+     * table that was forgotten instead of a number that went up.
+     *
+     * @return void
+     */
+    public function testDeletingAnAccountTakesEveryCredentialWithIt(): void
+    {
+        $userId = 3;
+        $locator = TableRegistry::getTableLocator();
+
+        $credentials = $locator->get('TwoFactorCredentials');
+        $secret = $credentials->beginEnrolment($userId);
+        $credentials->confirmEnrolment($userId, \OTPHP\TOTP::createFromSecret($secret)->now());
+        $locator->get('TwoFactorRecoveryCodes')->issueFor($userId);
+        $locator->get('TwoFactorTrustedDevices')->issueFor($userId);
+        $locator->get('PasswordResetTokens')->issueFor($userId);
+        $locator->get('WebauthnCredentials')->getConnection()->insert('webauthn_credentials', [
+            'user_id' => $userId,
+            'credential_id' => 'test-credential',
+            'credential' => '{}',
+            'sign_count' => 0,
+        ]);
+
+        // The premise: there is something to lose.
+        foreach (['TwoFactorCredentials', 'TwoFactorRecoveryCodes', 'TwoFactorTrustedDevices',
+                  'WebauthnCredentials', 'PasswordResetTokens'] as $table) {
+            $this->assertGreaterThan(
+                0,
+                $locator->get($table)->find()->where(['user_id' => $userId])->count(),
+                "$table was not seeded, so this test would pass for the wrong reason",
+            );
+        }
+
+        $this->Table->delete($this->Table->get($userId));
+
+        foreach (['TwoFactorCredentials', 'TwoFactorRecoveryCodes', 'TwoFactorTrustedDevices',
+                  'WebauthnCredentials', 'PasswordResetTokens'] as $table) {
+            $this->assertSame(
+                0,
+                $locator->get($table)->find()->where(['user_id' => $userId])->count(),
+                "$table still holds credentials for a deleted account",
+            );
+        }
+    }
 
     public function testEmptyUserCategoryCustom()
     {

@@ -5,6 +5,64 @@
 - Δ Changed
 - − Removed
 
+## [8.4.5] - 2026-08-07 "handschlag"
+
+**Two migrations run.** One adds `webauthn_credentials`; the other deletes
+credentials belonging to accounts that no longer exist, and touches nothing that
+belongs to a live one. Neither has a `down()`. The stylesheets and the JS bundle
+both changed, so those go out with it.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+A handshake instead of six digits: the device you are holding confirms the login
+itself. And the release the account deletion should always have been — asking to
+be erased now erases everything.
+
+- ＋ Added: **passkeys as a second factor.** Touch ID, Face ID, Windows Hello or
+  a hardware key instead of typing the code. The operating system checks the
+  fingerprint or the face **on the device** and hands the forum a signature; no
+  biometric reaches the server, and none can.
+
+  An addition, never a replacement, in three ways that all matter. A passkey can
+  only be registered once the code is already on, because it lives in one
+  machine's secure enclave and the recovery codes that come with the code are
+  the way back from a lost device. The code field stays exactly where it was, so
+  a browser without JavaScript or a device without a sensor reaches the same
+  second step. And the button stays hidden until the browser confirms an
+  authenticator exists, because one that cannot work is worse than none.
+
+  Two things surprise people once and then never again, so they are in the help:
+  a passkey belongs to the device it was made on — register each one you use —
+  and it works for one address only, which is exactly why a fake site cannot
+  harvest it.
+
+- ✓ Fixed: **deleting an account now deletes what it could be signed in with.**
+  It did not. Measured before the fix, a deleted member left behind an encrypted
+  second-factor secret, ten hashed recovery codes, a trusted-device token and a
+  passkey — thirteen rows for an account that no longer existed, plus any
+  outstanding password-reset token.
+
+  The five tables arrived one per release through the 8.4 line, each built and
+  tested on its own, and none of those test runs asked what happens when the
+  account goes. It matters most against the reason the data export already
+  exists: this forum implements the GDPR's right of access as self-service, and
+  leaving credentials behind after an erasure request does not sit beside that.
+
+  The migration clears what has already accumulated. A fix that only applied
+  from today would leave exactly the people who already exercised that right
+  still on file.
+
+- Δ Changed: **the API scope is decided by one test instead of two that could
+  disagree.** `/api/v2` chooses JWT-only authentication, and the check for it was
+  an unanchored match: any path merely *containing* the string picked it, so
+  `/entries/view/1/api/v2` would have shown a signed-in member as logged out.
+  Stricter rather than looser, so never an escalation — but the CSRF exemption
+  beside it has always been an anchored prefix, and a loose half of a pair
+  invites harmonising them in the wrong direction. Both now use the same test.
+
 ## [8.4.4] - 2026-08-07 "stammgast"
 
 **One migration runs.** It adds `two_factor_trusted_devices`; there is no
