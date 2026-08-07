@@ -1948,3 +1948,75 @@ msgstr "Two-factor authentication is not on for this member."
 #: plugins/Admin/templates/Users/two_factor_reset.php
 msgid "user.2fa.admin.reset.done"
 msgstr "Two-factor authentication for {0} has been reset."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.t"
+msgstr "Passkeys"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.exp"
+msgstr "Confirm a login with this device — Touch ID, Face ID, Windows Hello or a hardware key — instead of typing a code. The device checks you locally; nothing about your fingerprint or face ever reaches the forum. A passkey belongs to the device it was made on, so register each device you use, and keep your recovery codes."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.add"
+msgstr "Register this device"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.added"
+msgstr "This device is registered."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.remove"
+msgstr "Remove"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.removed"
+msgstr "The passkey has been removed."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.label"
+msgstr "Name for this device"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.label.ph"
+msgstr "e.g. work laptop"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.unnamed"
+msgstr "Unnamed device"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.none.own"
+msgstr "No device is registered yet."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.unsupported"
+msgstr "This browser or device cannot do passkeys. The code from your app keeps working everywhere."
+
+#: templates/element/users/two_factor_form.php
+msgid "user.2fa.passkey.use"
+msgstr "Confirm with this device"
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.failed"
+msgstr "That did not work. Enter the code from your app instead."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.expired"
+msgstr "That took too long. Please start again."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.needs2fa"
+msgstr "Switch two-factor authentication on first: a passkey is an addition to it, and the recovery codes that come with it are your way back if this device is lost."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.toomany"
+msgstr "You have registered as many devices as this forum allows. Remove one first."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.none"
+msgstr "No passkey is registered for this account."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.already"
+msgstr "This device already has a passkey for your account, so there is nothing to add — you can confirm your logins here right away. Apple and Google sync passkeys between your devices, which is why one may appear on a device you never registered."

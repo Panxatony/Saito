@@ -33,6 +33,11 @@ Authenticator-App zusätzlich zum Passwort, freiwillig und standardmäßig aus.
 Beim Einrichten erscheinen zehn Wiederherstellungs-Codes – einmalig, und der
 einzige Weg zurück, wenn das Gerät abhandenkommt.
 
+Ist sie an, lässt sich zusätzlich ein *Passkey* einrichten: Dann bestätigt das
+Gerät die Anmeldung selbst – Touch ID, Face ID, Windows Hello – und der Code
+entfällt. Geprüft wird vor Ort; das Forum bekommt nur eine Unterschrift zu
+sehen, nie einen Fingerabdruck. Das Codefeld bleibt für alle Fälle bestehen.
+
 Beim Antworten steht der Betreff des Beitrags blass im Feld, mit *Re:* davor. Er
 wird übernommen, wenn nichts eingetippt wird; sobald man schreibt, verschwindet
 er.

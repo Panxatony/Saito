@@ -45,6 +45,7 @@ abstract class IntegrationTestCase extends SaitoIntegrationTestCase
         'two_factor_recovery_codes',
         'two_factor_trusted_devices',
         'uploads',
+        'webauthn_credentials',
         'user_blocks',
         'user_ignores',
         'user_reads',

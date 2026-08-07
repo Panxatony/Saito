@@ -62,6 +62,31 @@ generate a fresh set in your settings at any time, which retires the old ones.
 administrator can reset two-factor authentication for your account. You then
 sign in with your password alone and set it up again.
 
+### Passkeys: confirm with Touch ID, Face ID or Windows Hello
+
+Instead of typing the six-digit code, you can confirm the second step with the
+device in your hand. Set it up in the same settings under *Passkeys*, once
+two-factor authentication is on.
+
+**Your fingerprint never leaves the device.** The operating system checks you
+locally and sends the forum a signature. The forum sees neither fingerprint nor
+face, and cannot.
+
+Three things that surprise people who have not been told:
+
+- **A passkey belongs to the device.** The one on your Mac is not on your phone.
+  Apple and Google do sync passkeys now, but do not rely on it: register every
+  device you use, and **keep your recovery codes**.
+- **A passkey works for one address only.** One registered on a test forum will
+  not work on the real one. That is not a fault, it is the protection itself —
+  it is why a fake site cannot harvest your passkey.
+- **The code stays.** Passkeys need JavaScript and a suitable sensor. Without
+  either, the code field is exactly where it was, and the button does not appear
+  at all if your device cannot do it.
+
+Remove a device you no longer use in your settings. Switching two-factor
+authentication off removes every passkey with it.
+
 **"Stay signed in" still works.** Tick the box with your password and, once the
 code checks out, the forum remembers *that device* for 30 days — you come back
 without a password and without a code. It applies only to devices where you
