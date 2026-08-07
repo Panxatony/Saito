@@ -2045,18 +2045,6 @@ msgstr "Locked out later on? Whoever administers the server can switch the secon
 msgid "user.2fa.required.logout"
 msgstr "Log out instead"
 
-#: plugins/Admin/templates/Settings
-msgid "2fa_required_from_role"
-msgstr "Require two-factor authentication from"
 
-#: plugins/Admin/templates/Settings
-msgid "2fa_required_from_role.off"
-msgstr "Nobody — it stays optional for everyone"
 
-#: plugins/Admin/templates/Settings
-msgid "2fa_required_from_role.mod"
-msgstr "Moderators and administrators"
 
-#: plugins/Admin/templates/Settings
-msgid "2fa_required_from_role.admin"
-msgstr "Administrators only"

@@ -2232,18 +2232,6 @@ msgstr "Später doch ausgesperrt? Wer den Server verwaltet, kann den zweiten Fak
 msgid "user.2fa.required.logout"
 msgstr "Stattdessen abmelden"
 
-#: plugins/Admin/templates/Settings
-msgid "2fa_required_from_role"
-msgstr "2 Faktor Authentifizierung verlangen ab"
 
-#: plugins/Admin/templates/Settings
-msgid "2fa_required_from_role.off"
-msgstr "Niemand — bleibt für alle freiwillig"
 
-#: plugins/Admin/templates/Settings
-msgid "2fa_required_from_role.mod"
-msgstr "Moderatoren und Administratoren"
 
-#: plugins/Admin/templates/Settings
-msgid "2fa_required_from_role.admin"
-msgstr "Nur Administratoren"
