@@ -22,7 +22,6 @@ use App\Middleware\SaitoBootstrapMiddleware;
 use Authentication\AuthenticationServiceInterface;
 use Authentication\AuthenticationServiceProviderInterface;
 use Authentication\Middleware\AuthenticationMiddleware;
-use Authentication\UrlChecker\DefaultUrlChecker;
 use Cake\Core\Configure;
 use Cake\Core\Exception\MissingPluginException;
 use Cake\Core\Plugin;
@@ -93,6 +92,22 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
 
         $this->addPlugin('Authentication');
         $this->addPlugin(\Admin\AdminPlugin::class, ['routes' => true]);
+        // The `/api/v2` scope is IN USE. It is small and easy to mistake for a
+        // leftover, so: `bin/cake routes | grep api` is the authoritative check,
+        // and it lists five addresses served by Bookmarks and ImageUploader,
+        // which register them from their own `config/routes.php` — not from
+        // here, and not from ApiPlugin, which is an empty BasePlugin.
+        //
+        // One of them is on the critical path of the current frontend: the htmx
+        // upload dialog renders every thumbnail through
+        // `/api/v2/uploads/thumb/{id}` (templates/Entries/htmx_uploads.php,
+        // via ImageUploaderHelper::image()). Removing the scope breaks image
+        // previews in the editor.
+        //
+        // Do not conclude it is dead by probing paths. `resources()` binds each
+        // route to specific HTTP methods, so `GET /api/v2/bookmarks/1` — where
+        // the route is PUT/PATCH/DELETE — answers 404 exactly as an absent
+        // scope would. That reading cost an audit a wrong finding once.
         $this->addPlugin(\Api\ApiPlugin::class, ['bootstrap' => true, 'routes' => true]);
         $this->addPlugin(\Bookmarks\BookmarksPlugin::class, ['routes' => true]);
         $this->addPlugin(\BbcodeParser\BbcodeParserPlugin::class);
@@ -176,18 +191,40 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ))
 
             // CSRF protection (replaces the Cake-3 CsrfComponent).
-            // API requests are JWT-authenticated and intentionally exempt.
             ->add(
                 (new CsrfProtectionMiddleware([
                     'expiry' => time() + 10800,
                     'cookieName' => Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF',
                 ]))
                     ->skipCheckCallback(function ($request) {
-                        // Only the JWT-authenticated /api/v2 API is CSRF-exempt.
-                        // A substring match on '/api/' let an attacker append
-                        // '/api/' as trailing pass-args to a session-authed
-                        // route (fallback DashedRoute) and skip CSRF, so this
-                        // must be an anchored prefix, matching the JWT scope.
+                        // `/api/v2` is exempt, and that is safe rather than an
+                        // oversight — the reasoning is easy to lose, so it is
+                        // written down here where an audit lands.
+                        //
+                        // getAuthenticationService() answers /api/v2 with
+                        // buildJwt(), which loads *only* the JWT authenticator
+                        // and reads the bearer token from the Authorization
+                        // header (never a cookie, never a query parameter). A
+                        // browser therefore carries no credential this scope
+                        // accepts. CSRF is an attack on ambient authority, and
+                        // under /api/v2 there is none to abuse: a forged
+                        // request arrives unauthenticated.
+                        //
+                        // Do NOT read this exemption as "the API is dead".
+                        // `bin/cake routes` lists eight live routes under it
+                        // (plugins/Bookmarks and plugins/ImageUploader register
+                        // them from their own config/routes.php), and the htmx
+                        // upload dialog renders every thumbnail through
+                        // /api/v2/uploads/thumb/{id}. Probing a handful of
+                        // guessed paths is not a test of that — the ones that
+                        // exist answer only to the HTTP methods `resources()`
+                        // gave them, so a GET where the route is DELETE returns
+                        // a 404 that looks exactly like an absent scope.
+                        //
+                        // The anchored prefix matters: a substring match on
+                        // '/api/' once let an attacker append '/api/' as
+                        // trailing pass-args to a session-authed route (the
+                        // fallback DashedRoute) and skip CSRF on it.
                         return str_starts_with($request->getUri()->getPath(), '/api/v2/');
                     })
             )
@@ -218,8 +255,19 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
      */
     public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
     {
-        $isApi = (new \Authentication\UrlChecker\DefaultUrlChecker())
-            ->check($request, ['#api/v2#'], ['useRegex' => true]);
+        // Anchored, and deliberately the same test the CSRF exemption uses in
+        // middleware() — the two decide one question between them ("is this the
+        // JWT scope?") and must not be able to disagree.
+        //
+        // This was an unanchored regex, `#api/v2#`, which matched any path
+        // merely *containing* the string: `/entries/view/1/api/v2` would have
+        // been answered with the JWT service and the member shown as logged
+        // out. Stricter rather than looser, so not an escalation — but the
+        // asymmetry was the real hazard. The CSRF check next door carries a
+        // comment about a substring match once being exploitable there, and
+        // leaving one of the pair loose invites somebody to "harmonise" them in
+        // the wrong direction.
+        $isApi = str_starts_with($request->getUri()->getPath(), '/api/v2/');
         if ($isApi) {
             return AuthenticationServiceFactory::buildJwt();
         }
