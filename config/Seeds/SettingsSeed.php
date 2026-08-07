@@ -51,6 +51,7 @@ class SettingsSeed extends BaseSeed
             ['name' => 'thread_depth_indent', 'value' => '20'],
             ['name' => 'timezone', 'value' => 'UTC'],
             ['name' => 'topics_per_page', 'value' => '20'],
+            ['name' => '2fa_required_from_role', 'value' => 'off'],
             ['name' => 'tos_enabled', 'value' => '0'],
             ['name' => 'tos_url', 'value' => ''],
             ['name' => 'tos_version', 'value' => '0'],

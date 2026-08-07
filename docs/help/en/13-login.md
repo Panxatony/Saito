@@ -98,6 +98,14 @@ Switching two-factor authentication off, changing your password, or an
 administrator resetting the second factor withdraws the trust from **every**
 device, and each has to prove itself again.
 
+**When the forum requires it.** Some forums require two-factor authentication of
+moderators and administrators. If that applies to you and you have not set it up,
+every request lands on a page asking you to, instead of where you were going. Set
+it up once and it goes away. For ordinary members it stays optional.
+
+If your authenticator app is out of reach, you can log out from that page; whoever
+looks after the server can reset the second factor if it comes to that.
+
 ### When the terms of service change
 
 If the terms change materially, you are asked about it on your next visit: instead

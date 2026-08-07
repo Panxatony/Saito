@@ -10,7 +10,23 @@ echo $this->Form->create(
     ['inputDefaults' => [], 'class' => 'well']
 );
 
-if ($setting->get('type') === 'bool') {
+if ($setting->get('type') === 'select') {
+    // A fixed list, because the values are a closed set. Labels come from the
+    // translation catalogue so the meaning is readable — "mod" alone does not
+    // say whether it means "from moderator upwards" or "moderators only".
+    $choices = [];
+    foreach (($settingOptions ?? []) as $value) {
+        $choices[$value] = __d('nondynamic', $setting->get('name') . '.' . $value);
+    }
+    echo $this->Form->control(
+        'value',
+        [
+            'type' => 'select',
+            'options' => $choices,
+            'label' => __d('nondynamic', $setting->get('name')),
+        ]
+    );
+} elseif ($setting->get('type') === 'bool') {
     $checkbox = $this->Form->control(
         'value',
         [

@@ -35,6 +35,12 @@ echo $this->Setting->table(
 );
 
 echo $this->Setting->table(
+    __('Security'),
+    ['2fa_required_from_role'],
+    $Settings
+);
+
+echo $this->Setting->table(
     __('Edit'),
     ['edit_period', 'edit_delay'],
     $Settings

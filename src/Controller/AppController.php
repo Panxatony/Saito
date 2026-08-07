@@ -135,6 +135,18 @@ class AppController extends Controller
             }
         );
 
+        // A required second factor, one step behind the terms gate. Order
+        // matters and is not arbitrary: somebody who has not agreed to the
+        // terms should meet the terms first, because agreeing is the smaller
+        // ask and refusing it makes the second factor moot.
+        $this->getEventManager()->on(
+            'Controller.initialize',
+            ['priority' => 3],
+            function (\Cake\Event\EventInterface $event): ?Response {
+                return $this->requireSecondFactor($event);
+            }
+        );
+
         // Leave in front to have it available in all Components
         $this->loadComponent('Detectors.Detectors');
         // CookieComponent was removed in Cake 4; cookies go through
@@ -258,6 +270,95 @@ class AppController extends Controller
 
         return $controller === 'Users'
             && in_array($action, ['tosAccept', 'logout', 'login', 'export'], true);
+    }
+
+    /**
+     * Sends staff without a second factor to set one up (#87).
+     *
+     * The account worth protecting most is the one where the protection was
+     * optional: an administrator can reset anybody's second factor, read the
+     * backend and change every setting. Ordinary members keep the choice — the
+     * asymmetry is the point, because the cost of a compromised member account
+     * is one member and the cost of a compromised administrator account is the
+     * forum.
+     *
+     * Off by default, so nothing changes on upgrade. When it is on, this runs
+     * per request like the terms gate rather than invalidating sessions: the
+     * next thing anybody does already lands here, and dropping everyone's login
+     * would cost the whole forum something to achieve nothing.
+     *
+     * A promotion therefore takes effect on the promoted member's next request.
+     * That is correct and it will surprise somebody, so the admin screen says so
+     * next to the setting.
+     *
+     * @param \Cake\Event\EventInterface $event the initialize event
+     * @return Response|null the enrolment page, or null to let the request through
+     */
+    protected function requireSecondFactor(\Cake\Event\EventInterface $event): ?Response
+    {
+        $from = (string)Configure::read('Saito.Settings.2fa_required_from_role');
+        if ($from === '' || $from === 'off') {
+            return null;
+        }
+        if (!$this->CurrentUser->isLoggedIn()) {
+            return null;
+        }
+
+        // `mod` means "moderator and above", not "moderators only" — an
+        // administrator holds the moderator permissions too, so requiring it of
+        // moderators while exempting administrators would be the wrong way
+        // round and is not offered.
+        $resource = $from === 'admin'
+            ? 'saito.core.admin.backend'
+            : 'saito.core.posting.pinAndLock';
+        if (!$this->CurrentUser->permission($resource)) {
+            return null;
+        }
+
+        $userId = (int)$this->CurrentUser->getId();
+        if ($this->fetchTable('TwoFactorCredentials')->isEnabledFor($userId)) {
+            return null;
+        }
+        if ($this->isExemptFromSecondFactorGate()) {
+            return null;
+        }
+
+        $this->viewBuilder()->setLayout('htmx_island');
+        $body = $this->render('/Pages/two_factor_required');
+        $event->stopPropagation();
+
+        return $body;
+    }
+
+    /**
+     * What has to stay reachable, or the gate becomes a lock with no key.
+     *
+     * This is the part that decides whether the feature is safe to turn on. The
+     * enrolment page is the way out, so it cannot be behind the gate that sends
+     * people to it; the recovery codes are handed out during enrolment on the
+     * same screen; and logging out has to work, or somebody who cannot enrol on
+     * this device is stuck in a forum they cannot leave.
+     *
+     * Enrolment needs its own POST target too — the settings page posts back to
+     * itself to start, confirm and finish — which is why the whole
+     * `htmxTwoFactor` action is exempt rather than only its GET.
+     *
+     * @return bool
+     */
+    private function isExemptFromSecondFactorGate(): bool
+    {
+        $request = $this->getRequest();
+        if ($request->getParam('plugin') !== null) {
+            // Including the admin area: an administrator who has not enrolled
+            // has no business in the backend until they have.
+            return false;
+        }
+
+        $controller = (string)$request->getParam('controller');
+        $action = (string)$request->getParam('action');
+
+        return $controller === 'Users'
+            && in_array($action, ['htmxTwoFactor', 'logout', 'login', 'twoFactor'], true);
     }
 
     /**

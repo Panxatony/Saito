@@ -2020,3 +2020,43 @@ msgstr "No passkey is registered for this account."
 #: templates/Users/htmx_two_factor_settings.php
 msgid "user.2fa.passkey.already"
 msgstr "This device already has a passkey for your account, so there is nothing to add — you can confirm your logins here right away. Apple and Google sync passkeys between your devices, which is why one may appear on a device you never registered."
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.t"
+msgstr "Two-factor authentication is required"
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.lead"
+msgstr "This forum requires everyone with moderator or administrator rights to protect their account with a second factor. Yours is not set up yet."
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.exp"
+msgstr "Set it up once and this page will not appear again. You will need an authenticator app on your phone — or a passkey, if your device offers Touch ID, Face ID or Windows Hello."
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.setup"
+msgstr "Set up two-factor authentication"
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.lockout"
+msgstr "Locked out later on? Whoever administers the server can switch the second factor off again with `bin/cake two_factor_reset <username>`, without needing to sign in."
+
+#: templates/Pages/two_factor_required.php
+msgid "user.2fa.required.logout"
+msgstr "Log out instead"
+
+#: plugins/Admin/templates/Settings
+msgid "2fa_required_from_role"
+msgstr "Require two-factor authentication from"
+
+#: plugins/Admin/templates/Settings
+msgid "2fa_required_from_role.off"
+msgstr "Nobody — it stays optional for everyone"
+
+#: plugins/Admin/templates/Settings
+msgid "2fa_required_from_role.mod"
+msgstr "Moderators and administrators"
+
+#: plugins/Admin/templates/Settings
+msgid "2fa_required_from_role.admin"
+msgstr "Administrators only"
