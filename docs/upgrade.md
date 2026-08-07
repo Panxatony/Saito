@@ -32,12 +32,12 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: fourteen migrations
+### The database: fifteen migrations
 
-Between 5.7.0 and the current release there are **fourteen** schema changes.
+Between 5.7.0 and the current release there are **fifteen** schema changes.
 The second exists only to repair the first; one of them is the expensive one;
 two are about columns that predate these migrations entirely; one finishes a
-character-set conversion that the first left incomplete; and the last four
+character-set conversion that the first left incomplete; and the last five
 are additive — new tables and one new column for features that arrived in the
 8.4 line, which cost an upgrade nothing but the time to create them.
 
@@ -56,7 +56,8 @@ are additive — new tables and one new column for features that arrived in the
 | `20260805100000_CreatePasswordResetTokens` | Adds `password_reset_tokens` for the self-service password reset (8.4.0). Empty until somebody forgets a password |
 | `20260806100000_AddTosAcceptedVersionToUsers` | Adds `users.tos_accepted_version` (8.4.1). Starts at 0, as does the `tos_version` setting, so the upgrade asks nobody to agree to anything |
 | `20260806120000_CreateTwoFactorTables` | Adds `two_factor_credentials` and `two_factor_recovery_codes` (8.4.2). Rows exist only for accounts that enrol, so an installation where nobody does carries no authentication secrets at all |
-| `20260806160000_CreateTwoFactorTrustedDevices` | Adds `two_factor_trusted_devices`, which is what lets "stay signed in" work alongside a second factor (8.4.3). Empty until somebody ticks the box |
+| `20260806160000_CreateTwoFactorTrustedDevices` | Adds `two_factor_trusted_devices`, which is what lets "stay signed in" work alongside a second factor (8.4.4). Empty until somebody ticks the box |
+| `20260807010000_CreateWebauthnCredentials` | Adds `webauthn_credentials` for passkeys (Touch ID, Face ID, Windows Hello). Empty until somebody registers a device |
 
 #### The last two are guarded, and that is not decoration
 

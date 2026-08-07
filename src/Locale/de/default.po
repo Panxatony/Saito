@@ -2135,3 +2135,71 @@ msgstr "Für dieses Mitglied ist die 2 Faktor Authentifizierung nicht aktiv."
 #: plugins/Admin/templates/Users/two_factor_reset.php
 msgid "user.2fa.admin.reset.done"
 msgstr "Die 2 Faktor Authentifizierung für {0} wurde zurückgesetzt."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.t"
+msgstr "Passkeys"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.exp"
+msgstr "Melde dich mit diesem Gerät an — Touch ID, Face ID, Windows Hello oder ein Sicherheitsschlüssel — statt einen Code zu tippen. Das Gerät prüft dich vor Ort; weder Fingerabdruck noch Gesicht erreichen jemals das Forum. Ein Passkey gehört zu dem Gerät, auf dem er entstanden ist: richte ihn auf jedem Gerät ein, das du nutzt, und bewahre deine Wiederherstellungs-Codes auf."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.add"
+msgstr "Dieses Gerät einrichten"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.added"
+msgstr "Dieses Gerät ist eingerichtet."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.remove"
+msgstr "Entfernen"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.removed"
+msgstr "Der Passkey wurde entfernt."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.label"
+msgstr "Name für dieses Gerät"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.label.ph"
+msgstr "z. B. Arbeitslaptop"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.unnamed"
+msgstr "Gerät ohne Namen"
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.none.own"
+msgstr "Noch kein Gerät eingerichtet."
+
+#: templates/Users/htmx_two_factor_settings.php
+msgid "user.2fa.passkey.unsupported"
+msgstr "Dieser Browser oder dieses Gerät kann keine Passkeys. Der Code aus deiner App funktioniert überall weiter."
+
+#: templates/element/users/two_factor_form.php
+msgid "user.2fa.passkey.use"
+msgstr "Mit diesem Gerät bestätigen"
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.failed"
+msgstr "Das hat nicht geklappt. Gib stattdessen den Code aus deiner App ein."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.expired"
+msgstr "Das hat zu lange gedauert. Bitte noch einmal anfangen."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.needs2fa"
+msgstr "Schalte zuerst die 2 Faktor Authentifizierung ein: ein Passkey kommt dazu, und die Wiederherstellungs-Codes daraus sind dein Weg zurück, wenn dieses Gerät abhandenkommt."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.toomany"
+msgstr "Du hast so viele Geräte eingerichtet, wie dieses Forum erlaubt. Entferne zuerst eines."
+
+#: src/Controller/UsersController.php
+msgid "user.2fa.passkey.none"
+msgstr "Für dieses Konto ist kein Passkey eingerichtet."

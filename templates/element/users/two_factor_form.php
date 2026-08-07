@@ -24,6 +24,29 @@ $errorMessage = $errorMessage ?? null;
 <p><?= h(__('user.2fa.challenge.exp')) ?></p>
 
 <?php
+/**
+ * The passkey path, offered first because it is one press against six digits.
+ *
+ * Hidden by default and revealed by the island only once the browser has
+ * confirmed a platform authenticator actually exists — a button that cannot
+ * work is worse than no button. Everything below it stays exactly where it was:
+ * without JavaScript, without a sensor, or with the prompt dismissed, the code
+ * field is still the way through.
+ */
+?>
+<div id="js-passkeyLoginStatus" class="alert" role="alert" hidden></div>
+<button type="button"
+        class="btn btn-primary"
+        data-passkey="login"
+        data-options-url="<?= h($webroot . 'users/webauthn-login-options') ?>"
+        data-verify-url="<?= h($webroot . 'users/webauthn-login') ?>"
+        data-status="#js-passkeyLoginStatus"
+        data-failed="<?= h(__('user.2fa.passkey.failed')) ?>"
+        hidden>
+    <?= h(__('user.2fa.passkey.use')) ?>
+</button>
+
+<?php
 echo $this->Form->create(null, [
     'url' => $webroot . 'users/two-factor',
     'type' => 'post',

@@ -78,6 +78,12 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::htmxBookmarkComment' => 'edits the note on the current user\'s own bookmark; the row is looked up by posting id AND user id (self-scoped)',
         'App\\Controller\\UsersController::htmxChangePassword' => 'changes the current user\'s own password, requires password_old (self-scoped)',
         'App\\Controller\\UsersController::htmxTwoFactor' => 'the current member\'s own second factor: enrol, new recovery codes, switch off. Self-scoped by construction (the account comes from the session), and the two weakening actions re-ask for the password',
+        // Both self-scoped by construction: the account comes from the session,
+        // never from the request. Registering additionally refuses unless the
+        // second factor is already on, so a passkey can only ever be added
+        // beside a code and its recovery codes.
+        'App\\Controller\\UsersController::webauthnRegisterOptions' => 'issues a registration challenge for the current member\'s own account (self-scoped; refuses unless 2FA is already on)',
+        'App\\Controller\\UsersController::webauthnRegister' => 'stores a passkey for the current member\'s own account; the challenge is held server-side and spent once (self-scoped)',
         'App\\Controller\\UsersController::tosAccept' => 'records the current user\'s own agreement to the terms; account from the session, version from the setting (nothing to substitute)',
         'App\\Controller\\EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
         'App\\Controller\\EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
@@ -120,6 +126,13 @@ class AuthorizationCoverageTest extends SaitoTestCase
         // stands in for one is the pending marker login() writes after a password
         // checks out: it names the account, lives five minutes, and is throttled.
         'App\\Controller\\UsersController::twoFactor' => 'second-factor challenge; gated by the pending-login marker, not by a session',
+        // The same second step reached with a passkey instead of a code, so
+        // open for the same reason and gated the same way: the pending marker
+        // names the account, lives five minutes and is throttled. On top of
+        // that both refuse without a server-held challenge, and the credential
+        // is looked up scoped to the pending account.
+        'App\\Controller\\UsersController::webauthnLoginOptions' => 'issues an assertion challenge for a pending login; gated by the pending-login marker, not by a session',
+        'App\\Controller\\UsersController::webauthnLogin' => 'completes a pending login with a passkey; gated by the pending-login marker, a one-shot server-held challenge, and the login throttle',
         'App\\Controller\\UsersController::htmxRegister' => 'island registration form',
         // Self-service password reset (#63): both must work for a member who
         // cannot log in. Enumeration-safe (identical answer whether or not the

@@ -17,6 +17,7 @@
  * @var list<string>|null $recoveryCodes
  * @var string|null $errorMessage
  * @var int $remainingCodes
+ * @var list<\App\Model\Entity\WebauthnCredential> $passkeys
  */
 $webroot = $this->request->getAttribute('webroot');
 $title = __('user.2fa.settings.t');
@@ -73,6 +74,67 @@ if ($provisioningUri !== null) {
             <?= $this->Form->button(h(__('user.2fa.codes.new')), ['class' => 'btn btn-secondary']) ?>
             <?= $this->Form->end() ?>
 
+            <?php
+            /**
+             * Passkeys, offered only once the code is in place.
+             *
+             * Deliberately an addition rather than a way in: a passkey lives in
+             * one machine's secure enclave, and a member whose only registered
+             * device is lost needs the recovery codes that came with the code
+             * — so the code has to exist first.
+             */
+            ?>
+            <hr>
+            <h4><?= h(__('user.2fa.passkey.t')) ?></h4>
+            <p class="exp"><?= h(__('user.2fa.passkey.exp')) ?></p>
+
+            <?php if ($passkeys) : ?>
+                <ul class="passkey-list">
+                    <?php foreach ($passkeys as $passkey) : ?>
+                        <li>
+                            <span class="passkey-label">
+                                <?= h($passkey->get('label') ?: __('user.2fa.passkey.unnamed')) ?>
+                            </span>
+                            <span class="exp">
+                                <?= h($this->TimeH->formatTime($passkey->get('created'), 'd.m.Y')) ?>
+                            </span>
+                            <?= $this->Form->create(null, [
+                                'url' => $webroot . 'users/htmx-two-factor',
+                                'style' => 'display:inline',
+                            ]) ?>
+                            <?= $this->Form->hidden('do', ['value' => 'removePasskey']) ?>
+                            <?= $this->Form->hidden('credentialId', ['value' => $passkey->get('id')]) ?>
+                            <?= $this->Form->button(h(__('user.2fa.passkey.remove')), [
+                                'class' => 'btn btn-sm btn-secondary',
+                            ]) ?>
+                            <?= $this->Form->end() ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else : ?>
+                <p><?= h(__('user.2fa.passkey.none.own')) ?></p>
+            <?php endif; ?>
+
+            <div id="js-passkeyStatus" class="alert" role="alert" hidden></div>
+            <label class="form-label" for="js-passkeyLabel"><?= h(__('user.2fa.passkey.label')) ?></label>
+            <input type="text" id="js-passkeyLabel" class="form-control" maxlength="100"
+                   placeholder="<?= h(__('user.2fa.passkey.label.ph')) ?>">
+            <button type="button"
+                    class="btn btn-primary"
+                    style="margin-top:0.5rem"
+                    data-passkey="register"
+                    data-options-url="<?= h($webroot . 'users/webauthn-register-options') ?>"
+                    data-verify-url="<?= h($webroot . 'users/webauthn-register') ?>"
+                    data-status="#js-passkeyStatus"
+                    data-done="<?= h(__('user.2fa.passkey.added')) ?>"
+                    data-failed="<?= h(__('user.2fa.passkey.failed')) ?>"
+                    data-note="#js-passkeyUnsupported"
+                    hidden>
+                <?= h(__('user.2fa.passkey.add')) ?>
+            </button>
+            <p class="exp" id="js-passkeyUnsupported"><?= h(__('user.2fa.passkey.unsupported')) ?></p>
+
+            <hr>
             <?= $this->Form->create(null, ['url' => $webroot . 'users/htmx-two-factor', 'style' => 'margin-top:1.5rem']) ?>
             <?= $this->Form->hidden('do', ['value' => 'disable']) ?>
             <?= $this->Form->control('password', [

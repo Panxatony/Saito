@@ -66,6 +66,33 @@ Einstellungen erzeugen; die alten verfallen dabei.
 2 Faktor Authentifizierung für dein Konto zurücksetzen. Danach meldest du dich
 wieder allein mit dem Passwort an und richtest sie neu ein.
 
+### Passkeys: mit Touch ID, Face ID oder Windows Hello bestätigen
+
+Statt den sechsstelligen Code zu tippen, kannst du den zweiten Schritt auch mit
+dem Gerät bestätigen, das du gerade in der Hand hast. Einrichten in denselben
+Einstellungen unter *Passkeys*, sobald die 2 Faktor Authentifizierung an ist.
+
+**Dein Fingerabdruck verlässt das Gerät nie.** Das Betriebssystem prüft dich vor
+Ort und schickt dem Forum nur eine Unterschrift. Das Forum sieht weder
+Fingerabdruck noch Gesicht — und kann es auch gar nicht.
+
+Drei Dinge, die überraschen, wenn man sie nicht weiß:
+
+- **Ein Passkey gehört zum Gerät.** Der auf dem Mac liegt nicht auf dem Handy.
+  Apple und Google gleichen Passkeys inzwischen ab, aber verlassen solltest du
+  dich nicht darauf: richte jedes Gerät ein, das du nutzt, und **behalte deine
+  Wiederherstellungs-Codes**.
+- **Ein Passkey gilt nur für diese Adresse.** Einer, der auf einem Testforum
+  eingerichtet wurde, funktioniert im echten Forum nicht. Das ist kein Fehler,
+  sondern genau der Schutz: deshalb kann eine gefälschte Seite deinen Passkey
+  nicht abgreifen.
+- **Der Code bleibt.** Passkeys brauchen JavaScript und einen passenden Sensor.
+  Fehlt eines von beidem, ist das Codefeld unverändert da — der Knopf erscheint
+  gar nicht erst, wenn dein Gerät nicht mitspielt.
+
+Ein Gerät, das du nicht mehr nutzt, entfernst du in den Einstellungen. Schaltest
+du die 2 Faktor Authentifizierung ab, verschwinden alle Passkeys mit.
+
 **„Angemeldet bleiben" funktioniert weiterhin.** Setzt du das Häkchen beim
 Passwort, merkt sich das Forum nach dem Code *dieses Gerät* für 30 Tage — du
 kommst dann ohne Passwort und ohne Code wieder herein. Das gilt nur für Geräte,
