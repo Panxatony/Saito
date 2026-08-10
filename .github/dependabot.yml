@@ -40,7 +40,7 @@ updates:
         dependency-type: development
         patterns: ["*"]
     ignore:
-      # Held back deliberately, each for a reason recorded in todo.md.
+      # Held back deliberately, each for a reason recorded in issue #66.
       # Dependabot would otherwise re-propose them every week.
       #  - authentication 4 rewrites the identifier configuration
       #    (250 tests failed when it was tried on 2026-07-30)
@@ -75,12 +75,25 @@ updates:
         dependency-type: development
         patterns: ["*"]
     ignore:
-      # Bootstrap 4 is unmaintained and going, but its successor is a
-      # rewrite of every template rather than a bump — see todo.md. Its
-      # known vulnerabilities are in JavaScript this forum has not loaded
-      # since 8.1.0.
+      # Bootstrap 4 is unmaintained and going, but 5 is a detour rather
+      # than a step: measured in issue #73, it fixes none of the SCSS
+      # deprecations and every hour of it is thrown away when Bootstrap
+      # goes. Its known vulnerabilities are in JavaScript this forum has
+      # not loaded since 8.1.0.
       - dependency-name: bootstrap
         versions: [">=5"]
+      # TypeScript 7 is refused by typescript-eslint, which says so and
+      # exits — so `yarn lint` produces no lint at all rather than
+      # failing loudly. Tracked upstream as typescript-eslint#10940 and
+      # here as issue #69.
+      #
+      # Listed here and not only in the issue because that was the gap:
+      # the decision was written down where a human reads it and nowhere
+      # a machine does, so Dependabot proposed TS 7 again on 2026-08-10
+      # (PR #88), the frontend job failed, and the three bumps bundled
+      # with it were held up by it. Remove this entry when 10940 closes.
+      - dependency-name: typescript
+        versions: [">=7"]
 
   # ------------------------------------------------------------------
   # The actions themselves. A pinned action with a vulnerability is a
