@@ -75,12 +75,12 @@ class UserFixture extends TestFixture
             'unsigned' => false,
         ],
         'last_login' => [
-            'type' => 'timestamp',
+            'type' => 'datetime',
             'null' => true,
             'default' => null,
         ],
         'registered' => [
-            'type' => 'timestamp',
+            'type' => 'datetime',
             'null' => true,
             'default' => null,
         ],

@@ -44,10 +44,12 @@ class UseronlineFixture extends TestFixture
             'default' => null,
         ],
         'time' => [
-            'type' => 'integer',
+            // A Unix timestamp, and `biginteger` for the same reason
+            // `entries.time` became a datetime: a signed INT runs out on
+            // 2038-01-19 (#70).
+            'type' => 'biginteger',
             'null' => false,
             'default' => '0',
-            'length' => 14,
             'unsigned' => false,
         ],
         'created' => ['type' => 'datetime', 'null' => true, 'default' => null],
