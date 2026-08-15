@@ -32,15 +32,16 @@ new files over" routine, see [update.md](update.md).
 
 ## What actually changes
 
-### The database: seventeen migrations
+### The database: eighteen migrations
 
-Between 5.7.0 and the current release there are **seventeen** schema changes.
-The second exists only to repair the first; one of them is the expensive one;
-two are about columns that predate these migrations entirely; one finishes a
-character-set conversion that the first left incomplete; five are additive —
-new tables and one new column for features that arrived in the 8.4 line, which
-cost an upgrade nothing but the time to create them; and the last one deletes,
-though only rows belonging to accounts that no longer exist.
+Between 5.7.0 and the current release there are **eighteen** schema changes.
+The second exists only to repair the first; **two rewrite every row and are the
+ones to plan for**; two are about columns that predate these migrations
+entirely; one finishes a character-set conversion that the first left
+incomplete; five are additive — new tables and one new column for features that
+arrived in the 8.4 line, which cost an upgrade nothing but the time to create
+them; and one deletes, though only rows belonging to accounts that no longer
+exist.
 
 | Migration | What it does |
 |---|---|
@@ -61,6 +62,7 @@ though only rows belonging to accounts that no longer exist.
 | `20260807010000_CreateWebauthnCredentials` | Adds `webauthn_credentials` for passkeys (Touch ID, Face ID, Windows Hello). Empty until somebody registers a device |
 | `20260807080000_DeleteOrphanedCredentials` | Removes credentials belonging to accounts that were deleted before #86 was fixed — second-factor secrets, recovery-code hashes, device tokens, passkeys and reset tokens. Touches nothing that belongs to a live account |
 | `20260807110000_AddTwoFactorRequirementSetting` | Adds the `2fa_required_from_role` setting, value `off`, so nothing changes until an operator sets it |
+| `20260813090000_ConvertTimestampColumnsToDatetime` | Moves nine columns off `timestamp`, which cannot hold an instant after 2038-01-19, and widens `useronline.time` to `BIGINT` — **rewrites `entries`, read below** |
 
 #### The last two are guarded, and that is not decoration
 
@@ -121,6 +123,46 @@ WHERE table_schema = DATABASE() AND engine = 'MyISAM';
 ```
 
 Nothing listed means the conversion is a no-op for you.
+
+#### The 2038 conversion rewrites `entries` a second time
+
+`timestamp` cannot hold an instant after **2038-01-19**, and that was the type
+of the columns postings are written to. Nine columns move to `datetime`, which
+has no such limit, and `useronline.time` — a Unix timestamp in a signed `INT`,
+the same ceiling by another road — becomes `BIGINT`.
+
+Changing a column's type cannot be done in place: `ALGORITHM=INPLACE` is
+answered with `ERROR 1846`, so each table is rebuilt. Measured on 680,000
+postings, on two different servers:
+
+- **70 seconds** on a database server with the buffer pool sized for the data,
+  and **4 minutes 29 seconds** on a smaller one. Expect the same order as the
+  InnoDB conversion above, on the same hardware.
+- **On MariaDB 11.2 and later the forum stays writable throughout.** That
+  version can rebuild a table online, and the migration asks for it; where the
+  server does not offer it the statement is repeated without, and the table is
+  readable but not writable until it finishes. Verified on 11.4 with a posting
+  written while the rebuild was running.
+- **Keep room for a second copy**, as with the InnoDB conversion: the new table
+  is written beside the old one.
+- **Run migrations from the command line.** Same reason as above — PHP's
+  execution limit will cut this short through the web updater.
+
+Two things the migration handles that would otherwise bite, so that nobody is
+tempted to run the `ALTER` by hand instead:
+
+**The session timezone decides the values.** MySQL holds a `timestamp`
+internally as UTC and renders it into the session's timezone when converting;
+`datetime` then stores that literal unchanged. Run through `migrations migrate`
+the session is already UTC. Run from a `mysql` client on a host set to local
+time, every instant in the table shifts by the offset — silently, and not
+recoverable once new postings sit in between.
+
+**A zero date aborts the conversion under `NO_ZERO_DATE`**, which is part of
+MySQL 8's default `sql_mode` — and a forum old enough to have `0000-00-00`
+values in these columns is exactly the kind of forum this document is for. The
+migration drops that flag for its own session and leaves the values as they
+are; turning them into something else is a separate decision.
 
 #### The dropped columns
 

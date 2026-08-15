@@ -92,14 +92,20 @@ database with the version of the code; if they differ it routes you to the
 updater instead of the front page. Confirm, and it applies any pending
 migrations and records the new version.
 
-> **Check what is pending first if you are crossing 8.3.0.** That release carries
-> a migration that moves the core tables to InnoDB, and on an installation whose
-> `entries` is still MyISAM it rewrites the table — measured at five and a half
-> minutes for 680,000 postings, with the table locked throughout. PHP's execution
-> limit will cut that short through the browser: the server finishes the
-> conversion anyway, but it may then not be recorded as applied. Run it from the
-> command line instead, and read the database section of
-> [upgrade.md](upgrade.md) for what to expect.
+> **Check what is pending first if you are crossing 8.3.0 or 8.4.6.** Each of
+> those carries a migration that rewrites `entries` in full, and PHP's execution
+> limit will cut a rewrite short through the browser: the server finishes it
+> anyway, but it may then not be recorded as applied. Run those from the command
+> line instead, and read the database section of [upgrade.md](upgrade.md) for
+> what to expect.
+>
+> - **8.3.0** moves the core tables to InnoDB. On an installation whose
+>   `entries` is still MyISAM that is five and a half minutes for 680,000
+>   postings, with the table locked throughout.
+> - **8.4.6** moves nine columns off `timestamp`, which stops working in 2038.
+>   Measured between 70 seconds and four and a half minutes for the same number
+>   of postings, depending on the server — and on MariaDB 11.2 or later the
+>   forum stays writable while it runs.
 >
 > ```bash
 > cd /path/to/forum
