@@ -319,15 +319,12 @@ class UsersController extends AdminAppController
             return null;
         }
 
-        $Credentials->disableFor((int)$user->get('id'));
-        $this->fetchTable('TwoFactorRecoveryCodes')->clearFor((int)$user->get('id'));
-        // An administrator resets the second factor because the member lost
-        // control of it. Devices trusted on the strength of that factor have to
-        // go too, or the reset leaves the thing it was meant to undo in place —
-        // and so do the passkeys, which are registrations of that same factor
-        // and would otherwise still complete a second step.
-        $this->fetchTable('TwoFactorTrustedDevices')->clearFor((int)$user->get('id'));
-        $this->fetchTable('WebauthnCredentials')->clearFor((int)$user->get('id'));
+        // Which tables that means lives in one place — see
+        // UsersTable::resetSecondFactor(). Spelling the list out here as well
+        // would make this a copy that is right until the next credential table
+        // arrives, and the failure is silent: the member signs in again either
+        // way, and nobody notices what was left standing.
+        $this->fetchTable('Users')->resetSecondFactor((int)$user->get('id'));
 
         Log::write(
             'info',

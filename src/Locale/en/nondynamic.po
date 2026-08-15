@@ -400,3 +400,18 @@ msgstr "Rank ladder"
 #
 msgid "userranks_ranks_exp"
 msgstr "A list of <count>=<title> separated by vertical bars. A rank applies from the given count upwards: \"10=Deckhand|100=Able Seaman\" makes a member a Deckhand at ten postings and an Able Seaman at a hundred. Below the lowest count no rank is shown. Leave empty to switch ranks off."
+
+msgid "2fa_required_from_role"
+msgstr "Require two-factor authentication from"
+
+msgid "2fa_required_from_role_exp"
+msgstr "Members with these rights must protect their account with a second factor; anybody affected who has not set one up is asked to before they can use the forum. Ordinary members always keep the choice. Note that switching this on can lock you out if your authenticator app is not to hand — `bin/cake two_factor_reset <username>` on the server is the way back — and that promoting somebody takes effect on their next request."
+
+msgid "2fa_required_from_role.off"
+msgstr "Nobody — it stays optional for everyone"
+
+msgid "2fa_required_from_role.mod"
+msgstr "Moderators and administrators"
+
+msgid "2fa_required_from_role.admin"
+msgstr "Administrators only"

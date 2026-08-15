@@ -5,6 +5,68 @@
 - Δ Changed
 - − Removed
 
+## [8.4.6] - 2026-08-15 "dienstschlüssel"
+
+**One migration runs, and it rewrites `entries`.** Not additive like the five
+before it: nine columns change type, so the table is rebuilt row by row.
+Measured between 70 seconds and four and a half minutes for 680,000 postings,
+depending on the server. On MariaDB 11.2 or later the forum stays writable while
+it happens; everywhere else the table is readable but not writable until it
+finishes. **Run it from the command line** — PHP's execution limit will cut a
+rewrite short through the web updater.
+
+```bash
+php bin/cake.php migrations migrate
+php bin/cake.php schema_cache clear
+```
+
+The key that comes with the office. A forum can now require a second factor of
+the people who can change it — and, because a lock without a key is how an
+operator loses their own forum, three ways back out.
+
+- ＋ Added: **a forum can require two-factor authentication of its moderators
+  and administrators.** `off` by default, so upgrading changes nothing for
+  anybody; an operator sets it to `mod` or `admin` in the admin area. Ordinary
+  members are never caught by it — the cost of a compromised member account is
+  one member, the cost of a compromised administrator account is the forum.
+
+  Every exemption in it is load-bearing. Somebody who switches the setting on
+  while their authenticator app is on a phone in another room must still be able
+  to set the second factor up, and to log out; both stay reachable from behind
+  the gate, and both are tested one by one. For the case that has no interface
+  left at all there is `bin/cake two_factor_reset <username>`, which clears the
+  second factor, the recovery codes, the trusted devices and the passkeys of one
+  named account without touching the account itself.
+
+- ＋ Added: **the columns postings are written to now outlive 2038.** `timestamp`
+  cannot hold an instant after 2038-01-19; nine columns move to `datetime`,
+  which has no such limit, and `useronline.time` — a Unix timestamp in a signed
+  `INT`, the same date by another road — becomes `BIGINT`.
+
+  Eleven years off, and worth doing now rather than under pressure: the
+  conversion has to rebuild the tables either way, and the two ways it can go
+  wrong quietly are both handled. The session's timezone decides what a
+  `timestamp` becomes when it turns into a `datetime`, so the migration pins it
+  to UTC rather than trusting the host's clock; and a `0000-00-00` left over
+  from an older MySQL would abort the whole chain under that server's default
+  `sql_mode`, so those values are let through unchanged instead.
+
+- ✓ Fixed: **the new setting showed its own translation key** where its name and
+  explanation belong. The admin area reads those from the `nondynamic` catalogue
+  and the strings had been added to `default`, so the screen offered
+  `2fa_required_from_role_exp` as if it were a sentence. A test now renders every
+  settings label and fails on any key that reaches the page untranslated.
+
+- ✓ Fixed: **the passkey is mentioned where people look for it.** It could only
+  be found by opening the second-factor screen and reading to the end, which is
+  not where somebody wonders whether their fingerprint would work here.
+
+- Δ Changed: the upgrade and update documents describe what this migration costs
+  and which releases need the command line, and the bot-filter section explains
+  the exemption static files need — a challenged stylesheet arrives as
+  `Content-Type: text/html` and the forum renders unstyled, with nothing in the
+  log to find.
+
 ## [8.4.5] - 2026-08-07 "handschlag"
 
 **Two migrations run.** One adds `webauthn_credentials`; the other deletes
