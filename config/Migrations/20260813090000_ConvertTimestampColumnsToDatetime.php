@@ -100,6 +100,7 @@ class ConvertTimestampColumnsToDatetime extends BaseMigration
     public function up(): void
     {
         $this->execute("SET time_zone = '+00:00'");
+        $this->allowZeroDates();
 
         foreach (self::CONVERSIONS as $table => $columns) {
             $this->convert($table, $columns);
@@ -121,12 +122,43 @@ class ConvertTimestampColumnsToDatetime extends BaseMigration
     public function down(): void
     {
         $this->execute("SET time_zone = '+00:00'");
+        $this->allowZeroDates();
 
         foreach (self::REVERSALS as $table => $columns) {
             $this->convert($table, $columns);
         }
 
         $this->convert('useronline', ['time' => 'INT(14) NOT NULL DEFAULT 0']);
+    }
+
+    /**
+     * Let a `0000-00-00 00:00:00` through the conversion instead of aborting on
+     * it.
+     *
+     * A forum grown on an older MySQL can hold zero dates in these columns —
+     * they were legal when the rows were written. Converting one to `datetime`
+     * raises `ERROR 1292` under `NO_ZERO_DATE`, which is **in MySQL 8's default
+     * sql_mode**, and CakePHP sets no sql_mode of its own: it inherits the
+     * server's. So on such an installation this migration would stop halfway
+     * through the chain, on data that has been sitting there harmlessly for
+     * years. MariaDB's default omits the flag, which is why it is not something
+     * we would ever have run into here.
+     *
+     * Dropping the two flags for this session preserves exactly what the rows
+     * already mean: a zero timestamp becomes a zero datetime. Cleaning that
+     * data up is a separate decision and not a migration's business.
+     *
+     * The `REPLACE` leaves empty entries behind (`A,,,B`); the server discards
+     * them when the mode is assigned, verified rather than assumed.
+     *
+     * @return void
+     */
+    private function allowZeroDates(): void
+    {
+        $this->execute(
+            'SET SESSION sql_mode = '
+            . "REPLACE(REPLACE(@@sql_mode, 'NO_ZERO_DATE', ''), 'NO_ZERO_IN_DATE', '')",
+        );
     }
 
     /**
@@ -151,7 +183,7 @@ class ConvertTimestampColumnsToDatetime extends BaseMigration
         try {
             // MariaDB >= 11.2 rebuilds the table without blocking writes.
             $this->execute($statement . ', LOCK=NONE');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Every other server rejects LOCK=NONE outright, before doing any
             // work, so retrying without it is safe rather than a half-applied
             // change. The table is write-locked for the rebuild there.
