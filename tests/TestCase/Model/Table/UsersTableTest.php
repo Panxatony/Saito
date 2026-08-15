@@ -53,6 +53,69 @@ class UsersTableTest extends SaitoTableTestCase
      *
      * @return void
      */
+    /**
+     * Resetting the second factor has to clear every credential, not just the
+     * one people think of.
+     *
+     * The list is four tables and grew twice in three days — the credential and
+     * its recovery codes in 8.4.2, trusted devices in 8.4.4, passkeys in 8.4.5.
+     * Anything that writes the list out a second time is a copy that goes wrong
+     * at the next release, and goes wrong *silently*: the member signs in again
+     * either way.
+     *
+     * The passkey is the one that matters most. It completes the second step on
+     * its own, so a reset meant to help somebody who lost their device would
+     * otherwise leave a way in that the lost device still has.
+     *
+     * Asserted per table, like the deletion test above, so a failure names what
+     * was forgotten instead of moving a number.
+     *
+     * @return void
+     */
+    public function testResettingTheSecondFactorClearsEveryCredential(): void
+    {
+        $userId = 3;
+        $locator = TableRegistry::getTableLocator();
+        $tables = [
+            'TwoFactorCredentials',
+            'TwoFactorRecoveryCodes',
+            'TwoFactorTrustedDevices',
+            'WebauthnCredentials',
+        ];
+
+        $credentials = $locator->get('TwoFactorCredentials');
+        $secret = $credentials->beginEnrolment($userId);
+        $credentials->confirmEnrolment($userId, \OTPHP\TOTP::createFromSecret($secret)->now());
+        $locator->get('TwoFactorRecoveryCodes')->issueFor($userId);
+        $locator->get('TwoFactorTrustedDevices')->issueFor($userId);
+        $locator->get('WebauthnCredentials')->getConnection()->insert('webauthn_credentials', [
+            'user_id' => $userId,
+            'credential_id' => 'reset-test',
+            'credential' => '{}',
+            'sign_count' => 0,
+        ]);
+
+        foreach ($tables as $table) {
+            $this->assertGreaterThan(
+                0,
+                $locator->get($table)->find()->where(['user_id' => $userId])->count(),
+                "$table was not seeded, so this test would pass for the wrong reason",
+            );
+        }
+
+        $this->Table->resetSecondFactor($userId);
+
+        foreach ($tables as $table) {
+            $this->assertSame(
+                0,
+                $locator->get($table)->find()->where(['user_id' => $userId])->count(),
+                "$table survived a second-factor reset",
+            );
+        }
+        // …and the account itself is untouched: a reset is not a deletion.
+        $this->assertNotNull($this->Table->get($userId));
+    }
+
     public function testDeletingAnAccountTakesEveryCredentialWithIt(): void
     {
         $userId = 3;

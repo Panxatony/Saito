@@ -47,6 +47,13 @@ class SettingsController extends AdminAppController
         'forum_email' => 1,
         'forum_name' => 1,
         'quote_symbol' => 1,
+        // Three values and no more, so the edit form offers a list rather than
+        // a text field. A security setting that accepts a typo silently is a
+        // security setting that is off without anybody noticing.
+        '2fa_required_from_role' => [
+            'type' => 'select',
+            'options' => ['off', 'mod', 'admin'],
+        ],
         'signature_separator' => 1,
         // stopwatch_get is gone from here: the index template dropped its
         // section when the profiler chart died with the SPA, but leaving the key
@@ -136,6 +143,8 @@ class SettingsController extends AdminAppController
         $setting->set('type', $type);
 
         $this->set('setting', $setting);
+        // Only meaningful for `select`; the template ignores it otherwise.
+        $this->set('settingOptions', $this->settingsShownInAdminIndex[$id]['options'] ?? []);
 
         if ($id === 'timezone') {
             return $this->render('timezone');

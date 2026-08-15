@@ -46,19 +46,19 @@ class EntryFixture extends TestFixture
             'comment' => '',
         ],
         'time' => [
-            'type' => 'timestamp',
+            'type' => 'datetime',
             'null' => false,
             'default' => 'CURRENT_TIMESTAMP',
             'comment' => '',
         ],
         'last_answer' => [
-            'type' => 'timestamp',
+            'type' => 'datetime',
             'null' => true,
             'default' => null,
             'comment' => '',
         ],
         'edited' => [
-            'type' => 'timestamp',
+            'type' => 'datetime',
             'null' => true,
             'default' => null,
             'comment' => '',

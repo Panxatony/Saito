@@ -417,3 +417,18 @@ msgstr "Rangleiter"
 #
 msgid "userranks_ranks_exp"
 msgstr "Liste aus <Anzahl>=<Titel>, getrennt durch senkrechte Striche. Der Rang gilt ab der genannten Anzahl: \"10=Fischbrötchen|100=Schiffsjunge\" macht ab zehn Beiträgen zum Fischbrötchen und ab hundert zum Schiffsjungen. Wer die unterste Anzahl noch nicht erreicht hat, bekommt keinen Rang angezeigt. Leer lassen schaltet die Ränge ab."
+
+msgid "2fa_required_from_role"
+msgstr "2 Faktor Authentifizierung verlangen ab"
+
+msgid "2fa_required_from_role_exp"
+msgstr "Mitglieder mit diesen Rechten müssen ihr Konto mit einem zweiten Faktor schützen; wer betroffen ist und noch keinen eingerichtet hat, wird vor der Nutzung des Forums dazu aufgefordert. Für gewöhnliche Mitglieder bleibt es freiwillig. Beachte: Das Einschalten kann dich aussperren, wenn deine Authenticator-App nicht griffbereit ist — `bin/cake two_factor_reset <benutzername>` auf dem Server ist der Rückweg — und eine Beförderung greift beim nächsten Aufruf des Beförderten."
+
+msgid "2fa_required_from_role.off"
+msgstr "Niemand — bleibt für alle freiwillig"
+
+msgid "2fa_required_from_role.mod"
+msgstr "Moderatoren und Administratoren"
+
+msgid "2fa_required_from_role.admin"
+msgstr "Nur Administratoren"
