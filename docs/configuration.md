@@ -111,6 +111,34 @@ filter without CEL, fall back to a path allow-list — `path_regex:
 ^/(entries|users)/htmx-` — and remember to extend it when a new controller grows
 htmx routes.
 
+**Stylesheets, scripts and images need the same exemption**, and this one fails
+in a shape that is easy to misread. A browser fetches them *after* it has passed
+the check for the page that references them, but each fetch is a separate request
+and the filter judges it separately. A challenged stylesheet comes back as
+`HTTP 200` with `Content-Type: text/html`; the browser discards it, and the forum
+renders unstyled. There is no bot graphic to see and nothing in the Saito log —
+looking only for the challenge page will not find this.
+
+```yaml
+  - name: forum-static-assets
+    action: ALLOW
+    expression: 'path.matches("\\.(?:css|js|mjs|map|woff2?|ttf|otf|eot|svg|ico|png|jpe?g|gif|webp|avif)$")'
+```
+
+Note what the image extensions cost: uploaded attachments under
+`/useruploads/` become fetchable without a challenge too. If that matters for
+your forum, drop the image extensions from the rule and keep it to `css`, `js`,
+`mjs`, `map` and the font types — the layout is then correct and the attachments
+stay behind the filter.
+
+To confirm the fix, read the **`Content-Type`**, not the status code: the
+challenge answers `200` just as the real file does.
+
+```console
+$ curl -s -o /dev/null -w '%{http_code} %{content_type}\n' https://example.org/nova/css/theme.css
+200 text/css
+```
+
 **Also check the challenge cookie's `SameSite`.** Anubis defaults to `None`,
 which marks a first-party cookie as usable across sites — exactly what Safari's
 tracking protection and Chrome's third-party cookie phase-out restrict. `Lax` is
