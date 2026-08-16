@@ -19,7 +19,7 @@ $this->Breadcrumbs->add(__('Users'), false);
           // table — only the convenience is missing. ?>
     <div x-data="adminTable" data-sort="3:desc" x-id="['userfilter']">
         <label class="admin-tableFilter">
-            <span class="sr-only"><?= h(__('Search')) ?></span>
+            <span class="visually-hidden"><?= h(__('Search')) ?></span>
             <input type="search" class="form-control" x-model="query" x-on:input="apply()"
                    placeholder="<?= h(__('Search')) ?>" autocomplete="off">
         </label>

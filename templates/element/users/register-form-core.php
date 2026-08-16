@@ -1,4 +1,4 @@
-<div class="form-group">
+<div class="mb-3">
     <?= $this->Form->control('username', [
         'autocomplete' => 'username',
         'class' => 'form-control',
@@ -6,7 +6,7 @@
         'tabindex' => 1,
     ]) ?>
 </div>
-<div class="form-group">
+<div class="mb-3">
     <?= $this->Form->control('user_email', [
         'autocomplete' => 'email',
         'class' => 'form-control',
@@ -14,7 +14,7 @@
         'tabindex' => 2,
     ]) ?>
 </div>
-<div class="form-group">
+<div class="mb-3">
     <?= $this->Form->control('password', [
         'autocomplete' => 'new-password',
         'class' => 'form-control',
@@ -24,7 +24,7 @@
         'value' => '',
     ]) ?>
     </div>
-<div class="form-group">
+<div class="mb-3">
     <?= $this->Form->control('password_confirm', [
         'autocomplete' => 'new-password',
         'class' => 'form-control',

@@ -25,35 +25,51 @@
  * (`.island-modal`), so those rules could not have been doing anything.
  ******************************************************************************/
 
-// Never optional: the variables, functions and mixins every rule below and every
-// Saito partial is written against, plus the base normalisation.
+// Never optional: the variables, functions, maps and mixins every rule below and
+// every Saito partial is written against, plus the base normalisation.
+//
+// The order is Bootstrap 5's own and is not negotiable — `maps` needs
+// `variables` and `variables-dark`, and `utilities` (the *map*, not the classes)
+// has to be defined before `root` so a theme can extend it.
 @import "bootstrap/scss/functions";
 @import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
+@import "bootstrap/scss/maps";
 @import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
 @import "bootstrap/scss/root";
 @import "bootstrap/scss/reboot";
 
 // Components the forum uses. Bootstrap's own order is kept — later modules
 // depend on earlier ones having defined their variables and placeholders.
 @import "bootstrap/scss/type";
+@import "bootstrap/scss/containers";
 @import "bootstrap/scss/grid";
 @import "bootstrap/scss/tables";
 @import "bootstrap/scss/forms";
 @import "bootstrap/scss/buttons";
+@import "bootstrap/scss/transitions";
 @import "bootstrap/scss/dropdown";
 @import "bootstrap/scss/button-group";
-@import "bootstrap/scss/input-group";
 @import "bootstrap/scss/card";
 @import "bootstrap/scss/badge";
 @import "bootstrap/scss/alert";
 
-// Utilities carries the spacing, display, border and text helpers the templates
-// and the Saito partials lean on most heavily — forty of them are in use.
-@import "bootstrap/scss/utilities";
-
-// Print rules are eleven lines and change what a printed thread looks like;
-// dropping them would be a visible change rather than a saving.
-@import "bootstrap/scss/print";
+// Bootstrap 5 restructured three of these, so the list is not the 4.x one with
+// names changed:
+//
+//  - `input-group` is no longer top level; `forms` pulls it in from `forms/`.
+//  - `containers` split out of `grid`.
+//  - `transitions` is what `dropdown` needs for `.fade`/`.collapse`; in 4 it
+//    was dropped from this list because nothing appeared to use it.
+//
+// And `print` is gone from Bootstrap entirely. Its eleven lines are replaced by
+// the `d-print-*` utilities, which the API below generates — see the print
+// rules in `_base.scss` for what the forum actually needs.
+//
+// Generating the utility classes has to come last: the API reads the map above
+// after every theme has had its chance to add to it.
+@import "bootstrap/scss/utilities/api";
 
 /******************************************************************************
  * Saito Variables Derived from Bootstrap Variables
@@ -76,6 +92,9 @@ $readingWidth: 42em !default;
 /******************************************************************************
  * Import basic Saito elements required for core functionality
  ******************************************************************************/
+
+// Saitos eigene Abstands- und Textskala (#73), vor allem anderen, was sie nutzt.
+@import "../basics/scale";
 
 @import "../basics/mixins";
 @import "../basics/animations";

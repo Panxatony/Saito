@@ -4,8 +4,10 @@
   // make different font em padding in subject and text visually more harmonic
   textarea,
   input[type=text] {
-    @extend .py-2;
-    @extend .px-3;
+    padding-top: $space-sm;
+    padding-bottom: $space-sm;
+    padding-left: $space-md;
+    padding-right: $space-md;
   }
 }
 
@@ -21,8 +23,9 @@
 }
 
 .postingform-info {
-  @extend .small;
-  @extend .text-muted;
+  font-size: $text-small;
+  font-weight: 400;
+  color: $text-quiet;
 }
 
 .postingform-subject-wrapper {
@@ -37,8 +40,9 @@
 }
 
 .postingform-subject-count {
-  @extend .small;
-  @extend .text-muted;
+  font-size: $text-small;
+  font-weight: 400;
+  color: $text-quiet;
 
   position: absolute;
   bottom: 0;
@@ -56,7 +60,7 @@
 /* Buttons below posting form
 // ------------------------------------- */
 .postingform-buttons {
-  @extend .d-md-flex;
+  @include from($screen-md) { display: flex; }
 
   justify-content: space-between;
 }

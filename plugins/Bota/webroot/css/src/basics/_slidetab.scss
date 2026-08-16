@@ -9,7 +9,8 @@ $slidetab-content-width: $slidetab-width - $slidetab-tab-width;
 }
 
 .slidetab {
-  @extend .small;
+  font-size: $text-small;
+  font-weight: 400;
 
   width: $slidetab-tab-width;
   margin-bottom: 2*$spacer;

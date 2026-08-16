@@ -19,7 +19,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
     <p class="text-muted"><?= h(__('user.pw.set.exp')) ?></p>
 
     <?= $this->Form->create(null, ['url' => ['action' => 'password', $user->get('id')]]) ?>
-    <div class="form-group">
+    <div class="mb-3">
         <?= $this->Form->control('password', [
             'autocomplete' => 'new-password',
             'label' => __('user.pw.set.new.label'),
@@ -28,7 +28,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
             'value' => '',
         ]) ?>
     </div>
-    <div class="form-group">
+    <div class="mb-3">
         <?= $this->Form->control('password_confirm', [
             'autocomplete' => 'new-password',
             'label' => __('user.pw.set.repeat.label'),
@@ -37,7 +37,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
             'value' => '',
         ]) ?>
     </div>
-    <div class="form-group">
+    <div class="mb-3">
         <?php
         // Your own password, not the account being changed — see the action.
         echo $this->Form->control('confirm_password', [
@@ -50,7 +50,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
         ?>
         <small class="text-muted"><?= h(__('user.pw.set.confirm.exp')) ?></small>
     </div>
-    <div class="form-group">
+    <div class="mb-3">
         <?= $this->Form->submit(__('user.pw.set.btn'), ['class' => 'btn btn-primary']) ?>
         <?= $this->Html->link(__d('admin', 'cancel'), ['action' => 'index'], ['class' => 'btn btn-link']) ?>
     </div>

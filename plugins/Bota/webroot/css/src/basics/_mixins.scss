@@ -40,9 +40,14 @@
 /* ------------------------------------- */
 
 .lefty-aside {
-  @extend .px-2;
-  @extend .py-1;
-  @extend .py-lg-2;
+  padding-left: $space-sm;
+  padding-right: $space-sm;
+  padding-top: $space-xs;
+  padding-bottom: $space-xs;
+  @include from($screen-lg) {
+    padding-top: $space-sm;
+    padding-bottom: $space-sm;
+  }
 
   @include border-radius($card-inner-border-radius $card-inner-border-radius 0 0);
 

@@ -8,8 +8,12 @@ html {
 
 body {
   @extend .container-fluid;
-  @extend .px-0;
-  @extend .px-lg-3;
+  padding-left: $space-none;
+  padding-right: $space-none;
+  @include from($screen-lg) {
+    padding-left: $space-md;
+    padding-right: $space-md;
+  }
 
   height: 100%;
 
@@ -24,7 +28,10 @@ body {
 }
 
 #site {
-  @extend .px-md-3;
+  @include from($screen-md) {
+    padding-left: $space-md;
+    padding-right: $space-md;
+  }
 
   background: $body-bg;
   box-sizing: border-box;
@@ -34,14 +41,14 @@ body {
 }
 
 #header {
-  @extend .d-flex;
-  @extend .flex-column;
+  display: flex;
+  flex-direction: column;
 }
 
 #header-hero {
-  @extend .border-bottom;
-  @extend .text-center;
-  @extend .font-weight-bold;
+  border-bottom: $border-hairline;
+  text-align: center;
+  font-weight: $text-bold;
 
   background: $body-bg;
   font-size: 1.3rem;
@@ -50,13 +57,14 @@ body {
 }
 
 #hero-homeLink {
-  @extend .p-3;
+  padding: $space-md;
 }
 
 #header-menu {
   @extend .flex-bar-header;
-  @extend .border-bottom;
-  @extend .py-2;
+  border-bottom: $border-hairline;
+  padding-top: $space-sm;
+  padding-bottom: $space-sm;
 
   @media only screen and (max-width: map.get($grid-breakpoints, sm)) {
     & > div {
@@ -68,7 +76,9 @@ body {
 #site-navigation-top,
 #site-navigation-bottom {
   @extend .flex-bar-header;
-  @extend .py-2; // extra space for #footer-pinned
+  // extra space for #footer-pinned
+  padding-top: $space-sm;
+  padding-bottom: $space-sm;
 
   white-space: nowrap;
 
@@ -81,7 +91,9 @@ body {
   }
 
   .btn-paginator {
-    @extend .px-1; // keep paginator buttons together visually
+    // keep paginator buttons together visually
+    padding-left: $space-xs;
+    padding-right: $space-xs;
   }
 }
 
@@ -95,5 +107,8 @@ body {
 
 #footer-pinned,
 #site {
-  @extend .px-md-3;
+  @include from($screen-md) {
+    padding-left: $space-md;
+    padding-right: $space-md;
+  }
 }

@@ -183,7 +183,7 @@ if ($user->get('signature')) {
                         'class' => 'mt-3',
                     ]) ?>
                     <?= $this->Form->hidden('lockUserId', ['value' => (int)$user->get('id')]) ?>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?php // A plain select, so blocking works without JavaScript —
                               // the SPA drove a range slider from a script. ?>
                         <?= $this->Form->control('lockPeriod', [

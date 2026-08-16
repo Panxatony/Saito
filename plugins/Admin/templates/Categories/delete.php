@@ -67,7 +67,7 @@
         <h5 class="modal-title">
             <?= h(__d('admin', 'cat.del.d.t')) ?>
         </h5>
-        <button type="button" class="close" x-on:click="close()" aria-label="Close">
+        <button type="button" class="btn-close" x-on:click="close()" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>

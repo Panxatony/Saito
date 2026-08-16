@@ -11,7 +11,7 @@
 }
 
 .solves-isSolved {
-  @extend .text-success;
+  color: $text-success;
 }
 
 .postingLayout-main {
@@ -28,11 +28,12 @@
 }
 
 .postingLayout-aside {
-  @extend .d-none;
-  @extend .d-md-block;
-  @extend .m-2;
-  @extend .small;
-  @extend .text-center;
+  display: none;
+  @include from($screen-md) { display: block; }
+  margin: $space-sm;
+  font-size: $text-small;
+  font-weight: 400;
+  text-align: center;
 
   grid-area: aside;
 }
@@ -50,13 +51,15 @@
 
 .postingLayout-actions {
   @extend .panel-info;
-  @extend .my-3;
-  @extend .p-1;
+  margin-top: $space-md;
+  margin-bottom: $space-md;
+  padding: $space-xs;
 }
 
 .postingLayout-actions,
 .postingLayout-body {
-  @extend .px-3;
+  padding-left: $space-md;
+  padding-right: $space-md;
 }
 
 .postingBody-heading {
@@ -73,16 +76,17 @@
 }
 
 .postingBody-info {
-  @extend .text-muted;
-  @extend .mb-3;
+  color: $text-quiet;
+  margin-bottom: $space-md;
 
   > .meta {
-    @extend .small;
+    font-size: $text-small;
+    font-weight: 400;
   }
 }
 
 .postingBody-text {
-  @extend .mb-3;
+  margin-bottom: $space-md;
   // break overlong words/links if overflow is hidden by .threadInline-slider
   word-wrap: break-word;
 
@@ -94,7 +98,7 @@
 }
 
 .postingBody-signature-divider {
-  @extend .pb-3;
+  padding-bottom: $space-md;
 }
 
 .postingLayout-slider {
@@ -112,9 +116,10 @@
 }
 
 .postingBody-signature {
-  @extend .mb-3;
-  @extend .small;
-  @extend .text-muted;
+  margin-bottom: $space-md;
+  font-size: $text-small;
+  font-weight: 400;
+  color: $text-quiet;
 
   text-align: center;
 
@@ -127,7 +132,7 @@
 // ------------------------------------- */
 
 .postingform-smilies {
-  @extend .mb-3;
+  margin-bottom: $space-md;
 
   border: $input-border-width solid $input-border-color;
 
@@ -144,7 +149,7 @@
 
 .btn-smiley-font,
 .btn-smiley-image {
-  @extend .m-1;
+  margin: $space-xs;
 
   color: $body-color;
   background-color: transparent;

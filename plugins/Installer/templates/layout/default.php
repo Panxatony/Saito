@@ -12,7 +12,7 @@
   </head>
   <body>
       <div class="container">
-        <div class="jumbotron">
+        <div class="p-5 mb-4 bg-light rounded-3">
             <h1><?= h($titleForLayout) ?></h1>
         </div>
         <?php if (strpos(Cake\Core\Configure::read('Saito.language'), 'en') === 0) : ?>
