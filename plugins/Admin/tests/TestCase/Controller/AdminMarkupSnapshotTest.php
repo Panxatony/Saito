@@ -77,6 +77,7 @@ class AdminMarkupSnapshotTest extends IntegrationTestCase
         // entries — so they are exactly the pages a careless removal breaks.
         '/admin/admins/index',
         '/admin/smilies/index',
+        '/admin/settings/edit/timezone',
         '/admin/plugins',
         '/admin/plugins/sitemap',
     ];
