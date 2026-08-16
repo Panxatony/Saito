@@ -34,14 +34,6 @@ class AppController extends Controller
     /** @var Migrations */
     protected $migrations;
 
-    public $helpers = [
-        'Breadcrumbs' => ['className' => 'BootstrapUI.Breadcrumbs'],
-        'Flash' => ['className' => 'BootstrapUI.Flash'],
-        'Form' => ['className' => 'BootstrapUI.Form'],
-        'Html' => ['className' => 'BootstrapUI.Html'],
-        'Paginator' => ['className' => 'BootstrapUI.Paginator'],
-    ];
-
     /**
      * {@inheritDoc}
      */
