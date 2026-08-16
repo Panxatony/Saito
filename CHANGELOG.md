@@ -5,6 +5,25 @@
 - Δ Changed
 - − Removed
 
+## [8.4.8] - 2026-08-16 "weissblende"
+
+**No migration.** One stylesheet per macnemo preset changed; nothing else.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- ✓ Fixed: **the primary button reads white again.** Bootstrap 5 works out a
+  button's label colour from its background rather than always using white, and
+  on macnemo's orange it picked black — so a button that had looked one way for
+  years changed with 8.4.7 and looked wrong.
+
+  Only the label is set back. The orange is untouched: it carries white at
+  3.21:1, above the 3:1 the accessibility guidelines ask of large text, which a
+  bold button label is. Bootstrap was applying the stricter body-text threshold,
+  which is a defensible choice rather than a bug — just not the right one for a
+  button.
+
 ## [8.4.7] - 2026-08-16 "unterbau"
 
 **No migration.** The stylesheets and the JS bundle changed, so those go out
