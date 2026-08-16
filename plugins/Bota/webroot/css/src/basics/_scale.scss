@@ -1,0 +1,68 @@
+/******************************************************************************
+ * The spacing and text scale, in Saito's own words (#73)
+ *
+ * These replace `@extend .mb-3`, `@extend .small` and the rest of Bootstrap's
+ * utility classes. The values are the ones the forum has always rendered — the
+ * scale is Bootstrap's, measured out of `node_modules/bootstrap/scss/_variables`
+ * rather than remembered — but the names are ours and the declarations are
+ * written here instead of inherited from a dependency.
+ *
+ * Why names and not numbers. `@extend .mb-3` says "whatever Bootstrap means by
+ * three"; `margin-bottom: $space-md` says how much room this element gets. The
+ * numbers were never a scale anybody reasoned in, they were an index into
+ * somebody else's map — and carrying them over would have kept the coupling
+ * while only moving the file it lives in.
+ *
+ * The mapping, for anyone comparing against the old stylesheets:
+ *
+ *     .m-0 / .p-0  →  $space-none      0
+ *     .m-1 / .p-1  →  $space-xs        0.25rem
+ *     .m-2 / .p-2  →  $space-sm        0.5rem
+ *     .m-3 / .p-3  →  $space-md        1rem
+ *     .m-4 / .p-4  →  $space-lg        1.5rem
+ *     .m-5 / .p-5  →  $space-xl        3rem
+ ******************************************************************************/
+
+$space-none: 0 !default;
+$space-xs: 0.25rem !default;
+$space-sm: 0.5rem !default;
+$space-md: 1rem !default;
+$space-lg: 1.5rem !default;
+$space-xl: 3rem !default;
+
+/// Text tones and weights that were reached through `.small`, `.text-muted`
+/// and `.font-weight-bold`.
+///
+/// `$text-quiet` is the one worth naming rather than inlining: it appears ten
+/// times, it has to keep enough contrast in both presets, and a theme that
+/// wants a different grey should be able to say so in one place. Bootstrap's
+/// value was `$gray-600`.
+$text-quiet: #6c757d !default;
+$text-small: 0.875em !default;
+$text-bold: 700 !default;
+
+/// Breakpoints, so the handful of responsive utilities that were extended
+/// (`.px-md-3`, `.py-lg-2`, `.d-md-flex`) have somewhere of ours to come from.
+///
+/// Same widths Bootstrap used, because they are also what the templates and the
+/// existing media queries in these stylesheets are written around; changing
+/// them is a layout decision and not part of removing a dependency.
+$screen-md: 768px !default;
+$screen-lg: 992px !default;
+
+/// Apply a declaration only from a breakpoint upwards.
+///
+/// Replaces `media-breakpoint-up()`, one of the two Bootstrap mixins the
+/// stylesheets actually used.
+@mixin from($width) {
+  @media (min-width: $width) {
+    @content;
+  }
+}
+
+/// Remaining tokens the `@extend`s reached for. Values measured out of
+/// Bootstrap's `_variables.scss`, not recalled.
+$text-success: #28a745 !default;
+$border-hairline: 1px solid #dee2e6 !default;
+$shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !default;
+$font-mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;

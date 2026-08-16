@@ -20,7 +20,7 @@
  ******************************************************************************/
 
 .panel {
-  @extend .p-3;
+  padding: $space-md;
 }
 
 .panel-fixedWidth {
@@ -31,7 +31,7 @@
 
 
 .panel-center {
-  @extend .mb-3;
+  margin-bottom: $space-md;
 
   max-width: $readingWidth;
   margin: 0 auto;
@@ -58,5 +58,5 @@
  ******************************************************************************/
 
 .modal-body {
-  @extend .p-0;
+  padding: $space-none;
 }

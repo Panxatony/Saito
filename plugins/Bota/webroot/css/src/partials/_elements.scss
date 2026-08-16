@@ -8,7 +8,7 @@
 /* No Content Yet
 // ------------------------------------- */
 .no-content-yet {
-  @extend .text-muted;
+  color: $text-quiet;
 
   font-weight: bold;
   text-align: center;
@@ -22,15 +22,16 @@
 /* Disclaimer
  * ------------------------------------- */
 .disclaimer {
-  @extend .border-top;
-  @extend .small;
+  border-top: $border-hairline;
+  font-size: $text-small;
+  font-weight: 400;
 
   background: $form-bg;
 }
 
 .disclaimer-card {
   @extend .col-md-4;
-  @extend .p-3;
+  padding: $space-md;
 
   text-align: center;
 }
@@ -110,6 +111,6 @@
 // ------------------------------------- */
 .infoText,
 .disabled {
-  @extend .text-muted;
+  color: $text-quiet;
 }
 
