@@ -5,6 +5,54 @@
 - Δ Changed
 - − Removed
 
+## [8.4.7] - 2026-08-16 "unterbau"
+
+**No migration.** The stylesheets and the JS bundle changed, so those go out
+with it.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+Nothing here is meant to be seen. The rooms look the same; what carries them has
+been replaced — Bootstrap, the web fonts, the admin area's form rendering. The
+one visible change is a number on a phone.
+
+- Δ Changed: **the themes run on Bootstrap 5.3.8.** 4.6.2 had had no
+  maintenance since January 2023, and its JavaScript was never loaded here, so
+  this was a maintenance question rather than a security one — but an
+  unmaintained dependency is exactly what this line of releases is for.
+
+  A major version does move things: spacing, corner radii and form controls all
+  shift a little. Nothing was held to a pixel comparison, deliberately — that
+  gate is what turns a migration into a reimplementation.
+
+  Bootstrap 5.3 also brings a colour-mode implementation built on custom
+  properties, which the hand-maintained night presets can build on later.
+
+- Δ Changed: **the stylesheets have a spacing and text scale of their own.**
+  Seventy-three `@extend` onto Bootstrap's utility classes became real
+  declarations against `$space-xs` … `$space-xl`, `$text-quiet` and friends.
+  `@extend .mb-3` said "whatever Bootstrap means by three"; a theme could
+  neither reason about that nor override it. Documented in
+  [customizing.md](docs/customizing.md).
+
+- Δ Changed: **the theme fonts come from `@fontsource`.** The `typeface-*`
+  packages stopped publishing in 2022. Cabin and Fenix are unchanged — same
+  faces, same licence, a maintained package.
+
+- − Removed: **the BootstrapUI dependency.** It had not been doing anything
+  since the CakePHP 5 upgrade: it supplied its helpers through
+  `Controller::$helpers`, a property CakePHP 5 removed, so the admin area had
+  been rendering with the framework's own FormHelper for some time without
+  anyone noticing. Removing it changes nothing that is rendered — verified
+  byte-for-byte across thirteen admin pages.
+
+- ✓ Fixed: **the number of members online now shows on a phone.** It is
+  anchored to the widget's icon, and that icon is hidden on narrow screens — so
+  the count went with it, and the folded state, the one where the figure is
+  worth having, was the one state it never appeared in.
+
 ## [8.4.6] - 2026-08-15 "dienstschlüssel"
 
 **One migration runs, and it rewrites `entries`.** Not additive like the five
