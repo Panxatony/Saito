@@ -26,7 +26,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
     </div>
 
     <?= $this->Form->create(null, ['url' => ['action' => 'delete', $user->get('id')]]) ?>
-    <div class="form-group form-check">
+    <div class="mb-3 form-check">
         <?= $this->Form->control(
             'userdeleteconfirm',
             [
@@ -37,7 +37,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
             ]
         ) ?>
     </div>
-    <div class="form-group">
+    <div class="mb-3">
         <?= $this->Form->submit(__('user.del.btn.t'), ['class' => 'btn btn-danger']) ?>
         <?= $this->Html->link(__d('admin', 'cancel'), ['action' => 'index'], ['class' => 'btn btn-link']) ?>
     </div>

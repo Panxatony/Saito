@@ -14,7 +14,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
     <h1><?= h(__('user.role.set.t', $user->get('username'))) ?></h1>
 
     <?= $this->Form->create($user, ['url' => ['action' => 'role', $user->get('id')]]) ?>
-    <div class="form-group">
+    <div class="mb-3">
         <?= $this->Form->control(
             'user_type',
             [
@@ -31,7 +31,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
             ]
         ) ?>
     </div>
-    <div class="form-group">
+    <div class="mb-3">
         <?php
         // Your own password, not the account being changed. A role lasts beyond
         // the session that granted it, so this asks for something a hijacked
@@ -49,7 +49,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
         ?>
         <small class="text-muted"><?= h(__('user.role.set.confirm.exp')) ?></small>
     </div>
-    <div class="form-group">
+    <div class="mb-3">
         <?= $this->Form->submit(__('user.role.set.btn'), ['class' => 'btn btn-primary']) ?>
         <?= $this->Html->link(__d('admin', 'cancel'), ['action' => 'index'], ['class' => 'btn btn-link']) ?>
     </div>
