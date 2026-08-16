@@ -1,6 +1,6 @@
 .imageUploader {
   .card {
-    @extend .m-3;
+    margin: $space-md;
   }
 }
 
@@ -60,8 +60,9 @@
 
 .imageUploader-card-details {
   @extend .card-footer;
-  @extend .py-1;
-  @extend .text-monospace;
+  padding-top: $space-xs;
+  padding-bottom: $space-xs;
+  font-family: $font-mono;
   // anchors .btnUploadDelete
   position: relative;
 
@@ -138,7 +139,7 @@
 }
 
 .imageUploader-card {
-  @extend .shadow-sm;
+  box-shadow: $shadow-sm;
 }
 
 @include media-breakpoint-down(xs) {

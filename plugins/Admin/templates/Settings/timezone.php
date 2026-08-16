@@ -7,13 +7,7 @@ $this->Breadcrumbs->add('🌍🕐', false);
 
 <div id="settings_timezone" class="settings timezone">
 <?php
-echo $this->Form->create(
-    $setting,
-    [
-        'inputDefaults' => [],
-        'class' => 'well',
-    ]
-);
+echo $this->Form->create($setting);
 echo $this->Form->control(
     'value',
     [

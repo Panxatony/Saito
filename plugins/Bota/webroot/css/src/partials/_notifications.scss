@@ -1,5 +1,5 @@
 .notifications {
-  @extend .m-3;
+  margin: $space-md;
 
   position: fixed;
   top: 0;
@@ -8,6 +8,6 @@
   z-index: 1100;
 
   .bd-placeholder-img {
-    @extend .mr-2;
+    margin-right: $space-sm;
   }
 }

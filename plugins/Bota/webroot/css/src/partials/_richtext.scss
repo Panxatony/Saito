@@ -37,14 +37,14 @@
 
   blockquote,
   .richtext-citation {
-    @extend .text-muted;
+    color: $text-quiet;
 
     font-style: italic;
   }
 }
 
 .richtext-float {
-  @extend .m-3;
+  margin: $space-md;
 
   max-width: 50%;
   clear: both;
@@ -52,10 +52,11 @@
 }
 
 .geshi-wrapper {
-  @extend .p-3;
+  padding: $space-md;
 
   .geshi-plain, ol {
-    @extend .py-2;
+    padding-top: $space-sm;
+    padding-bottom: $space-sm;
   }
 
   ol {
@@ -73,8 +74,9 @@
 }
 
 .richtext-linkInfo {
-  @extend .small;
-  @extend .text-muted;
+  font-size: $text-small;
+  font-weight: 400;
+  color: $text-quiet;
 }
 
 // The parser used to write `style="display: inline"` onto this element; it is a
@@ -99,8 +101,9 @@
 
 .richtext-editMark {
   // also an pencil icon is assigned via static.css
-  @extend .small;
-  @extend .text-muted;
+  font-size: $text-small;
+  font-weight: 400;
+  color: $text-quiet;
 
   padding: 0 0.3em;
 }
@@ -116,7 +119,7 @@
   }
 
   .richtext-embed-provider-icon {
-    @extend .mr-2;
+    margin-right: $space-sm;
 
     display: inline;
     max-height: 3em;

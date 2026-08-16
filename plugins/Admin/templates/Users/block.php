@@ -8,7 +8,7 @@ echo $this->Html->tag('h1', __('user.block.history'));
 ?>
 <div x-data="adminTable" data-sort="1:desc">
     <label class="admin-tableFilter">
-        <span class="sr-only"><?= h(__('Search')) ?></span>
+        <span class="visually-hidden"><?= h(__('Search')) ?></span>
         <input type="search" class="form-control" x-model="query" x-on:input="apply()"
                placeholder="<?= h(__('Search')) ?>" autocomplete="off">
     </label>

@@ -60,7 +60,8 @@ li.ignored + li:not(.threadLeaf) {
 }
 
 .threadBox-tools {
-  @extend .small;
+  font-size: $text-small;
+  font-weight: 400;
   @extend .panel-form;
   // prevents underflowing the slidetabs
   display: flex;
@@ -154,8 +155,9 @@ li.ignored + li:not(.threadLeaf) {
 }
 
 .threadLine-post {
-  @extend .small;
-  @extend .text-muted;
+  font-size: $text-small;
+  font-weight: 400;
+  color: $text-quiet;
 
   font-weight: normal;
 }
@@ -183,7 +185,7 @@ $btn-strip-top-width: 25px;
 }
 
 .thread_inline {
-  @extend .ml-3;
+  margin-left: $space-md;
   // limits height of btn-strip
   position: relative;
 }
