@@ -45,7 +45,7 @@
         <div class="alert alert-<?= h($cls) ?>" role="alert" x-data="{ show: true }" x-show="show"
              <?= $auto ? 'x-init="setTimeout(() => show = false, 5000)"' : '' ?>>
             <?= h($flashMsg['message']) ?>
-            <button type="button" class="close" x-on:click="show = false" aria-label="Close">
+            <button type="button" class="btn-close" x-on:click="show = false" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>

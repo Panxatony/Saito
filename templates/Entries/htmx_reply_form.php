@@ -60,7 +60,7 @@ if (!isset($submitted) && !empty($draft)) {
             </button>
         </p>
     <?php endif; ?>
-    <div class="form-group">
+    <div class="mb-3">
         <?php $subjectMax = (int)(\Cake\Core\Configure::read('Saito.Settings.subject_maxlength') ?: 100); ?>
         <?php
         // The parent's subject is a placeholder, not a value: it shows what will
@@ -83,7 +83,7 @@ if (!isset($submitted) && !empty($draft)) {
     <?= $this->element('entry/htmx_editor_toolbar', [
         'nsfwValue' => (bool)($submitted['nsfw'] ?? false),
     ]) ?>
-    <div class="form-group">
+    <div class="mb-3">
         <?php // Bewusst ohne `required`: ein Beitrag ohne Text ist gewollt. Saito
               // kennt das seit jeher als "n/t" (no text) — isNt() ist schlicht
               // ein leerer Text, und PostingHelper haengt beim Rendern " n/t"

@@ -24,7 +24,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
         <p class="text-muted"><?= h(__('user.2fa.admin.reset.exp')) ?></p>
 
         <?= $this->Form->create(null, ['url' => ['action' => 'twoFactorReset', $user->get('id')]]) ?>
-        <div class="form-group">
+        <div class="mb-3">
             <?php // Your own password, not the account being changed. ?>
             <?= $this->Form->control('confirm_password', [
                 'autocomplete' => 'off',
@@ -35,7 +35,7 @@ $this->Breadcrumbs->add(h($user->get('username')), false);
             ]) ?>
             <small class="text-muted"><?= h(__('user.pw.set.confirm.exp')) ?></small>
         </div>
-        <div class="form-group">
+        <div class="mb-3">
             <?= $this->Form->submit(__('user.2fa.admin.reset.btn'), ['class' => 'btn btn-danger']) ?>
             <?= $this->Html->link(__d('admin', 'cancel'), ['action' => 'index'], ['class' => 'btn btn-link']) ?>
         </div>

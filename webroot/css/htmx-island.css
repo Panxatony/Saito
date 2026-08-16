@@ -957,8 +957,27 @@
        rail is a stack the member scrolls past. */
     .htmx-island .island-widget.is-min .island-widget-grip { display: flex; }
     .htmx-island .island-widget.is-min .island-widget-label { display: revert; }
+
+    /* The icon stays hidden — the label carries a glyph of its own here, and
+       showing both puts two identical icons side by side. That is what the
+       `display: none` above was for, and un-hiding it was wrong.
+
+       Only the count comes back. It used to be hidden along with the icon it is
+       anchored to, which is why a folded online widget showed no number on a
+       phone: the one state where the figure is worth having was the one state
+       it never appeared in.
+
+       Inline rather than pinned to a corner. On a wide screen the widget is a
+       square and the count sits on its edge; here the heading is a full-width
+       bar, and the same `top/right: -0.35rem` would park the number at the far
+       end of the card, nowhere near the glyph it counts for. */
     .htmx-island .island-widget.is-min .island-widget-icon { display: none; }
-    .htmx-island .island-widget.is-min .island-widget-badge { display: none; }
+    .htmx-island .island-widget.is-min .island-widget-badge {
+        position: static;
+        display: inline-block;
+        margin-right: 0.4rem;
+        vertical-align: 0.15rem;
+    }
 }
 
 /* The caret points down while the content is showing and up once it is folded

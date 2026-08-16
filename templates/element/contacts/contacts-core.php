@@ -1,4 +1,4 @@
-<div class="form-group">
+<div class="mb-3">
 <?= $this->Form->control('subject', [
     'class' => 'form-control',
     'label' => __('user_contact_subject'),
@@ -6,7 +6,7 @@
 ]) ?>
 </div>
 
-<div class="form-group">
+<div class="mb-3">
 <?= $this->Form->control('text', [
     'class' => 'form-control',
     'style' => 'height: 10em',
@@ -15,7 +15,7 @@
 ]) ?>
 </div>
 
-<div class="form-group form-check">
+<div class="mb-3 form-check">
 <?= $this->Form->control('cc', [
     'class' => 'form-check-input',
     'label' => [
@@ -27,7 +27,7 @@
 ]) ?>
 </div>
 
-<div class="form-group">
+<div class="mb-3">
 <?= $this->Form->submit(__('Submit'), [
     'class' => 'btn btn-primary',
     'tabindex' => 4,

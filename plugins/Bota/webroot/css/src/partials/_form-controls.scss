@@ -20,8 +20,8 @@ a.btn-link {
 }
 
 .saito-icon-text {
-  @extend .d-none;
-  @extend .d-md-inline;
+  display: none;
+  @include from($screen-md) { display: inline; }
 }
 
 textarea,

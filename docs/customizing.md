@@ -7,7 +7,7 @@ that need more than a table row.
 
 ## Themes ##
 
-The default theme is *Nova*, a [CakePHP theme plugin](https://book.cakephp.org/5/en/views/themes.html) in `plugins/Nova`. It builds on the SCSS partials of *Bota* (`plugins/Bota`), the older theme, which also hosts the shared assets — the web fonts and the smiley icon font are served from `/bota/` for every theme. The UI is [Bootstrap 4](https://getbootstrap.com/docs/4.3/getting-started/introduction/) based.
+The default theme is *Nova*, a [CakePHP theme plugin](https://book.cakephp.org/5/en/views/themes.html) in `plugins/Nova`. It builds on the SCSS partials of *Bota* (`plugins/Bota`), the older theme, which also hosts the shared assets — the web fonts and the smiley icon font are served from `/bota/` for every theme. The UI is [Bootstrap 5](https://getbootstrap.com/docs/5.3/getting-started/introduction/) based.
 
 To start your own theme I recommend using SASS and referencing the default theme.
 
@@ -58,10 +58,26 @@ If the header bar has a colour of its own, remember that the logo sits on *that*
 and not on the page background, so a wordmark drawn for a white page will need a
 light counterpart.
 
+### Saito's own scale
+
+Beside Bootstrap's variables the stylesheets use a small set of Saito's own,
+declared in `plugins/Bota/webroot/css/src/basics/_scale.scss` and overridable
+the same way as any Bootstrap variable:
+
+| | |
+|---|---|
+| `$space-none` … `$space-xl` | `0`, `0.25`, `0.5`, `1`, `1.5`, `3rem` |
+| `$text-quiet`, `$text-small`, `$text-bold` | the tones and weights that were reached through `.text-muted`, `.small` and `.font-weight-bold` |
+| `@include from($width)` | a min-width media query, replacing `media-breakpoint-up()` |
+
+They exist because the partials used to `@extend` Bootstrap's utility classes —
+`@extend .mb-3` says "whatever Bootstrap means by three", which is not something
+a theme can reason about or override.
+
 Theming resources:
 
-- [Bootstrap theming](https://getbootstrap.com/docs/4.3/getting-started/theming/)
-- [Boostrap variables](https://github.com/twbs/bootstrap/blob/v4.3.0/scss/_variables.scss)
+- [Bootstrap theming](https://getbootstrap.com/docs/5.3/customize/overview/)
+- [Bootstrap variables](https://github.com/twbs/bootstrap/blob/v5.3.8/scss/_variables.scss)
 - [SASS documentation](https://sass-lang.com/documentation)
 - [Simple GUI crossplatform SASS processor](https://scout-app.io/)
 

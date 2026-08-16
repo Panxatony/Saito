@@ -5,10 +5,7 @@ $this->Breadcrumbs->add(__d('nondynamic', $setting->get('name')), false);
 <h1><?php echo __d('nondynamic', $setting->get('name')); ?></h1>
 <p><?php echo __d('nondynamic', $setting->get('name') . '_exp'); ?></p>
 <?php
-echo $this->Form->create(
-    $setting,
-    ['inputDefaults' => [], 'class' => 'well']
-);
+echo $this->Form->create($setting);
 
 if ($setting->get('type') === 'select') {
     // A fixed list, because the values are a closed set. Labels come from the
