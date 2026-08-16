@@ -2,12 +2,12 @@
   "name": "Saito",
   "private": true,
   "dependencies": {
+    "@fontsource/cabin": "^5.3.0",
+    "@fontsource/fenix": "^5.3.0",
     "alpinejs": "^3.15.12",
     "bootstrap": "4.6.2",
     "font-awesome": "^4.7.0",
-    "htmx.org": "^2.0.10",
-    "typeface-cabin": "^1.1.13",
-    "typeface-fenix": "^1.1.13"
+    "htmx.org": "^2.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

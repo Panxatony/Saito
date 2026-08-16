@@ -60,6 +60,16 @@
     "@eslint/core" "^1.2.1"
     levn "^0.4.1"
 
+"@fontsource/cabin@^5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@fontsource/cabin/-/cabin-5.3.0.tgz#2cec1bdd32c06c863e9370cd4c23956e8eb261c6"
+  integrity sha512-c2NSbpO6XSqaq6E6ztHqgdNxzCPJCxkNvnSEjkQRidlL3Ycac00sS9XTRT6RfMFeB3+C7V3vgN1S40nM6lthuw==
+
+"@fontsource/fenix@^5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@fontsource/fenix/-/fenix-5.3.0.tgz#ae5606e85a02d9ef3f700d7bb621a32b73ce8cf6"
+  integrity sha512-Q+hyGK0m9NMdnxMFvUcqjRziVUDVmb7y2RElYINxfx3Pr3bioc1+ws/I4NG5UjlmEXFchUoVavjp8jet8zLyDA==
+
 "@humanfs/core@^0.19.2":
   version "0.19.2"
   resolved "https://registry.yarnpkg.com/@humanfs/core/-/core-0.19.2.tgz#a8272ca03b2acf492670222b2320b6c421bfde60"
@@ -1563,16 +1573,6 @@ type-check@^0.4.0, type-check@~0.4.0:
   integrity sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==
   dependencies:
     prelude-ls "^1.2.1"
-
-typeface-cabin@^1.1.13:
-  version "1.1.13"
-  resolved "https://registry.yarnpkg.com/typeface-cabin/-/typeface-cabin-1.1.13.tgz#9c365222b2d0729251715cf43b25e0035d7ab2ef"
-  integrity sha512-Kp4ucB4Vfd95XbLdqAR/2D4YC7EwKbMMKYw0s9agJuj3ubChvK43C3lY9e8piwyO8RzyZipZkUAwbS7FttEYfQ==
-
-typeface-fenix@^1.1.13:
-  version "1.1.13"
-  resolved "https://registry.yarnpkg.com/typeface-fenix/-/typeface-fenix-1.1.13.tgz#25b05243e03a594eebc4f92ddfd104081482bc09"
-  integrity sha512-J71kgBl2xsr2BGFM7EFC3Mw8auAUKD6Z3VA8E1lVNARgqbJAughMJxWzFBrXtPJXxwzgvQx4/V6RR/5NI+bYZA==
 
 typescript-eslint@^8:
   version "8.66.0"
