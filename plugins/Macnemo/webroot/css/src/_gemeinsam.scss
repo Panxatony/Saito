@@ -1,3 +1,29 @@
 #header-hero {
   padding-top: 5px;
 }
+/*******************************************************************************
+ * Primary button: keep the colour, put the label back to white (#91)
+ *
+ * Bootstrap 5 computes a button's label colour from its background instead of
+ * always using white. macnemo's `$primary` is `$orange-darker` (#fe5603), where
+ * black reaches 6.58:1 and white 3.21:1 — so 5 chose black, and a button that
+ * had been white-on-orange for years suddenly read dark.
+ *
+ * Only the label changes here. The first attempt darkened the background to buy
+ * more contrast and produced a bronze that did not belong to the palette; it was
+ * darkening a colour that was already the dark one, because `$primary` is not
+ * the bright `#ffa70e` the rest of the page wears.
+ *
+ * 3.21:1 is above the 3:1 WCAG asks of large text, which a bold button label is.
+ * It is below the 4.5:1 for body text — worth knowing, and the reason Bootstrap
+ * decided the way it did rather than a bug in its reasoning.
+ *
+ * Both presets: this file is imported by `theme.scss` and `night.scss`, unlike
+ * the `.btn-primary` block in `theme.scss`, which the night preset never sees.
+ ******************************************************************************/
+
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-color: #fff;
+}
