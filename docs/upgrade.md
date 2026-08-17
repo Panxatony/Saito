@@ -315,6 +315,20 @@ visually unless you ask for it.
 
 ## Before you start
 
+> [!WARNING]
+> **Quote `.env` values that contain a space before upgrading to 8.4.10 or
+> later.** The reader introduced in 8.4.10 refuses `NAME=two words` where the
+> previous one accepted it, and it refuses it during bootstrap — the forum
+> answers HTTP 500 and nothing else until the file is fixed.
+>
+> ```bash
+> grep -nE '=[^"'"'"']*[[:space:]]' config/.env
+> ```
+>
+> Anything that matches needs quotes: `export NAME="two words"`. This bit a
+> production install on 2026-08-17; the value was `EMAIL_FROM_NAME=macnemo
+> Forum`, written years earlier and read without complaint ever since.
+
 - [ ] **PHP 8.4 available** on the server (`php -v`). This is the one hard
       requirement — check it first, because everything else is reversible and
       this is not something you fix mid-upgrade.

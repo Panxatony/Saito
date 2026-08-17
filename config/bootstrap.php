@@ -67,7 +67,31 @@ if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
     // keeps them. The previous loader raised "Key already defined" for that
     // case instead, which is how a prepared pool turned the site into an
     // HTTP 500 during the PHP 8.4 cutover.
-    \Dotenv\Dotenv::createUnsafeImmutable(CONFIG, '.env')->load();
+    try {
+        \Dotenv\Dotenv::createUnsafeImmutable(CONFIG, '.env')->load();
+    } catch (\Dotenv\Exception\InvalidFileException $e) {
+        // The reader is stricter than the one Saito used before 8.4.10, and the
+        // difference reaches existing installations: `NAME=macnemo Forum` was
+        // accepted for years and is refused now — a value containing a space
+        // has to be quoted. Production found that out the hard way on
+        // 2026-08-17, with five minutes of HTTP 500 and a stack trace that
+        // named neither the file nor the remedy.
+        //
+        // This runs before CakePHP has an error page, so the log entry is all
+        // an operator gets. Make it the one they need.
+        throw new RuntimeException(
+            sprintf(
+                'Could not read %s: %s',
+                CONFIG . '.env',
+                $e->getMessage(),
+            )
+            . ' — since 8.4.10 a value containing a space must be quoted:'
+            . ' `export NAME="two words"`, not `export NAME=two words`.'
+            . ' Quote the value named above and the forum starts again.',
+            0,
+            $e,
+        );
+    }
 }
 
 /*

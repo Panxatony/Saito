@@ -5,6 +5,46 @@
 - Δ Changed
 - − Removed
 
+## [8.4.11] - 2026-08-17 "beipackzettel"
+
+**No migration.** One file changed.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+> [!WARNING]
+> **Before upgrading, check `config/.env` for values containing a space:**
+>
+> ```bash
+> grep -nE '=[^"'"'"']*[[:space:]]' config/.env
+> ```
+>
+> Anything that matches needs quotes — `export NAME="two words"`. This applies
+> to 8.4.10 as well; the release below only makes the failure legible.
+
+- ✓ Fixed: **an unreadable crash when `config/.env` holds an unquoted value with
+  a space.** The reader introduced in 8.4.10 refuses `NAME=macnemo Forum` where
+  the previous one accepted it — and it refuses it during bootstrap, before
+  CakePHP has an error page. What an operator got was HTTP 500 and a stack trace
+  naming neither the file nor the remedy.
+
+  This is not hypothetical and was not caught by the migration's own testing:
+  the production install went down for five minutes on the day 8.4.10 shipped,
+  on a value written years earlier and read without complaint ever since. The
+  parser comparison behind that release checked `NAME="two words"` — quoted —
+  and never tried it without the quotes, which is the likelier way to write it.
+
+  The failure remains a failure: continuing without the file would swap a clear
+  stop for a confusing database error later. What changes is that the log now
+  names the file, repeats the value the library objected to, and says what fixes
+  it. Three tests hold down that the reader really does refuse this input and
+  that its own words do not tell anybody what to do — the two facts the wrapped
+  message rests on.
+
+  `docs/update.md` and `docs/upgrade.md` carry the check to run **before**
+  upgrading, which is the only place it helps.
+
 ## [8.4.10] - 2026-08-17 "nachschub"
 
 **No migration.** The JS bundle changed with the Alpine.js update, so the
