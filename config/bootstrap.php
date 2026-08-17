@@ -51,16 +51,23 @@ use Cake\Utility\Inflector;
 use Cake\Utility\Security;
 
 /**
- * Uncomment block of code below if you want to use `.env` file during development.
- * You should copy `config/.env.default to `config/.env` and set/modify the
- * variables as required.
+ * Load `config/.env` when there is one — no editing of this file required.
+ * `config/.env.default` is the template to copy and fill in.
+ *
+ * The environment wins twice over. The guard skips the file entirely when
+ * `APP_NAME` is already set, which is what an FPM pool or systemd unit that
+ * configures Saito looks like; and within the file, a key that already exists
+ * in the environment is left alone rather than overwritten.
  */
 if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
-    $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
-    $dotenv->parse()
-        ->putenv()
-        ->toEnv()
-        ->toServer();
+    // `Unsafe` names the putenv() adapter, not a weaker guarantee: CakePHP's
+    // env() falls back to getenv(), so dropping it would leave a third of the
+    // lookup path unfed. `Immutable` is the load-bearing half — a value already
+    // in the environment wins, so an operator who sets keys in the php-fpm pool
+    // keeps them. The previous loader raised "Key already defined" for that
+    // case instead, which is how a prepared pool turned the site into an
+    // HTTP 500 during the PHP 8.4 cutover.
+    \Dotenv\Dotenv::createUnsafeImmutable(CONFIG, '.env')->load();
 }
 
 /*

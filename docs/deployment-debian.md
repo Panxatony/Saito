@@ -144,7 +144,9 @@ sudo chmod 640 /var/www/saito/config/.env
 sudo -u www-data nano /var/www/saito/config/.env
 ```
 
-The file must live at `config/.env` (next to `app.php`); it is `.gitignore`d and never shipped with a release. To make Saito load it on every request, uncomment the dotenv block at the top of `config/bootstrap.php` — it's disabled by default to keep production deployments environment-driven.
+The file must live at `config/.env` (next to `app.php`); it is `.gitignore`d and never shipped with a release. Saito reads it automatically when it is there — nothing in `config/bootstrap.php` needs editing.
+
+The environment still takes precedence, in two ways: if it already sets `APP_NAME` the file is skipped entirely, and otherwise any key already present in the environment keeps its value rather than being overwritten. So a pool that sets `DATABASE_URL` wins over a `.env` that also sets it, and the two can coexist without either being edited.
 
 ## 6. nginx vhost
 

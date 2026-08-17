@@ -397,6 +397,22 @@ diff -u /path/to/forum/config/app.php          saito-8.2.0/config/app.php
 
 Do **not** replace the files — read the diff and copy individual keys.
 
+#### `config/.env` and the environment together
+
+Both may be set at the same time. The environment wins: if it defines
+`APP_NAME`, the file is skipped entirely, and otherwise the file supplies only
+the keys the environment has not already defined.
+
+Earlier versions raised **"Key already defined"** for a key present in both and
+answered with an HTTP 500. If you removed a key from one side to work around
+that, you no longer have to — putting it back is harmless, and the environment
+is the one that counts.
+
+One narrower change to know about if a value contains a backslash before a
+dollar sign: `\$` in `config/.env` now resolves to a literal `$`, where it used
+to be kept as the two characters `\$`. A password written that way changes
+meaning. Bare `$name` and `${name}` behave exactly as before.
+
 ### 4. Clear the caches
 
 Stale route and configuration caches survive a file copy and produce confusing
