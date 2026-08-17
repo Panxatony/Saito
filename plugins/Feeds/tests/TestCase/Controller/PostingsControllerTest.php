@@ -44,8 +44,22 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertNull($first->get('password'));
 
         $this->assertResponseOk();
-        $this->assertResponseContains('<title><![CDATA[First_Subject]]></title>');
-        $this->assertResponseContains('<dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alice</dc:creator>');
+        // Titles are escaped rather than CDATA-wrapped since the move to
+        // laminas-feed in 8.4.10; both are well-formed XML and readers do not
+        // tell them apart. The namespace now sits on the document root
+        // instead of being repeated on every element.
+        $this->assertResponseContains('<title>First_Subject</title>');
+        $this->assertResponseContains('<dc:creator>Alice</dc:creator>');
+        // The item identity subscribers are keyed on. It must not move: a
+        // changed guid makes every reader re-announce every posting it has
+        // already shown. Held down here rather than trusted.
+        $this->assertResponseContains('<guid>http://localhost/entries/htmx-posting/1</guid>');
+        // The writer emits `slash:comments` for every item whether or not a
+        // count was set, falling back to 0 — which would have the forum telling
+        // every reader that every posting has no replies. It is taken back out
+        // in FeedsHelper::render(); this is what says so.
+        $this->assertResponseNotContains('slash:comments');
+        $this->assertResponseNotContains('purl.org/rss/1.0/modules/slash');
     }
 
     public function testUploadedImageRendersAsImgInFeed()
@@ -185,6 +199,29 @@ class PostingsControllerTest extends IntegrationTestCase
         $this->assertNull($first->get('password'));
 
         $this->assertResponseOk();
-        $this->assertResponseContains('<title><![CDATA[First_Subject]]></title>');
+        $this->assertResponseContains('<title>First_Subject</title>');
+    }
+
+    /**
+     * A reply commonly has no subject, and the feed writer refuses an empty
+     * title outright — so an untitled posting has to be written *without* the
+     * element, not with an empty one. Get this wrong and the whole feed answers
+     * with an error instead of a document, for every reader at once.
+     *
+     * @return void
+     */
+    public function testAPostingWithoutASubjectStillRenders(): void
+    {
+        $Entries = TableRegistry::getTableLocator()->get('Entries');
+        $Entries->updateAll(['subject' => ''], ['id' => 1]);
+
+        $this->get('/feeds/postings/new.rss');
+
+        $this->assertResponseOk();
+        // Still there, identified as always by its guid. The writer emits an
+        // empty `<title/>` beside it, which is well-formed and what a reader
+        // expects of an untitled item — the failure mode being guarded against
+        // is the whole document turning into an error, not the empty element.
+        $this->assertResponseContains('<guid>http://localhost/entries/htmx-posting/1</guid>');
     }
 }
