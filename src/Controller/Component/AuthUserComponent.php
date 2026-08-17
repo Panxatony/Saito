@@ -26,7 +26,9 @@ use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\Http\Cookie\Cookie;
 use Cake\Http\Exception\ForbiddenException;
+use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
+use Cake\Routing\Router;
 use Cake\Utility\Security;
 use Saito\Exception\SaitoForbiddenException;
 use Saito\RememberTrait;
@@ -143,6 +145,9 @@ class AuthUserComponent extends Component
         // personalized-feed token and must then be served as that logged-in
         // user. Only fall back to bot/guest handling when there is no identity.
         $user = $this->authenticate();
+        if ($user === null) {
+            $this->clearUnusableAuthCookie();
+        }
         // Drop a session whose account password has changed since it began — a
         // password reset (or change) then logs out every *other* device the
         // account was signed in on, so a hijacked session cannot outlive the
@@ -439,6 +444,81 @@ class AuthUserComponent extends Component
             ->withSameSite('Lax');
 
         $controller->setResponse($controller->getResponse()->withCookie($cookie));
+    }
+
+    /**
+     * Take back a remember-me cookie that can never authenticate anybody again.
+     *
+     * Since 7.0.4 the token in this cookie has three parts — account, expiry,
+     * signature. One with two parts is the shape the authentication library
+     * used before that, and it is refused on sight: its second part is the
+     * account's password hash and it carries no expiry, which is precisely what
+     * that release moved away from. Refusing it is right. Leaving it in the
+     * browser is not — nothing cleared it, so the same cookie came back on
+     * every following request and the member was returned to the login form for
+     * as long as it lived, with no way to help themselves because the cookie is
+     * `HttpOnly`. Anyone who last ticked "stay signed in" before 2026-06-30 can
+     * be holding one.
+     *
+     * Only shapes that cannot work are taken back. A current three-part token
+     * that fails on its expiry or its signature is left alone: judging that
+     * belongs to the authenticator, and such a cookie carries a real lifetime
+     * and leaves on its own.
+     *
+     * Safe to do here even on the request that is about to log somebody in:
+     * {@see \Cake\Http\ResponseEmitter::emitHeaders()} writes the response's
+     * cookie collection first and raw `Set-Cookie` headers after it, and the
+     * fresh cookie is a raw header — so it is the one the browser keeps.
+     *
+     * @return void
+     */
+    private function clearUnusableAuthCookie(): void
+    {
+        $name = (string)Configure::read('Security.cookieAuthName');
+        if ($name === '') {
+            return;
+        }
+
+        // Two shapes to expect: EncryptedCookieMiddleware decrypts this cookie
+        // before anything reads it and passes the plaintext through
+        // `_explode()`, which json-decodes a leading `[` — so a well-formed
+        // token arrives as an array, a malformed one as a string, and one whose
+        // decryption failed as an empty string, indistinguishable from absent.
+        // CookieAuthenticator branches on the same distinction.
+        $value = $this->getController()->getRequest()->getCookie($name);
+        if (is_array($value)) {
+            $token = $value;
+        } elseif (is_string($value) && $value !== '') {
+            $token = json_decode($value, true);
+        } else {
+            return;
+        }
+
+        if (!is_array($token) || count($token) === 3) {
+            return;
+        }
+
+        $controller = $this->getController();
+        // Name and path have to match what minted it, or the browser keeps both.
+        $expired = (new Cookie($name, ''))
+            ->withExpired()
+            ->withPath(Router::url('/', false))
+            ->withSecure(str_starts_with((string)Configure::read('App.fullBaseUrl'), 'https'));
+        $controller->setResponse($controller->getResponse()->withCookie($expired));
+
+        // Say so. The component that refuses this reports nothing a reader can
+        // act on: no authenticator succeeds, so what reaches the application is
+        // the *form* authenticator's complaint that some unrelated URL "did not
+        // match `/login`". That silence is what turned a stale cookie into an
+        // evening of looking at session timeouts and two-factor tables.
+        Log::write(
+            'info',
+            sprintf(
+                'Discarded an unusable remember-me cookie (%d token parts, expected 3).',
+                count($token),
+            ),
+            ['scope' => ['saito.info']],
+        );
     }
 
     /**
