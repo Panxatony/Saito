@@ -208,6 +208,11 @@ can come from the web-server environment (an FPM pool's `env[…]`, a systemd
 unit) or from `config/.env`, for which `config/.env.default` is the template.
 Anything not set falls back to the default in the table.
 
+Both sources may be present at once, and the environment wins: if it sets
+`APP_NAME`, `config/.env` is not read at all; otherwise the file supplies only
+the keys the environment has not already defined. Nothing has to be edited to
+enable the file — it is read whenever it exists.
+
 Prefer these over editing `config/app.php`: they survive an update, which a file
 in the release tarball does not.
 
