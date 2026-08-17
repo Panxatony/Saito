@@ -5,6 +5,43 @@
 - Δ Changed
 - − Removed
 
+## [8.4.9] - 2026-08-16 "altschlüssel"
+
+**No migration.** One PHP file changed — no assets, no schema.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- ✓ Fixed: **a remember-me cookie that can never work again is now taken back.**
+  The token in that cookie has had three parts since 7.0.4 — account, expiry,
+  signature. One with two parts is the shape the authentication library used
+  before that, and it is refused, because its second part is a password hash and
+  it carries no expiry at all. Refusing it was never the problem.
+
+  Nothing *cleared* it. The browser presented the same dead cookie on every
+  request that followed, so the member was returned to the login form over and
+  over — every fifteen minutes in the case that surfaced this, second factor and
+  all — and could do nothing about it, because the cookie is `HttpOnly` and
+  therefore invisible and untouchable from their side. Anyone who last ticked
+  "stay signed in" before 2026-06-30 can be carrying one.
+
+  Only shapes that cannot work are taken back. A current three-part token that
+  fails on its expiry or its signature is left alone: judging that belongs to
+  the authenticator, and such a cookie carries a real lifetime and leaves on its
+  own.
+
+  The discard is written to `saito-info.log`. The silence is what made this
+  expensive to find: when the cookie is refused no authenticator succeeds, so
+  what reaches the application is the *form* authenticator complaining that some
+  unrelated address "did not match `/login`" — a message pointing away from the
+  cause. An evening went into session timeouts, the reverse proxy and the
+  two-factor tables before the cookie itself came into view.
+
+  **What an operator will see:** a member in this state is asked to log in one
+  last time, and from then on "stay signed in" holds. Nobody who was working
+  normally is affected — a valid cookie is never touched.
+
 ## [8.4.8] - 2026-08-16 "weissblende"
 
 **No migration.** One stylesheet per macnemo preset changed; nothing else.

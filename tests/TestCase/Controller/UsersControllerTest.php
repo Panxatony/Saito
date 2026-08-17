@@ -305,6 +305,108 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertTrue($cookie->isHttpOnly(), 'remember-me cookie must be HttpOnly');
     }
 
+    /**
+     * The token in the auth cookie has had three parts since 7.0.4 — account,
+     * expiry, signature. A two-part one is the shape the authentication library
+     * used before that, and it is refused because its second part is a password
+     * hash and it has no expiry.
+     *
+     * Refusing it was never the problem. Nothing *cleared* it, so the browser
+     * presented the same dead cookie on every request and the member was sent
+     * back to the login form for as long as it lived — unable to help
+     * themselves, because the cookie is HttpOnly. See #95.
+     *
+     * @return void
+     */
+    public function testAnUnusableAuthCookieIsTakenBack(): void
+    {
+        $name = Configure::read('Security.cookieAuthName');
+        $this->cookieEncrypted(
+            $name,
+            json_encode(['Ulysses', '$2y$10$' . str_repeat('a', 53)]),
+            'aes',
+            Configure::read('Security.cookieSalt'),
+        );
+
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
+
+        $cookie = $this->_response->getCookie($name);
+        $this->assertNotNull($cookie, 'a cookie that can never work again has to be taken back');
+        // Not asserting an empty value: this cookie's name is on
+        // EncryptedCookieMiddleware's list, so even the empty replacement goes
+        // out encrypted. The expiry is what actually removes it.
+        $this->assertLessThan(
+            time(),
+            $cookie['expires'],
+            'the replacement has to be already expired, or the browser keeps the dead one',
+        );
+    }
+
+    /**
+     * The other half, and the one that matters more: a *current* token must be
+     * left alone. Judging whether it is expired or forged belongs to the
+     * authenticator — clearing on anything but a broken shape would throw away
+     * working logins.
+     *
+     * @return void
+     */
+    public function testACurrentAuthCookieIsLeftAlone(): void
+    {
+        $name = Configure::read('Security.cookieAuthName');
+        $this->cookieEncrypted(
+            $name,
+            json_encode(['Ulysses', time() + 86400, str_repeat('b', 64)]),
+            'aes',
+            Configure::read('Security.cookieSalt'),
+        );
+
+        $this->get('/');
+
+        $this->assertResponseOk();
+        $this->assertArrayNotHasKey(
+            $name,
+            $this->_response->getCookies(),
+            'a three-part token is the authenticator\'s to judge, not ours to discard',
+        );
+    }
+
+    /**
+     * Clearing happens on the same request that may be minting a replacement,
+     * so the order the two leave in decides whether "stay signed in" still
+     * works at all. ResponseEmitter writes the cookie collection first and raw
+     * `Set-Cookie` headers after it; the fresh cookie is a raw header, so it
+     * wins. If that ever changes, this fails instead of silently logging
+     * everybody out.
+     *
+     * @return void
+     */
+    public function testTakingBackACookieDoesNotEatTheOneMintedBesideIt(): void
+    {
+        $name = Configure::read('Security.cookieAuthName');
+        $this->cookieEncrypted(
+            $name,
+            json_encode(['Ulysses', '$2y$10$' . str_repeat('a', 53)]),
+            'aes',
+            Configure::read('Security.cookieSalt'),
+        );
+
+        $this->mockSecurity();
+        $this->post('/login', ['username' => 'Ulysses', 'password' => 'test', 'remember_me' => 1]);
+
+        $this->assertTrue($this->_controller->CurrentUser->isLoggedIn());
+
+        $cookies = CookieCollection::createFromHeader($this->_response->getHeader('Set-Cookie'));
+        $this->assertTrue($cookies->has($name), 'the replacement cookie was not minted');
+        $this->assertGreaterThan(
+            time(),
+            $cookies->get($name)->getExpiresTimestamp(),
+            'the replacement must outlive the request that discarded its predecessor',
+        );
+    }
+
     public function testLoginShowForm()
     {
         //# show login form
