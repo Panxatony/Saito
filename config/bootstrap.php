@@ -78,19 +78,20 @@ if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
         // named neither the file nor the remedy.
         //
         // This runs before CakePHP has an error page, so the log entry is all
-        // an operator gets. Make it the one they need.
-        throw new RuntimeException(
-            sprintf(
-                'Could not read %s: %s',
-                CONFIG . '.env',
-                $e->getMessage(),
-            )
-            . ' — since 8.4.10 a value containing a space must be quoted:'
+        // an operator gets. Make it the one they need — and put it first.
+        //
+        // Deliberately *not* chained to $e. PHP prints a chained exception
+        // previous-first, and the web server truncates a long FastCGI stderr
+        // line: tried on 2026-08-17, the entry was cut off inside the original
+        // trace and this message never appeared in the log at all. Its text is
+        // repeated below, so nothing is lost but the library's own frames.
+        throw new RuntimeException(sprintf(
+            'Could not read %s — a value containing a space must be quoted:'
             . ' `export NAME="two words"`, not `export NAME=two words`.'
-            . ' Quote the value named above and the forum starts again.',
-            0,
-            $e,
-        );
+            . ' Quote it and the forum starts again. The reader said: %s',
+            CONFIG . '.env',
+            $e->getMessage(),
+        ));
     }
 }
 

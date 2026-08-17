@@ -106,4 +106,32 @@ class DotenvFailureMessageTest extends TestCase
             $this->assertStringNotContainsString('quote', strtolower($message), 'the remedy is not given');
         }
     }
+
+    /**
+     * Why `config/bootstrap.php` throws *without* chaining the original.
+     *
+     * PHP prints a chained exception previous-first, and a web server truncates
+     * a long FastCGI stderr line. Tried on the test install on 2026-08-17: the
+     * entry was cut off inside the library's own stack trace, and the message
+     * written for the operator never reached the log at all — the one place
+     * they would look. Unchained, it leads the entry and survives.
+     *
+     * Nothing is lost by dropping the chain: the library's wording is repeated
+     * inside the message, and only its internal frames go.
+     *
+     * @return void
+     */
+    public function testTheOriginalWordingIsRepeatedSoTheChainCanBeDropped(): void
+    {
+        $this->writeEnv("export EMAIL_FROM_NAME=macnemo Forum\n");
+
+        try {
+            Dotenv::createArrayBacked($this->dir, '.env')->load();
+            $this->fail('expected the reader to refuse this');
+        } catch (InvalidFileException $e) {
+            // The value the operator has to go and fix is in here, which is
+            // what makes quoting it into our own message sufficient.
+            $this->assertStringContainsString('macnemo Forum', $e->getMessage());
+        }
+    }
 }

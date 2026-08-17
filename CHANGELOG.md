@@ -5,6 +5,30 @@
 - Δ Changed
 - − Removed
 
+## [8.4.12] - 2026-08-17 "obenauf"
+
+**No migration.** One file changed.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- ✓ Fixed: **the message 8.4.11 added never reached the web server's log.** It
+  was chained to the original exception, and PHP prints a chained exception
+  previous-first — so the entry began with the library's own trace, and the web
+  server truncated the line before the useful half. Tried on the test install:
+  the operator saw exactly what they saw before 8.4.11.
+
+  It is thrown unchained now and leads the entry. The library's wording is
+  repeated inside it, so only its internal frames are lost — which were never
+  the part worth reading.
+
+  This is the second correction to the same fix in one evening, and both came
+  from running it rather than reasoning about it. 8.4.11 was verified through
+  the command line, where PHP prints the whole chain and nothing is truncated;
+  the web path, which is the one an operator actually meets, behaved
+  differently.
+
 ## [8.4.11] - 2026-08-17 "beipackzettel"
 
 **No migration.** One file changed.
