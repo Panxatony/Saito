@@ -29,12 +29,10 @@
     "cakephp/cakephp": "^5.0",
     "cakephp/migrations": "^4.0",
     "cakephp/plugin-installer": "*",
-    "josegonzalez/dotenv": "^4",
     "aura/di": "^5",
     "jbbcode/jbbcode": "~1.4",
     "yzalis/identicon": "*",
     "league/commonmark": "^2.8",
-    "suin/php-rss-writer": "^1.6",
     "friendsofcake/search": "^7",
     "claviska/simpleimage": "^4",
     "embed/embed": "^4",
@@ -44,7 +42,9 @@
     "tempest/highlight": "^2.27",
     "spomky-labs/otphp": "^11.5",
     "endroid/qr-code": "^6.1",
-    "web-auth/webauthn-lib": "^5.3"
+    "web-auth/webauthn-lib": "^5.3",
+    "laminas/laminas-feed": "^2.26",
+    "vlucas/phpdotenv": "^5.6"
   },
   "require-dev": {
     "cakephp/cakephp-codesniffer": "^5",

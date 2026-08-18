@@ -6,6 +6,20 @@ covers the one prerequisite that cannot be fixed halfway through.
 
 ## Before you start
 
+> [!WARNING]
+> **Quote `.env` values that contain a space before upgrading to 8.4.10 or
+> later.** The reader introduced in 8.4.10 refuses `NAME=two words` where the
+> previous one accepted it, and it refuses it during bootstrap — the forum
+> answers HTTP 500 and nothing else until the file is fixed.
+>
+> ```bash
+> grep -nE '=[^"'"'"']*[[:space:]]' config/.env
+> ```
+>
+> Anything that matches needs quotes: `export NAME="two words"`. This bit a
+> production install on 2026-08-17; the value was `EMAIL_FROM_NAME=macnemo
+> Forum`, written years earlier and read without complaint ever since.
+
 Take a backup you have actually restored somewhere once. A dump that has never
 been read back is not a backup.
 
@@ -74,6 +88,22 @@ diff -u /path/to/forum/config/app.php          "saito-$V/config/app.php"
 ```
 
 Read the diff and copy individual keys. Do not replace the files.
+
+### `config/.env` and the environment together
+
+Both may be set at the same time. The environment wins: if it defines
+`APP_NAME`, the file is skipped entirely, and otherwise the file supplies only
+the keys the environment has not already defined.
+
+Earlier versions raised **"Key already defined"** for a key present in both and
+answered with an HTTP 500. If you removed a key from one side to work around
+that, you no longer have to — putting it back is harmless, and the environment
+is the one that counts.
+
+One narrower change to know about if a value contains a backslash before a
+dollar sign: `\$` in `config/.env` now resolves to a literal `$`, where it used
+to be kept as the two characters `\$`. A password written that way changes
+meaning. Bare `$name` and `${name}` behave exactly as before.
 
 ## 4. Clear the caches
 

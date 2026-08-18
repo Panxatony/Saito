@@ -36,7 +36,7 @@ class UserEventListenerTest extends TestCase
      *
      * @return WebhookDispatcher
      */
-    private function recordingDispatcher(array &$sent): WebhookDispatcher
+    private function recordingDispatcher(array &$sent): WebhookDispatcher // called four times below; the analyser misses it through the by-reference parameter skipcq: PHP-W1076
     {
         return new class ($sent) extends WebhookDispatcher {
             /**

@@ -5,6 +5,137 @@
 - Δ Changed
 - − Removed
 
+## [8.4.12] - 2026-08-17 "obenauf"
+
+**No migration.** One file changed.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- ✓ Fixed: **the message 8.4.11 added never reached the web server's log.** It
+  was chained to the original exception, and PHP prints a chained exception
+  previous-first — so the entry began with the library's own trace, and the web
+  server truncated the line before the useful half. Tried on the test install:
+  the operator saw exactly what they saw before 8.4.11.
+
+  It is thrown unchained now and leads the entry. The library's wording is
+  repeated inside it, so only its internal frames are lost — which were never
+  the part worth reading.
+
+  This is the second correction to the same fix in one evening, and both came
+  from running it rather than reasoning about it. 8.4.11 was verified through
+  the command line, where PHP prints the whole chain and nothing is truncated;
+  the web path, which is the one an operator actually meets, behaved
+  differently.
+
+## [8.4.11] - 2026-08-17 "beipackzettel"
+
+**No migration.** One file changed.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+> [!WARNING]
+> **Before upgrading, check `config/.env` for values containing a space:**
+>
+> ```bash
+> grep -nE '=[^"'"'"']*[[:space:]]' config/.env
+> ```
+>
+> Anything that matches needs quotes — `export NAME="two words"`. This applies
+> to 8.4.10 as well; the release below only makes the failure legible.
+
+- ✓ Fixed: **an unreadable crash when `config/.env` holds an unquoted value with
+  a space.** The reader introduced in 8.4.10 refuses `NAME=macnemo Forum` where
+  the previous one accepted it — and it refuses it during bootstrap, before
+  CakePHP has an error page. What an operator got was HTTP 500 and a stack trace
+  naming neither the file nor the remedy.
+
+  This is not hypothetical and was not caught by the migration's own testing:
+  the production install went down for five minutes on the day 8.4.10 shipped,
+  on a value written years earlier and read without complaint ever since. The
+  parser comparison behind that release checked `NAME="two words"` — quoted —
+  and never tried it without the quotes, which is the likelier way to write it.
+
+  The failure remains a failure: continuing without the file would swap a clear
+  stop for a confusing database error later. What changes is that the log now
+  names the file, repeats the value the library objected to, and says what fixes
+  it. Three tests hold down that the reader really does refuse this input and
+  that its own words do not tell anybody what to do — the two facts the wrapped
+  message rests on.
+
+  `docs/update.md` and `docs/upgrade.md` carry the check to run **before**
+  upgrading, which is the only place it helps.
+
+## [8.4.10] - 2026-08-17 "nachschub"
+
+**No migration.** The JS bundle changed with the Alpine.js update, so the
+compiled assets go out with it.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+Two suppliers had stopped producing — one nine years ago, one three — and this
+release replaces them. A third was kept, deliberately, because it still delivers
+what it is asked for.
+
+- Δ Changed: **the RSS feeds are written with `laminas/laminas-feed`.**
+  `suin/php-rss-writer` last published in 2017 and still declares `php >=5.4.0`.
+  Nothing was wrong with it; it simply stopped.
+
+  The gate was not that the feed still validates but that **the `guid` must not
+  move** — it is what subscribers are keyed on, and changing it makes every
+  reader re-announce every posting it has already shown. Compared before and
+  after across both feeds, against real postings and not only test data: `guid`,
+  `pubDate`, `link` and the posting bodies are byte-identical. Nobody's reader
+  will report anything as new.
+
+  Two faults the old library had been swallowing came out in the process, and
+  either would have replaced the whole document with an error rather than
+  degrading quietly: an empty subject, which replies commonly have, and an empty
+  body. Both are now handled.
+
+  Visible differences are equivalent or better: item titles are escaped instead
+  of CDATA-wrapped, `atom:link` is absolute where it used to be a bare path a
+  reader cannot resolve, and the channel carries a description instead of an
+  empty element. `<generator>` names the forum without a version rather than
+  announcing the library, and the writer's `slash:comments` — which would have
+  told every reader that every posting has no replies — is taken back out.
+
+- Δ Changed: **`config/.env` is read with `vlucas/phpdotenv`.**
+  `josegonzalez/dotenv` last published in 2023 and sits on `m1/env`, silent since
+  2020 — two dormant layers.
+
+  `symfony/dotenv` was the first choice and was rejected after measuring: it
+  interpolates the unbraced `$name` form as well, so a value containing a dollar
+  sign — a database password, most plausibly — is silently rewritten, and
+  truncated where the name is undefined. `phpdotenv` reads every case tried
+  exactly as before.
+
+  **A key defined both in the environment and in `config/.env` no longer
+  errors.** The old loader raised "Key already defined" and answered with an
+  HTTP 500; now the environment simply wins. If you removed a key from one side
+  to work around that, you can put it back.
+
+  One narrower change: `\$` in `config/.env` now resolves to a literal `$`
+  rather than staying two characters. A password written that way changes
+  meaning. Bare `$name` and `${name}` behave as before. See
+  [update.md](docs/update.md).
+
+- ✓ Fixed: **three places said the `.env` loader had to be switched on.** It
+  does not — `config/bootstrap.php` reads the file whenever it exists, and has
+  for a long time. `docs/deployment-debian.md`, the header of
+  `config/.env.default` (which also misspelled `bootstrap.php`) and the comment
+  the other two were copied from now describe what actually happens, including
+  that the environment wins twice over: `APP_NAME` present skips the file
+  entirely, and otherwise only unset keys are filled in.
+
+- Δ Changed: Alpine.js 3.15.12 → 3.16.1, and the build tooling (`cssnano`,
+  `eslint`, `globals`, `typescript-eslint`) to current.
+
 ## [8.4.9] - 2026-08-16 "altschlüssel"
 
 **No migration.** One PHP file changed — no assets, no schema.

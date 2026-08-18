@@ -51,16 +51,48 @@ use Cake\Utility\Inflector;
 use Cake\Utility\Security;
 
 /**
- * Uncomment block of code below if you want to use `.env` file during development.
- * You should copy `config/.env.default to `config/.env` and set/modify the
- * variables as required.
+ * Load `config/.env` when there is one — no editing of this file required.
+ * `config/.env.default` is the template to copy and fill in.
+ *
+ * The environment wins twice over. The guard skips the file entirely when
+ * `APP_NAME` is already set, which is what an FPM pool or systemd unit that
+ * configures Saito looks like; and within the file, a key that already exists
+ * in the environment is left alone rather than overwritten.
  */
 if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
-    $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
-    $dotenv->parse()
-        ->putenv()
-        ->toEnv()
-        ->toServer();
+    // `Unsafe` names the putenv() adapter, not a weaker guarantee: CakePHP's
+    // env() falls back to getenv(), so dropping it would leave a third of the
+    // lookup path unfed. `Immutable` is the load-bearing half — a value already
+    // in the environment wins, so an operator who sets keys in the php-fpm pool
+    // keeps them. The previous loader raised "Key already defined" for that
+    // case instead, which is how a prepared pool turned the site into an
+    // HTTP 500 during the PHP 8.4 cutover.
+    try {
+        \Dotenv\Dotenv::createUnsafeImmutable(CONFIG, '.env')->load();
+    } catch (\Dotenv\Exception\InvalidFileException $e) {
+        // The reader is stricter than the one Saito used before 8.4.10, and the
+        // difference reaches existing installations: `NAME=macnemo Forum` was
+        // accepted for years and is refused now — a value containing a space
+        // has to be quoted. Production found that out the hard way on
+        // 2026-08-17, with five minutes of HTTP 500 and a stack trace that
+        // named neither the file nor the remedy.
+        //
+        // This runs before CakePHP has an error page, so the log entry is all
+        // an operator gets. Make it the one they need — and put it first.
+        //
+        // Deliberately *not* chained to $e. PHP prints a chained exception
+        // previous-first, and the web server truncates a long FastCGI stderr
+        // line: tried on 2026-08-17, the entry was cut off inside the original
+        // trace and this message never appeared in the log at all. Its text is
+        // repeated below, so nothing is lost but the library's own frames.
+        throw new RuntimeException(sprintf(
+            'Could not read %s — a value containing a space must be quoted:'
+            . ' `export NAME="two words"`, not `export NAME=two words`.'
+            . ' Quote it and the forum starts again. The reader said: %s',
+            CONFIG . '.env',
+            $e->getMessage(),
+        ));
+    }
 }
 
 /*

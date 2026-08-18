@@ -172,3 +172,29 @@ enabled = true
 # JS-0052 ("alert/confirm/prompt") is *not* a false positive and is therefore
 # not ignored here: it is suppressed with a `skipcq` comment at the one call
 # site, where the reason for accepting it can be read next to the code.
+
+# Excluding a path does not retire what was already recorded for it. Learned on
+# 2026-08-17, and worth knowing before anybody "fixes" the patterns above.
+#
+# The dashboard listed 44 active occurrences; ten of them sit in paths this file
+# excludes — nine under `dev/` (excluded since 2026-07-05) and one in
+# `eslint.config.mjs` (since 2026-07-30). Six weeks and dozens of runs did not
+# clear them, and they never will: `exclude_patterns` stops the analyser from
+# *looking*, and an occurrence is only resolved by a run that looks and no
+# longer finds it. So they are orphans, not open work.
+#
+# Two consequences:
+#   1. Do not read the dashboard total as the number of things to fix, and do
+#      not conclude from a lingering entry that an exclude pattern is broken.
+#      Check the path against the list above first.
+#   2. Clearing them takes `suppressIssueOccurrence` against the API (or the
+#      same action in the UI). Nothing in this repository can do it, which is
+#      why it is written down here.
+#
+# The live remainder is what the notes above already describe: mostly JS-R1005
+# in the island modules, plus a handful in `passkeys.ts` and the deliberate
+# complexity of `htmxTwoFactor()`.
+#
+# PHP-W1076 on `recordingDispatcher()` in the Webhooks listener test was a false
+# positive — the method is called four times in the same file — and is now
+# suppressed at the declaration with `skipcq`, per the JS-0052 precedent above.
