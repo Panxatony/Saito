@@ -5,6 +5,42 @@
 - Δ Changed
 - − Removed
 
+## [8.4.13] - 2026-08-19 "nachgezählt"
+
+**No migration.** Two dependencies, no application code.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- Δ Changed: **`league/commonmark` 2.9.0 → 2.10.0**, which is three security
+  releases in one step: 2.9.1 (several denial-of-service issues and one XSS),
+  2.9.2 (a regression from 2.9.0) and 2.10.0 (a denial of service in the
+  attributes extension). `tempest/highlight` 2.27.0 → 2.27.1 comes along; that
+  one carries no security content.
+
+  **Nothing here was exploitable in Saito, and it is worth being precise about
+  why.** The XSS and the 2.10.0 issue both need the attributes extension, which
+  the plain `CommonMarkConverter` this forum uses does not load. The
+  denial-of-service issues from 2.9.1 are in the core parser and do apply — but
+  the only markdown that reaches it is help-page content from the repository,
+  the theme or `config/help/`. All of it is supplied by the operator; an
+  attacker has nothing to feed it.
+
+  What makes the update right anyway is a comment that has sat above that
+  converter since 7.0.6: *"Currently only trusted help pages are rendered, but
+  this keeps the helper safe if ever pointed at user input."* The hardening
+  there was written for a situation that has not arrived. Carrying three
+  security releases of debt against it would undo the care that put it there.
+
+  **No tool reported this.** `composer audit --locked`, Dependabot and CodeQL
+  were all silent, and none of them was wrong — upstream published these as
+  security releases with GHSA identifiers, and the advisory databases had not
+  indexed them yet. It surfaced from comparing installed versions against the
+  newest release in the same major and then reading the release notes, which is
+  now recorded in #94 as the third standing check alongside "how far behind are
+  we" and "is anyone still publishing".
+
 ## [8.4.12] - 2026-08-17 "obenauf"
 
 **No migration.** One file changed.
