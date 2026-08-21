@@ -226,6 +226,26 @@ Two guards then run against whatever was established:
   factor was actually proved. The cookie alone is stateless and cannot be
   revoked; the device row can.
 
+### Which password formats are accepted
+
+Two, and the list is short on purpose:
+
+| Format | Length | Accepted | |
+|---|---|---|---|
+| bcrypt | 60 | yes | everything this software has written for years |
+| salted sha1 | 50 | yes | what mylittleforum 2.x wrote; rewritten as bcrypt on the next login |
+| plain md5/sha1 | 32/40 | **no** | older installations still carry these |
+
+`LegacyPasswordHasherSaltless` can read the third and is deliberately **not**
+wired into the chain: accepting an unsalted hash from that era would turn
+something trivially crackable back into a working credential. Nobody is locked
+out permanently — the password reset issues a bcrypt hash like any other login
+would.
+
+Measured on the production install in August 2026: 534 accounts still hold a
+32-character hash, none used since 2013, against 287 on bcrypt. Those hashes sit
+in the database doing nothing, which is its own small question — see #99.
+
 A cookie whose token is not in the current shape is now discarded rather than
 merely refused. Before 8.4.9 it was refused on every request and left in place,
 which returned the member to the login form indefinitely — they could not clear

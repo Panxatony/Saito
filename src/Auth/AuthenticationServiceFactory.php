@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace App\Auth;
 
-use App\Auth\LegacyPasswordHasherSaltless;
 use App\Auth\Mlf2PasswordHasher;
 use Authentication\AuthenticationService;
 use Cake\Core\Configure;
@@ -75,6 +74,21 @@ class AuthenticationServiceFactory
                     'className' => 'Authentication.Orm',
                     'userModel' => 'Users',
                 ],
+                // Two formats are accepted, and the list is deliberately this
+                // short. `Default` is bcrypt, which every password set by this
+                // software has used for years. `Mlf2PasswordHasher` reads the
+                // salted-sha1 form mylittleforum 2.x wrote, because Saito is
+                // what those forums upgraded into; a hash it matches is
+                // rewritten as bcrypt on the next successful login.
+                //
+                // What is *not* here is the plain md5/sha1 of even older
+                // installations. `LegacyPasswordHasherSaltless` can read it and
+                // is deliberately not wired in: accepting a thirteen-year-old
+                // unsalted hash would turn something trivially crackable back
+                // into a credential. Such an account is not lost — the password
+                // reset issues a bcrypt hash like any other. Measured on the
+                // production install in 2026-08: 534 accounts still carry a
+                // 32-character hash, none of them used since 2013.
                 'passwordHasher' => [
                     'className' => 'Authentication.Fallback',
                     'hashers' => [
