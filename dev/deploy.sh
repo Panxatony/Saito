@@ -159,8 +159,13 @@ if [ -z "$COPY_HOST" ]; then
     # nearly every file in a fresh package, and pure noise in this list. Only
     # size ("s"), checksum ("c") and new files ("+++") say anything.
     # shellcheck disable=SC2086
+    # `|| true` is load-bearing under `set -e`: grep exits 1 when it matches
+    # nothing, and "nothing differs" is the *normal* result of deploying a
+    # version that is already there. Without it the script died right here,
+    # silently and with status 0, before backing anything up — found by running
+    # this against the test forum twice in a row (2026-08-21).
     LIST=$(sudo rsync -ain --no-perms --no-owner --no-group $EXCLUDES "$PKG/" "$ROOT/" \
-        | grep -E '^>f' | grep -vE '^>f\.\.t')
+        | grep -E '^>f' | grep -vE '^>f\.\.t' || true)
     if [ -n "$LIST" ]; then
         echo "$LIST" | head -40
         echo "$LIST" | tail -n +41 | sed -n '1p;$p' >/dev/null
@@ -188,10 +193,22 @@ fi
 # --- 4. backups --------------------------------------------------------------
 say "backups"
 STAMP="pre-$VERSION"
+# `[ ! -f ... ]` for the same reason as vendor below: on a second run of the same
+# version the file has already been replaced, so copying again would overwrite
+# the backup with the new content and lose the state it exists to preserve.
 on_target "for f in src/Lib/version.php config/bootstrap.php config/routes.php composer.lock CHANGELOG.md; do
-    [ -f \"\$f\" ] && cp -p \"\$f\" \"\$f.$STAMP\"
+    [ -f \"\$f\" ] && [ ! -f \"\$f.$STAMP\" ] && cp -p \"\$f\" \"\$f.$STAMP\"
 done; echo 'key files backed up as *.$STAMP'"
-on_target "test -d vendor && cp -a vendor vendor.$STAMP && echo 'vendor backed up' || true"
+# Only when there is no backup yet, and for two reasons. `cp -a vendor
+# vendor.pre-X` copies *into* an existing directory of that name rather than
+# replacing it, so a repeated deploy of the same version nests a 353 MB tree
+# inside the last one (seen on test, 2026-08-21). And the first backup is the
+# one worth keeping: it holds the state before this version was ever here.
+on_target "if [ ! -d vendor.$STAMP ] && [ -d vendor ]; then
+    cp -a vendor vendor.$STAMP && echo 'vendor backed up'
+else
+    echo 'vendor.$STAMP already exists — keeping the earlier one'
+fi"
 
 # --- 5. transfer -------------------------------------------------------------
 say "transfer"
@@ -215,7 +232,18 @@ on_target "php -l config/bootstrap.php && php -l config/routes.php && php -l src
 on_target "find tmp/cache -type f -delete 2>/dev/null || true"
 
 say "database version"
-on_target "php bin/cake.php db_version '$VERSION'"
+# Same reason as the pre-flight probe: an installation older than 8.4.14 has no
+# such command. Cake's "Unknown command" is four lines of suggestions and looks
+# alarming in the middle of a deploy, so it is caught and explained instead —
+# with the SQL to run by hand, because the row does have to be set.
+if on_target "php bin/cake.php db_version '$VERSION' 2>/dev/null | grep -qE 'database:|nothing to do'"; then
+    on_target "php bin/cake.php db_version"
+else
+    echo "This installation has no db_version command yet (it arrives with this"
+    echo "release). Set the row by hand, once:"
+    echo "    UPDATE settings SET value='$VERSION' WHERE name='db_version';"
+    echo "From the next deployment onwards this step runs itself."
+fi
 
 say "reload"
 $RUN "$RELOAD" >/dev/null 2>&1 || true
@@ -231,7 +259,10 @@ for path in "/" "/login"; do
 done
 echo -n "  version on target: "
 on_target "grep -oE \"8[.][0-9]+[.][0-9]+\" src/Lib/version.php | head -1"
-on_target "php bin/cake.php db_version" || true
+# Suppressed for the same reason as above, and stderr with it: on an
+# installation without the command, cake's suggestion list is the last thing
+# printed before "deployed" and reads like the deploy failed.
+on_target "php bin/cake.php db_version 2>/dev/null" || true
 
 if [ "$FAIL" -ne 0 ]; then
     say "SOMETHING IS WRONG"
