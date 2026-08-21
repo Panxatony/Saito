@@ -28,11 +28,11 @@
 set -eu
 
 # --- targets -----------------------------------------------------------------
-# `run` is how a command reaches the host: a local sudo, or ssh.
+# `COPY_HOST` empty means the installation is on this machine; otherwise it is
+# the ssh destination. on_target()/on_host() branch on it.
 target_config() {
     case "$1" in
         test)
-            RUN="sudo sh -c"
             COPY_HOST=""
             ROOT="/var/www/saito"
             OWNER="www-data:www-data"
@@ -40,7 +40,6 @@ target_config() {
             URL="https://forum.panxatony.net"
             ;;
         beta)
-            RUN="ssh vserver31-macnemo-saito8 sh -c"
             COPY_HOST="vserver31-macnemo-saito8"
             ROOT="/usr/local/www/saito"
             OWNER="www:www"
@@ -48,7 +47,6 @@ target_config() {
             URL="https://saito8-alpha.macnemo.de"
             ;;
         prod)
-            RUN="ssh vserver31-macnemo sh -c"
             COPY_HOST="vserver31-macnemo"
             ROOT="/usr/local/www/apache24/data/macnemo-backend/forum"
             OWNER="www:www"
@@ -94,7 +92,51 @@ else
 fi
 
 say() { printf '\n=== %s\n' "$1"; }
-on_target() { $RUN "cd '$ROOT' && $1"; }
+
+# Run a command in the installation directory.
+#
+# The remote half is piped over stdin rather than passed as arguments, and that
+# is not a style choice. `ssh host sh -c "cd '$ROOT' && cmd"` joins its arguments
+# into one line and hands it to the *login* shell, which is csh in these jails.
+# csh takes the `&&` for itself: `sh -c cd '/usr/local/www/saito'` runs as its
+# own command and does nothing, then csh runs the rest — in /root.
+#
+# So every command ran in the wrong directory, and a failing `cd` stopped
+# nothing. `test -f config/.env` answered "no such file" and the check written
+# to prevent the 2026-08-10 outage reported "nothing to check" on the very
+# installation it was meant to protect. Nothing failed; that was the problem.
+#
+# Piping to a bare `sh` gives ssh a single argument with no metacharacters, so
+# there is nothing for csh to reinterpret. Verified by prove_target_dir below.
+on_target() {
+    if [ -z "$COPY_HOST" ]; then
+        sudo sh -c "cd '$ROOT' && $1"
+    else
+        printf 'cd %s || exit 1\n%s\n' "$ROOT" "$1" | ssh "$COPY_HOST" sh
+    fi
+}
+
+# Run a command on the host, not tied to the installation directory.
+on_host() {
+    if [ -z "$COPY_HOST" ]; then
+        sudo sh -c "$1"
+    else
+        printf '%s\n' "$1" | ssh "$COPY_HOST" sh
+    fi
+}
+
+# Refuse to go on unless on_target really lands in $ROOT. The bug above was
+# invisible precisely because everything downstream reported success, so this
+# asks the one question that would have caught it, before anything is touched.
+prove_target_dir() {
+    where=$(on_target "pwd" 2>/dev/null || true)
+    if [ "$where" != "$ROOT" ]; then
+        echo "REFUSING: commands on $TARGET run in '${where:-nowhere}', not '$ROOT'." >&2
+        echo "Backups and safety checks would silently do nothing. Fix on_target first." >&2
+        exit 1
+    fi
+    echo "commands land in $ROOT"
+}
 
 echo "target:  $TARGET ($ROOT)"
 echo "version: $VERSION"
@@ -115,6 +157,7 @@ echo "verified, and it says $VERSION"
 
 # --- 2. pre-flight -----------------------------------------------------------
 say "pre-flight"
+prove_target_dir
 echo -n "installed now:   "
 on_target "grep -oE \"8[.][0-9]+[.][0-9]+\" src/Lib/version.php | head -1" || true
 # `db_version` arrived in 8.4.14. An older installation does not have it, which
@@ -154,35 +197,45 @@ for p in $PROTECTED; do
     EXCLUDES="$EXCLUDES --exclude=/$p"
 done
 
-if [ -z "$COPY_HOST" ]; then
-    # `>f..t` is a file whose *timestamp* differs and whose content does not —
-    # nearly every file in a fresh package, and pure noise in this list. Only
-    # size ("s"), checksum ("c") and new files ("+++") say anything.
-    # shellcheck disable=SC2086
-    # `|| true` is load-bearing under `set -e`: grep exits 1 when it matches
-    # nothing, and "nothing differs" is the *normal* result of deploying a
-    # version that is already there. Without it the script died right here,
-    # silently and with status 0, before backing anything up — found by running
-    # this against the test forum twice in a row (2026-08-21).
-    LIST=$(sudo rsync -ain --no-perms --no-owner --no-group $EXCLUDES "$PKG/" "$ROOT/" \
-        | grep -E '^>f' | grep -vE '^>f\.\.t' || true)
-    if [ -n "$LIST" ]; then
-        echo "$LIST" | head -40
-        echo "$LIST" | tail -n +41 | sed -n '1p;$p' >/dev/null
-        COUNT=$(echo "$LIST" | grep -c .)
-        [ "$COUNT" -gt 40 ] && echo "  … and $((COUNT - 40)) more"
+# One transfer mechanism for every target. An earlier version claimed the
+# FreeBSD jails had no rsync and fell back to a tar pipe there, which is why
+# beta and prod could not be dry-run at all. Both have /usr/local/bin/rsync
+# (checked 2026-08-21); the claim was never true.
+rsync_to_target() {  # $1: extra flags, e.g. -n for a dry run
+    if [ -z "$COPY_HOST" ]; then
+        # shellcheck disable=SC2086
+        sudo rsync -a $1 --no-perms --no-owner --no-group $EXCLUDES "$PKG/" "$ROOT/"
     else
-        COUNT=0
-        echo "  none — this installation already has this content"
+        # shellcheck disable=SC2086
+        rsync -a $1 --no-perms --no-owner --no-group $EXCLUDES "$PKG/" "$COPY_HOST:$ROOT/"
     fi
-    echo "changed files: $COUNT"
+}
+
+# `>f..t` is a file whose *timestamp* differs and whose content does not —
+# nearly every file in a fresh package, and pure noise in this list. Only size
+# ("s"), checksum ("c") and new files ("+++") say anything.
+#
+# `|| true` is load-bearing under `set -e`: grep exits 1 when it matches
+# nothing, and "nothing differs" is the *normal* result of deploying a version
+# that is already there. Without it the script died right here, silently and
+# with status 0, before backing anything up — found by running this against the
+# test forum twice in a row (2026-08-21).
+LIST=$(rsync_to_target -in | grep -E '^>f' | grep -vE '^>f\.\.t' || true)
+if [ -n "$LIST" ]; then
+    echo "$LIST" | head -40
+    COUNT=$(echo "$LIST" | grep -c .)
+    [ "$COUNT" -gt 40 ] && echo "  … and $((COUNT - 40)) more"
 else
-    # No rsync in the FreeBSD jails, so a remote dry run cannot list files
-    # without copying them. Say so rather than implying the list is empty.
-    echo "  (remote target: rsync is not installed there, so the list cannot be"
-    echo "   produced without transferring. Run the dry run against 'test' to see"
-    echo "   what a release changes.)"
+    COUNT=0
+    echo "  none — this installation already has this content"
 fi
+echo "changed files: $COUNT"
+
+# Nothing here removes files, deliberately: no --delete anywhere. It is what
+# lets an installation keep things the release does not ship — the Macfix
+# theme on beta, which lives only on the theme/macfix branch, and the .bak
+# files an operator left in config/. A --delete added later would take both.
+
 
 if [ "$MODE" != "LIVE" ]; then
     say "dry run finished"
@@ -212,17 +265,7 @@ fi"
 
 # --- 5. transfer -------------------------------------------------------------
 say "transfer"
-if [ -z "$COPY_HOST" ]; then
-    # shellcheck disable=SC2086
-    sudo rsync -a --no-perms --no-owner --no-group $EXCLUDES "$PKG/" "$ROOT/"
-else
-    TAR_EXCLUDES=""
-    for p in $PROTECTED; do
-        TAR_EXCLUDES="$TAR_EXCLUDES --exclude=./$p"
-    done
-    # shellcheck disable=SC2086
-    tar czf - -C "$PKG" $TAR_EXCLUDES . | ssh "$COPY_HOST" "tar xzf - -C '$ROOT'"
-fi
+rsync_to_target ""
 echo "done"
 
 # --- 6. settle ---------------------------------------------------------------
@@ -246,7 +289,7 @@ else
 fi
 
 say "reload"
-$RUN "$RELOAD" >/dev/null 2>&1 || true
+on_host "$RELOAD" >/dev/null 2>&1 || true
 sleep 3
 
 # --- 7. verify ---------------------------------------------------------------
