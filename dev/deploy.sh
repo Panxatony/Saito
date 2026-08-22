@@ -158,7 +158,7 @@ echo "verified, and it says $VERSION"
 # --- 2. pre-flight -----------------------------------------------------------
 say "pre-flight"
 prove_target_dir
-echo -n "installed now:   "
+printf 'installed now:   '
 on_target "grep -oE \"8[.][0-9]+[.][0-9]+\" src/Lib/version.php | head -1" || true
 # `db_version` arrived in 8.4.14. An older installation does not have it, which
 # is not a reason to stop — the row is set with the same command after the files
@@ -184,10 +184,29 @@ else
     echo "no config/.env on this installation — nothing to check"
 fi
 
-say "migrations in this release"
+# This used to print `ls config/Migrations | tail -3` from the package and ask
+# the operator to work out whether any were new. Two things were wrong with it.
+# The package carries *every* migration ever written, so the three newest are
+# not "the migrations in this release"; and a release adding four would have
+# shown three, hiding one under a heading that claimed to list them all.
+#
+# Now it compares against the target and names exactly what is missing there.
+# Possible only since remote commands started running in the right directory —
+# before that this could not have asked the question at all.
+say "migrations the target does not have yet"
 if [ -d "$PKG/config/Migrations" ]; then
-    ls "$PKG/config/Migrations" | tail -3
-    echo "^ if any of these are new here, run bin/cake migrations migrate on the target *after* this"
+    find "$PKG/config/Migrations" -maxdepth 1 -name '*.php' -exec basename {} \; \
+        | sort > "$WORK/mig-pkg"
+    on_target "find config/Migrations -maxdepth 1 -name '*.php' -exec basename {} ';' 2>/dev/null | sort" \
+        > "$WORK/mig-target" 2>/dev/null || : > "$WORK/mig-target"
+    if [ ! -s "$WORK/mig-target" ]; then
+        echo "  (could not read the target's migrations — check by hand)"
+    elif comm -23 "$WORK/mig-pkg" "$WORK/mig-target" | grep -q .; then
+        comm -23 "$WORK/mig-pkg" "$WORK/mig-target" | sed 's/^/  /'
+        echo "  ^ run bin/cake migrations migrate on the target *after* this deploy"
+    else
+        echo "  none — the target already has every migration in this package"
+    fi
 fi
 
 # --- 3. what would change ----------------------------------------------------
@@ -300,7 +319,7 @@ for path in "/" "/login"; do
     printf '  %-8s HTTP %s\n' "$path" "$code"
     [ "$code" = "200" ] || FAIL=1
 done
-echo -n "  version on target: "
+printf '  version on target: '
 on_target "grep -oE \"8[.][0-9]+[.][0-9]+\" src/Lib/version.php | head -1"
 # Suppressed for the same reason as above, and stderr with it: on an
 # installation without the command, cake's suggestion list is the last thing
