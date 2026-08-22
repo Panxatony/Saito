@@ -41,6 +41,14 @@ if ($theme) {
     // preview, uploads and the widget state, all failing silently.
     ?>
     <meta name="csrf-token" content="<?= h($this->getRequest()->getAttribute('csrfToken')) ?>">
+    <?php // Texts the islands show when a request fails. They live here rather
+          // than in the TypeScript because the frontend has no translations of
+          // its own — a literal in a .ts file would be English on a German
+          // forum. See frontend/src/islands/runtime.ts. ?>
+    <meta name="msg-session-stale" content="<?= h(__('msg.session.stale')) ?>">
+    <meta name="msg-session-stale-short" content="<?= h(__('msg.session.stale.short')) ?>">
+    <meta name="msg-request-failed" content="<?= h(__('msg.request.failed')) ?>">
+    <meta name="msg-no-connection" content="<?= h(__('msg.no.connection')) ?>">
     <?= $this->fetch('meta') ?>
     <?= $this->Html->css('stylesheets/static.css') ?>
     <?= $this->fetch('css') ?>

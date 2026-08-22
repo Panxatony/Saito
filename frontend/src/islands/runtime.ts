@@ -17,6 +17,8 @@
  */
 import htmx from 'htmx.org';
 import Alpine from 'alpinejs';
+import { showFlash } from './features/flash';
+import { serverMessage } from './lib/dom';
 
 declare global {
     interface Window {
@@ -46,6 +48,49 @@ document.body.addEventListener('htmx:configRequest', (event: Event) => {
     if (token) {
         detail.headers['X-CSRF-Token'] = token;
     }
+});
+
+/**
+ * Say something when a request fails.
+ *
+ * htmx swaps on 2xx and stays silent otherwise. With no listener for
+ * `htmx:responseError` that silence reached the member: the reply form posts
+ * with `hx-post`, and once the CSRF token had expired — three hours, see
+ * `Application.php` — pressing "send" did visibly nothing at all. The written
+ * text stayed in the box with no hint that it had not been sent, and no hint
+ * that reloading would fix it.
+ *
+ * Reported from macnemo.de on 2026-08-22 in its milder form: an upload that
+ * answered `1111IMG_0047.JPG: failed`.
+ *
+ * 403 gets its own wording because it has a cure the member can apply. Every
+ * other status gets a plain statement that it did not work — vague, but never
+ * silent, which is the property that was missing.
+ */
+document.body.addEventListener('htmx:responseError', (event: Event) => {
+    const status = (event as CustomEvent).detail?.xhr?.status;
+    if (status === 403) {
+        showFlash(
+            serverMessage(
+                'msg-session-stale',
+                'This page has been open too long and the form is no longer valid.'
+                    + ' Reload the page, then try again — your text is kept.',
+            ),
+            'warning',
+        );
+
+        return;
+    }
+    showFlash(
+        serverMessage('msg-request-failed', 'That did not work. Please try again.')
+            + (typeof status === 'number' && status > 0 ? ` (${status})` : ''),
+    );
+});
+
+// A request that never reached the server at all — offline, DNS, a dropped
+// connection. Same reasoning: better a vague message than none.
+document.body.addEventListener('htmx:sendError', () => {
+    showFlash(serverMessage('msg-no-connection', 'No connection to the forum. Check your network.'));
 });
 
 export { htmx, Alpine };

@@ -2235,3 +2235,15 @@ msgstr "Stattdessen abmelden"
 
 
 
+
+msgid "msg.session.stale"
+msgstr "Diese Seite liegt zu lange offen, das Formular ist nicht mehr gültig. Lade die Seite neu und versuche es noch einmal – dein geschriebener Text bleibt erhalten."
+
+msgid "msg.session.stale.short"
+msgstr "Seite veraltet – bitte neu laden"
+
+msgid "msg.request.failed"
+msgstr "Das hat nicht geklappt. Bitte versuche es noch einmal."
+
+msgid "msg.no.connection"
+msgstr "Keine Verbindung zum Forum. Bitte prüfe deine Netzwerkverbindung."
