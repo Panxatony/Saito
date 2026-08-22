@@ -37,21 +37,31 @@ target_config() {
             ROOT="/var/www/saito"
             OWNER="www-data:www-data"
             RELOAD="systemctl reload php8.4-fpm"
-            URL="https://forum.panxatony.net"
+            # No config/.env here: the connection is an env[] line on the FPM
+            # pool, which the web server has and a shell does not.
+            POOL_CONF="/etc/php/8.4/fpm/pool.d/saito.conf"
+            VERIFY="https://forum.panxatony.net"
             ;;
         beta)
             COPY_HOST="vserver31-macnemo-saito8"
             ROOT="/usr/local/www/saito"
             OWNER="www:www"
             RELOAD="service php_fpm reload"
-            URL="https://saito8-alpha.macnemo.de"
+            POOL_CONF=""
+            VERIFY="https://saito8-alpha.macnemo.de"
             ;;
         prod)
             COPY_HOST="vserver31-macnemo"
             ROOT="/usr/local/www/apache24/data/macnemo-backend/forum"
             OWNER="www:www"
             RELOAD="service php_fpm reload"
-            URL="https://macnemo.de"
+            POOL_CONF=""
+            # Anubis sits in front of this one and answers 200 with a
+            # proof-of-work page to anything that cannot run JavaScript — curl
+            # included. Verifying against the public URL therefore measures the
+            # bot wall and not the forum, so this goes straight at the vhost
+            # behind it.
+            VERIFY="-H Host:macnemo.de http://127.0.0.1:8081"
             ;;
         *)
             echo "unknown target: $1 (test|beta|prod)" >&2
@@ -160,15 +170,28 @@ say "pre-flight"
 prove_target_dir
 printf 'installed now:   '
 on_target "grep -oE \"8[.][0-9]+[.][0-9]+\" src/Lib/version.php | head -1" || true
-# `db_version` arrived in 8.4.14. An older installation does not have it, which
-# is not a reason to stop — the row is set with the same command after the files
-# are in place, by which point it does. Checked for emptiness rather than by
-# exit status: an unknown command still leaves cake exiting zero.
-DBV=$(on_target "php bin/cake.php db_version 2>/dev/null | sed -n 's/^database: *//p'" 2>/dev/null || true)
+# `db_version` needs the database, and the console may not have it: where the
+# connection is an env[] line on the FPM pool rather than config/.env, the web
+# server has it and a shell does not. POOL_CONF names that file per target so
+# the value can be lifted from it; without one, the command runs as it is.
+DB_ENV=""
+if [ -n "${POOL_CONF:-}" ]; then
+    DB_URL=$(on_host "grep -oE '^env\\[DATABASE_URL\\][[:space:]]*=[[:space:]]*.*' '$POOL_CONF' 2>/dev/null | head -1 | sed -E 's/^[^=]*=[[:space:]]*//; s/^\"//; s/\"$//'" || true)
+    if [ -n "$DB_URL" ]; then
+        DB_ENV="DATABASE_URL='$DB_URL'"
+        echo "(connection read from $POOL_CONF)"
+    fi
+fi
+
+# `db_version` arrived in 8.4.14, so an older installation does not have it —
+# not a reason to stop, since the row is set with the same command once the
+# files are in place. Emptiness rather than exit status: an unknown command
+# still leaves cake exiting zero.
+DBV=$(on_target "$DB_ENV php bin/cake.php db_version 2>/dev/null | sed -n 's/^database: *//p'" 2>/dev/null || true)
 if [ -n "$DBV" ]; then
     echo "database says:   $DBV"
 else
-    echo "database says:   (not available — older than the db_version command)"
+    echo "database says:   (not available yet — older than the db_version command)"
 fi
 
 # The check that would have saved production on 2026-08-10: since 8.4.10 an
@@ -239,7 +262,18 @@ rsync_to_target() {  # $1: extra flags, e.g. -n for a dry run
 # that is already there. Without it the script died right here, silently and
 # with status 0, before backing anything up — found by running this against the
 # test forum twice in a row (2026-08-21).
-LIST=$(rsync_to_target -in | grep -E '^>f' | grep -vE '^>f\.\.t' || true)
+# `>f` and `<f`: rsync's first character is the *direction*, `>` when the file
+# is received (a local destination) and `<` when it is sent (a remote one).
+# Matching only `>f` meant every remote dry run reported "changed files: 0" —
+# not because nothing differed, but because nothing matched. Beta and prod
+# never once produced a real list, and said so as if they had.
+#
+# `-c` for the listing only. Without it rsync decides by size and mtime, so a
+# file edited without changing length shows as timestamp-only and is filtered
+# out — which hid `src/Lib/version.php`, of all files, from every list this
+# ever printed. The transfer below keeps the default: the package's mtimes are
+# always newer, and checksumming the tree twice buys nothing there.
+LIST=$(rsync_to_target -inc | grep -E '^[<>]f' | grep -vE '^[<>]f\.\.t' || true)
 if [ -n "$LIST" ]; then
     echo "$LIST" | head -40
     COUNT=$(echo "$LIST" | grep -c .)
@@ -294,18 +328,33 @@ on_target "php -l config/bootstrap.php && php -l config/routes.php && php -l src
 on_target "find tmp/cache -type f -delete 2>/dev/null || true"
 
 say "database version"
-# Same reason as the pre-flight probe: an installation older than 8.4.14 has no
-# such command. Cake's "Unknown command" is four lines of suggestions and looks
-# alarming in the middle of a deploy, so it is caught and explained instead —
-# with the SQL to run by hand, because the row does have to be set.
-if on_target "php bin/cake.php db_version '$VERSION' 2>/dev/null | grep -qE 'database:|nothing to do'"; then
-    on_target "php bin/cake.php db_version"
-else
-    echo "This installation has no db_version command yet (it arrives with this"
-    echo "release). Set the row by hand, once:"
-    echo "    UPDATE settings SET value='$VERSION' WHERE name='db_version';"
-    echo "From the next deployment onwards this step runs itself."
-fi
+# Two different things can stop this working, and the earlier version reported
+# both as the first one — telling the operator the command was missing on an
+# installation that had just received it. The message was wrong in exactly the
+# way this release is about, so it now reads the output and says which it is.
+#
+# `db_version` needs the database, and the console may not have it: where the
+# connection is an env[] line on the FPM pool rather than config/.env, the web
+# server has it and a shell does not. POOL_CONF names that file per target so
+# the value can be lifted from it; without one, the command runs as it is.
+DBOUT=$(on_target "$DB_ENV php bin/cake.php db_version '$VERSION' 2>&1" || true)
+case "$DBOUT" in
+    *"Unknown command"*)
+        echo "This installation has no db_version command yet — it arrives with"
+        echo "this release, so from the next deployment this step runs itself."
+        echo "Set the row by hand, once:"
+        echo "    UPDATE settings SET value='$VERSION' WHERE name='db_version';"
+        ;;
+    *MissingConnectionException*|*"Access denied"*|*"could not be established"*)
+        echo "The command is installed but cannot reach the database from the"
+        echo "console — the connection is not in config/.env and no pool file is"
+        echo "configured for this target. Either add POOL_CONF above, or run:"
+        echo "    DATABASE_URL='mysql://…' bin/cake db_version $VERSION"
+        ;;
+    *)
+        echo "$DBOUT" | sed 's/^/  /'
+        ;;
+esac
 
 say "reload"
 on_host "$RELOAD" >/dev/null 2>&1 || true
@@ -313,18 +362,29 @@ sleep 3
 
 # --- 7. verify ---------------------------------------------------------------
 say "verify"
+# A status code is not enough. Production sits behind Anubis, which answers 200
+# with "Making sure you're not a bot!" to anything without JavaScript — so the
+# old check passed while measuring the wall, and would have passed just the same
+# with the forum broken behind it. Every page is now also asked for a marker
+# only Saito emits.
 FAIL=0
 for path in "/" "/login"; do
-    code=$(curl -sS -o /dev/null -w '%{http_code}' "$URL$path" || echo 000)
-    printf '  %-8s HTTP %s\n' "$path" "$code"
-    [ "$code" = "200" ] || FAIL=1
+    body=$(on_host "curl -sS -o /tmp/saito-verify.html -w '%{http_code}' $VERIFY$path" 2>/dev/null || echo 000)
+    marker=$(on_host "grep -c 'meta name=\"csrf-token\"' /tmp/saito-verify.html 2>/dev/null" || echo 0)
+    if [ "$body" = "200" ] && [ "$marker" -ge 1 ]; then
+        printf '  %-8s HTTP 200, and it is the forum\n' "$path"
+    elif [ "$body" = "200" ]; then
+        printf '  %-8s HTTP 200 but no Saito markup — a bot wall or an error page?\n' "$path"
+        FAIL=1
+    else
+        printf '  %-8s HTTP %s\n' "$path" "$body"
+        FAIL=1
+    fi
 done
+on_host "rm -f /tmp/saito-verify.html" || true
 printf '  version on target: '
 on_target "grep -oE \"8[.][0-9]+[.][0-9]+\" src/Lib/version.php | head -1"
-# Suppressed for the same reason as above, and stderr with it: on an
-# installation without the command, cake's suggestion list is the last thing
-# printed before "deployed" and reads like the deploy failed.
-on_target "php bin/cake.php db_version 2>/dev/null" || true
+on_target "$DB_ENV php bin/cake.php db_version 2>/dev/null" || true
 
 if [ "$FAIL" -ne 0 ]; then
     say "SOMETHING IS WRONG"
