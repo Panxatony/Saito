@@ -101,8 +101,12 @@ class ClearUnusablePasswordsCommand extends Command
             return true;
         }
 
-        $probe = @crypt('probe', $hash);
-        if (is_string($probe) && strlen($probe) === strlen($hash) && str_starts_with($hash, '$')) {
+        // No `@` and no is_string(): crypt() returns a string for every input
+        // and warns for none of them — checked against an md5, a truncated
+        // value, an empty string and plain text. Suppressing an error that
+        // cannot happen only hides the next one.
+        $probe = crypt('probe', $hash);
+        if (strlen($probe) === strlen($hash) && str_starts_with($hash, '$')) {
             return true;
         }
 
