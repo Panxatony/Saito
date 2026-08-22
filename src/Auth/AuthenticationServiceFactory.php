@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace App\Auth;
 
-use App\Auth\LegacyPasswordHasherSaltless;
 use App\Auth\Mlf2PasswordHasher;
 use Authentication\AuthenticationService;
 use Cake\Core\Configure;
@@ -75,6 +74,29 @@ class AuthenticationServiceFactory
                     'className' => 'Authentication.Orm',
                     'userModel' => 'Users',
                 ],
+                // Two formats are accepted, and the list is deliberately this
+                // short. `Default` is bcrypt, which every password set by this
+                // software has used for years. `Mlf2PasswordHasher` reads the
+                // salted-sha1 form mylittleforum 2.x wrote, because Saito is
+                // what those forums upgraded into; a hash it matches is
+                // rewritten as bcrypt on the next successful login.
+                //
+                // What is *not* here is the plain md5/sha1 of even older
+                // installations, and it is not an oversight: accepting a
+                // thirteen-year-old unsalted hash would turn something
+                // trivially crackable back into a working credential. Such an
+                // account is not lost — the password reset issues a bcrypt
+                // hash like any other, without reading the old value.
+                //
+                // A reader for that format used to sit in src/Auth as
+                // `LegacyPasswordHasherSaltless`, wired into nothing and with
+                // no supported way to wire it in, since this chain is not
+                // configurable. It was removed in 8.4.14 (#99) rather than
+                // left to imply a capability that did not exist.
+                // `bin/cake clear_unusable_passwords` reports what an
+                // installation still carries in that format, and empties it on
+                // request. Measured on macnemo.de in 2026-08: 534 accounts,
+                // none used since 2013, against 287 on bcrypt.
                 'passwordHasher' => [
                     'className' => 'Authentication.Fallback',
                     'hashers' => [

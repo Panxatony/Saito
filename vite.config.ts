@@ -23,12 +23,10 @@ export default defineConfig({
     plugins: [
     ],
     resolve: {
-        // Single jQuery instance (nested plugins pin older copies otherwise).
+        // `islands/…` imports resolve against frontend/src rather than relative
+        // paths. The only alias that is needed: everything else under
+        // frontend/src is imported relatively.
         alias: [
-            // GitHub dep without a package.json main — resolve the subpath by hand.
-            // Bare specifier `import 'exports'` used by index.js.
-            // Webpack `resolve.modules:[frontend/src]` — map the top-level dirs so
-            // `models/app`, `modules/…`, `lib/…`, `collections/…` etc. resolve.
             {
                 find: /^(islands)\//,
                 replacement: `${SRC}/$1/`,
@@ -37,13 +35,17 @@ export default defineConfig({
     },
     build: {
         outDir: path.resolve(__dirname, 'webroot/js'),
-        emptyOutDir: false, // keep the sibling SCSS/locale/image assets
+        // Vite would clear webroot/js, and `webroot/js/empty` is tracked — it is
+        // what keeps the directory in the repository now that no built asset is
+        // committed. (The comment here used to claim sibling SCSS, locale and
+        // image assets; those went with the webpack build and are not there.)
+        emptyOutDir: false,
         target: 'es2018',
-        // The app pulls in legacy jQuery plugins under frontend/src/lib that use
-        // CommonJS / global patterns; let the CJS interop process those too (Vite
-        // only covers node_modules by default), and handle mixed ESM/CJS files.
+        // Handles dependencies that mix ESM and CommonJS. Vite covers
+        // node_modules by default, which is the only place this now applies:
+        // the `frontend/src/lib` tree this used to name as well was the SPA's
+        // jQuery plugins, and it went with the SPA.
         commonjsOptions: {
-            include: [/node_modules/, /frontend[\\/]src[\\/]lib[\\/]/],
             transformMixedEsModules: true,
         },
         // A self-contained IIFE per entry → one file, no vendor/app chunk split,

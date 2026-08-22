@@ -12,7 +12,8 @@
  * once.
  */
 import { htmx } from '../runtime';
-import { csrfToken, insertAtCursor } from '../lib/dom';
+import { csrfToken, insertAtCursor, serverMessage } from '../lib/dom';
+import { showFlash } from './flash';
 
 // Editor upload overlay: the toolbar button opens an overlay to upload files and
 // browse the user's archive (20 per page + load more); clicking a tile inserts
@@ -62,6 +63,32 @@ async function uploadFiles(files: File[]): Promise<void> {
                 body,
                 credentials: 'same-origin',
             });
+            // The status has to be read before the body. A rejected CSRF token
+            // answers 403 with Cake's HTML error page, so `.json()` throws and
+            // the old code fell into the catch below and reported the whole
+            // thing as "failed" — which is what a member saw on macnemo.de on
+            // 2026-08-22 after leaving the page open past the three-hour token
+            // lifetime. The upload was fine; the page was stale, and nothing
+            // said so.
+            if (!response.ok) {
+                if (response.status === 403) {
+                    showFlash(
+                        serverMessage(
+                            'msg-session-stale',
+                            'This page has been open too long and the form is no longer valid.'
+                                + ' Reload the page, then try again — your text is kept.',
+                        ),
+                        'warning',
+                    );
+                    errs.push(
+                        `${file.name}: `
+                            + serverMessage('msg-session-stale-short', 'page expired — reload'),
+                    );
+                } else {
+                    errs.push(`${file.name}: ${response.status}`);
+                }
+                continue;
+            }
             const data: { name?: string; error?: string } = await response.json();
             if (data.error || !data.name) {
                 errs.push(`${file.name}: ${data.error ?? 'failed'}`);

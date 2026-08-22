@@ -5,6 +5,123 @@
 - Δ Changed
 - − Removed
 
+## [8.4.14] - 2026-08-22 "durchsage"
+
+**No migration.**
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+A release about things that went wrong quietly. Every item below was already
+happening; none of it said so.
+
+- ✓ Fixed: **every table in night mode drew its text in black.** Reported from
+  an iPhone, where the profile page — which is a table — was black on black,
+  and confirmed on a Mac. Bootstrap 5.3 hands `--bs-emphasis-color` straight to
+  `--bs-table-color`, and that comes from `$body-emphasis-color`, which defaults
+  to black. Saito's night mode is a stylesheet of its own rather than
+  Bootstrap's `[data-bs-theme="dark"]`, so any Bootstrap variable it does not
+  restate keeps the light-theme value. This one never was.
+
+  Measured before and after on the built stylesheet: `rgb(0, 0, 0)` →
+  `rgb(242, 238, 234)`. Light mode is untouched. Affects Bota, Nova, Macnemo and
+  Macfix.
+
+- ✓ Fixed: **a failed write said nothing at all.** There was no
+  `htmx:responseError` listener anywhere in the frontend, and htmx only swaps
+  content on a 2xx answer. So when a request was refused, pressing "send" on
+  the reply form did *visibly nothing* — the text stayed in the box with no
+  hint that it had not been sent, and none that reloading would fix it. Uploads
+  were only marginally better: `uploads.ts` read the answer's body before its
+  status, so a 403 (which arrives as an HTML error page) made `.json()` throw
+  and the whole thing became `yourphoto.jpg: failed`, indistinguishable from a
+  file too large or a full disk.
+
+  Both now say what happened. A refused token gets its own wording, because
+  that is the one a member can act on:
+
+  > This page has been open too long, so the form is no longer valid. Reload
+  > the page and try again — anything you have written is kept.
+
+  Anything else gets a plain statement with the status code. Vague, but never
+  silent, which is the property that was missing.
+
+- Δ Changed: **the CSRF cookie is a session cookie again**, which is CakePHP's
+  own default and what this had drifted away from. It carried an explicit
+  three-hour lifetime, set during the Cake-4 middleware work in May with no
+  reason recorded. The middleware re-issues the cookie on every response, so
+  that only ever bit a page left idle longer than three hours — an ordinary
+  afternoon. Meanwhile the remember-me cookie lasts ten days, so a member
+  stayed logged in while the form in front of them had quietly stopped
+  working. This is the cause behind the fix above, and fixing it removes the
+  reason that message has to appear at all.
+
+- ＋ Added: **`bin/cake clear_unusable_passwords`** (#99). A forum grown from
+  mylittleforum still carries password hashes in formats the login stopped
+  accepting years ago — on one installation, 534 accounts holding a plain md5,
+  none used since 2013, against 287 on bcrypt. They authenticate nobody, so
+  they do nothing; they are also thirteen years of reused passwords sitting in
+  a table, and people use the same password in more than one place. The command
+  reports what an installation holds and, with `--clear`, empties those columns.
+
+  Nothing is taken from anyone: the password reset issues a bcrypt hash without
+  reading the old value, so those members recover by e-mail exactly as before.
+  It empties a column rather than deleting accounts, because most of them had
+  written postings.
+
+  A command and not a migration — emptying a member's password is a decision
+  about your own data, not something a release should do to you while you read
+  this.
+
+- ＋ Added: **`bin/cake db_version`** reports whether the code version and the
+  version recorded in the database agree, and sets the row when given one. They
+  had drifted apart on two of three installations here without anything saying
+  so.
+
+- − Removed: `LegacyPasswordHasherSaltless`. It read the plain md5/sha1 format
+  above, was wired into nothing, and could not be wired in — the hasher chain is
+  not configurable, so enabling it meant patching source. Dead code whose
+  presence implied a capability that did not exist. Accepting an unsalted hash
+  from that era would turn something trivially crackable back into a working
+  credential, which is why the chain refuses it.
+
+## [8.4.13] - 2026-08-19 "nachgezählt"
+
+**No migration.** Two dependencies, no application code.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- Δ Changed: **`league/commonmark` 2.9.0 → 2.10.0**, which is three security
+  releases in one step: 2.9.1 (several denial-of-service issues and one XSS),
+  2.9.2 (a regression from 2.9.0) and 2.10.0 (a denial of service in the
+  attributes extension). `tempest/highlight` 2.27.0 → 2.27.1 comes along; that
+  one carries no security content.
+
+  **Nothing here was exploitable in Saito, and it is worth being precise about
+  why.** The XSS and the 2.10.0 issue both need the attributes extension, which
+  the plain `CommonMarkConverter` this forum uses does not load. The
+  denial-of-service issues from 2.9.1 are in the core parser and do apply — but
+  the only markdown that reaches it is help-page content from the repository,
+  the theme or `config/help/`. All of it is supplied by the operator; an
+  attacker has nothing to feed it.
+
+  What makes the update right anyway is a comment that has sat above that
+  converter since 7.0.6: *"Currently only trusted help pages are rendered, but
+  this keeps the helper safe if ever pointed at user input."* The hardening
+  there was written for a situation that has not arrived. Carrying three
+  security releases of debt against it would undo the care that put it there.
+
+  **No tool reported this.** `composer audit --locked`, Dependabot and CodeQL
+  were all silent, and none of them was wrong — upstream published these as
+  security releases with GHSA identifiers, and the advisory databases had not
+  indexed them yet. It surfaced from comparing installed versions against the
+  newest release in the same major and then reading the release notes, which is
+  now recorded in #94 as the third standing check alongside "how far behind are
+  we" and "is anyone still publishing".
+
 ## [8.4.12] - 2026-08-17 "obenauf"
 
 **No migration.** One file changed.

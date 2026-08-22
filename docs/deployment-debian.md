@@ -352,6 +352,18 @@ sudo -u www-data env DATABASE_URL="mysql://saito:CHANGE_ME@localhost/saito?encod
 mysql saito -e "UPDATE settings SET value='7.0.0' WHERE name='db_version';"
 ```
 
+From 8.4.14 there is a command for that last line, which reaches the database
+the same way the application does and so needs no credentials of its own beyond
+what the CLI already has:
+
+```shell
+sudo -u www-data env DATABASE_URL="mysql://saito:CHANGE_ME@localhost/saito?encoding=utf8mb4" \
+    php8.4 /var/www/saito/bin/cake.php db_version 7.0.0
+```
+
+Run it without the version to ask rather than set — it prints both numbers and
+says whether they agree, which is worth doing after any code-only release.
+
 After deploy: run `bin/cake plugin assets symlink` and open the site once while logged out to exercise the middleware/auth stack.
 
 #### Upgrading from 5.7.x to 6.0.x

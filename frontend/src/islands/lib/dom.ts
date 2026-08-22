@@ -20,6 +20,27 @@ export function csrfToken(): string {
 }
 
 /**
+ * Read a user-facing string the server rendered into a meta tag.
+ *
+ * Nothing in the frontend is translated — there is no catalogue here and no
+ * loader for one — so any text an island shows has to come from a `__()` call
+ * in the layout. A literal in a `.ts` file would be English on a German forum,
+ * which is how these strings end up in the markup instead.
+ *
+ * The fallback covers the case where a cached bundle is newer than the page
+ * that loaded it: English, but present.
+ *
+ * @param name the meta tag's name attribute
+ * @param fallback used when the layout does not carry that tag
+ * @return string
+ */
+export function serverMessage(name: string, fallback: string): string {
+    return (
+        document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)?.content?.trim() || fallback
+    );
+}
+
+/**
  * Insert text at the caret and leave the caret after it.
  *
  * @param ta the textarea to write into

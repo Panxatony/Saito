@@ -15,6 +15,23 @@ $primary: #ff7a6b !default;
 /// Neutrals -----------------------------------------------------------------
 $body-color: #e8e3dd !default; // off-white: pure white glares on dark
 $body-bg: #17161a !default;
+
+// Bootstrap's "emphasis" colour defaults to $black and nothing here had turned
+// it round. It reaches the page as --bs-emphasis-color, and Bootstrap 5.3 hands
+// that straight to --bs-table-color, so every table in night mode drew its text
+// in #000 on a #17161a background. Reported from an iPhone on 2026-08-22: the
+// profile is a table, and it was black on black.
+//
+// Bootstrap corrects this under [data-bs-theme="dark"], which Saito does not
+// use — night mode is a stylesheet of its own, so any Bootstrap variable it
+// leaves unstated keeps the light-theme value. Worth checking for others.
+//
+// Set here as well as in Bota because Nova pulls in Bota's *theme*, not its
+// night: the two night stylesheets are siblings, not a chain, so a value in one
+// does not reach the other. Macnemo and Macfix import this file and inherit it.
+// A shade above $body-color rather than white, because "emphasis" should read
+// as the same text a little stronger, not as a second colour.
+$body-emphasis-color: #f2eeea !default;
 $text-muted: #a09a94 !default;
 $border-color: #332f36 !default;
 

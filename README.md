@@ -65,6 +65,11 @@ cannot override the value, and the override fails silently.
 
 ## Development
 
+**[docs/architecture.md](docs/architecture.md)** is the place to start: what the
+application is built from, how a release is produced, and what happens between a
+browser and the server on one click. It ends with the seams that have cost real
+time and are not visible from the code.
+
 Larger work that is known and scheduled but not yet done is collected in
 [todo.md](todo.md), filed under the release it is meant for. Worth a look before starting anything structural: the
 reasoning, the measurements and the reasons something was *not* done are there
