@@ -91,3 +91,100 @@ Configure::write('Saito.Settings.uploadDirectory', TMP . 'tests' . DS);
 
 // disable <asset-url>?<timestamp> for tests
 Configure::write('Asset.timestamp', false);
+
+/*
+ * Start from a clean test database, whatever the last run did.
+ *
+ * CakePHP's TruncateStrategy inserts fixtures in setupTest() and truncates them
+ * in teardownTest() — and only the fixtures of the test that just ran. Nothing
+ * truncates before inserting. So a run that never reaches teardown leaves its
+ * rows behind: ctrl-C, a timeout, a crashed process. Killing a run 90 seconds
+ * in leaves twelve tables populated, `users` and `categories` among them.
+ *
+ * The next run then fails on `Duplicate entry '1' for key 'PRIMARY'` in the
+ * first tests that declare those fixtures — and then heals itself, because each
+ * of those tests truncates its own fixtures on the way out. The result is a
+ * handful of errors in early tests, in files the developer never touched, that
+ * pass when run on their own and are green on the next attempt.
+ *
+ * That was diagnosed here three times as something else — concurrent runs, a
+ * shared database with the test forum — before the runs were lined up against
+ * what preceded them: every red run followed a killed one, every green run did
+ * not. Confirmed by killing a run deliberately and predicting the failure.
+ *
+ * A red result that means nothing is worse than no result: it teaches people to
+ * re-run until green, and that is the habit that hides a real failure.
+ */
+(function (): void {
+    $connection = \Cake\Datasource\ConnectionManager::get('test');
+
+    $leftovers = [];
+    foreach ($connection->getSchemaCollection()->listTables() as $table) {
+        // phinxlog is the migration history and is supposed to have rows.
+        if ($table === 'phinxlog') {
+            continue;
+        }
+        $count = $connection->execute("SELECT COUNT(*) AS c FROM `$table`")->fetch('assoc');
+        if ((int)($count['c'] ?? 0) > 0) {
+            $leftovers[] = $table;
+        }
+    }
+
+    if (!$leftovers) {
+        return;
+    }
+
+    $connection->execute('SET FOREIGN_KEY_CHECKS = 0');
+    foreach ($leftovers as $table) {
+        $connection->execute("TRUNCATE TABLE `$table`");
+    }
+    $connection->execute('SET FOREIGN_KEY_CHECKS = 1');
+
+    fwrite(STDERR, sprintf(
+        "Note: emptied %d table(s) left behind by an interrupted run (%s).\n",
+        count($leftovers),
+        implode(', ', $leftovers),
+    ));
+})();
+
+/*
+ * And one suite at a time.
+ *
+ * Separate from the above and still worth having: two runs sharing one schema
+ * would truncate and reload under each other, which produces the same
+ * unattributable failures for a different reason. This was written first, on
+ * the assumption that concurrency was the cause. It was not — but the guard is
+ * correct, and the cleanup above cannot help a collision that is happening now.
+ *
+ * flock on a lock file: the kernel releases it when the process ends, so a
+ * killed run leaves nothing to clean up. The handle is kept in $GLOBALS so it
+ * lives as long as the process — closing it would drop the lock immediately.
+ */
+(function (): void {
+    $lockFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'saito-phpunit-' . md5(ROOT) . '.lock';
+    $handle = fopen($lockFile, 'c');
+    if ($handle === false) {
+        // Not being able to lock is no reason to refuse to test.
+        fwrite(STDERR, "Note: could not open $lockFile — running without the concurrency guard.\n");
+
+        return;
+    }
+
+    if (flock($handle, LOCK_EX | LOCK_NB)) {
+        $GLOBALS['__saito_phpunit_lock'] = $handle;
+
+        return;
+    }
+
+    fwrite(STDERR, <<<TXT
+
+    Another PHPUnit run already holds the test database.
+
+    Both would load fixtures into the same schema and report failures that
+    belong to neither. Wait for the other run to finish, or stop it:
+
+        pkill -f phpunit
+
+    TXT);
+    exit(1);
+})();
