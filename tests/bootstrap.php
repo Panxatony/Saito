@@ -93,6 +93,25 @@ Configure::write('Saito.Settings.uploadDirectory', TMP . 'tests' . DS);
 Configure::write('Asset.timestamp', false);
 
 /*
+ * Everything below runs only under PHPUnit.
+ *
+ * This file is also `phpstan.neon`'s bootstrapFile, so PHPStan executes it —
+ * and PHPStan runs parallel workers, each of which loads it. The lock below was
+ * written without that in mind: the first worker took it and every other worker
+ * exited, so static analysis died with "Another PHPUnit run already holds the
+ * test database" and reported nothing. It failed the same way locally and in
+ * CI, immediately and every time.
+ *
+ * `PHPUNIT_COMPOSER_INSTALL` is defined by PHPUnit's own binary and by nothing
+ * else, which makes it the honest question to ask here: *am I actually a test
+ * run?* A bootstrap file shared with another tool has no business connecting to
+ * a database or taking a lock when it is not.
+ */
+if (!defined('PHPUNIT_COMPOSER_INSTALL')) {
+    return;
+}
+
+/*
  * Start from a clean test database, whatever the last run did.
  *
  * CakePHP's TruncateStrategy inserts fixtures in setupTest() and truncates them
@@ -117,15 +136,18 @@ Configure::write('Asset.timestamp', false);
  */
 (function (): void {
     $connection = \Cake\Datasource\ConnectionManager::get('test');
+    $schema = $connection->getSchemaCollection();
 
     $leftovers = [];
-    foreach ($connection->getSchemaCollection()->listTables() as $table) {
+    foreach ($schema->listTables() as $table) {
         // phinxlog is the migration history and is supposed to have rows.
         if ($table === 'phinxlog') {
             continue;
         }
-        $count = $connection->execute("SELECT COUNT(*) AS c FROM `$table`")->fetch('assoc');
-        if ((int)($count['c'] ?? 0) > 0) {
+        $row = $connection->selectQuery(['c' => 'COUNT(*)'], $table)
+            ->execute()
+            ->fetch('assoc');
+        if ((int)($row['c'] ?? 0) > 0) {
             $leftovers[] = $table;
         }
     }
@@ -134,11 +156,16 @@ Configure::write('Asset.timestamp', false);
         return;
     }
 
-    $connection->execute('SET FOREIGN_KEY_CHECKS = 0');
-    foreach ($leftovers as $table) {
-        $connection->execute("TRUNCATE TABLE `$table`");
-    }
-    $connection->execute('SET FOREIGN_KEY_CHECKS = 1');
+    // truncateSql() rather than a hand-written TRUNCATE: it is the same call
+    // Cake's own fixture code makes, it quotes the identifier for the driver in
+    // use, and it keeps a table name out of an interpolated SQL string.
+    $connection->disableConstraints(function ($connection) use ($schema, $leftovers): void {
+        foreach ($leftovers as $table) {
+            foreach ($schema->describe($table)->truncateSql($connection) as $sql) {
+                $connection->execute($sql);
+            }
+        }
+    });
 
     fwrite(STDERR, sprintf(
         "Note: emptied %d table(s) left behind by an interrupted run (%s).\n",
