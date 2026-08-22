@@ -82,13 +82,21 @@ class AuthenticationServiceFactory
                 // rewritten as bcrypt on the next successful login.
                 //
                 // What is *not* here is the plain md5/sha1 of even older
-                // installations. `LegacyPasswordHasherSaltless` can read it and
-                // is deliberately not wired in: accepting a thirteen-year-old
-                // unsalted hash would turn something trivially crackable back
-                // into a credential. Such an account is not lost — the password
-                // reset issues a bcrypt hash like any other. Measured on the
-                // production install in 2026-08: 534 accounts still carry a
-                // 32-character hash, none of them used since 2013.
+                // installations, and it is not an oversight: accepting a
+                // thirteen-year-old unsalted hash would turn something
+                // trivially crackable back into a working credential. Such an
+                // account is not lost — the password reset issues a bcrypt
+                // hash like any other, without reading the old value.
+                //
+                // A reader for that format used to sit in src/Auth as
+                // `LegacyPasswordHasherSaltless`, wired into nothing and with
+                // no supported way to wire it in, since this chain is not
+                // configurable. It was removed in 8.4.14 (#99) rather than
+                // left to imply a capability that did not exist.
+                // `bin/cake clear_unusable_passwords` reports what an
+                // installation still carries in that format, and empties it on
+                // request. Measured on macnemo.de in 2026-08: 534 accounts,
+                // none used since 2013, against 287 on bcrypt.
                 'passwordHasher' => [
                     'className' => 'Authentication.Fallback',
                     'hashers' => [

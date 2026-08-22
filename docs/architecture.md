@@ -236,15 +236,30 @@ Two, and the list is short on purpose:
 | salted sha1 | 50 | yes | what mylittleforum 2.x wrote; rewritten as bcrypt on the next login |
 | plain md5/sha1 | 32/40 | **no** | older installations still carry these |
 
-`LegacyPasswordHasherSaltless` can read the third and is deliberately **not**
-wired into the chain: accepting an unsalted hash from that era would turn
-something trivially crackable back into a working credential. Nobody is locked
-out permanently — the password reset issues a bcrypt hash like any other login
-would.
+The third is refused deliberately: accepting an unsalted hash from that era
+would turn something trivially crackable back into a working credential. Nobody
+is locked out permanently — the password reset issues a bcrypt hash like any
+other login would, without reading the old value.
 
-Measured on the production install in August 2026: 534 accounts still hold a
-32-character hash, none used since 2013, against 287 on bcrypt. Those hashes sit
-in the database doing nothing, which is its own small question — see #99.
+Measured on the production install in August 2026: 534 accounts still held a
+32-character hash, none used since 2013, against 287 on bcrypt. 374 of them had
+written postings, which is why the answer empties a column rather than deleting
+accounts:
+
+```
+bin/cake clear_unusable_passwords            # count them, change nothing
+bin/cake clear_unusable_passwords --clear    # empty those columns
+```
+
+It decides by shape, not by length: usable means either PHP recognises the hash
+(`password_get_info`) or it is the 50 hex characters the mylittleforum format
+uses. A hash it cannot classify is left alone.
+
+A command rather than a migration, because emptying a member's password is the
+operator's decision about their own data — not something a release should do to
+them while they are reading the CHANGELOG. Whether an account dormant for
+thirteen years should be *kept* is a separate, larger question, and a
+data-protection one rather than a security one.
 
 A cookie whose token is not in the current shape is now discarded rather than
 merely refused. Before 8.4.9 it was refused on every request and left in place,
