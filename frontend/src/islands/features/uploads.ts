@@ -48,6 +48,27 @@ function loadUploadGrid(): void {
     }
 }
 
+/**
+ * The `error` field of a JSON error body, when there is one.
+ *
+ * Deliberately forgiving: a refused request may answer with JSON that names the
+ * reason, or with an HTML error page that does not. Trying to parse the latter
+ * throws, and that throw must not become the caller's problem — the status code
+ * is still a usable fallback.
+ *
+ * @param response the failed response
+ * @return the message, or null when the body carries none
+ */
+async function errorMessage(response: Response): Promise<string | null> {
+    try {
+        const data: { error?: string } = await response.json();
+
+        return typeof data.error === 'string' && data.error !== '' ? data.error : null;
+    } catch {
+        return null;
+    }
+}
+
 async function uploadFiles(files: File[]): Promise<void> {
     const token = csrfToken();
     const status = document.querySelector<HTMLElement>('.js-uploadStatus');
@@ -85,7 +106,15 @@ async function uploadFiles(files: File[]): Promise<void> {
                             + serverMessage('msg-session-stale-short', 'page expired — reload'),
                     );
                 } else {
-                    errs.push(`${file.name}: ${response.status}`);
+                    // The endpoint answers 422 with `{"error": "…"}` naming the
+                    // actual reason — the file is too large, the type is not
+                    // accepted, the member is at their limit. Reading the status
+                    // and stopping there threw that away and printed the number
+                    // instead, which is how an upload rejected on macnemo.de on
+                    // 2026-08-30 told its member "IMG_1234.jpg: 422" and nothing
+                    // else. That was a regression from the release meant to make
+                    // failures legible.
+                    errs.push(`${file.name}: ${(await errorMessage(response)) ?? response.status}`);
                 }
                 continue;
             }
