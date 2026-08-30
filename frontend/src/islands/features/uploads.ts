@@ -48,6 +48,28 @@ function loadUploadGrid(): void {
     }
 }
 
+/**
+ * The response body as JSON, or null when it is not JSON at all.
+ *
+ * Read once for both outcomes. A refused request may answer with JSON naming
+ * the reason, or — as a rejected CSRF token does — with Cake's HTML error page,
+ * and parsing that throws. The throw must not become the caller's problem: the
+ * status code is still a usable fallback.
+ *
+ * One call rather than one per branch, because the upload loop is deliberately
+ * sequential and every `await` in it is a step the member waits through.
+ *
+ * @param response the response to read
+ * @return the parsed body, or null when there is none to parse
+ */
+async function jsonBody(response: Response): Promise<{ name?: string; error?: string } | null> {
+    try {
+        return await response.json();
+    } catch {
+        return null;
+    }
+}
+
 async function uploadFiles(files: File[]): Promise<void> {
     const token = csrfToken();
     const status = document.querySelector<HTMLElement>('.js-uploadStatus');
@@ -63,7 +85,8 @@ async function uploadFiles(files: File[]): Promise<void> {
                 body,
                 credentials: 'same-origin',
             });
-            // The status has to be read before the body. A rejected CSRF token
+            const data = await jsonBody(response);
+            // The status decides, not the body. A rejected CSRF token
             // answers 403 with Cake's HTML error page, so `.json()` throws and
             // the old code fell into the catch below and reported the whole
             // thing as "failed" — which is what a member saw on macnemo.de on
@@ -85,13 +108,20 @@ async function uploadFiles(files: File[]): Promise<void> {
                             + serverMessage('msg-session-stale-short', 'page expired — reload'),
                     );
                 } else {
-                    errs.push(`${file.name}: ${response.status}`);
+                    // The endpoint answers 422 with `{"error": "…"}` naming the
+                    // actual reason — the file is too large, the type is not
+                    // accepted, the member is at their limit. Reading the status
+                    // and stopping there threw that away and printed the number
+                    // instead, which is how an upload rejected on macnemo.de on
+                    // 2026-08-30 told its member "IMG_1234.jpg: 422" and nothing
+                    // else. That was a regression from the release meant to make
+                    // failures legible.
+                    errs.push(`${file.name}: ${data?.error ?? response.status}`);
                 }
                 continue;
             }
-            const data: { name?: string; error?: string } = await response.json();
-            if (data.error || !data.name) {
-                errs.push(`${file.name}: ${data.error ?? 'failed'}`);
+            if (data?.error || !data?.name) {
+                errs.push(`${file.name}: ${data?.error ?? 'failed'}`);
             } else {
                 ok += 1;
             }

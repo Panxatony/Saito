@@ -44,6 +44,26 @@ player's own address by itself. Whether the video then appears still depends on
 the forum allowing that domain; if it is not on the list, a note appears in
 place of the video.
 
+### Pasting from a web page
+
+Copy something from a page you have open, paste it here, and the links and the
+emphasis come with it. Linked text becomes a link, bold stays bold. A photo
+credit with three links arrives as three links rather than as three words you
+would have to mark up again by hand.
+
+What matters is that you copy what the page **shows**. Some services also offer
+a ready-made HTML snippet to copy — to the clipboard that is only text, and it
+lands in your posting exactly as it reads. Select the line as it appears on the
+page instead.
+
+*Paste and Match Style* (⌘⇧V, Ctrl+Shift+V) still pastes plain text: there is
+nothing to carry over then, and that stays true.
+
+Paste a **single address** with nothing else and it turns into the embed
+straight away, provided it points at a video, an image or an audio file. Any
+other address is left as it is and becomes a clickable link when the posting is
+shown — so does an address in the middle of a sentence.
+
 ### Files
 
 The *Uploads* button opens your archive and takes new files at the same time.

@@ -88,6 +88,56 @@ class EntriesControllerTest extends IntegrationTestCase
     }
 
     /**
+     * A link preview may name a posting only when a guest could read it.
+     *
+     * Sharing a forum link sends a fetcher after it, and that fetcher has no
+     * session — it is a stranger, and the preview it produces is rendered in a
+     * conversation this forum cannot see. So the subject is released on the
+     * category's read level and not on who is looking: posting 1 sits in
+     * Ontopic, which `accession = 0` opens to everyone.
+     *
+     * @return void
+     */
+    public function testSharePreviewNamesAGuestReadablePosting(): void
+    {
+        $this->get('/entries/htmx-posting/1');
+
+        $this->assertResponseOk();
+        $this->assertNotEmpty(
+            $this->viewVariable('sharePreviewSubject'),
+            'a posting anyone may read may be named in a preview',
+        );
+    }
+
+    /**
+     * And never names one a guest may not read — not even to a member who is
+     * entitled to read it themselves.
+     *
+     * This is the case the rule exists for. Posting 4 is in Offtopic
+     * (`accession = 1`), so a guest is redirected to the login and never sees
+     * the page at all; a logged-in member does see it, and the subject must
+     * still stay out of the markup, because the link they might share leads a
+     * stranger's fetcher to exactly this page.
+     *
+     * @return void
+     */
+    public function testSharePreviewStaysSilentOnAMembersOnlyPosting(): void
+    {
+        $this->_loginUser(1);
+        $this->get('/entries/htmx-posting/4');
+
+        $this->assertResponseOk();
+        $this->assertNull(
+            $this->viewVariable('sharePreviewSubject'),
+            'a members-only subject must not reach a link preview',
+        );
+        $this->assertResponseNotContains(
+            'og:title" content="Re',
+            'and must not appear in the rendered Open Graph markup either',
+        );
+    }
+
+    /**
      * An HX-Request gets the bare posting fragment — that is what the island
      * fetches to open a posting inline. Without disabling the layout the whole
      * page would be swapped into the thread line.
