@@ -5,6 +5,48 @@
 - Δ Changed
 - − Removed
 
+## [8.4.15] - 2026-08-30 "fischzug"
+
+**No migration.**
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- ＋ Added: **a shared link now has a preview.** Posting a forum link in a chat
+  app sent a fetcher after it, and that fetcher found no Open Graph markup at
+  all — so the preview was whatever it could scrape. Behind a bot wall that is
+  the wall's own page: sharing a link showed the proof-of-work challenge's
+  mascot, because the fetcher runs no JavaScript and never reached the forum.
+
+  The forum now says who it is: its logo, its name, and — for a posting a
+  **guest** could read — the subject.
+
+  **The subject is released on the category's read level, not on who is
+  looking.** A preview is produced by a fetcher with no session and rendered on
+  a stranger's device, in a conversation this forum cannot see. So a
+  members-only posting shows the logo and the forum's name and nothing else,
+  even to a member entitled to read it — the link they might share leads that
+  stranger's fetcher to exactly this page. `accession = 0` is the same rule the
+  sitemap uses to decide what may be listed publicly, and a category whose
+  accession is missing yields no subject: the failure direction is silence.
+
+  The image is `webroot/img/og-image.png` in a theme. `Bota` ships one built
+  from the favicon it owns; any theme may override it, and `Macnemo` does with
+  the fish that ends its wordmark.
+
+  **Behind a bot wall this needs one more thing.** Anubis answers a preview
+  fetcher with its own page unless `-og-passthrough` is set, which was pointless
+  before there were tags to forward and is worth setting now.
+
+- ✓ Fixed: **an upload that was refused said only "422".** The endpoint answers
+  with `{"error": "…"}` naming the reason — the file is too large, the type is
+  not accepted, the member is at their limit. 8.4.14 started reading the status
+  before the body, which was right for the expired-page case it was written
+  for, and stopped there for everything else. A reason the server had taken the
+  trouble to produce was replaced with a number. The reason now wins where
+  there is one; the status code remains the fallback.
+
 ## [8.4.14] - 2026-08-22 "durchsage"
 
 **No migration.**
