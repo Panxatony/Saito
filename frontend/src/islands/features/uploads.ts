@@ -49,21 +49,22 @@ function loadUploadGrid(): void {
 }
 
 /**
- * The `error` field of a JSON error body, when there is one.
+ * The response body as JSON, or null when it is not JSON at all.
  *
- * Deliberately forgiving: a refused request may answer with JSON that names the
- * reason, or with an HTML error page that does not. Trying to parse the latter
- * throws, and that throw must not become the caller's problem — the status code
- * is still a usable fallback.
+ * Read once for both outcomes. A refused request may answer with JSON naming
+ * the reason, or — as a rejected CSRF token does — with Cake's HTML error page,
+ * and parsing that throws. The throw must not become the caller's problem: the
+ * status code is still a usable fallback.
  *
- * @param response the failed response
- * @return the message, or null when the body carries none
+ * One call rather than one per branch, because the upload loop is deliberately
+ * sequential and every `await` in it is a step the member waits through.
+ *
+ * @param response the response to read
+ * @return the parsed body, or null when there is none to parse
  */
-async function errorMessage(response: Response): Promise<string | null> {
+async function jsonBody(response: Response): Promise<{ name?: string; error?: string } | null> {
     try {
-        const data: { error?: string } = await response.json();
-
-        return typeof data.error === 'string' && data.error !== '' ? data.error : null;
+        return await response.json();
     } catch {
         return null;
     }
@@ -84,7 +85,8 @@ async function uploadFiles(files: File[]): Promise<void> {
                 body,
                 credentials: 'same-origin',
             });
-            // The status has to be read before the body. A rejected CSRF token
+            const data = await jsonBody(response);
+            // The status decides, not the body. A rejected CSRF token
             // answers 403 with Cake's HTML error page, so `.json()` throws and
             // the old code fell into the catch below and reported the whole
             // thing as "failed" — which is what a member saw on macnemo.de on
@@ -114,13 +116,12 @@ async function uploadFiles(files: File[]): Promise<void> {
                     // 2026-08-30 told its member "IMG_1234.jpg: 422" and nothing
                     // else. That was a regression from the release meant to make
                     // failures legible.
-                    errs.push(`${file.name}: ${(await errorMessage(response)) ?? response.status}`);
+                    errs.push(`${file.name}: ${data?.error ?? response.status}`);
                 }
                 continue;
             }
-            const data: { name?: string; error?: string } = await response.json();
-            if (data.error || !data.name) {
-                errs.push(`${file.name}: ${data.error ?? 'failed'}`);
+            if (data?.error || !data?.name) {
+                errs.push(`${file.name}: ${data?.error ?? 'failed'}`);
             } else {
                 ok += 1;
             }
