@@ -55,7 +55,7 @@
     "phpstan/phpstan": "^2.1",
     "symfony/css-selector": "^8",
     "symfony/dom-crawler": "^8",
-    "doctrine/instantiator": "^1.5",
+    "doctrine/instantiator": "^2.1",
     "vimeo/psalm": "^6",
     "cakedc/cakephp-phpstan": "^4.3"
   },
