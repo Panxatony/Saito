@@ -75,13 +75,14 @@ updates:
         dependency-type: development
         patterns: ["*"]
     ignore:
-      # Bootstrap 4 is unmaintained and going, but 5 is a detour rather
-      # than a step: measured in issue #73, it fixes none of the SCSS
-      # deprecations and every hour of it is thrown away when Bootstrap
-      # goes. Its known vulnerabilities are in JavaScript this forum has
-      # not loaded since 8.1.0.
+      # Only the next major. The themes moved to Bootstrap 5.3.8 on
+      # 2026-08-16 (#91); until then this entry read `>=5` and held the
+      # move back, which was the point. Afterwards it silently held back
+      # every 5.x patch as well — a stale rule is indistinguishable from
+      # a deliberate freeze, and Bootstrap ships security fixes in
+      # patches. 6 stays out because it is a migration, not an update.
       - dependency-name: bootstrap
-        versions: [">=5"]
+        versions: [">=6"]
       # TypeScript 7 is refused by typescript-eslint, which says so and
       # exits — so `yarn lint` produces no lint at all rather than
       # failing loudly. Tracked upstream as typescript-eslint#10940 and
