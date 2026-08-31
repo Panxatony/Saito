@@ -4,8 +4,9 @@ How to run Saito locally for development.
 
 ## Requirements
 
-- **PHP >= 8.4** with the usual CakePHP extensions (intl, mbstring, pdo_mysql,
-  simplexml, ...)
+- **PHP >= 8.4.3** with the usual CakePHP extensions (intl, mbstring, pdo_mysql,
+  simplexml, ...). The patch level matters: parts of the locked tree
+  (`symfony/clock`, PHPUnit 13, Psalm 6) refuse anything older.
 - **MySQL** or **MariaDB**
 - [**Composer**](https://getcomposer.org/) for the PHP dependencies
 - **Node.js >= 22.11** with [**Yarn**](https://yarnpkg.com/) for the frontend
