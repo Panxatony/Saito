@@ -101,7 +101,7 @@ rather than in the commit history.
 You need a more or less generic environement providing:
 
 -  PHP with `composer` for the server-backend (mainly build on [CakePHP][cake])
--  **Node.js >= 22.11** with `yarn` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts). `.nvmrc` names the version the pipelines use; the build tooling sets that floor and `yarn install` refuses below it.
+-  **Node.js 22.22.3+ or 24.15+** with `yarn` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts). `.nvmrc` names the version the pipelines use; the build tooling sets that floor — mind the gap, 23.x and 24.0–24.14 are below it too — and `yarn install` refuses under it.
 -  a database
 
 ### Install Files
