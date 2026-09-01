@@ -11,9 +11,17 @@ environment up and running.
 
 ## Working on a Change
 
-- Saito uses a gitflow-style branching model: branch off `develop` for features
-  and fixes (off `main` for hotfixes), and open the pull request against
-  `develop`.
+- `develop` is the trunk. Branch off it for anything larger than a single
+  commit, and open the pull request against it. Small changes go on `develop`
+  directly.
+- `main` is not a second line of development: it records what production is
+  running, and is fast-forwarded from `develop` when a release is deployed.
+  There is nothing to branch off it — a fix that has to go out now is a commit
+  on `develop` and a tag, the same as any other release.
+- This used to say "gitflow-style", with release and hotfix branches. Those were
+  real until 8.2.1 (July 2026) and have not been used since; the ceremony bought
+  nothing at this size. Releases are a commit and a tag, described under
+  **Create A Release** in the [README](README.md).
 - Before opening a pull request, run the tests and the static analysis:
 
   ```shell
