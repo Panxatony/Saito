@@ -5,6 +5,61 @@
 - Δ Changed
 - − Removed
 
+## [8.4.16] - 2026-09-01 "wartungsklappe"
+
+**No migration.**
+
+**PHP 8.4.3 is now the minimum** — a patch level, not just a minor. See the
+first entry below; an installation on 8.4.0 to 8.4.2 has to move before
+upgrading, and `vendor/composer/platform_check.php` stops it if it does not.
+
+- Δ Changed: **dependency updates were silently not happening.** Dependabot ran
+  every Monday, fetched all 159 composer packages and then failed every single
+  resolution — for five weeks, without a pull request or a warning. It does not
+  resolve against the PHP in its container (8.4.25); it derives a platform
+  version from what we ask for. `>=8.4` became the literal `8.4`, meaning
+  8.4.0, which does not satisfy the `>=8.4.1` that PHPUnit, `symfony/clock` and
+  others require. Every check died there.
+
+  The requirement now says `>=8.4.3`, which is the smallest floor the locked
+  tree accepts: the runtime needs 8.4.1 (`symfony/clock`, via the passkey
+  library) and Psalm, which the taint analysis runs, needs `~8.4.3`.
+
+  **A `config.platform` override would also have fixed it and was rejected.**
+  It disables the install-time check as well, so an operator on an older 8.4
+  would pass `composer install` and only fail at runtime. Raising the
+  requirement keeps that guard working.
+
+  Bootstrap had a second, quieter version of the same fault: the rule holding
+  back the move to Bootstrap 5 was never revisited after the themes moved
+  there, so it had begun excluding every 5.x patch as well. A stale rule is
+  indistinguishable from a deliberate freeze.
+
+- Δ Changed: **the dependencies that had piled up behind it.** All of them
+  arrived at once and none changes what the forum does:
+
+  - `vlucas/phpdotenv` 5.6.4 → 5.7.0 — the reader for `config/.env`, with real
+    hardening: a memory-safety crash on invalid UTF-8, null bytes in names and
+    values skipped, quadratic value parsing removed. Ten `.env` shapes parsed
+    identically under both versions; the one difference is a single-character
+    name with `export`, which used to be rejected and now works. A file that
+    parsed before cannot stop parsing. A value with an unquoted space is still
+    refused — as 8.4.10 documented and production found out on 2026-08-17.
+  - `web-auth/webauthn-lib` 5.3.5 → 5.3.7 plus its tree — Android key
+    attestation is now verified properly. Saito requests no attestation, sets
+    an explicit relying-party name and requires user verification outright, so
+    none of the three behavioural changes upstream touches its path. `brick/math`
+    jumped two minor versions with it, in code the test suite does not reach, so
+    RS256 and ES256 verification was compared directly across both versions —
+    good signatures accepted, tampered ones refused, identically.
+  - `tempest/highlight` 2.27.1 → 2.28.0 — diff-language and terminal themes
+    only; nothing near the HTML escaping.
+  - Build tooling: cssnano 9, ESLint 10.9.1, PHPStan 2.2.9, Alpine 3.16.3 and
+    the Symfony test helpers. cssnano 9 rewrites `calc()` operand order and
+    folds `max(1rem,1rem)`; the shipped stylesheets were compared rule by rule
+    and are equivalent. It also sets a Node floor of 22.22.3 / 24.15 — mind the
+    gap, 23.x and 24.0–24.14 are below it too.
+
 ## [8.4.15] - 2026-08-30 "fischzug"
 
 **No migration.**
