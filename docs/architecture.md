@@ -30,9 +30,10 @@ Three kinds sit in the same directory, which is worth knowing before reading it:
 `Cron`, `Detectors`, `Feeds`, `ImageUploader`, `Installer`, `MailObfuscator`,
 `SaitoHelp`, `SaitoSearch`, `Sitemap`, `Stopwatch`, `Webhooks`.
 
-**Themes** — `Bota`, `Nova`, `Macnemo`. A fourth, `Macfix`, exists only on the
-`theme/macfix` branch and is not part of a release; installations that use it
-build it themselves.
+**Themes** — `Bota`, `Nova`, `Macnemo`, `Macfix`. All four ship in the release
+and are built by the same chain. Shipping is not switching on: an installation
+offers a theme by naming it under `Saito.themes.available`, and only the one it
+names as `default` is what a logged-out visitor sees.
 
 **The odd one out** — `Installer`, which runs *before* the application is
 configured and therefore cannot depend on it.
@@ -87,7 +88,7 @@ yarn build:release
   ├── clean:js        remove previous bundles
   ├── css             sass → expanded CSS
   │     ├── css:static   webroot/css/src/static.scss
-  │     └── css:theme    Bota, Nova, Macnemo (and Macfix, on its branch)
+  │     └── css:theme    Bota, Nova, Macnemo, Macfix
   ├── css:postcss     autoprefixer and friends
   ├── css:purge       PurgeCSS — the lossy step
   ├── build           vite, once per entry

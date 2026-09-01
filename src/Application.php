@@ -133,7 +133,14 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         $this->addPlugin(\Stopwatch\StopwatchPlugin::class);
         $this->addPlugin(\Webhooks\WebhooksPlugin::class);
 
+        // The two shipped themes that are nobody's default. A theme only
+        // becomes selectable once an installation names it under
+        // `Saito.themes.available`, and the component that resolves the choice
+        // does not load plugins — so without this an installation could offer
+        // Macfix and then render Nova, silently. `loadDefaultThemePlugin()`
+        // below covers whichever one an installation made its default.
         $this->addPlugin('Macnemo');
+        $this->addPlugin('Macfix');
         $this->loadDefaultThemePlugin();
 
         Stopwatch::stop('Application::bootstrap');

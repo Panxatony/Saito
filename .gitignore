@@ -28,10 +28,14 @@ schema-dump-*.lock
 /webroot/useruploads/*
 
 ### Assets ###
-# Compiled theme CSS is a build product, not source: `grunt dart-sass:theme`
-# makes all three from the .scss under css/src/. Bota was already ignored while
-# Nova and Macnemo were tracked, so every rebuild dirtied the tree and the two
-# could drift from their sources unnoticed. Same rule for all three now.
+# Compiled theme CSS is a build product, not source: `yarn css:theme` makes all
+# four from the .scss under css/src/. Bota was already ignored while Nova and
+# Macnemo were tracked, so every rebuild dirtied the tree and the two could
+# drift from their sources unnoticed. Same rule for all of them now.
+#
+# Macfix joined last and had the tracked variant for longer, because it lived on
+# its own branch and its stylesheets reached an installation by being copied
+# from there rather than built. That is over: it is a plugin like the rest.
 #
 # Consequence worth knowing: a deploy that copies files straight out of the
 # working tree has to build first. The release tarball is unaffected — CI runs
@@ -42,6 +46,8 @@ plugins/Nova/webroot/css/*
 !plugins/Nova/webroot/css/src/
 plugins/Macnemo/webroot/css/*
 !plugins/Macnemo/webroot/css/src/
+plugins/Macfix/webroot/css/*
+!plugins/Macfix/webroot/css/src/
 
 plugins/Bota/webroot/fonts/*.woff*
 # The font licence is generated too: one source under webroot/css/src/fonts/,

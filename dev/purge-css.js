@@ -29,6 +29,8 @@ const targets = [
     'plugins/Nova/webroot/css/night.css',
     'plugins/Macnemo/webroot/css/theme.css',
     'plugins/Macnemo/webroot/css/night.css',
+    'plugins/Macfix/webroot/css/theme.css',
+    'plugins/Macfix/webroot/css/night.css',
 ];
 
 (async () => {

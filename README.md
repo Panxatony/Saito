@@ -76,10 +76,15 @@ browser and stored in the database.
 
 ## Themes
 
-Saito ships three: **Nova** (the default — a modern take on Bota), **Bota** (the
-long-standing base, still selectable) and **Macnemo** (the macnemo identity,
-built on Nova). A theme sets its variables and then imports its parent's
-`theme.scss`, so a new theme is usually a short file of colours.
+Saito ships four: **Nova** (the default — a modern take on Bota), **Bota** (the
+long-standing base, still selectable), **Macnemo** (the macnemo identity, built
+on Nova) and **Macfix** (wine-red, on a grey page, also built on Nova). A theme
+sets its variables and then imports its parent's `theme.scss`, so a new theme is
+usually a short file of colours.
+
+Shipped is not the same as offered. An installation lists the themes its members
+may pick under `Saito.themes.available` in `config/saito_config.php`, and names
+one as `default`; everything else is present but unlisted.
 
 Every theme variable must be declared with `!default` — without it a child theme
 cannot override the value, and the override fails silently.

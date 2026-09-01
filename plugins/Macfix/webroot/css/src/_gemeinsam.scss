@@ -1,0 +1,263 @@
+/******************************************************************************
+ * What both macfix presets share: the red header bar and the banner slot.
+ *
+ * The bar is red in the light preset and in the night one — it is the forum's
+ * identity, not a function of the background it sits over — so it lives here
+ * rather than being written twice.
+ ******************************************************************************/
+
+/// macfix sets its text at 1.5, not Nova's 1.6 — measured 21.6px against
+/// 23.04px on a 14.4px base. `$line-height-base` alone does not achieve it:
+/// Nova's modern layer declares `body { line-height: 1.6 }` outright, and a
+/// variable cannot outrank a declaration made after it. So it is restated here,
+/// after the import.
+body.htmx-island {
+  line-height: 1.5;
+
+  /// Nova asks macOS for `antialiased` smoothing, which renders text visibly
+  /// lighter than the platform default — thin enough that the forum did not
+  /// look like itself beside the real one. macfix has always taken the default.
+  ///
+  /// Worth knowing when checking this: the property does nothing on Linux, so a
+  /// screenshot taken there cannot show the difference at all. This one was
+  /// caught by a reader on a Mac, and only then measured.
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: auto;
+}
+
+/// The header bar: one row, edge to edge, logo hard left and the controls hard
+/// right.
+///
+/// Three things have to be undone for that. The theme sets `#header` to
+/// `flex-direction: column`, which is why the island header stacks the logo
+/// above the controls on *every* theme — measured identical on untouched Nova, so
+/// this is the theme's own doing and not something the island layout asks for.
+/// `#site` is inset from the viewport, so the bar has to be pulled back out to
+/// reach the edges. And `htmx-island.css` is loaded *after* the theme, so a
+/// selector of equal weight would lose on source order alone — hence
+/// `body.htmx-island` rather than `.htmx-island`.
+/// Note the `!important`s below, which are not decoration. Bota builds the
+/// header out of Bootstrap utility classes — `#header { @extend .flex-column }`,
+/// `#header-hero { @extend .text-center }`, `#hero-homeLink { @extend .p-3 }` —
+/// and every Bootstrap utility carries `!important` by design. No amount of
+/// selector weight beats that; only another `!important` does. Each one here
+/// undoes exactly one such utility and nothing else.
+body.htmx-island #header.htmx-island-header {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  background: $macfix-red;
+  border-bottom: 0;
+
+  // The bar ends where the page ends. It used to be pulled out to the viewport
+  // edges with `margin: calc(50% - 50vw)`, which was right while the page had
+  // no width of its own; now that `#site` stops at 1440px a full-bleed bar
+  // would be the one element still growing with the screen. On the running
+  // forum the bar sits inside the page, so it does here too — width and
+  // centring both come from the island's own `#header` rule.
+  //
+  // No padding at all, on any side: the running forum reports `0px` all round,
+  // at 2121px as at 390px. Sideways because the island's gutter would have set
+  // the logo 48px in from a page edge the thread list below already sits at;
+  // vertically because the bar's height *is* the logo block's height — 40px of
+  // wordmark inside the 1rem that block carries (see `#btn_header_logo` below)
+  // makes the 72px measured on the running forum, and padding here would have
+  // been added on top of it.
+  padding: 0;
+}
+
+/// The logo block is full-width and centred by default, and the theme paints it
+/// in the page background — all three wrong on a coloured bar.
+body.htmx-island #header-hero {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0;
+  margin: 0;
+  text-align: left !important; // undoes @extend .text-center
+  background: transparent;
+  font-size: inherit;
+}
+
+body.htmx-island #hero-homeLink {
+  padding: 0 !important; // undoes @extend .p-3
+}
+
+/// The wordmark keeps 1rem of air around it, and that is what gives the bar its
+/// height. Measured on the running forum: the logo link is 169×72 around a
+/// 137×40 image — 16px on every side — and the bar is 72px because nothing else
+/// in it is taller. Zeroed, the logo sat hard in the corner and the bar came out
+/// 56px, which read as a different, thinner forum.
+/// The 1px transparent border is Bootstrap's, from the `.btn` class the island
+/// puts on this link; the running forum's logo is a plain anchor and has none.
+/// Left in, it made the bar 74px against 72 — invisible on its own, but it is
+/// the whole remaining difference, so it goes.
+body.htmx-island #btn_header_logo {
+  padding: 1rem;
+  margin: 0;
+  border: 0;
+}
+
+/// The wordmark is supplied as a light image for exactly this ground, so it
+/// needs no filter — only the height the forum shows it at today.
+body.htmx-island #hero-homeLink img {
+  height: 2.5rem;
+  width: auto;
+  display: block;
+}
+
+body.htmx-island #header-menu {
+  flex: 0 1 auto;
+  width: auto;
+  justify-content: flex-end;
+  background: transparent;
+  padding-top: 0 !important;    // undoes @extend .py-2
+  padding-bottom: 0 !important;
+}
+
+/// The bar is one row now, so its three zones size to their content instead of
+/// sharing the width — otherwise the buttons are squeezed until each label
+/// wraps under its icon.
+body.htmx-island #header-menu > div {
+  flex: 0 0 auto !important;
+}
+
+body.htmx-island #header-menu .btn {
+  white-space: nowrap;
+}
+
+/// Everything in the bar sits on red, so it is set in white — including the
+/// icon buttons, which otherwise inherit the body colour and turn near-black.
+body.htmx-island #header.htmx-island-header,
+body.htmx-island #header.htmx-island-header a,
+body.htmx-island #header.htmx-island-header .btn,
+body.htmx-island #header.htmx-island-header .btn-link {
+  color: #ffffff;
+}
+
+body.htmx-island #header.htmx-island-header .btn-link:hover,
+body.htmx-island #header.htmx-island-header .btn-link:focus {
+  color: #ffffff;
+  opacity: 0.75;
+  text-decoration: none;
+}
+
+/// macfix sets its content flush left. The island layout insets it three times
+/// over — 16px on `body`, another 16px on `#site`, then the 48px island gutter
+/// on `#content` — which measured x=80 against x=0 on the running forum.
+/// `!important` again, and for the same reason as the header: `#site` carries
+/// `@extend .px-md-3`, a Bootstrap responsive utility, and those are
+/// `!important` by design.
+body.htmx-island,
+body.htmx-island #site,
+body.htmx-island #content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/// macfix stops growing at 1440px. The island layout caps at
+/// `--isl-maxw: min(1800px, 100%)`, so on a wide screen the forum kept
+/// spreading past the width its readers know — measured 1800px against the
+/// 1440px `#site` reports on the running forum.
+///
+/// Capping `#site` is enough for everything inside it: `#content`,
+/// `#js-headerActions` and the header's full-bleed padding all size off
+/// `--isl-maxw`, whose `100%` then resolves against these 1440px rather than
+/// the viewport, so they follow without being named. `.disclaimer` does have
+/// to be named — it is a *sibling* of `#site`, not a child, which is why the
+/// rule on the running forum lists both too.
+///
+/// `margin-left`/`margin-right` rather than the `margin` shorthand: the island
+/// gives `.disclaimer` a `2rem auto 1rem`, and the shorthand would flatten the
+/// vertical part of it.
+$macfix-page-width: 1440px;
+
+body.htmx-island #site,
+body.htmx-island .disclaimer {
+  max-width: $macfix-page-width;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/// Except on a phone. Flush against the screen edge is where full-bleed stops
+/// being the forum's character and starts being hard to read, so the narrow
+/// layout keeps a little room.
+@media (max-width: 720px) {
+  body.htmx-island #content {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/// No unread rail, and no bold. The island layout marks unread lines for
+/// signed-in members with a 3px accent border and `font-weight: 700`; macfix
+/// has neither and never has — it marks unread by colour alone.
+///
+/// This is also what made the list look heavier than the real forum when
+/// signed in and lighter when not: the bold is gated on `.is-member`, so a
+/// guest saw the right weight and a member did not.
+///
+/// The transparent border and its padding go too, not just the colour — they
+/// are what put the subject 11px further in than macfix sets it.
+body.htmx-island .threadLeaf .threadLine {
+  border-left: 0;
+  padding-left: 0;
+}
+
+/// The rail is drawn twice, by two different layers and two different
+/// properties — which is why removing only the border left it on screen. Nova's
+/// modern layer paints its own with an inset shadow:
+///   `.threadLeaf.et-new > .threadLine { box-shadow: inset 2px 0 0 … }`
+/// A `border-left: 0` cannot touch that.
+body.htmx-island .threadLeaf.et-new > .threadLine,
+body.htmx-island .threadLeaf.et-old > .threadLine {
+  box-shadow: none;
+}
+
+body.htmx-island.is-member .threadLeaf.et-new .link_show_thread,
+body.htmx-island.is-member .threadLeaf.et-old .link_show_thread {
+  font-weight: $font-weight-base;
+}
+
+/// macfix lists its threads plainly: no card, no frame, no shadow — the
+/// indentation alone carries the structure, which is how the forum has always
+/// read.
+///
+/// Bota already says as much (`.threadBox-body.panel { border: none }`), but
+/// Nova's modern layer gives every `.panel` a border afterwards and wins on
+/// source order. So it is said once more, after both.
+body.htmx-island .threadBox-body,
+body.htmx-island .threadBox-body.panel {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/******************************************************************************
+ * Banner slot
+ *
+ * `div.ads_top` between the header bar and the content, which is where macfix
+ * has always carried its banner. The class name is deliberately the one the
+ * existing install uses, so its ad code and any rules written against it keep
+ * working unchanged. The layout renders the container only when the
+ * installation has configured something to put in it.
+ ******************************************************************************/
+
+body.htmx-island .ads_top {
+  max-width: #{"var(--isl-maxw)"};
+  margin: 0 auto;
+  padding: 1rem #{"var(--isl-gutter)"};
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}

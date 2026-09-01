@@ -91,6 +91,7 @@
       "ImageUploader\\Test\\": "plugins/ImageUploader/tests",
       "Installer\\": "plugins/Installer/src",
       "Installer\\Test\\": "plugins/Installer/tests",
+      "Macfix\\": "./plugins/Macfix/src/",
       "Macnemo\\": "./plugins/Macnemo/src/",
       "Macnemo\\Test\\": "./plugins/Macnemo/tests/",
       "SaitoHelp\\": "./plugins/SaitoHelp/src",
