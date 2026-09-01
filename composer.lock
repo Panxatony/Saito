@@ -5134,16 +5134,16 @@
         },
         {
             "name": "tempest/highlight",
-            "version": "2.27.1",
+            "version": "2.28.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tempestphp/highlight.git",
-                "reference": "a65bd95f70d01e082285e3c3f01cc33b6ddac1dd"
+                "reference": "aa53fcf1c6775f2d422ed953684d41a15370e1f9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tempestphp/highlight/zipball/a65bd95f70d01e082285e3c3f01cc33b6ddac1dd",
-                "reference": "a65bd95f70d01e082285e3c3f01cc33b6ddac1dd",
+                "url": "https://api.github.com/repos/tempestphp/highlight/zipball/aa53fcf1c6775f2d422ed953684d41a15370e1f9",
+                "reference": "aa53fcf1c6775f2d422ed953684d41a15370e1f9",
                 "shasum": ""
             },
             "require": {
@@ -5181,7 +5181,7 @@
             "description": "Fast, extensible, server-side code highlighting",
             "support": {
                 "issues": "https://github.com/tempestphp/highlight/issues",
-                "source": "https://github.com/tempestphp/highlight/tree/2.27.1"
+                "source": "https://github.com/tempestphp/highlight/tree/2.28.0"
             },
             "funding": [
                 {
@@ -5189,7 +5189,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-17T13:10:55+00:00"
+            "time": "2026-08-28T08:32:31+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -11257,6 +11257,6 @@
     "platform": {
         "php": ">=8.4.3"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }
