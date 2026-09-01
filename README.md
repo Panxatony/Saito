@@ -18,7 +18,10 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 
 ## Requirements
 
-- PHP 8.4+ (extensions: gd, exif, intl, mbstring, pdo, simplexml)
+- PHP 8.4.3+ (extensions: gd, exif, intl, mbstring, pdo, simplexml). The floor is
+  a patch release, not just a minor one, because the locked dependency tree asks
+  for it — and because Saito expects to run on a patched host. See
+  [Keeping it patched](#keeping-it-patched) below.
 - Database (MySQL/MariaDB tested, [others untested](https://book.cakephp.org/5/en/orm/database-basics.html#supported-databases)).
   **Transactional tables are required.** Operations that touch several rows at
   once — merging two threads, for one — rely on a transaction to keep them
@@ -27,6 +30,24 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
   than the 2018 schema should read the 8.3.0 entry in the
   [changelog](CHANGELOG.md) before upgrading, because converting a large
   `entries` table takes minutes and holds a lock.
+
+## Keeping it patched
+
+A forum is a public-facing application holding other people's accounts and
+private messages. Saito is built on that assumption, and it expects the same of
+the machine underneath it.
+
+- **Patch the host regularly.** Weekly is a good rhythm: PHP, the database, the
+  web server, the OS. Most of what threatens a forum is not a hole in the forum
+  software — it is an unpatched runtime below it.
+- **Run a current PHP 8.4.** The minimum above is a floor, not a target. Only the
+  newest patch release of a branch carries the current security fixes.
+- **Follow the releases.** Watch this repository or subscribe to the
+  [release feed](https://github.com/Panxatony/Saito/releases.atom); security
+  fixes are called out in the [changelog](CHANGELOG.md).
+- **Dependencies are watched here.** Dependabot reports advisories for the PHP
+  and JavaScript trees and opens update pull requests weekly, so a released
+  tarball ships a current dependency set.
 
 ## Get Started
 
@@ -80,7 +101,7 @@ rather than in the commit history.
 You need a more or less generic environement providing:
 
 -  PHP with `composer` for the server-backend (mainly build on [CakePHP][cake])
--  **Node.js >= 22.11** with `yarn` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts). `.nvmrc` names the version the pipelines use; the build tooling sets that floor and `yarn install` refuses below it.
+-  **Node.js 22.22.3+ or 24.15+** with `yarn` for the browser assets ([htmx][htmx] + [Alpine][alpine] islands, CSS and fonts). `.nvmrc` names the version the pipelines use; the build tooling sets that floor — mind the gap, 23.x and 24.0–24.14 are below it too — and `yarn install` refuses under it.
 -  a database
 
 ### Install Files

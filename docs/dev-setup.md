@@ -4,14 +4,18 @@ How to run Saito locally for development.
 
 ## Requirements
 
-- **PHP >= 8.4** with the usual CakePHP extensions (intl, mbstring, pdo_mysql,
-  simplexml, ...)
+- **PHP >= 8.4.3** with the usual CakePHP extensions (intl, mbstring, pdo_mysql,
+  simplexml, ...). The patch level matters: parts of the locked tree
+  (`symfony/clock`, PHPUnit 13, Psalm 6) refuse anything older.
 - **MySQL** or **MariaDB**
 - [**Composer**](https://getcomposer.org/) for the PHP dependencies
-- **Node.js >= 22.11** with [**Yarn**](https://yarnpkg.com/) for the frontend
-  assets. `.nvmrc` names the exact version the pipelines run (24 LTS). Below the
-  floor `yarn install` stops with an engine error naming `cssnano` rather than
-  Node, which is easy to misread as a broken lockfile.
+- **Node.js 22.22.3+ or 24.15+** with [**Yarn**](https://yarnpkg.com/) for the
+  frontend assets. `.nvmrc` names the exact version the pipelines run (24 LTS).
+  The floor is not a round number because `cssnano` sets it; below it
+  `yarn install` stops with an engine error naming `cssnano` rather than Node,
+  which is easy to misread as a broken lockfile. Note the gap: 23.x and 24.0
+  through 24.14 are *not* enough either, so a "newer than 22" Node is no
+  guarantee — check the patch level.
 
 ## 1. Get the Code
 
