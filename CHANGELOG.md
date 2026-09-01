@@ -5,6 +5,351 @@
 - Δ Changed
 - − Removed
 
+## [8.4.16] - 2026-09-01 "wartungsklappe"
+
+**No migration.**
+
+**PHP 8.4.3 is now the minimum** — a patch level, not just a minor. See the
+first entry below; an installation on 8.4.0 to 8.4.2 has to move before
+upgrading, and `vendor/composer/platform_check.php` stops it if it does not.
+
+- Δ Changed: **dependency updates were silently not happening.** Dependabot ran
+  every Monday, fetched all 159 composer packages and then failed every single
+  resolution — for five weeks, without a pull request or a warning. It does not
+  resolve against the PHP in its container (8.4.25); it derives a platform
+  version from what we ask for. `>=8.4` became the literal `8.4`, meaning
+  8.4.0, which does not satisfy the `>=8.4.1` that PHPUnit, `symfony/clock` and
+  others require. Every check died there.
+
+  The requirement now says `>=8.4.3`, which is the smallest floor the locked
+  tree accepts: the runtime needs 8.4.1 (`symfony/clock`, via the passkey
+  library) and Psalm, which the taint analysis runs, needs `~8.4.3`.
+
+  **A `config.platform` override would also have fixed it and was rejected.**
+  It disables the install-time check as well, so an operator on an older 8.4
+  would pass `composer install` and only fail at runtime. Raising the
+  requirement keeps that guard working.
+
+  Bootstrap had a second, quieter version of the same fault: the rule holding
+  back the move to Bootstrap 5 was never revisited after the themes moved
+  there, so it had begun excluding every 5.x patch as well. A stale rule is
+  indistinguishable from a deliberate freeze.
+
+- Δ Changed: **the dependencies that had piled up behind it.** All of them
+  arrived at once and none changes what the forum does:
+
+  - `vlucas/phpdotenv` 5.6.4 → 5.7.0 — the reader for `config/.env`, with real
+    hardening: a memory-safety crash on invalid UTF-8, null bytes in names and
+    values skipped, quadratic value parsing removed. Ten `.env` shapes parsed
+    identically under both versions; the one difference is a single-character
+    name with `export`, which used to be rejected and now works. A file that
+    parsed before cannot stop parsing. A value with an unquoted space is still
+    refused — as 8.4.10 documented and production found out on 2026-08-17.
+  - `web-auth/webauthn-lib` 5.3.5 → 5.3.7 plus its tree — Android key
+    attestation is now verified properly. Saito requests no attestation, sets
+    an explicit relying-party name and requires user verification outright, so
+    none of the three behavioural changes upstream touches its path. `brick/math`
+    jumped two minor versions with it, in code the test suite does not reach, so
+    RS256 and ES256 verification was compared directly across both versions —
+    good signatures accepted, tampered ones refused, identically.
+  - `tempest/highlight` 2.27.1 → 2.28.0 — diff-language and terminal themes
+    only; nothing near the HTML escaping.
+  - Build tooling: cssnano 9, ESLint 10.9.1, PHPStan 2.2.9, Alpine 3.16.3 and
+    the Symfony test helpers. cssnano 9 rewrites `calc()` operand order and
+    folds `max(1rem,1rem)`; the shipped stylesheets were compared rule by rule
+    and are equivalent. It also sets a Node floor of 22.22.3 / 24.15 — mind the
+    gap, 23.x and 24.0–24.14 are below it too.
+
+## [8.4.15] - 2026-08-30 "fischzug"
+
+**No migration.**
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- ＋ Added: **a shared link now has a preview.** Posting a forum link in a chat
+  app sent a fetcher after it, and that fetcher found no Open Graph markup at
+  all — so the preview was whatever it could scrape. Behind a bot wall that is
+  the wall's own page: sharing a link showed the proof-of-work challenge's
+  mascot, because the fetcher runs no JavaScript and never reached the forum.
+
+  The forum now says who it is: its logo, its name, and — for a posting a
+  **guest** could read — the subject.
+
+  **The subject is released on the category's read level, not on who is
+  looking.** A preview is produced by a fetcher with no session and rendered on
+  a stranger's device, in a conversation this forum cannot see. So a
+  members-only posting shows the logo and the forum's name and nothing else,
+  even to a member entitled to read it — the link they might share leads that
+  stranger's fetcher to exactly this page. `accession = 0` is the same rule the
+  sitemap uses to decide what may be listed publicly, and a category whose
+  accession is missing yields no subject: the failure direction is silence.
+
+  The image is `webroot/img/og-image.png` in a theme. `Bota` ships one built
+  from the favicon it owns; any theme may override it, and `Macnemo` does with
+  the fish that ends its wordmark.
+
+  **Behind a bot wall this needs one more thing.** Anubis answers a preview
+  fetcher with its own page unless `-og-passthrough` is set, which was pointless
+  before there were tags to forward and is worth setting now.
+
+- ✓ Fixed: **an upload that was refused said only "422".** The endpoint answers
+  with `{"error": "…"}` naming the reason — the file is too large, the type is
+  not accepted, the member is at their limit. 8.4.14 started reading the status
+  before the body, which was right for the expired-page case it was written
+  for, and stopped there for everything else. A reason the server had taken the
+  trouble to produce was replaced with a number. The reason now wins where
+  there is one; the status code remains the fallback.
+
+## [8.4.14] - 2026-08-22 "durchsage"
+
+**No migration.**
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+A release about things that went wrong quietly. Every item below was already
+happening; none of it said so.
+
+- ✓ Fixed: **every table in night mode drew its text in black.** Reported from
+  an iPhone, where the profile page — which is a table — was black on black,
+  and confirmed on a Mac. Bootstrap 5.3 hands `--bs-emphasis-color` straight to
+  `--bs-table-color`, and that comes from `$body-emphasis-color`, which defaults
+  to black. Saito's night mode is a stylesheet of its own rather than
+  Bootstrap's `[data-bs-theme="dark"]`, so any Bootstrap variable it does not
+  restate keeps the light-theme value. This one never was.
+
+  Measured before and after on the built stylesheet: `rgb(0, 0, 0)` →
+  `rgb(242, 238, 234)`. Light mode is untouched. Affects Bota, Nova, Macnemo and
+  Macfix.
+
+- ✓ Fixed: **a failed write said nothing at all.** There was no
+  `htmx:responseError` listener anywhere in the frontend, and htmx only swaps
+  content on a 2xx answer. So when a request was refused, pressing "send" on
+  the reply form did *visibly nothing* — the text stayed in the box with no
+  hint that it had not been sent, and none that reloading would fix it. Uploads
+  were only marginally better: `uploads.ts` read the answer's body before its
+  status, so a 403 (which arrives as an HTML error page) made `.json()` throw
+  and the whole thing became `yourphoto.jpg: failed`, indistinguishable from a
+  file too large or a full disk.
+
+  Both now say what happened. A refused token gets its own wording, because
+  that is the one a member can act on:
+
+  > This page has been open too long, so the form is no longer valid. Reload
+  > the page and try again — anything you have written is kept.
+
+  Anything else gets a plain statement with the status code. Vague, but never
+  silent, which is the property that was missing.
+
+- Δ Changed: **the CSRF cookie is a session cookie again**, which is CakePHP's
+  own default and what this had drifted away from. It carried an explicit
+  three-hour lifetime, set during the Cake-4 middleware work in May with no
+  reason recorded. The middleware re-issues the cookie on every response, so
+  that only ever bit a page left idle longer than three hours — an ordinary
+  afternoon. Meanwhile the remember-me cookie lasts ten days, so a member
+  stayed logged in while the form in front of them had quietly stopped
+  working. This is the cause behind the fix above, and fixing it removes the
+  reason that message has to appear at all.
+
+- ＋ Added: **`bin/cake clear_unusable_passwords`** (#99). A forum grown from
+  mylittleforum still carries password hashes in formats the login stopped
+  accepting years ago — on one installation, 534 accounts holding a plain md5,
+  none used since 2013, against 287 on bcrypt. They authenticate nobody, so
+  they do nothing; they are also thirteen years of reused passwords sitting in
+  a table, and people use the same password in more than one place. The command
+  reports what an installation holds and, with `--clear`, empties those columns.
+
+  Nothing is taken from anyone: the password reset issues a bcrypt hash without
+  reading the old value, so those members recover by e-mail exactly as before.
+  It empties a column rather than deleting accounts, because most of them had
+  written postings.
+
+  A command and not a migration — emptying a member's password is a decision
+  about your own data, not something a release should do to you while you read
+  this.
+
+- ＋ Added: **`bin/cake db_version`** reports whether the code version and the
+  version recorded in the database agree, and sets the row when given one. They
+  had drifted apart on two of three installations here without anything saying
+  so.
+
+- − Removed: `LegacyPasswordHasherSaltless`. It read the plain md5/sha1 format
+  above, was wired into nothing, and could not be wired in — the hasher chain is
+  not configurable, so enabling it meant patching source. Dead code whose
+  presence implied a capability that did not exist. Accepting an unsalted hash
+  from that era would turn something trivially crackable back into a working
+  credential, which is why the chain refuses it.
+
+## [8.4.13] - 2026-08-19 "nachgezählt"
+
+**No migration.** Two dependencies, no application code.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- Δ Changed: **`league/commonmark` 2.9.0 → 2.10.0**, which is three security
+  releases in one step: 2.9.1 (several denial-of-service issues and one XSS),
+  2.9.2 (a regression from 2.9.0) and 2.10.0 (a denial of service in the
+  attributes extension). `tempest/highlight` 2.27.0 → 2.27.1 comes along; that
+  one carries no security content.
+
+  **Nothing here was exploitable in Saito, and it is worth being precise about
+  why.** The XSS and the 2.10.0 issue both need the attributes extension, which
+  the plain `CommonMarkConverter` this forum uses does not load. The
+  denial-of-service issues from 2.9.1 are in the core parser and do apply — but
+  the only markdown that reaches it is help-page content from the repository,
+  the theme or `config/help/`. All of it is supplied by the operator; an
+  attacker has nothing to feed it.
+
+  What makes the update right anyway is a comment that has sat above that
+  converter since 7.0.6: *"Currently only trusted help pages are rendered, but
+  this keeps the helper safe if ever pointed at user input."* The hardening
+  there was written for a situation that has not arrived. Carrying three
+  security releases of debt against it would undo the care that put it there.
+
+  **No tool reported this.** `composer audit --locked`, Dependabot and CodeQL
+  were all silent, and none of them was wrong — upstream published these as
+  security releases with GHSA identifiers, and the advisory databases had not
+  indexed them yet. It surfaced from comparing installed versions against the
+  newest release in the same major and then reading the release notes, which is
+  now recorded in #94 as the third standing check alongside "how far behind are
+  we" and "is anyone still publishing".
+
+## [8.4.12] - 2026-08-17 "obenauf"
+
+**No migration.** One file changed.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+- ✓ Fixed: **the message 8.4.11 added never reached the web server's log.** It
+  was chained to the original exception, and PHP prints a chained exception
+  previous-first — so the entry began with the library's own trace, and the web
+  server truncated the line before the useful half. Tried on the test install:
+  the operator saw exactly what they saw before 8.4.11.
+
+  It is thrown unchained now and leads the entry. The library's wording is
+  repeated inside it, so only its internal frames are lost — which were never
+  the part worth reading.
+
+  This is the second correction to the same fix in one evening, and both came
+  from running it rather than reasoning about it. 8.4.11 was verified through
+  the command line, where PHP prints the whole chain and nothing is truncated;
+  the web path, which is the one an operator actually meets, behaved
+  differently.
+
+## [8.4.11] - 2026-08-17 "beipackzettel"
+
+**No migration.** One file changed.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+> [!WARNING]
+> **Before upgrading, check `config/.env` for values containing a space:**
+>
+> ```bash
+> grep -nE '=[^"'"'"']*[[:space:]]' config/.env
+> ```
+>
+> Anything that matches needs quotes — `export NAME="two words"`. This applies
+> to 8.4.10 as well; the release below only makes the failure legible.
+
+- ✓ Fixed: **an unreadable crash when `config/.env` holds an unquoted value with
+  a space.** The reader introduced in 8.4.10 refuses `NAME=macnemo Forum` where
+  the previous one accepted it — and it refuses it during bootstrap, before
+  CakePHP has an error page. What an operator got was HTTP 500 and a stack trace
+  naming neither the file nor the remedy.
+
+  This is not hypothetical and was not caught by the migration's own testing:
+  the production install went down for five minutes on the day 8.4.10 shipped,
+  on a value written years earlier and read without complaint ever since. The
+  parser comparison behind that release checked `NAME="two words"` — quoted —
+  and never tried it without the quotes, which is the likelier way to write it.
+
+  The failure remains a failure: continuing without the file would swap a clear
+  stop for a confusing database error later. What changes is that the log now
+  names the file, repeats the value the library objected to, and says what fixes
+  it. Three tests hold down that the reader really does refuse this input and
+  that its own words do not tell anybody what to do — the two facts the wrapped
+  message rests on.
+
+  `docs/update.md` and `docs/upgrade.md` carry the check to run **before**
+  upgrading, which is the only place it helps.
+
+## [8.4.10] - 2026-08-17 "nachschub"
+
+**No migration.** The JS bundle changed with the Alpine.js update, so the
+compiled assets go out with it.
+
+```bash
+php bin/cake.php schema_cache clear
+```
+
+Two suppliers had stopped producing — one nine years ago, one three — and this
+release replaces them. A third was kept, deliberately, because it still delivers
+what it is asked for.
+
+- Δ Changed: **the RSS feeds are written with `laminas/laminas-feed`.**
+  `suin/php-rss-writer` last published in 2017 and still declares `php >=5.4.0`.
+  Nothing was wrong with it; it simply stopped.
+
+  The gate was not that the feed still validates but that **the `guid` must not
+  move** — it is what subscribers are keyed on, and changing it makes every
+  reader re-announce every posting it has already shown. Compared before and
+  after across both feeds, against real postings and not only test data: `guid`,
+  `pubDate`, `link` and the posting bodies are byte-identical. Nobody's reader
+  will report anything as new.
+
+  Two faults the old library had been swallowing came out in the process, and
+  either would have replaced the whole document with an error rather than
+  degrading quietly: an empty subject, which replies commonly have, and an empty
+  body. Both are now handled.
+
+  Visible differences are equivalent or better: item titles are escaped instead
+  of CDATA-wrapped, `atom:link` is absolute where it used to be a bare path a
+  reader cannot resolve, and the channel carries a description instead of an
+  empty element. `<generator>` names the forum without a version rather than
+  announcing the library, and the writer's `slash:comments` — which would have
+  told every reader that every posting has no replies — is taken back out.
+
+- Δ Changed: **`config/.env` is read with `vlucas/phpdotenv`.**
+  `josegonzalez/dotenv` last published in 2023 and sits on `m1/env`, silent since
+  2020 — two dormant layers.
+
+  `symfony/dotenv` was the first choice and was rejected after measuring: it
+  interpolates the unbraced `$name` form as well, so a value containing a dollar
+  sign — a database password, most plausibly — is silently rewritten, and
+  truncated where the name is undefined. `phpdotenv` reads every case tried
+  exactly as before.
+
+  **A key defined both in the environment and in `config/.env` no longer
+  errors.** The old loader raised "Key already defined" and answered with an
+  HTTP 500; now the environment simply wins. If you removed a key from one side
+  to work around that, you can put it back.
+
+  One narrower change: `\$` in `config/.env` now resolves to a literal `$`
+  rather than staying two characters. A password written that way changes
+  meaning. Bare `$name` and `${name}` behave as before. See
+  [update.md](docs/update.md).
+
+- ✓ Fixed: **three places said the `.env` loader had to be switched on.** It
+  does not — `config/bootstrap.php` reads the file whenever it exists, and has
+  for a long time. `docs/deployment-debian.md`, the header of
+  `config/.env.default` (which also misspelled `bootstrap.php`) and the comment
+  the other two were copied from now describe what actually happens, including
+  that the environment wins twice over: `APP_NAME` present skips the file
+  entirely, and otherwise only unset keys are filled in.
+
+- Δ Changed: Alpine.js 3.15.12 → 3.16.1, and the build tooling (`cssnano`,
+  `eslint`, `globals`, `typescript-eslint`) to current.
+
 ## [8.4.9] - 2026-08-16 "altschlüssel"
 
 **No migration.** One PHP file changed — no assets, no schema.

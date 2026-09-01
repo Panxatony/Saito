@@ -2048,3 +2048,15 @@ msgstr "Log out instead"
 
 
 
+
+msgid "msg.session.stale"
+msgstr "This page has been open too long, so the form is no longer valid. Reload the page and try again — anything you have written is kept."
+
+msgid "msg.session.stale.short"
+msgstr "page expired — please reload"
+
+msgid "msg.request.failed"
+msgstr "That did not work. Please try again."
+
+msgid "msg.no.connection"
+msgstr "No connection to the forum. Please check your network."

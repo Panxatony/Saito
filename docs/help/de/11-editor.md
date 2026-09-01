@@ -47,6 +47,26 @@ Adresse des Abspielers. Ob das Video dann wirklich erscheint, hängt noch daran,
 ob die Betreiberin die Domain freigegeben hat; steht sie nicht auf der Liste,
 erscheint statt des Videos ein Hinweis.
 
+### Einfügen aus einer Webseite
+
+Kopierst du etwas aus einer geöffneten Webseite und fügst es hier ein, bleiben
+Verweise und Auszeichnungen erhalten. Aus verlinktem Text wird der passende
+Verweis, aus Fettem Fettes. Eine Bildnachweis-Zeile mit drei Verweisen kommt als
+drei Verweise an, statt als drei Wörter, die du von Hand nachbauen müsstest.
+
+Entscheidend ist, dass du kopierst, was die Seite **anzeigt**. Manche Dienste
+bieten daneben einen fertigen HTML-Schnipsel zum Kopieren an — der ist für die
+Zwischenablage nur Text, und er landet unverändert im Beitrag. Markiere in dem
+Fall lieber die Zeile so, wie sie auf der Seite steht.
+
+*Einfügen und Stil anpassen* (⌘⇧V, Strg+Umschalt+V) fügt weiterhin reinen Text
+ein — dabei gibt es nichts zu übernehmen, und das bleibt so.
+
+Fügst du eine **einzelne Adresse** ohne weiteren Text ein, wird daraus gleich
+die Einbindung, wenn die Adresse auf ein Video, ein Bild oder eine Tondatei
+zeigt. Jede andere Adresse bleibt stehen, wie sie ist, und wird beim Anzeigen
+zu einem anklickbaren Verweis — ebenso eine Adresse mitten in einem Satz.
+
 ### Dateien
 
 Der Knopf *Uploads* öffnet dein Archiv und nimmt zugleich neue Dateien auf.

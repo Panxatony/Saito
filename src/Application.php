@@ -193,7 +193,26 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             // CSRF protection (replaces the Cake-3 CsrfComponent).
             ->add(
                 (new CsrfProtectionMiddleware([
-                    'expiry' => time() + 10800,
+                    // A session cookie, which is Cake's own default and what
+                    // this had drifted away from. The middleware re-issues the
+                    // cookie on every response, so an explicit lifetime only
+                    // ever bites a page that sits idle longer than it — and at
+                    // three hours (set during the Cake-4 middleware work in
+                    // May, with no reason recorded) that was an ordinary
+                    // afternoon. The remember-me cookie lasts ten days, so a
+                    // member stayed logged in while the form they were looking
+                    // at had quietly stopped working.
+                    //
+                    // It cost little to notice and a lot to diagnose: pressing
+                    // "send" on the reply form did nothing at all, and an
+                    // upload answered "failed". Reported from macnemo.de on
+                    // 2026-08-22.
+                    //
+                    // Expiring the token buys close to nothing here. It proves
+                    // a request came from a page this forum rendered; anyone
+                    // able to read it already holds the session it is paired
+                    // with, and that is the credential worth protecting.
+                    'expiry' => 0,
                     'cookieName' => Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF',
                 ]))
                     ->skipCheckCallback(function ($request) {

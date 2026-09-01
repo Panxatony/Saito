@@ -208,6 +208,11 @@ can come from the web-server environment (an FPM pool's `env[…]`, a systemd
 unit) or from `config/.env`, for which `config/.env.default` is the template.
 Anything not set falls back to the default in the table.
 
+Both sources may be present at once, and the environment wins: if it sets
+`APP_NAME`, `config/.env` is not read at all; otherwise the file supplies only
+the keys the environment has not already defined. Nothing has to be edited to
+enable the file — it is read whenever it exists.
+
 Prefer these over editing `config/app.php`: they survive an update, which a file
 in the release tarball does not.
 
@@ -313,6 +318,53 @@ DATABASE_URL="mysql://user:password@localhost/saito?encoding=utf8mb4" \
 Worth trying **before** you need it. This is the one command whose first use is
 usually under pressure, and finding out then that it cannot reach the database
 is the wrong moment.
+
+### Password hashes nothing can use
+
+```shell
+bin/cake clear_unusable_passwords            # count them, change nothing
+bin/cake clear_unusable_passwords --clear    # empty those columns
+```
+
+A forum grown from mylittleforum carries hashes in formats the sign-in stopped
+accepting years ago. Two are accepted and no more: bcrypt, and the salted sha1
+mylittleforum 2.x wrote. A plain md5 or sha1 from before that matches neither,
+so those accounts cannot sign in and have not been able to for years.
+
+They are also years of reused passwords sitting in a table, and people use the
+same password in more than one place — if the database is ever disclosed, the
+exposure is not to this forum but to whatever else those members used it for.
+
+Emptying the column costs nothing functionally. The password reset issues a
+bcrypt hash without reading the old value, so those members recover by e-mail
+exactly as before, and an emptied column authenticates nobody — not even an
+empty password. It empties a column rather than deleting accounts, because most
+such accounts have written postings.
+
+**Look before you clear.** Without `--clear` the command only counts, and the
+count is worth reading: on the macnemo.de installation it was 534 accounts,
+none used since 2013, against 287 on bcrypt. A number far from that on your
+forum is worth understanding before acting on it.
+
+Same database caveat as the reset above — pass `DATABASE_URL` if the connection
+lives on the FPM pool rather than in `config/.env`.
+
+### Which version the database thinks it is
+
+```shell
+bin/cake db_version              # what are they, and do they agree?
+bin/cake db_version 8.4.14       # record a version
+```
+
+An installation carries two version numbers: the code's, from
+`src/Lib/version.php`, and `db_version`, a row in `settings`. The updater
+compares against the row. After a code-only release they only match because
+somebody set the row by hand, and they had quietly drifted apart on two of the
+three installations here — invisible from the outside, and the consequence of
+the row being ahead is the updater deciding it has nothing to do.
+
+Disagreement is reported as a warning, not an error: that is the normal state
+between copying files and setting the row.
 
 ### Email
 

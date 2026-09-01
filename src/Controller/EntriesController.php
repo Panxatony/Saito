@@ -18,6 +18,7 @@ use App\Controller\Component\RefererComponent;
 use App\Controller\Component\ThreadsComponent;
 use App\Model\Table\EntriesTable;
 use Cake\Core\Configure;
+use Cake\Datasource\EntityInterface;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\Http\Exception\BadRequestException;
@@ -377,6 +378,37 @@ class EntriesController extends AppController
         // it: the title is what a browser tab and a search result show, and
         // "Re: that thing" without its category says very little.
         $this->Title->setFromPosting($posting);
+
+        // What a link preview may say about this posting.
+        //
+        // Sharing a forum link in a chat app sends a fetcher after it, and that
+        // fetcher is nobody — no session, no account. So the question is not
+        // "may the person sharing read this" but "may a stranger", and the
+        // answer has to be the stricter one: a preview is rendered on someone
+        // else's device, in a conversation this forum knows nothing about.
+        //
+        // `accession` is the category's read level and 0 is the `anon` role
+        // (config/permissions.php), which is the same rule the sitemap uses to
+        // decide what may be listed publicly. Anything else — including a
+        // category whose accession did not load — yields null, and the layout
+        // then shows the forum's own name instead of the subject.
+        // Both shapes occur: a Posting hands out its category as an array, the
+        // ORM as an entity. Categories::permission() accepts either for the same
+        // reason. Checking only for the entity looked right and silently never
+        // matched — safe, since the fallback is to say nothing, but wrong.
+        $category = $posting->get('category');
+        $accession = null;
+        if ($category instanceof EntityInterface) {
+            $accession = $category->get('accession');
+        } elseif (is_array($category) && array_key_exists('accession', $category)) {
+            $accession = $category['accession'];
+        }
+        // `=== 0` and not `<= 0`: an unreadable accession, a missing key or a
+        // category that did not load all leave this null, and null is not 0.
+        $this->set(
+            'sharePreviewSubject',
+            $accession !== null && (int)$accession === 0 ? $posting->get('subject') : null,
+        );
         $this->viewBuilder()->setLayout('htmx_island')->setTemplate('htmx_posting');
     }
 

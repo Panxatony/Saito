@@ -144,7 +144,9 @@ sudo chmod 640 /var/www/saito/config/.env
 sudo -u www-data nano /var/www/saito/config/.env
 ```
 
-The file must live at `config/.env` (next to `app.php`); it is `.gitignore`d and never shipped with a release. To make Saito load it on every request, uncomment the dotenv block at the top of `config/bootstrap.php` — it's disabled by default to keep production deployments environment-driven.
+The file must live at `config/.env` (next to `app.php`); it is `.gitignore`d and never shipped with a release. Saito reads it automatically when it is there — nothing in `config/bootstrap.php` needs editing.
+
+The environment still takes precedence, in two ways: if it already sets `APP_NAME` the file is skipped entirely, and otherwise any key already present in the environment keeps its value rather than being overwritten. So a pool that sets `DATABASE_URL` wins over a `.env` that also sets it, and the two can coexist without either being edited.
 
 ## 6. nginx vhost
 
@@ -349,6 +351,18 @@ sudo -u www-data env DATABASE_URL="mysql://saito:CHANGE_ME@localhost/saito?encod
 # then reconcile the version marker (no-op migration jump → just the settings row):
 mysql saito -e "UPDATE settings SET value='7.0.0' WHERE name='db_version';"
 ```
+
+From 8.4.14 there is a command for that last line, which reaches the database
+the same way the application does and so needs no credentials of its own beyond
+what the CLI already has:
+
+```shell
+sudo -u www-data env DATABASE_URL="mysql://saito:CHANGE_ME@localhost/saito?encoding=utf8mb4" \
+    php8.4 /var/www/saito/bin/cake.php db_version 7.0.0
+```
+
+Run it without the version to ask rather than set — it prints both numbers and
+says whether they agree, which is worth doing after any code-only release.
 
 After deploy: run `bin/cake plugin assets symlink` and open the site once while logged out to exercise the middleware/auth stack.
 

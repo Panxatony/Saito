@@ -10,6 +10,20 @@ $modal-content-bg: $body-bg !default;
 $primary: rgb(255, 184, 30) !default;
 $body-color: #decab2 !default;
 
+// Bootstrap's "emphasis" colour, which defaults to $black and was never turned
+// round for the night theme. It reaches the page through --bs-emphasis-color,
+// and 5.3 hands that straight to --bs-table-color: every table rendered its
+// text in #000 on a #1d1d1f background. Reported from an iPhone on 2026-08-22,
+// where the profile — a table — was black on black.
+//
+// Bootstrap's own dark theme fixes this under [data-bs-theme="dark"], which
+// Saito does not use: night mode is a stylesheet of its own, so any Bootstrap
+// variable it does not restate keeps the light-theme value.
+//
+// A shade above $body-color rather than white, because "emphasis" here should
+// read as the same text a little stronger, not as a second colour.
+$body-emphasis-color: color.adjust($body-color, $lightness: 10%) !default;
+
 $border-color: color.adjust($primary, $lightness: -35%) !default;
 $close-color: $body-color !default;
 $input-color: $body-color !default;

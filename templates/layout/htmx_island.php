@@ -41,6 +41,48 @@ if ($theme) {
     // preview, uploads and the widget state, all failing silently.
     ?>
     <meta name="csrf-token" content="<?= h($this->getRequest()->getAttribute('csrfToken')) ?>">
+    <?php
+    // What a chat app shows when somebody shares a link here.
+    //
+    // Without these the preview is whatever the fetcher scrapes, and behind a
+    // bot wall that is the wall's own page: sharing a macnemo.de link in
+    // Messages showed Anubis' "checking your browser" mascot, because the
+    // fetcher runs no JavaScript, is challenged, and the challenge page is the
+    // only thing it ever sees.
+    //
+    // The subject is only ever set for a posting a *guest* may read — see
+    // EntriesController::htmxPosting(). Everything else, including every
+    // members-only posting, shows the forum's name and nothing about the
+    // content. A preview is rendered on a stranger's device in a conversation
+    // this forum cannot see, so the question is not who shared the link.
+    $forumName = (string)\Cake\Core\Configure::read('Saito.Settings.forum_name');
+    $shareTitle = !empty($sharePreviewSubject) ? $sharePreviewSubject . ' – ' . $forumName : $forumName;
+    // A raster image: Open Graph readers do not render SVG, so a theme's logo
+    // (an SVG) cannot be used directly. Bota ships `og-image.png` at 1200x630,
+    // built from the favicon it also owns, and any theme may override it by
+    // placing a file of the same name in its own webroot/img.
+    $ogImage = $this->Url->assetUrl($theme . '.img/og-image.png', ['fullBase' => true]);
+    $ogFile = WWW_ROOT . '..' . DS . 'plugins' . DS . $theme . DS . 'webroot' . DS . 'img' . DS . 'og-image.png';
+    if (!is_file($ogFile)) {
+        $ogImage = $this->Url->assetUrl('Bota.img/og-image.png', ['fullBase' => true]);
+    }
+    ?>
+    <meta property="og:site_name" content="<?= h($forumName) ?>">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<?= h($shareTitle) ?>">
+    <meta property="og:image" content="<?= h($ogImage) ?>">
+    <meta property="og:url" content="<?= h($this->Url->build($this->getRequest()->getRequestTarget(), ['fullBase' => true])) ?>">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="<?= h($shareTitle) ?>">
+    <meta name="twitter:image" content="<?= h($ogImage) ?>">
+    <?php // Texts the islands show when a request fails. They live here rather
+          // than in the TypeScript because the frontend has no translations of
+          // its own — a literal in a .ts file would be English on a German
+          // forum. See frontend/src/islands/runtime.ts. ?>
+    <meta name="msg-session-stale" content="<?= h(__('msg.session.stale')) ?>">
+    <meta name="msg-session-stale-short" content="<?= h(__('msg.session.stale.short')) ?>">
+    <meta name="msg-request-failed" content="<?= h(__('msg.request.failed')) ?>">
+    <meta name="msg-no-connection" content="<?= h(__('msg.no.connection')) ?>">
     <?= $this->fetch('meta') ?>
     <?= $this->Html->css('stylesheets/static.css') ?>
     <?= $this->fetch('css') ?>
