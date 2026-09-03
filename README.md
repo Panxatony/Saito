@@ -136,8 +136,10 @@ their own job. Until 8.3.0 nothing ever type-checked: `tsconfig.json` has asked
 for strict checking for years while the build went through esbuild, which strips
 types without looking at them. Code style is checked
 separately with `composer cs-check`, and is not part of `test-all`: the code
-base is some 270 violations away from its own PHPCS standard, so wiring it in
-would mean a command that can only ever fail. `composer cs-fix` applies what
+base is some 3300 errors and 350 warnings away from its own PHPCS standard, so
+wiring it in would mean a command that can only ever fail. (This said "some 270"
+until 2026-09-03, which was wrong by an order of magnitude — a number nothing
+measures drifts.) `composer cs-fix` applies what
 PHPCBF can fix — it rewrites source files, so run it deliberately and never as
 part of a test.
 

@@ -45,14 +45,17 @@ updates:
       #  - authentication 4 rewrites the identifier configuration
       #    (250 tests failed when it was tried on 2026-07-30)
       #  - migrations 5 stops the Initial migration creating tables
-      #  - php_codesniffer 4 is blocked by cakephp-codesniffer and
-      #    slevomat, which both still require ^3
+      #
+      # php_codesniffer used to be listed here too, waiting on
+      # cakephp-codesniffer and slevomat, which both required ^3. They moved to
+      # ^4 and the entry turned from a shield into a brake: on 2026-08-31 it was
+      # our own `^3` that made Dependabot refuse cakephp-codesniffer 5.3.2.
+      # Taken on 2026-09-03 — a held-back dependency needs re-checking, not just
+      # recording.
       - dependency-name: cakephp/authentication
         versions: [">=4"]
       - dependency-name: cakephp/migrations
         versions: [">=5"]
-      - dependency-name: squizlabs/php_codesniffer
-        versions: [">=4"]
 
   # ------------------------------------------------------------------
   # JavaScript. Six packages reach the browser; everything else is the
