@@ -65,6 +65,9 @@ changelog:
   before_script: []
   script:
     - sh dev/check-changelog.sh "$CI_COMMIT_TAG"
+    # An ignore entry in dependabot.yml silences the pull request that would
+    # tell you its reason has gone, so nothing else notices that it is stale.
+    - sh dev/check-ignores.sh
   rules:
     - if: $CI_COMMIT_TAG
 
