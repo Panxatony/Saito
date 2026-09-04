@@ -32,6 +32,41 @@ exclude_patterns = [
   # reports every one as "used but not defined" (PHP-W1066). Not real bugs.
   "templates/**",
   "**/templates/**",
+  # The same, per plugin — and spelled out for the same reason the per-plugin
+  # `webroot` paths above are: `**/templates/**` does not take effect, exactly
+  # as the note there predicts for a leading wildcard. Measured on 2026-09-04,
+  # when the PHP check reported **372 introduced occurrences**: 326 of them
+  # PHP-W1066 "Variable $this might not be defined" in plugin templates, 245 in
+  # `plugins/Admin/templates` alone. One single finding in the whole set was
+  # real (a method-name casing in BbcodeParser, fixed in the same commit).
+  #
+  # Why it looked like a sudden explosion rather than a standing condition: a
+  # run only introduces them when the PHP analyzer actually runs, which is when
+  # a commit touches a PHP file. A commit that touches none reports zero, so
+  # the check flickers between 372 and 0 and the total appears to leap. Both
+  # failing runs reported the identical 372 — the same set, not a growing pile.
+  "plugins/Admin/templates/**",
+  "plugins/Bookmarks/templates/**",
+  "plugins/Feeds/templates/**",
+  "plugins/ImageUploader/templates/**",
+  "plugins/Installer/templates/**",
+  "plugins/SaitoHelp/templates/**",
+  "plugins/SaitoSearch/templates/**",
+  "plugins/Sitemap/templates/**",
+  # Plugin route files, for the reason `config/*` is excluded above: `$routes`
+  # is handed in by the framework, so a standalone read calls it undefined.
+  "plugins/*/config/*",
+  "plugins/Admin/config/**",
+  "plugins/Api/config/**",
+  "plugins/BbcodeParser/config/**",
+  "plugins/Bookmarks/config/**",
+  "plugins/Feeds/config/**",
+  "plugins/ImageUploader/config/**",
+  "plugins/Macfix/config/**",
+  "plugins/Macnemo/config/**",
+  "plugins/SaitoHelp/config/**",
+  "plugins/SaitoSearch/config/**",
+  "plugins/Sitemap/config/**",
   # Frontend: analyse our own TypeScript source under frontend/src, but skip
   # dependencies and minified third-party libraries.
   "frontend/node_modules/**",

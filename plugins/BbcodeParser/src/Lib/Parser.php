@@ -273,7 +273,7 @@ class Parser
                 $html = $this->_Parser->getAsText();
                 break;
             default:
-                $html = $this->_Parser->getAsHtml();
+                $html = $this->_Parser->getAsHTML();
         }
 
         $html = $this->_Postprocessors->process($html);
