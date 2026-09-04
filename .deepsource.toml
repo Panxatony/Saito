@@ -32,8 +32,7 @@ exclude_patterns = [
   # reports every one as "used but not defined" (PHP-W1066). Not real bugs.
   "templates/**",
   "**/templates/**",
-  # The same, per plugin. **These do not work, and are kept as the record of an
-  # attempt so nobody spends the afternoon again.**
+  # The same, per plugin — one `*` per directory level.
   #
   # Measured on 2026-09-04: the PHP check reported **372 introduced
   # occurrences** — 326 of them PHP-W1066 "Variable $this / $setting / $routes
@@ -47,40 +46,29 @@ exclude_patterns = [
   # and 0 and the dashboard total appears to leap. Two separate failing runs
   # reported the identical 372 — one standing set, not a growing pile.
   #
-  # The patterns below were added to fix it, in the same shape as the
-  # per-plugin `webroot` entries above. The very next run (4f7f397a-858b-42ad-
-  # bc07-9ec165bfa94c) reported 371 introduced and the same paths — 99 in
-  # `plugins/Admin/templates`, one in `plugins/Admin/config`. So neither
-  # `**/templates/**` nor an explicit `plugins/<Name>/templates/**` excludes a
-  # plugin path here, and the `webroot` note above should be read with that in
-  # mind: it may be `webroot/**` alone that does the work there.
+  # Two forms were tried first and neither excluded anything: `**/templates/**`
+  # (already above, and long assumed to cover this) and an explicit
+  # `plugins/<Name>/templates/**` for each plugin. Run
+  # 4f7f397a-858b-42ad-bc07-9ec165bfa94c carried both and still reported the
+  # same paths, 99 of them in `plugins/Admin/templates`.
   #
-  # What is *not* yet established: whether a root-anchored two-level prefix can
-  # exclude anything at all, or whether these paths have to be silenced in the
-  # dashboard / through `suppressIssueOccurrence` the way JS-0067 was. Do not
-  # add more pattern variants on a hunch — that is what produced this note.
-  "plugins/Admin/templates/**",
-  "plugins/Bookmarks/templates/**",
-  "plugins/Feeds/templates/**",
-  "plugins/ImageUploader/templates/**",
-  "plugins/Installer/templates/**",
-  "plugins/SaitoHelp/templates/**",
-  "plugins/SaitoSearch/templates/**",
-  "plugins/Sitemap/templates/**",
+  # What the documentation actually shows is one star per level:
+  #
+  #     exclude_patterns = ["migrations/**", "*/examples/**"]
+  #
+  # `*/examples/**` reaches a directory one level down. `templates` here sits at
+  # level three — `plugins/Admin/templates` — so the form is `*/*/templates/**`.
+  # That is what the two entries below are, and the difference from the failed
+  # attempts is a reading of the documented example rather than another guess.
+  #
+  # Read the `webroot` note above with this in mind: its per-plugin lines have
+  # the same shape as the ones that failed here, so it is probably the bare
+  # `webroot/**` doing that work, not the lines that claim to.
+  "*/*/templates/**",
   # Plugin route files, for the reason `config/*` is excluded above: `$routes`
   # is handed in by the framework, so a standalone read calls it undefined.
-  "plugins/*/config/*",
-  "plugins/Admin/config/**",
-  "plugins/Api/config/**",
-  "plugins/BbcodeParser/config/**",
-  "plugins/Bookmarks/config/**",
-  "plugins/Feeds/config/**",
-  "plugins/ImageUploader/config/**",
-  "plugins/Macfix/config/**",
-  "plugins/Macnemo/config/**",
-  "plugins/SaitoHelp/config/**",
-  "plugins/SaitoSearch/config/**",
-  "plugins/Sitemap/config/**",
+  "*/*/config/*",
+  "*/*/config/**",
   # Frontend: analyse our own TypeScript source under frontend/src, but skip
   # dependencies and minified third-party libraries.
   "frontend/node_modules/**",
