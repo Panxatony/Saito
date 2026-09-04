@@ -120,7 +120,7 @@ the content globs look the way they do:
    whole rather than analysed.
 3. **Some classes only exist after `@extend`.**
 
-The gate is `dev/pixel-diff.sh`: twelve comparisons, three themes in both
+The gate is `dev/pixel-diff.sh`: sixteen comparisons, all four themes in both
 presets across three pages and three viewport widths. **Zero differing pixels**
 is the standard, not "close enough". Re-run it after any change to
 `purgecss.config.js`.

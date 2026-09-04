@@ -18,7 +18,10 @@ cd "$(dirname "$0")/.."
 WORK="${TMPDIR:-/tmp}/saito-pixel-diff"
 mkdir -p "$WORK"
 
-THEMES=(Bota Nova Macnemo)
+# All four shipped themes. Macfix was added on 2026-09-04, when it stopped being
+# a branch and became a plugin like the others — until then this gate silently
+# covered three of the four stylesheets the release ships.
+THEMES=(Bota Nova Macnemo Macfix)
 PRESETS=(theme night)
 PAGES=(/ /users/login /entries/add)
 WIDTHS=(375 800 1440)
