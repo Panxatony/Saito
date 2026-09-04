@@ -5,6 +5,69 @@
 - Δ Changed
 - − Removed
 
+## [8.4.17] - 2026-09-04 "kontrollgang"
+
+**No migration.**
+
+- ＋ Added: **Macfix is a theme like any other.** It used to live on its own
+  branch, with its compiled stylesheets checked in, and reached an installation
+  by being copied from there. That cost a manual merge and a manual rebuild per
+  release — and it was skipped: when this was picked up the branch sat six
+  releases behind, and the stylesheets beta served had been built by a toolchain
+  two majors old.
+
+  It now ships in the release next to Bota, Nova and Macnemo, built by the same
+  chain. Shipping is not switching on: an installation offers a theme by naming
+  it under `Saito.themes.available` in its own `config/saito_config.php`.
+
+- ✓ Fixed: **the passkey path parses hostile input more strictly.**
+  `spomky-labs/cbor-php` 3.3.4 rejects a CBOR map that names the same key twice,
+  where it used to resolve it silently to whichever came last. That ambiguity is
+  the ground parser-differential attacks are built on, and this is the library
+  that reads what an authenticator sends — untrusted input by definition. It
+  also bounds nesting depth and tag exponents.
+
+  Checked against the shapes a real ceremony produces — COSE keys, attestation
+  objects, nested structures: all decode identically. The duplicate-key case is
+  the only behaviour that changed. `web-auth/webauthn-lib` 5.3.8 comes with it;
+  its removal of the insecure RS1 algorithm is in the Symfony bundle Saito does
+  not use, and Saito offers only ES256 and RS256 anyway.
+
+- Δ Changed: **dependency updates, and the machinery that proposes them.**
+  Alpine 3.17.1, cssnano 9.0.1, PHPStan 2.2.12, typescript-eslint 8.69.0, and
+  `php_codesniffer` 3 → 4.
+
+  That last one had been held back "because cakephp-codesniffer and slevomat
+  require ^3". They had moved to `^4` weeks earlier and our own pin was by then
+  the reason Dependabot could not update one of them at all — the shield had
+  become a brake and nothing said so, because an ignore entry suppresses exactly
+  the pull request that would tell you.
+
+  So a release now asks when that list was last read (`dev/check-ignores.sh`,
+  beside the CHANGELOG check). It does not judge whether a reason still holds —
+  it cannot read prose, and a check that always fires gets tuned out. It asks
+  the smaller question that actually failed: **when did a human last look?**
+
+- ✓ Fixed: **static analysis no longer migrates the test database.**
+  `phpstan.neon` loads `tests/bootstrap.php`, PHPStan runs parallel workers, and
+  each ran the migration block against the same database. It stayed quiet while
+  PHPStan happened to load the file one worker at a time; 2.2.11 stopped
+  happening to, and the run died with `Table 'bookmarks' already exists`. The
+  guard that prevents this was already in the file, sixty lines too low. The
+  database service is out of that CI job with it, so the next attempt to connect
+  from static analysis fails loudly instead of racing quietly.
+
+- ✓ Fixed: **a deploy no longer leaves an unpacked release in `/tmp`.** Three
+  survived the 8.4.16 rollout and chkrootkit reported them as 13,000 hits for
+  "Possible Linux.Xor.DDoS" — the scan flags files under `/tmp`, and a forum
+  release is a lot of files. The work directory now names itself
+  (`saito-deploy.XXXXXXXX`), so a leftover answers the "is this an intruder"
+  question in one line, and cleanup covers being cut short by ctrl-C.
+
+- Δ Changed: **`dev/pixel-diff.sh` covers all four themes**, and `contributing.md`
+  describes the branching model that is actually used — release and hotfix
+  branches were last used for 8.2.1 in July.
+
 ## [8.4.16] - 2026-09-01 "wartungsklappe"
 
 **No migration.**
