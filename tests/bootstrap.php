@@ -28,6 +28,28 @@ foreach (Cache::configured() as $cacheKey) {
     Cache::setConfig($cacheKey, $config);
 }
 
+/*
+ * Everything below runs only under PHPUnit.
+ *
+ * This file is also `phpstan.neon`'s bootstrapFile, so PHPStan executes it —
+ * and PHPStan runs parallel workers, each of which loads it. `PHPUNIT_COMPOSER_INSTALL`
+ * is defined by PHPUnit's own binary and by nothing else, which makes it the
+ * honest question to ask here: *am I actually a test run?* A bootstrap file
+ * shared with another tool has no business connecting to a database or taking a
+ * lock when it is not.
+ *
+ * This guard used to sit further down, below the migration block — so the rule
+ * was written but only half applied, and the half above it kept running under
+ * static analysis. It stayed quiet as long as PHPStan happened to load the file
+ * in one worker at a time. PHPStan 2.2.11 stopped happening to: two workers
+ * migrated the same database at once and the run died with "Table 'bookmarks'
+ * already exists" (PR #108, 2026-09-03). Nothing about that pull request was
+ * wrong; it changed the timing that had been hiding this.
+ */
+if (!defined('PHPUNIT_COMPOSER_INSTALL')) {
+    return;
+}
+
 // Cake 5 no longer auto-creates table schemas from fixture `$fields`
 // definitions. Run the migrations against the `test` connection so the
 // fixture truncate/insert cycle has real tables to operate on.
@@ -92,24 +114,6 @@ Configure::write('Saito.Settings.uploadDirectory', TMP . 'tests' . DS);
 // disable <asset-url>?<timestamp> for tests
 Configure::write('Asset.timestamp', false);
 
-/*
- * Everything below runs only under PHPUnit.
- *
- * This file is also `phpstan.neon`'s bootstrapFile, so PHPStan executes it —
- * and PHPStan runs parallel workers, each of which loads it. The lock below was
- * written without that in mind: the first worker took it and every other worker
- * exited, so static analysis died with "Another PHPUnit run already holds the
- * test database" and reported nothing. It failed the same way locally and in
- * CI, immediately and every time.
- *
- * `PHPUNIT_COMPOSER_INSTALL` is defined by PHPUnit's own binary and by nothing
- * else, which makes it the honest question to ask here: *am I actually a test
- * run?* A bootstrap file shared with another tool has no business connecting to
- * a database or taking a lock when it is not.
- */
-if (!defined('PHPUNIT_COMPOSER_INSTALL')) {
-    return;
-}
 
 /*
  * Start from a clean test database, whatever the last run did.

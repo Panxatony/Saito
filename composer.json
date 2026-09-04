@@ -47,11 +47,11 @@
     "vlucas/phpdotenv": "^5.6"
   },
   "require-dev": {
-    "cakephp/cakephp-codesniffer": "^5",
+    "cakephp/cakephp-codesniffer": "^5.3",
     "cakephp/debug_kit": "^5",
     "psy/psysh": "@stable",
     "phpunit/phpunit": "^13",
-    "squizlabs/php_codesniffer": "^3.0",
+    "squizlabs/php_codesniffer": "^4.0",
     "phpstan/phpstan": "^2.1",
     "symfony/css-selector": "^8",
     "symfony/dom-crawler": "^8",
@@ -91,6 +91,7 @@
       "ImageUploader\\Test\\": "plugins/ImageUploader/tests",
       "Installer\\": "plugins/Installer/src",
       "Installer\\Test\\": "plugins/Installer/tests",
+      "Macfix\\": "./plugins/Macfix/src/",
       "Macnemo\\": "./plugins/Macnemo/src/",
       "Macnemo\\Test\\": "./plugins/Macnemo/tests/",
       "SaitoHelp\\": "./plugins/SaitoHelp/src",

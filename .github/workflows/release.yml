@@ -51,6 +51,13 @@ jobs:
       - name: CHANGELOG describes this version
         run: sh dev/check-changelog.sh "${GITHUB_REF_NAME}"
 
+      # Same shape, same reason: an ignore entry in dependabot.yml suppresses
+      # the pull request that would tell you its reason has gone, so nothing
+      # else can notice that it is stale. php_codesniffer sat there for weeks
+      # after its blocker lifted, holding back an update we wanted.
+      - name: Dependabot's ignore list has been read lately
+        run: sh dev/check-ignores.sh
+
   # --------------------------------------------------------------------
   # Run the PHPUnit suite against MariaDB before building a release.
   # --------------------------------------------------------------------

@@ -154,8 +154,21 @@ echo "mode:    $MODE"
 
 # --- 1. the package ----------------------------------------------------------
 say "release package"
-WORK="$(mktemp -d)"
+# Named, not anonymous: `mktemp -d` gives /tmp/tmp.XXXXXXXXXX, which says
+# nothing about who left it. Three of those survived the 8.4.16 deploys and
+# turned up on the host as 13,000 chkrootkit hits for "Possible Linux.Xor.DDoS"
+# — the scanner flags files under /tmp, and an unpacked forum release is a lot
+# of files. Half an hour went into establishing that a rootkit alert was our own
+# litter. A directory that names itself answers that question in one line.
+WORK="$(mktemp -d -t saito-deploy.XXXXXXXX)"
+
+# EXIT alone is not enough: a run cut short by ctrl-C or a killed terminal takes
+# INT/TERM/HUP, and a 45 MB unpacked release stays behind. Re-raising after the
+# cleanup keeps the exit status honest for anything watching this script.
 trap 'rm -rf "$WORK"' EXIT
+trap 'rm -rf "$WORK"; trap - INT;  kill -INT  $$' INT
+trap 'rm -rf "$WORK"; trap - TERM; kill -TERM $$' TERM
+trap 'rm -rf "$WORK"; trap - HUP;  kill -HUP  $$' HUP
 gh release download "$VERSION" --pattern "saito-$VERSION.tar.gz*" --dir "$WORK" >/dev/null
 ( cd "$WORK" && sha256sum -c "saito-$VERSION.tar.gz.sha256" )
 ( cd "$WORK" && tar xzf "saito-$VERSION.tar.gz" )

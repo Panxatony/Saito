@@ -4,7 +4,7 @@
   "dependencies": {
     "@fontsource/cabin": "^5.3.0",
     "@fontsource/fenix": "^5.3.0",
-    "alpinejs": "^3.16.3",
+    "alpinejs": "^3.17.1",
     "bootstrap": "5.3.8",
     "font-awesome": "^4.7.0",
     "htmx.org": "^2.0.10"
@@ -33,7 +33,7 @@
     "dev": "ENTRY=htmx-threads vite build --watch",
     "typecheck": "tsc --noEmit",
     "css:static": "sass --no-source-map --style=expanded --load-path=node_modules --quiet-deps --fatal-deprecation=slash-div --fatal-deprecation=global-builtin --fatal-deprecation=color-functions webroot/css/src/static.scss:webroot/css/stylesheets/static.css",
-    "css:theme": "sass --no-source-map --style=expanded --load-path=node_modules --quiet-deps --fatal-deprecation=slash-div --fatal-deprecation=global-builtin --fatal-deprecation=color-functions plugins/Bota/webroot/css/src/theme.scss:plugins/Bota/webroot/css/theme.css plugins/Bota/webroot/css/src/night.scss:plugins/Bota/webroot/css/night.css plugins/Nova/webroot/css/src/theme.scss:plugins/Nova/webroot/css/theme.css plugins/Nova/webroot/css/src/night.scss:plugins/Nova/webroot/css/night.css plugins/Macnemo/webroot/css/src/theme.scss:plugins/Macnemo/webroot/css/theme.css plugins/Macnemo/webroot/css/src/night.scss:plugins/Macnemo/webroot/css/night.css",
+    "css:theme": "sass --no-source-map --style=expanded --load-path=node_modules --quiet-deps --fatal-deprecation=slash-div --fatal-deprecation=global-builtin --fatal-deprecation=color-functions plugins/Bota/webroot/css/src/theme.scss:plugins/Bota/webroot/css/theme.css plugins/Bota/webroot/css/src/night.scss:plugins/Bota/webroot/css/night.css plugins/Nova/webroot/css/src/theme.scss:plugins/Nova/webroot/css/theme.css plugins/Nova/webroot/css/src/night.scss:plugins/Nova/webroot/css/night.css plugins/Macnemo/webroot/css/src/theme.scss:plugins/Macnemo/webroot/css/theme.css plugins/Macnemo/webroot/css/src/night.scss:plugins/Macnemo/webroot/css/night.css plugins/Macfix/webroot/css/src/theme.scss:plugins/Macfix/webroot/css/theme.css plugins/Macfix/webroot/css/src/night.scss:plugins/Macfix/webroot/css/night.css",
     "css": "yarn css:static && yarn css:theme",
     "css:purge": "node dev/purge-css.js",
     "css:postcss": "node dev/postcss-release.js",

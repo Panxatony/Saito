@@ -45,14 +45,19 @@ updates:
       #  - authentication 4 rewrites the identifier configuration
       #    (250 tests failed when it was tried on 2026-07-30)
       #  - migrations 5 stops the Initial migration creating tables
-      #  - php_codesniffer 4 is blocked by cakephp-codesniffer and
-      #    slevomat, which both still require ^3
+      #
+      # php_codesniffer used to be listed here too, waiting on
+      # cakephp-codesniffer and slevomat, which both required ^3. They moved to
+      # ^4 and the entry turned from a shield into a brake: on 2026-08-31 it was
+      # our own `^3` that made Dependabot refuse cakephp-codesniffer 5.3.2.
+      # Taken on 2026-09-03 — a held-back dependency needs re-checking, not just
+      # recording.
+      # reviewed: 2026-09-03
       - dependency-name: cakephp/authentication
         versions: [">=4"]
+      # reviewed: 2026-09-03
       - dependency-name: cakephp/migrations
         versions: [">=5"]
-      - dependency-name: squizlabs/php_codesniffer
-        versions: [">=4"]
 
   # ------------------------------------------------------------------
   # JavaScript. Six packages reach the browser; everything else is the
@@ -81,6 +86,7 @@ updates:
       # every 5.x patch as well — a stale rule is indistinguishable from
       # a deliberate freeze, and Bootstrap ships security fixes in
       # patches. 6 stays out because it is a migration, not an update.
+      # reviewed: 2026-09-03
       - dependency-name: bootstrap
         versions: [">=6"]
       # TypeScript 7 is refused by typescript-eslint, which says so and
@@ -93,6 +99,7 @@ updates:
       # a machine does, so Dependabot proposed TS 7 again on 2026-08-10
       # (PR #88), the frontend job failed, and the three bumps bundled
       # with it were held up by it. Remove this entry when 10940 closes.
+      # reviewed: 2026-09-03
       - dependency-name: typescript
         versions: [">=7"]
 

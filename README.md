@@ -76,10 +76,15 @@ browser and stored in the database.
 
 ## Themes
 
-Saito ships three: **Nova** (the default — a modern take on Bota), **Bota** (the
-long-standing base, still selectable) and **Macnemo** (the macnemo identity,
-built on Nova). A theme sets its variables and then imports its parent's
-`theme.scss`, so a new theme is usually a short file of colours.
+Saito ships four: **Nova** (the default — a modern take on Bota), **Bota** (the
+long-standing base, still selectable), **Macnemo** (the macnemo identity, built
+on Nova) and **Macfix** (wine-red, on a grey page, also built on Nova). A theme
+sets its variables and then imports its parent's `theme.scss`, so a new theme is
+usually a short file of colours.
+
+Shipped is not the same as offered. An installation lists the themes its members
+may pick under `Saito.themes.available` in `config/saito_config.php`, and names
+one as `default`; everything else is present but unlisted.
 
 Every theme variable must be declared with `!default` — without it a child theme
 cannot override the value, and the override fails silently.
@@ -131,8 +136,10 @@ their own job. Until 8.3.0 nothing ever type-checked: `tsconfig.json` has asked
 for strict checking for years while the build went through esbuild, which strips
 types without looking at them. Code style is checked
 separately with `composer cs-check`, and is not part of `test-all`: the code
-base is some 270 violations away from its own PHPCS standard, so wiring it in
-would mean a command that can only ever fail. `composer cs-fix` applies what
+base is some 3300 errors and 350 warnings away from its own PHPCS standard, so
+wiring it in would mean a command that can only ever fail. (This said "some 270"
+until 2026-09-03, which was wrong by an order of magnitude — a number nothing
+measures drifts.) `composer cs-fix` applies what
 PHPCBF can fix — it rewrites source files, so run it deliberately and never as
 part of a test.
 
@@ -162,9 +169,35 @@ page with its checksum, using that section as the release notes:
 
 ```shell
 sh dev/check-changelog.sh 8.2.5           # does CHANGELOG.md describe it yet?
+sh dev/check-ignores.sh                   # has anybody read the ignore list lately?
 git tag -a 8.2.5 -m 'Saito 8.2.5'         # substitute the version you are releasing
 git push github 8.2.5
 ```
+
+Both checks also run as the first job of the release pipeline, so forgetting
+them here costs a failed run rather than a bad release.
+
+**About the second one.** Every `ignore` entry in `.github/dependabot.yml` is a
+decision that was right when it was written, and each one suppresses the very
+pull request that would later tell you its reason has gone — so nothing else can
+notice. `squizlabs/php_codesniffer` was pinned to `^3` because two packages
+required `^3`; they moved to `^4` weeks before anyone looked, and by then our
+own constraint was the reason Dependabot could not update one of them at all.
+
+The script does not judge whether a reason still holds — it cannot read the
+comments, and a resolution test would flag the entries whose blocker is our own
+test suite on every single release until it was tuned out. It asks the smaller
+question that actually failed: **when did a human last read this list?** Look at
+it, satisfy yourself, and record that you did:
+
+```yaml
+      # reviewed: 2026-09-03
+      - dependency-name: cakephp/migrations
+        versions: [">=5"]
+```
+
+Older than 60 days and the release stops. An entry whose reason has gone should
+be deleted, not re-dated.
 
 `-a` matters. Every release tag from 8.4.0 back is annotated, and `git describe`
 ignores lightweight tags unless asked with `--tags` — so one plain `git tag` in
