@@ -64,6 +64,14 @@ exclude_patterns = [
   # Read the `webroot` note above with this in mind: its per-plugin lines have
   # the same shape as the ones that failed here, so it is probably the bare
   # `webroot/**` doing that work, not the lines that claim to.
+  #
+  # **Not yet confirmed.** Run 09810d54-4a60-48ea-8fc1-b862aeb46b1b, the first
+  # with these patterns, reported an empty issue list — but so did an earlier
+  # run from before them (8b68f19e-49ca-4ccf-8081-f23560022b80). Neither commit
+  # touched a PHP file, and the analyzer reports nothing when it does not run,
+  # so an empty list proves nothing either way. The next commit that changes a
+  # `.php` file decides it: 0 introduced means these work, ~372 means they do
+  # not and the question belongs with DeepSource support.
   "*/*/templates/**",
   # Plugin route files, for the reason `config/*` is excluded above: `$routes`
   # is handed in by the framework, so a standalone read calls it undefined.
