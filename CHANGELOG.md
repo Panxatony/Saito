@@ -5,6 +5,68 @@
 - Δ Changed
 - − Removed
 
+## [8.4.18] - 2026-09-18 "hausputz"
+
+**No migration.**
+
+- Δ Changed: **the dependency tree, most of it.** CakePHP 5.4.2 with chronos
+  3.5.1, `league/commonmark` 2.10.1, the WebAuthn stack, and Alpine 3.17.2 in
+  the browser bundle. Behind the scenes Vite 8.3.0, cssnano 9.0.4,
+  autoprefixer, eslint and typescript-eslint, plus PHPStan 2.2.13 and Psalm
+  6.17.0.
+
+  The WebAuthn part reads alarmingly and is the tamest thing here. `brick/math`
+  goes 0.20.0 → 1.0.0 — a major version, in the arithmetic under passkeys. Its
+  release note is one line: *"First stable release. No changes from version
+  0.20.0."* The three libraries above it (`cose-lib` 4.8.1, `cbor-php` 3.4.1,
+  `webauthn-lib` 5.3.9) each consist of a single pull request widening a
+  constraint to accept it. Not one line of executable code changed in that
+  chain; only the version numbers did.
+
+- Δ Changed: **`composer/composer` 2.10.3 in the development tree**, which
+  carries the fix for CVE-2026-84361 — arbitrary command execution by way of a
+  malicious package's Perforce source URL. No installation was exposed through
+  this: the package arrives via DebugKit, production installs with `--no-dev`
+  and never receives it.
+
+  It is worth a line anyway, because the thing that *is* exposed is not in any
+  release. The vulnerable code runs whenever a developer's own `composer`
+  executes `install` or `update`, and that binary is updated by nobody's
+  dependency bot. Anything below 2.10.3 wants `composer self-update`.
+
+- − Removed: **a script that reported success and did nothing.**
+  `dev/deepsource-suppress.py` existed to retire occurrences that the analyser
+  will never look at again, through the API mutation documented for exactly
+  that. The mutation accepts the request and answers `ok: true`. Nothing
+  happens. Five occurrences were suppressed as a deliberate trial and every
+  number afterwards was unmoved — the repository total, the per-rule counts,
+  the badge, and the dashboard still listing `PHP-W1066` at 978 where 973 was
+  due.
+
+  The API cannot even report the discrepancy: an occurrence carries no
+  disposition field, so a suppressed one and an active one are identical
+  through it. A tool that claims to work and does not is worse than no tool,
+  because the next person writes it again. The finding is recorded in
+  `.deepsource.toml`, next to the note it corrects.
+
+- ✓ Fixed: **the analyser exclusions are confirmed, and four of them pointed at
+  nothing.** The patterns added in 8.4.17 went in unproven — an empty issue
+  list proves nothing when a run that does not look reports nothing either.
+  Read per run across the whole history the answer is unambiguous: 372, 372 and
+  371 findings in the three runs before them, then zero in every one of the 21
+  runs since. The one-star-per-level form (`*/*/templates/**`) was right.
+
+  Four patterns named files deleted long ago — a `node_modules` directory that
+  never existed under that path, a Gruntfile and an entry point both removed
+  earlier this year. They have gone with the script.
+
+- ✓ Fixed: **the nightly audit can tell a failed audit from a failing
+  dependency.** A registry timeout and a published advisory both left the job
+  red with nothing but an exit code to separate them. The first error line now
+  says which it is, and a timeout is retried three times before it gives up.
+  An audit that quietly did not happen is the thing the job exists to prevent,
+  so it still fails — it just no longer reads like a vulnerability report.
+
 ## [8.4.17] - 2026-09-04 "kontrollgang"
 
 **No migration.**
