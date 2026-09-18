@@ -24,7 +24,19 @@
 #   * Everything else, dev and build — printed into the summary so it can be
 #     seen and worked through, but it does not stop anything.
 #
-# A red run therefore means: something that is deployed has a known hole.
+# A red run therefore means one of two things, and the log says which in its
+# first error line:
+#
+#   * something that is deployed has a known hole, or
+#   * the audit could not be carried out at all.
+#
+# The second is red on purpose. An audit that quietly did not happen is the
+# failure this workflow exists to prevent, so it may not pass silently — but it
+# must not read like a finding either. On 2026-09-04 the npm registry timed out
+# and the run went red with nothing wrong in the tree; the step said only
+# "exit code 1", which is indistinguishable from an advisory until somebody
+# reads the log. A guard whose red means two things is soon read as noise, and
+# then the real finding is closed unread with the rest.
 #
 # ## What this catches that Dependabot does not
 #
@@ -81,11 +93,43 @@ jobs:
         run: |
           set -eu
           yarn install --frozen-lockfile --ignore-scripts --silent
+
           # `--groups dependencies` is the whole point: devDependencies are
-          # the build, and the build is not deployed. yarn's exit code is a
-          # bitmask of the severities it found, so any non-zero means
-          # something was reported.
-          yarn audit --groups dependencies
+          # the build, and the build is not deployed.
+          #
+          # This used to be a bare `yarn audit`, on the reasoning that its exit
+          # code is a bitmask of the severities found, so non-zero means
+          # something was reported. That is only half true: a registry that
+          # does not answer also exits non-zero. On 2026-09-04 it did exactly
+          # that — ESOCKETTIMEDOUT, a red run, and nothing wrong with the tree.
+          #
+          # Both outcomes still fail the job, because an audit that silently
+          # did not happen is the thing this whole workflow exists to prevent.
+          # What changes is that they no longer look alike: a guard whose red
+          # means two different things gets read as noise, and then a real
+          # finding is closed unread with the rest.
+          for attempt in 1 2 3; do
+            set +e
+            out=$(yarn audit --groups dependencies 2>&1)
+            code=$?
+            set -e
+
+            if printf '%s' "$out" | grep -qE 'ESOCKETTIMEDOUT|ETIMEDOUT|ENOTFOUND|ECONNRESET|socket hang up|Request failed "(429|5[0-9][0-9])"'; then
+              echo "attempt ${attempt}: the registry did not answer — retrying"
+              sleep $((attempt * 15))
+              continue
+            fi
+
+            printf '%s\n' "$out"
+            if [ "$code" -ne 0 ]; then
+              echo "::error::A runtime dependency has a known advisory — the report is above. This is a real finding."
+            fi
+            exit $code
+          done
+
+          printf '%s\n' "$out"
+          echo "::error::AUDIT COULD NOT RUN. The npm registry did not answer after three attempts, so the runtime tree was NOT checked. This is not a vulnerability report."
+          exit 1
 
       # ----------------------------------------------------------------
       # Everything else: worth seeing, not worth blocking on. `|| true`

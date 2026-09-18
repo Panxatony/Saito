@@ -8,9 +8,18 @@ exclude_patterns = [
   # (e.g. the Macnemo/Bota themes, the SaitoSearch form init). These are
   # non-module scripts that use globals ($, _) loaded via <script> tags, so a
   # module analysis flags them (JS-0125 undeclared vars, JS-R1002, ...).
-  # DeepSource's glob does not honour a mid-pattern wildcard, so the leading
-  # `**/webroot/**` form is used, plus explicit per-plugin paths (no wildcard
-  # before the trailing `**`, like the working `webroot/**`) as a guarantee.
+  # **These five lines are of a shape that was shown not to work.** The two
+  # forms below — a leading `**/` and a literal two-level prefix — are exactly
+  # what failed to exclude `plugins/Admin/templates` on 2026-09-04 (run
+  # 4f7f397a-858b-42ad-bc07-9ec165bfa94c, see the templates note further down).
+  # The documented form is one `*` per level: `*/*/webroot/**`.
+  #
+  # They are left in place rather than corrected in the same breath, because
+  # the templates change is an experiment that has not reported yet and two
+  # variables at once would spoil its answer. Correct them once that run has
+  # spoken — and note what is *not* established either way: whether plugin
+  # webroots are being analysed today. The JavaScript check is green, but a
+  # green analyzer that never ran looks the same as one that found nothing.
   "**/webroot/**",
   "plugins/Bota/webroot/**",
   "plugins/Macnemo/webroot/**",
@@ -32,25 +41,87 @@ exclude_patterns = [
   # reports every one as "used but not defined" (PHP-W1066). Not real bugs.
   "templates/**",
   "**/templates/**",
-  # Frontend: analyse our own TypeScript source under frontend/src, but skip
-  # dependencies and minified third-party libraries.
-  "frontend/node_modules/**",
-  "frontend/**/*.min.js",
-  # Root build-tooling config (Node/CommonJS), not application source —
-  # analysing it as ES-module code produces false positives (e.g. JS-0118 flags
-  # the `'use strict'` that is correct in a CommonJS module). Named explicitly
-  # because the glob `**` does not match direct root files.
-  "Gruntfile.js",
+  # The same, per plugin — one `*` per directory level.
+  #
+  # Measured on 2026-09-04: the PHP check reported **372 introduced
+  # occurrences** — 326 of them PHP-W1066 "Variable $this / $setting / $routes
+  # might not be defined", 245 in `plugins/Admin/templates` alone. Exactly one
+  # finding in the whole set was real (a method-name casing in BbcodeParser,
+  # fixed in the same commit).
+  #
+  # Why it looks like a sudden explosion rather than a standing condition: the
+  # PHP analyzer only introduces them on a commit that touches a PHP file. A
+  # commit that touches none reports zero, so the check flickers between 372
+  # and 0 and the dashboard total appears to leap. Two separate failing runs
+  # reported the identical 372 — one standing set, not a growing pile.
+  #
+  # Two forms were tried first and neither excluded anything: `**/templates/**`
+  # (already above, and long assumed to cover this) and an explicit
+  # `plugins/<Name>/templates/**` for each plugin. Run
+  # 4f7f397a-858b-42ad-bc07-9ec165bfa94c carried both and still reported the
+  # same paths, 99 of them in `plugins/Admin/templates`.
+  #
+  # What the documentation actually shows is one star per level:
+  #
+  #     exclude_patterns = ["migrations/**", "*/examples/**"]
+  #
+  # `*/examples/**` reaches a directory one level down. `templates` here sits at
+  # level three — `plugins/Admin/templates` — so the form is `*/*/templates/**`.
+  # That is what the two entries below are, and the difference from the failed
+  # attempts is a reading of the documented example rather than another guess.
+  #
+  # Read the `webroot` note above with this in mind: its per-plugin lines have
+  # the same shape as the ones that failed here, so it is probably the bare
+  # `webroot/**` doing that work, not the lines that claim to.
+  #
+  # **Still does not work. Do not read the run history as evidence that it
+  # does.** This was marked "confirmed" on 2026-09-11 on the strength of it,
+  # and the reading was wrong:
+  #
+  #   2026-09-03 19:41  develop  PHP=372
+  #   2026-09-04 06:46  develop  PHP=372
+  #   2026-09-04 07:50  develop  PHP=371
+  #   ── f4802ead9 / 87cefb424 land here ──
+  #   every run after, 21 of them          PHP=0
+  #   2026-09-18  the 8.4.18 commit        PHP=371
+  #
+  # The line in the middle is not where the patterns started working. It is
+  # where the commits stopped touching PHP files — and a run reports nothing
+  # for a language it had no reason to look at. The 8.4.18 release commit
+  # changes `src/Lib/version.php`, one PHP file, and the count came straight
+  # back to 371: the number from before these patterns existed. 245 of them in
+  # `plugins/Admin/templates` alone.
+  #
+  # The confound was spotted on 2026-09-04 (an empty list from a control run
+  # that predated the patterns) and then argued away a week later. Before
+  # calling any exclusion fixed, test it on a commit that changes a `.php`
+  # file; nothing else tells you anything.
+  #
+  # And the remaining question is not star counting. `*/*/templates/**` is the
+  # documented shape and matches `plugins/Admin/templates/Admins/index.php` by
+  # inspection. This belongs with DeepSource support.
+  "*/*/templates/**",
+  # Plugin route files, for the reason `config/*` is excluded above: `$routes`
+  # is handed in by the framework, so a standalone read calls it undefined.
+  "*/*/config/*",
+  "*/*/config/**",
+  # Four entries stood here until 2026-09-04 and pointed at nothing:
+  # `frontend/node_modules/**` (that directory has never existed — the real
+  # node_modules is in the repository root and is gitignored, so DeepSource
+  # never checks it out), `frontend/**/*.min.js` (no minified file has ever
+  # been tracked under frontend/), `Gruntfile.js` (deleted in 1f48d0e2c when
+  # the grunt chain moved into package.json) and `frontend/src/exports.js`
+  # (deleted in 889d2f1b0 when the backend dropped jQuery).
+  #
+  # They were noticed while asking whether one of them needed a different glob.
+  # It did not — the file was gone. Worth remembering as the cheaper question:
+  # before arguing about a pattern's shape, check that its target exists.
   # eslint.config.mjs: the lint configuration itself. It is a genuine ES module
   # — `.mjs` says so and Node reads it that way — but DeepSource parses it as a
-  # script and reports its first `import` as a syntax error (JS-0833, the same
-  # finding frontend/src/exports.js is excluded for). Nothing about the file is
-  # wrong, and there is no per-file parser setting to correct the reading.
+  # script and reports its first `import` as a syntax error (JS-0833). Nothing
+  # about the file is wrong, and there is no per-file parser setting to correct
+  # the reading.
   "eslint.config.mjs",
-  # exports.js: the jQuery/underscore/Bootstrap globals the administration
-  # backend needs. A .js entry among the .ts source, and DeepSource parses .js
-  # as a script and errors on `import` (JS-0833).
-  "frontend/src/exports.js",
 ]
 
 test_patterns = [
@@ -187,9 +258,26 @@ enabled = true
 #   1. Do not read the dashboard total as the number of things to fix, and do
 #      not conclude from a lingering entry that an exclude pattern is broken.
 #      Check the path against the list above first.
-#   2. Clearing them takes `suppressIssueOccurrence` against the API (or the
-#      same action in the UI). Nothing in this repository can do it, which is
-#      why it is written down here.
+#   2. Clearing them takes an **ignore rule in the dashboard**. Not the API:
+#      `suppressIssueOccurrence` accepts the mutation, answers `ok: true`, and
+#      changes nothing at all. Measured on 2026-09-11 — five occurrences
+#      suppressed, `suppressed 5, refused 0`, and afterwards every number was
+#      unmoved: repository occurrences 1157, PHP occurrences 1114, the
+#      `active issues` badge 1.2K (re-read with the cache bypassed), and the
+#      dashboard still listing `PHP-W1066  978` where 973 was due. The five
+#      sorted first and sat in `config/`, so they belonged to exactly that rule.
+#
+#      A script for it was written and then deleted (`dev/deepsource-suppress.py`,
+#      added in af655d66e, removed once it was measured). Do not write it again.
+#
+#      Note also that the API cannot confirm or deny a suppression: the
+#      `Occurrence` type carries no disposition field — `path`, `beginLine`,
+#      `beginColumn`, `endLine`, `endColumn`, `id`, `issue`, `title` and nothing
+#      else — so a suppressed occurrence is indistinguishable from an active
+#      one. Verify in the UI, or read the badge:
+#
+#        curl -s "https://app.deepsource.com/gh/Panxatony/Saito.svg/?label=active+issues" \
+#          | grep -oE '<text[^>]*>[^<]*</text>' | sed 's/<[^>]*>//g' | sort -u
 #
 # The live remainder is what the notes above already describe: mostly JS-R1005
 # in the island modules, plus a handful in `passkeys.ts` and the deliberate
