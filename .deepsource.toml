@@ -74,19 +74,32 @@ exclude_patterns = [
   # the same shape as the ones that failed here, so it is probably the bare
   # `webroot/**` doing that work, not the lines that claim to.
   #
-  # **Confirmed on 2026-09-11.** It stood as "not yet confirmed" for a week,
-  # because an empty issue list proves nothing on its own: a run that does not
-  # look reports nothing either. The answer came from reading the findings per
-  # run across the whole history rather than one run at a time —
+  # **Still does not work. Do not read the run history as evidence that it
+  # does.** This was marked "confirmed" on 2026-09-11 on the strength of it,
+  # and the reading was wrong:
   #
-  #   2026-09-03 19:41  develop  PHP=372   (333 of them in excluded paths)
-  #   2026-09-04 06:46  develop  PHP=372   (333)
-  #   2026-09-04 07:50  develop  PHP=371   (333)
+  #   2026-09-03 19:41  develop  PHP=372
+  #   2026-09-04 06:46  develop  PHP=372
+  #   2026-09-04 07:50  develop  PHP=371
   #   ── f4802ead9 / 87cefb424 land here ──
-  #   every run since, 21 of them          PHP=0
+  #   every run after, 21 of them          PHP=0
+  #   2026-09-18  the 8.4.18 commit        PHP=371
   #
-  # — which also settles what `issues` on a Check means: what that run reported,
-  # not everything still active. The one-star-per-level reading was right.
+  # The line in the middle is not where the patterns started working. It is
+  # where the commits stopped touching PHP files — and a run reports nothing
+  # for a language it had no reason to look at. The 8.4.18 release commit
+  # changes `src/Lib/version.php`, one PHP file, and the count came straight
+  # back to 371: the number from before these patterns existed. 245 of them in
+  # `plugins/Admin/templates` alone.
+  #
+  # The confound was spotted on 2026-09-04 (an empty list from a control run
+  # that predated the patterns) and then argued away a week later. Before
+  # calling any exclusion fixed, test it on a commit that changes a `.php`
+  # file; nothing else tells you anything.
+  #
+  # And the remaining question is not star counting. `*/*/templates/**` is the
+  # documented shape and matches `plugins/Admin/templates/Admins/index.php` by
+  # inspection. This belongs with DeepSource support.
   "*/*/templates/**",
   # Plugin route files, for the reason `config/*` is excluded above: `$routes`
   # is handed in by the framework, so a standalone read calls it undefined.

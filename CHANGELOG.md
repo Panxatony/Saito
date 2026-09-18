@@ -49,16 +49,24 @@
   because the next person writes it again. The finding is recorded in
   `.deepsource.toml`, next to the note it corrects.
 
-- ✓ Fixed: **the analyser exclusions are confirmed, and four of them pointed at
-  nothing.** The patterns added in 8.4.17 went in unproven — an empty issue
-  list proves nothing when a run that does not look reports nothing either.
-  Read per run across the whole history the answer is unambiguous: 372, 372 and
-  371 findings in the three runs before them, then zero in every one of the 21
-  runs since. The one-star-per-level form (`*/*/templates/**`) was right.
+- Δ Changed: **four analyser exclusion patterns named files deleted long ago**
+  — a `node_modules` directory that never existed under that path, a Gruntfile
+  and an entry point both removed earlier this year. They have gone with the
+  script.
 
-  Four patterns named files deleted long ago — a `node_modules` directory that
-  never existed under that path, a Gruntfile and an entry point both removed
-  earlier this year. They have gone with the script.
+  The patterns that *do* name real files still do not work. `*/*/templates/**`
+  was added in 8.4.17 and looked confirmed: the three runs before it reported
+  372, 372 and 371 findings, and the twenty-one runs after it reported none.
+  That contrast was an artefact. Every run reporting zero sat on a commit that
+  changed no PHP file, and the analyser reports nothing for a language it had
+  no reason to look at. This release's own commit touches one PHP file and the
+  count came back 371 — the number from before the patterns existed.
+
+  So the question that has been open since 8.4.16 is still open, and now has a
+  cleaner shape: the exclusions are not a matter of star counting, because
+  `*/*/templates/**` is the documented form and matches
+  `plugins/Admin/templates/Admins/index.php` by inspection. It belongs with
+  DeepSource support, not with another guess at the syntax.
 
 - ✓ Fixed: **the nightly audit can tell a failed audit from a failing
   dependency.** A registry timeout and a published advisory both left the job
