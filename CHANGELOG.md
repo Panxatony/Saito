@@ -5,6 +5,55 @@
 - Δ Changed
 - − Removed
 
+## [8.4.19] - 2026-09-23 "lichtschalter"
+
+**No migration.**
+
+- ✓ Fixed: **the JWT parser is bounded.** `firebase/php-jwt` 7.1.1 limits how
+  many segments an incoming token may be split into. No advisory was filed and
+  nothing here was known to be exploitable — but this is the library that reads
+  bearer tokens on `/api/v2`, so it parses input an attacker chooses, and a
+  parser without a bound on the input it will chew through is the shape that
+  later turns out to matter.
+
+  Saito reaches it through CakePHP's `Authentication.Jwt` authenticator
+  (`src/Auth/AuthenticationServiceFactory.php`), which is how the API routes
+  the htmx thumbnails depend on are authenticated.
+
+- ✓ Fixed: **Alpine 3.17.3, and two of its fixes are ours.** `$watch` and
+  `x-modelable` could still fire after being unwatched or released, and `x-for`
+  mis-parsed loops written without spaces. The first is the kind that shows on
+  a forum page left open for an hour rather than in a quick test, which is most
+  of how this software is actually used.
+
+- Δ Changed: **dependency upkeep.** `laminas/laminas-feed` 2.26.2 (typos in the
+  writer), `symfony/console` 7.4.19 and `symfony/string` 8.1.7, and on the
+  tooling side PHPUnit 13.3.4 — two minor versions at once — PHPStan 2.2.14,
+  Psalm 6.17.2, autoprefixer 10.6.1, cssnano 9.0.5 and Sass 1.104.1.
+
+- − Removed: **a composer script naming a class that has not existed for a
+  major version.** Every `composer install` reported that
+  `Cake\Composer\Installer\PluginInstaller::postAutoloadDump` was not
+  autoloadable. It has been the wrong name since cakephp/plugin-installer 2.0,
+  which declares itself a `composer-plugin` and registers its own hook.
+
+  Nothing was ever lost by the failure. Checked the honest way round: delete
+  `vendor/cakephp-plugins.php`, dump the autoloader without the line, and watch
+  it come back with all 25 plugins in it.
+
+- Δ Changed: **the Vite config is a real ES module** — `vite.config.ts` is now
+  `vite.config.mts`, and `__dirname` has become `import.meta.dirname`. Vite 8.3
+  warns about both against the loader it will default to.
+
+  The remedy Vite suggests first would have been a mistake here: `"type":
+  "module"` in `package.json` reclassifies every `.js` in the project, and
+  three of the release build steps are CommonJS. The rename does the same job
+  and touches nothing else.
+
+  Worth knowing for anyone packaging Saito themselves: the release workflow
+  excluded this file from the tarball **by name**, so a rename on its own would
+  have quietly started shipping a build config to production installations.
+
 ## [8.4.18] - 2026-09-18 "hausputz"
 
 **No migration.**
