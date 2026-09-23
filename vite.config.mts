@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import path from 'node:path';
 
-const SRC = path.resolve(__dirname, 'frontend/src');
+const SRC = path.resolve(import.meta.dirname, 'frontend/src');
 
 // One entry per build (ENTRY=htmx-threads|admin|boot); the npm script runs it once
 // per entry. `htmx-threads` is the forum's frontend — the htmx/Alpine islands.
@@ -34,7 +34,7 @@ export default defineConfig({
         ],
     },
     build: {
-        outDir: path.resolve(__dirname, 'webroot/js'),
+        outDir: path.resolve(import.meta.dirname, 'webroot/js'),
         // Vite would clear webroot/js, and `webroot/js/empty` is tracked — it is
         // what keeps the directory in the repository now that no built asset is
         // committed. (The comment here used to claim sibling SCSS, locale and
