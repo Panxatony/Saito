@@ -67,8 +67,13 @@ server {
 # HTTPS vhost
 # -------------------------------------------------------------------
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    # `listen … http2` has been deprecated since nginx 1.25.1 in favour of the
+    # separate directive below; 1.30 still honours it but warns on every
+    # `nginx -t`. On nginx older than 1.25.1 the `http2` directive does not
+    # exist — put `http2` back on the listen lines and drop the directive.
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
     server_name forum.example.com;
 
     # CakePHP front controller lives in /webroot.
@@ -106,10 +111,18 @@ server {
     #
     # Content-Security-Policy is the second line of defence against XSS: with a
     # policy that forbids inline script, a stored-XSS payload that gets as far as
-    # the page still does not run. Left commented out because it is
-    # install-specific — anything external you embed (analytics, an image host)
-    # has to be added, and a wrong policy breaks the page silently apart from the
-    # browser console.
+    # the page still does not run.
+    #
+    # On by default since 8.4.20. It used to ship commented out, on the grounds
+    # that it is install-specific — and it is, but that reasoning left every
+    # installation without the header rather than with one that needed a line
+    # edited. The policy below is the one macnemo.de and its beta have served
+    # for months, minus the parts that belong to what sits in front of them.
+    #
+    # It is still yours to adjust: **anything external you embed has to be added
+    # here or it stops loading** — analytics, a web font, an image host, an
+    # oEmbed provider. A wrong policy breaks the page silently, with the reason
+    # visible only in the browser console, so change it with the console open.
     #
     # `script-src` no longer needs 'unsafe-inline'. Saito emits no inline script
     # and no event attributes: the single-page frontend went in 8.1.0, and 8.3.0
@@ -125,7 +138,25 @@ server {
     #
     # `style-src` keeps 'unsafe-inline': templates still set a handful of `style`
     # attributes, and inline style is not a path to code execution.
-    # add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; font-src 'self' data:; connect-src 'self'; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'" always;
+    #
+    # `frame-ancestors 'self'` matches the SAMEORIGIN that Saito sends as
+    # X-Frame-Options (`Saito.X-Frame-Options` in saito_config.php). Keep the
+    # two in step: browsers that support both prefer this one, so changing the
+    # config value alone would stop taking effect once this header is on.
+    #
+    # ## If you put a challenge proxy in front of Saito
+    #
+    # Anubis and its kind serve their own interstitial from your origin, and it
+    # needs two directives Saito does not:
+    #
+    #     script-src … 'wasm-unsafe-eval'
+    #     worker-src 'self' blob:
+    #
+    # Add them only if you actually run one. Saito's own frontend uses neither:
+    # `new Worker`, `WebAssembly` and `createObjectURL` appear nowhere in
+    # `frontend/src/`, nor in any of the three built bundles (checked
+    # 2026-09-24). Carrying them without need widens the policy for nothing.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; font-src 'self' data:; connect-src 'self'; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'" always;
 
     # ----------------------------------------------------------------
     # Long-lived caching for fingerprinted static assets.
@@ -141,6 +172,10 @@ server {
         add_header X-Content-Type-Options    "nosniff"                              always;
         add_header Referrer-Policy           "strict-origin-when-cross-origin"      always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        # A policy on a stylesheet does nothing, but this regex also matches
+        # `.svg`, and an SVG opened directly is a document: `script-src 'self'`
+        # is what stops script inside an uploaded one from running.
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; font-src 'self' data:; connect-src 'self'; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'" always;
         try_files $uri =404;
     }
 
@@ -159,10 +194,12 @@ server {
         expires 7d;
         access_log off;
         # Uploads are attacker-controlled — repeat nosniff here so the browser
-        # can never MIME-sniff an upload into an executable type.
+        # can never MIME-sniff an upload into an executable type, and the policy
+        # so that script inside an uploaded SVG has nothing to run under.
         add_header X-Content-Type-Options    "nosniff"                              always;
         add_header Referrer-Policy           "strict-origin-when-cross-origin"      always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; font-src 'self' data:; connect-src 'self'; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'" always;
         try_files $uri =404;
     }
 
