@@ -217,8 +217,7 @@ class WebauthnService
      */
     public function verifyRegistration(string $json, PublicKeyCredentialCreationOptions $options): CredentialRecord
     {
-        $credential = $this->serializer()->deserialize($json, PublicKeyCredential::class, 'json');
-        $response = $credential->response;
+        $response = $this->deserializeCredential($json)->response;
         if (!$response instanceof AuthenticatorAttestationResponse) {
             throw new RuntimeException('Not a registration response.', 1786060001);
         }
@@ -228,6 +227,44 @@ class WebauthnService
 
         return AuthenticatorAttestationResponseValidator::create($factory->creationCeremony())
             ->check($response, $options, $this->relyingPartyId());
+    }
+
+    /**
+     * Turn what the browser sent into a credential, or refuse it.
+     *
+     * The serializer does not treat every malformed body alike. Most shapes
+     * throw — `{"id":"x"}` a RangeException, a non-JSON body a
+     * NotEncodableValueException — but `{}` and `[]` come back as a plain PHP
+     * array, with no exception at all. Both callers used to read `->response`
+     * straight off that. On an array it raises "Attempt to read property on
+     * array", evaluates to null, and the instanceof check that follows refuses
+     * it: the right answer, reached through a PHP warning that whoever reaches
+     * the endpoint could trigger on every request, and the login endpoint is
+     * one somebody can sit and hammer.
+     *
+     * It stayed invisible until PHPUnit 13.3 began counting warnings raised in
+     * our own code (`Warnings: 1` from the throttle test, which posts `{}`
+     * twelve times). PHP has been tightening this diagnostic release by
+     * release — a notice in PHP 7, a warning since 8.0 — and a refusal should
+     * not depend on it staying a warning.
+     *
+     * @param string $json the credential as the browser serialised it
+     * @return \Webauthn\PublicKeyCredential
+     * @throws \RuntimeException when the body is not a credential at all
+     */
+    private function deserializeCredential(string $json): PublicKeyCredential
+    {
+        $credential = $this->serializer()->deserialize($json, PublicKeyCredential::class, 'json');
+        // PHPStan believes this can never fail, because Symfony annotates
+        // deserialize() as returning an instance of the class it is asked for.
+        // Measured, that promise does not hold here: `{}` and `[]` come back as
+        // arrays. The test for `{}` on registration fails without this check.
+        // @phpstan-ignore instanceof.alwaysTrue (Symfony's return type is wrong for `{}`; see above)
+        if (!$credential instanceof PublicKeyCredential) {
+            throw new RuntimeException('Not a public key credential.', 1786060003);
+        }
+
+        return $credential;
     }
 
     /**
@@ -249,8 +286,7 @@ class WebauthnService
         CredentialRecord $record,
         int $userId,
     ): CredentialRecord {
-        $credential = $this->serializer()->deserialize($json, PublicKeyCredential::class, 'json');
-        $response = $credential->response;
+        $response = $this->deserializeCredential($json)->response;
         if (!$response instanceof AuthenticatorAssertionResponse) {
             throw new RuntimeException('Not an assertion response.', 1786060002);
         }

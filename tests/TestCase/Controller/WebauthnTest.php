@@ -172,6 +172,33 @@ class WebauthnTest extends IntegrationTestCase
     }
 
     /**
+     * `{}` is the one malformed body the serializer does not throw on: it comes
+     * back as a plain array. Registration has to refuse it like anything else,
+     * and without the PHP warning it used to raise on the way there.
+     *
+     * The login path had the same flaw and was caught by the throttle test,
+     * which posts `{}` twelve times. Nothing posted a malformed body to
+     * registration, so this side went unseen.
+     *
+     * @return void
+     */
+    public function testAnEmptyObjectIsRefusedAsARegistration(): void
+    {
+        $this->enrol();
+        $this->_loginUser(self::USER_ID);
+        $this->mockSecurity();
+        $this->get('/users/webauthn-register-options');
+        $this->assertResponseOk();
+
+        $this->session(['Saito' => $_SESSION['Saito'] ?? []]);
+        $this->mockSecurity();
+        $this->post('/users/webauthn-register', ['credential' => '{}', 'label' => 'probe']);
+
+        $this->assertResponseCode(400);
+        $this->assertSame(0, $this->Passkeys->find()->count());
+    }
+
+    /**
      * The allow-list goes out on every attempt, so it cannot be unbounded.
      *
      * @return void
