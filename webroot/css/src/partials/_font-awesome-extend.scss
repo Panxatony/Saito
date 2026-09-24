@@ -1,3 +1,15 @@
+// Font Awesome is loaded here, not merely relied upon. Two things need it:
+//
+//   * `$fa-css-prefix` below, and
+//   * every `@extend .fa-…` in this file. Under `@import` an extend reached
+//     any selector in the compilation; a module's `@extend` only reaches the
+//     stylesheets that module loads, so without this line the extends would
+//     compile and silently produce nothing.
+//
+// No `with ()` here on purpose: `static.scss` carries the configuration and
+// must be the first to load it. Sass allows exactly one configuring load.
+@use "font-awesome/scss/font-awesome" as fa;
+
 /*******************************************************************************
 * Icons for thread buttons
 ******************************************************************************/
@@ -80,7 +92,7 @@
   color: #444;
 }
 
-li .#{$fa-css-prefix}-lg {
+li .#{fa.$fa-css-prefix}-lg {
   /* 1.5 increased font size for icon-large * 1.25 width */
   width: auto;
 }

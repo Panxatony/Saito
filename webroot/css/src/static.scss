@@ -1,4 +1,11 @@
-$fa-font-path: "../stylesheets/fonts";
-@import "font-awesome/scss/font-awesome";
+// Font Awesome is configured through the module system rather than by setting
+// `$fa-font-path` before an `@import`: `@use … with ()` is the only way to
+// reach a module's `!default` variables once `@import` is gone.
+//
+// The order matters and is not interchangeable. This load carries the
+// configuration, so it has to be the first one in the compilation; the partial
+// below loads the same module plain. Swap the two lines and Sass stops with
+// "this module was already loaded, so it can't be configured using with".
+@use "font-awesome/scss/font-awesome" with ($fa-font-path: "../stylesheets/fonts");
 
-@import "partials/_font-awesome-extend";
+@use "partials/font-awesome-extend";
