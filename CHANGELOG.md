@@ -5,6 +5,73 @@
 - Δ Changed
 - − Removed
 
+## [8.4.20] - 2026-09-30 "türsteher"
+
+**No migration.** One upgrade step is optional and manual: an existing
+installation keeps its own nginx vhost, so the Content-Security-Policy below
+reaches it only if you copy it over.
+
+- ✓ Fixed: **a malformed passkey body is refused without a PHP warning.** The
+  serializer does not treat every bad body alike: most throw, but `{}` and `[]`
+  come back as a plain PHP array. Registration and login both read `->response`
+  straight off that, which raised *"Attempt to read property on array"*,
+  yielded null, and was then refused by the type check that followed. The
+  answer was right; the route to it was a warning anyone reaching the endpoint
+  could trigger on every request, on an endpoint built to be throttled because
+  it can be hammered.
+
+  Both paths now check the type first. The registration side had the same flaw
+  and no test ever posted a malformed body to it, so one does now — and fails
+  against the old code.
+
+- Δ Changed: **the test suite fails on a warning raised in Saito's own code.**
+  This flaw surfaced only because PHPUnit 13.3 began counting it. The run still
+  exited 0 — *"OK, but there were issues! … Warnings: 1"* — and did not say
+  what the warning was. `phpunit.xml.dist` now sets `failOnWarning` and prints
+  the details. Warnings from dependencies stay excluded, so this is a gate that
+  can be passed, not one that trains people to ignore it.
+
+- Δ Changed: **the example nginx config ships the Content-Security-Policy
+  switched on** (#65). It shipped commented out on the grounds that it is
+  install-specific, which left every installation without the header at all.
+  The policy is the one macnemo.de has served for months, minus two directives
+  that belong to the challenge proxy in front of it rather than to Saito —
+  `'wasm-unsafe-eval'` and `worker-src blob:`. Saito's frontend uses neither
+  Workers nor WebAssembly; the comment says what to add if you run such a proxy.
+
+  Two additions beyond uncommenting. `frame-ancestors 'self'`, matching the
+  SAMEORIGIN Saito already sends, because the example sets no X-Frame-Options
+  of its own. And the header is repeated in the static and upload locations,
+  which inherit nothing once they set a header of their own — that matters for
+  uploaded SVGs, which are documents when opened directly.
+
+  Also in that file: `listen … http2` split into `http2 on;`. The old form has
+  been deprecated since nginx 1.25.1 and warned on every `nginx -t`.
+
+- Δ Changed: **`league/commonmark` 2.10.3, past the 2.10.2 security release.**
+  Two advisories, both rated high: a raw-HTML filter bypass in the
+  `DisallowedRawHtml` extension, and quadratic-time parsing in the GFM table
+  extension. **Neither is reachable in Saito.** It builds a plain
+  `CommonMarkConverter` — core only, `html_input => escape` — and uses it for
+  the bundled help pages and nothing else; postings go through the BBCode
+  parser. Updated anyway, because the release build refuses any open advisory
+  in a production dependency, and because "we checked and it cannot reach us"
+  is a statement that ages.
+
+- Δ Changed: **dependencies.** htmx 2.0.11 — which backports `<hx-partial>`
+  from 4.0 into a patch release: a response carrying such an element swaps it
+  into its own target — plus Alpine 3.17.4 and `firebase/php-jwt` 7.2.0. On the
+  tooling side PHPStan 2.2.15, Psalm 6.18.1, eslint 10.11.0, Sass 1.105.0,
+  Vite 8.3.1, typescript-eslint 8.70.1, and `brace-expansion` 5.0.12 against a
+  quadratic-time expansion advisory in the lint chain, which is never shipped.
+
+- Δ Changed: **first step off Sass `@import`** (#68). The static stylesheet is
+  on `@use` and compiles without a deprecation warning; output unchanged to the
+  byte. The theme chain cannot follow yet: Bootstrap 5's partials are not
+  modules — `@use "bootstrap/scss/variables"` fails on a mixin it expects from
+  ambient scope — and only the whole bundle loads, which would change the
+  compiled CSS. That waits for Bootstrap 6.
+
 ## [8.4.19] - 2026-09-23 "lichtschalter"
 
 **No migration.**

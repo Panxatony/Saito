@@ -166,11 +166,15 @@ ones, and that static regex also serves uploaded images). Saito additionally
 sends `nosniff` / `Referrer-Policy` from the application layer, so dynamic pages
 stay covered even behind a different web server.
 
-A commented-out `Content-Security-Policy` starting point is included as well. It
-is off by default because a policy is install-specific and a wrong one breaks the
-page quietly — anything external you embed (analytics, an image host) has to be
-added to `script-src`/`connect-src` first. Enable it after widening it for your
-setup and watching the browser console.
+A `Content-Security-Policy` is included and **switched on by default since
+8.4.20** — before that it shipped commented out. It is still install-specific: a
+wrong policy breaks the page quietly, so anything external you embed (analytics,
+a web font, an image host) has to be added to `script-src`/`connect-src` before
+it will load. Change it with the browser console open.
+
+If a challenge proxy such as Anubis sits in front of Saito, its interstitial
+needs `'wasm-unsafe-eval'` in `script-src` and `worker-src 'self' blob:`. Saito
+itself uses neither; the comment in the example config says so and why.
 
 Since 8.3.0 that policy **forbids inline script**, which is the part worth
 having: a stored-XSS payload that reaches the page still does not run. Saito emits
@@ -330,7 +334,7 @@ Nothing listed means both migrations are cheap and the web path is fine.
 
 Two things change visibly afterwards. The **search finds more**: MyISAM ignores words under four characters and carries some 500 stopwords, where InnoDB's limits are three and 36 — on the measured copy a three-letter term went from 0 hits to 16,384, while longer terms returned identical counts. And with the tables transactional, operations that touch several rows at once are finally atomic; merging two threads could previously fail half-way and leave a state the interface could not repair.
 
-Worth doing in the same maintenance window: **enable the content-security policy** in the vhost. From 8.3.0 Saito emits no inline `<script>` and no event attributes anywhere, so `script-src` no longer needs `'unsafe-inline'` — which is the setting that matters, because without it an injected payload that reaches the page still does not run. The commented-out line in `saito.conf.example` is ready to uncomment; add anything external you embed first.
+Worth doing in the same maintenance window: **enable the content-security policy** in the vhost. From 8.3.0 Saito emits no inline `<script>` and no event attributes anywhere, so `script-src` no longer needs `'unsafe-inline'` — which is the setting that matters, because without it an injected payload that reaches the page still does not run. The policy in `saito.conf.example` is the one to copy — switched on there since 8.4.20, and repeated in the static and upload locations, which a vhost of your own needs too; add anything external you embed first. An existing installation keeps its own vhost, so upgrading does not do this for you.
 
 #### Upgrading from 6.0.x to 7.0.x
 

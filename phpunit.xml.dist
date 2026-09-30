@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit colors="true" processIsolation="false" stopOnFailure="false" bootstrap="./tests/bootstrap.php">
+<!-- `failOnWarning` + `displayDetailsOnTestsThatTriggerWarnings`, since 8.4.20.
+     PHPUnit 13.3 began counting a PHP warning raised in our own code and the
+     run still exited 0: "OK, but there were issues! … Warnings: 1", with the
+     warning itself not printed. It was a real flaw on the passkey login path.
+     A count nobody can read, on a run that stays green, is a signal that gets
+     ignored — so a warning from src/ or plugins/*/src/ now fails the suite
+     and says where it came from. Dependencies are still excluded by the
+     `restrictWarnings` below, so this is a gate that can actually be passed. -->
+<phpunit colors="true" processIsolation="false" stopOnFailure="false" bootstrap="./tests/bootstrap.php"
+         failOnWarning="true"
+         displayDetailsOnTestsThatTriggerWarnings="true">
   <php>
     <ini name="memory_limit" value="-1"/>
   </php>
