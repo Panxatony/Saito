@@ -44,7 +44,7 @@ class SsrfGuardTest extends SaitoTestCase
             ['::1', false],
             // RFC1918 private
             ['10.0.0.1', false],
-            ['10.0.31.28', false],
+            ['10.20.30.40', false],
             ['192.168.1.1', false],
             ['172.16.0.1', false],
             // link-local incl. the cloud-metadata endpoint
@@ -63,7 +63,7 @@ class SsrfGuardTest extends SaitoTestCase
         $this->assertTrue(SsrfGuard::isPublicHost('8.8.8.8'));
         $this->assertFalse(SsrfGuard::isPublicHost('127.0.0.1'));
         $this->assertFalse(SsrfGuard::isPublicHost('169.254.169.254'));
-        $this->assertFalse(SsrfGuard::isPublicHost('10.0.31.28'));
+        $this->assertFalse(SsrfGuard::isPublicHost('10.20.30.40'));
         $this->assertFalse(SsrfGuard::isPublicHost('[::1]'));
         $this->assertFalse(SsrfGuard::isPublicHost(''));
     }
