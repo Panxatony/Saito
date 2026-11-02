@@ -13,7 +13,7 @@ done, and the mistakes that have already been made once.
   locations, incident history) are in `AGENTS.local.md`, which is deliberately
   *not* committed — this repository is public. If it is missing on your
   machine, you do not have operations access; ask the maintainer.
-- **As of:** 2026-11-01 (Saito 8.4.20 released and deployed; `develop` ahead).
+- **As of:** 2026-11-02 (Saito 8.4.21 released; deployed: see `AGENTS.local.md`).
 
 If this file and the actual state of the repository or a system disagree, the
 actual state wins — check, do not assume, and correct this file.
@@ -276,9 +276,6 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
 
 - GitHub issues #66, #68, #69, #74, #79, #92, #94 — all tech debt, none
   urgent; #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7.
-- `develop` is 36 commits ahead of 8.4.20, dependency updates only (CakePHP
-  5.4.3, embed 4.5.0 with its own SSRF policy, tempest/highlight 2.29.0, …) —
-  candidate for the next release when the maintainer wants one.
 - No test drives a *successful* passkey (WebAuthn) login; `WebauthnTest` covers
   the refusal paths only, so the cookies a passkey login sets are untested.
 - Psalm runs unbootstrapped and reports ~700 configuration findings; either

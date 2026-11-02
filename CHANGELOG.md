@@ -5,6 +5,49 @@
 - Δ Changed
 - − Removed
 
+## [8.4.21] - 2026-11-02 "ölwechsel"
+
+**No migration, no configuration change.** A maintenance release: five weeks of
+dependency updates, each read before it went in. One of them can stop an
+installation from booting — read the `phpdotenv` entry if you keep a
+`config/.env`.
+
+- Δ Changed: **`vlucas/phpdotenv` 5.8.0 reports an unterminated double-quoted
+  value instead of dropping it.** A line like `APP_NAME="Forum` used to be
+  skipped without a word; now loading `config/.env` fails, and Saito logs the
+  parse error and stops before it has an error page — the same path as the
+  stricter reader in 8.4.10. Before upgrading, check that every `"` in your
+  `.env` is closed:
+  `awk '!/^[[:space:]]*#/ { if (gsub(/"/, "\"") % 2) print NR }' config/.env`
+  prints the line numbers of any that are not.
+
+- Δ Changed: **`[code]` highlights eight more languages** with
+  `tempest/highlight` 2.30.0: Rust, Go, C, C++, Java, Kotlin, C# and TOML. The
+  release also fixes how highlight markers sit next to nested code and where a
+  PHP heredoc ends. The library still maps its placeholder glyphs back to
+  markup after escaping; the strip in front of it is unchanged, and
+  `scripts/probe-highlight-xss.php` now covers the new languages too — all 24
+  emit nothing but highlighting spans.
+
+- Δ Changed: **`[embed]` fetches less from the far end.** `embed/embed` 4.5.2
+  no longer downloads remote JSON-LD contexts, which removes a class of
+  requests the server made on a page's behalf. 4.5.0 added embed's own URL
+  policy in front of Saito's `SsrfGuardedClient`; both stay in place. The new
+  `<img>` markup embed builds for oEmbed photos does not reach the page — the
+  frontend never renders the far end's markup.
+
+- Δ Changed: **dependencies.** CakePHP 5.4.3 (MariaDB subquery loading, mail
+  body encoding), `firebase/php-jwt` 7.2.1, `league/commonmark` 2.10.4,
+  `claviska/simpleimage` 4.4.2, `laminas/laminas-feed` 2.26.3,
+  `laminas/laminas-diactoros` 3.9.0, Alpine 3.17.5, and the Symfony polyfills.
+  `composer audit` reports no advisory in a production dependency. On the
+  tooling side PHPUnit 13.4.5, PHPStan 2.3.4, Psalm 6.20.4, Sass 1.107.0,
+  Vite 8.3.5, cssnano 9.9.0 and autoprefixer 10.6.2. The compiled stylesheets
+  were compared declaration by declaration against the previous build:
+  autoprefixer now keeps the unprefixed `:focus` selectors in the
+  `:-moz-placeholder` copy of the floating-label rules, which old Firefox
+  versions had lost; everything else is unchanged in effect.
+
 ## [8.4.20] - 2026-09-30 "türsteher"
 
 **No migration.** One upgrade step is optional and manual: an existing
