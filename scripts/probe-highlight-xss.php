@@ -25,6 +25,7 @@ $payload = "<img src=x onerror=alert(1)> \"q\" 'a' & <script>x</script> </textar
 $languages = array_slice($argv, 1) ?: [
     'php', 'html', 'js', 'css', 'sql', 'json', 'yaml', 'xml', 'twig',
     'jsx', 'tsx', 'ruby', 'swift', 'sema', 'python', 'markdown',
+    'rust', 'go', 'c', 'cpp', 'java', 'kotlin', 'csharp', 'toml',
 ];
 
 // Same preparation as JbbCodeCodeDefinition::_parse().
@@ -36,7 +37,8 @@ foreach ($languages as $language) {
     $html = $highlighter->parse($content, $language);
     preg_match_all('/<\/?([a-zA-Z][a-zA-Z0-9]*)/', $html, $tags);
     $foreign = array_diff(array_unique($tags[1]), ['span']);
-    $oddSpan = preg_match('/<span(?![^>]*\bclass="hl-[a-z-]+")[^>]*>/', $html);
+    // `<span class="ignore">` is the library's own wrapper for unconsumed {+ +} / {- -} markers.
+    $oddSpan = preg_match('/<span(?! class="(?:hl-[a-z-]+|ignore)">)[^>]*>/', $html);
     $ok = !$foreign && !$oddSpan;
     printf("%-9s %s\n", $language, $ok ? 'ok' : 'LIVE MARKUP');
     if (!$ok) {
