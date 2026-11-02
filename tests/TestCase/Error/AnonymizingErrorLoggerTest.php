@@ -23,11 +23,11 @@ class AnonymizingErrorLoggerTest extends TestCase
      */
     public function testAnonymizeIp(): void
     {
-        $this->assertSame('217.250.13.x', AnonymizingErrorLogger::anonymizeIp('217.250.13.44'));
-        $this->assertSame('10.0.31.x', AnonymizingErrorLogger::anonymizeIp('10.0.31.28'));
+        $this->assertSame('203.0.113.x', AnonymizingErrorLogger::anonymizeIp('203.0.113.44'));
+        $this->assertSame('10.20.30.x', AnonymizingErrorLogger::anonymizeIp('10.20.30.40'));
         $this->assertSame(
-            '2a02:8109:abcd:1234:x',
-            AnonymizingErrorLogger::anonymizeIp('2a02:8109:abcd:1234:5678:9abc:def0:1')
+            '2001:db8:abcd:1234:x',
+            AnonymizingErrorLogger::anonymizeIp('2001:db8:abcd:1234:5678:9abc:def0:1')
         );
     }
 
@@ -40,7 +40,7 @@ class AnonymizingErrorLoggerTest extends TestCase
     public function testAnonymizeIpRejectsUnknownShapes(): void
     {
         $this->assertSame('x', AnonymizingErrorLogger::anonymizeIp('not-an-address'));
-        $this->assertSame('x', AnonymizingErrorLogger::anonymizeIp('217.250.13'));
+        $this->assertSame('x', AnonymizingErrorLogger::anonymizeIp('203.0.113'));
     }
 
     /**
@@ -53,13 +53,13 @@ class AnonymizingErrorLoggerTest extends TestCase
     {
         $request = new ServerRequest([
             'url' => '/entries/index',
-            'environment' => ['REMOTE_ADDR' => '217.250.13.44'],
+            'environment' => ['REMOTE_ADDR' => '203.0.113.44'],
         ]);
 
         $context = (new AnonymizingErrorLogger())->getRequestContext($request);
 
-        $this->assertStringContainsString('Client IP: 217.250.13.x', $context);
-        $this->assertStringNotContainsString('217.250.13.44', $context);
+        $this->assertStringContainsString('Client IP: 203.0.113.x', $context);
+        $this->assertStringNotContainsString('203.0.113.44', $context);
     }
 
     /**
