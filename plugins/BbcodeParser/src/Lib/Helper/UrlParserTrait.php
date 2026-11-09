@@ -67,9 +67,19 @@ trait UrlParserTrait
         // costs nothing and leaves no variant of that trick to find.
         $rawUrl = (string)preg_replace('/[\x00-\x1f\x7f]+/', '', $rawUrl);
         $rawUrl = (string)preg_replace('/^[\x20]+/', '', $rawUrl);
-        $scheme = strtolower((string)parse_url($rawUrl, PHP_URL_SCHEME));
 
-        return in_array($scheme, ['http', 'https', 'ftp', ''], true);
+        // Read the scheme the way a browser does (WHATWG URL): letters, digits,
+        // `+ . -` from the start up to the first `:`. parse_url() is not that
+        // reader. For `javascript:///%0aalert(1)` or `javascript://x:99999/`
+        // it gives up and returns false — and `(string)false` is the empty
+        // scheme this method used to accept as "relative". The browser still
+        // sees `javascript:` and runs the line after the decoded newline.
+        if (preg_match('/^([a-z][a-z0-9+.\-]*):/i', $rawUrl, $m) === 1) {
+            return in_array(strtolower($m[1]), ['http', 'https', 'ftp'], true);
+        }
+        // No scheme by the browser's reading: a relative URL — unless PHP
+        // cannot make sense of it either, in which case it is not linked.
+        return parse_url($rawUrl) !== false;
     }
 
     /**

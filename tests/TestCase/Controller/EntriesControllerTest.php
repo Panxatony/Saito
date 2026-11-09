@@ -382,7 +382,8 @@ class EntriesControllerTest extends IntegrationTestCase
     public function testHtmxPostingNoAuthorization(): void
     {
         $url = '/entries/htmx-posting/4';
-        $this->get($url);
+        $this->mockSecurity();
+        $this->post($url);
 
         $this->assertRedirectLogin($url);
     }
@@ -634,14 +635,16 @@ class EntriesControllerTest extends IntegrationTestCase
     public function testAddUserNotLoggedInGet()
     {
         $url = '/entries/add';
-        $this->get($url);
+        $this->mockSecurity();
+        $this->post($url);
         $this->assertRedirectLogin($url);
     }
 
     public function testDeleteNotLoggedIn()
     {
         $url = '/entries/delete/1';
-        $this->get($url);
+        $this->mockSecurity();
+        $this->post($url);
         $this->assertRedirectLogin($url);
     }
 
@@ -761,7 +764,8 @@ class EntriesControllerTest extends IntegrationTestCase
     public function testSolveNotLoggedIn()
     {
         $url = '/entries/solve/1';
-        $this->get($url);
+        $this->mockSecurity();
+        $this->post($url);
         $this->assertRedirectLogin($url);
     }
 
@@ -771,7 +775,8 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->expectException(
             'Cake\Http\Exception\BadRequestException'
         );
-        $this->get('/entries/solve/9999');
+        $this->mockSecurity();
+        $this->post('/entries/solve/9999');
     }
 
     public function testSolveNotRootEntryDoesntBelongToCurrentUser()
@@ -781,7 +786,8 @@ class EntriesControllerTest extends IntegrationTestCase
         // used to be caught and re-thrown as an anonymous 400, which threw that
         // away and made a forbidden action look like a malformed request.
         $this->expectException(SaitoForbiddenException::class);
-        $this->get('/entries/solve/2');
+        $this->mockSecurity();
+        $this->post('/entries/solve/2');
     }
 
     /**
@@ -806,7 +812,8 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->expectException(
             'Cake\Http\Exception\BadRequestException'
         );
-        $this->get('/entries/solve/1');
+        $this->mockSecurity();
+        $this->post('/entries/solve/1');
     }
 
     public function testSolveSaveError()
@@ -819,7 +826,27 @@ class EntriesControllerTest extends IntegrationTestCase
         $this->expectException(
             'Cake\Http\Exception\BadRequestException'
         );
-        $this->get('/entries/solve/2');
+        $this->mockSecurity();
+        $this->post('/entries/solve/2');
+    }
+
+    /**
+     * `[img]/entries/solve/2[/img]` and `[img]/entries/update[/img]` in a
+     * posting fired these for every reader; they are POST-only now.
+     *
+     * @return void
+     */
+    public function testSolveAndMarkAllReadRejectGet()
+    {
+        $this->_loginUser(3);
+        foreach (['/entries/solve/2', '/entries/update'] as $url) {
+            try {
+                $this->get($url);
+                $this->fail("$url answered a GET");
+            } catch (MethodNotAllowedException) {
+                $this->addToAssertionCount(1);
+            }
+        }
     }
 
     public function testSolveSuccess()
@@ -829,7 +856,8 @@ class EntriesControllerTest extends IntegrationTestCase
         $Entries->expects($this->once())
             ->method('updateEntry')
             ->willReturn(new Entry());
-        $this->get('/entries/solve/2');
+        $this->mockSecurity();
+        $this->post('/entries/solve/2');
         $this->assertResponseOk();
         $this->assertResponseEquals('');
     }
@@ -1405,7 +1433,8 @@ class EntriesControllerTest extends IntegrationTestCase
     {
         $this->_loginUser(3);
         $this->configRequest(['headers' => ['HX-Request' => 'true']]);
-        $this->get('/entries/update');
+        $this->mockSecurity();
+        $this->post('/entries/update');
 
         $this->assertResponseCode(204);
         $this->assertHeader('HX-Trigger', 'refresh-recent');
@@ -1421,7 +1450,8 @@ class EntriesControllerTest extends IntegrationTestCase
     public function testUpdateRedirectsWithoutHtmx(): void
     {
         $this->_loginUser(3);
-        $this->get('/entries/update');
+        $this->mockSecurity();
+        $this->post('/entries/update');
 
         $this->assertRedirect();
     }

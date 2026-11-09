@@ -66,10 +66,11 @@ if ($theme) {
                    class="btn btn-link" title="<?= h(__('Profile')) ?>">
                     <?= $iconLabel('user', __('Profile')) ?>
                 </a>
-                <a href="<?= $webroot ?>logout?redirect=<?= urlencode($webroot . 'entries/htmx-index') ?>"
-                   class="btn btn-link" title="<?= h(__('logout_linkname')) ?>">
-                    <?= $iconLabel('sign-out', __('logout_linkname')) ?>
-                </a>
+                <?= $this->element('users/logout_button', [
+                    'label' => $iconLabel('sign-out', __('logout_linkname')),
+                    'redirect' => $webroot . 'entries/htmx-index',
+                    'title' => __('logout_linkname'),
+                ]) ?>
             <?php else : ?>
                 <a href="<?= $webroot ?>users/htmx-login" class="btn btn-link js-authModalOpen"
                    data-modal-url="<?= $webroot ?>login" title="<?= h(__('login_btn')) ?>">

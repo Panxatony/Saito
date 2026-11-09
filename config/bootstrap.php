@@ -202,6 +202,10 @@ if (!Configure::read('App.fullBaseUrl')) {
     $httpHost = env('HTTP_HOST');
     if (isset($httpHost)) {
         Configure::write('App.fullBaseUrl', 'http' . $s . '://' . $httpHost);
+        // The Host header is the client's to choose. Good enough for links on
+        // a page the same client asked for; not for a link mailed to somebody
+        // else — see SaitoEmailComponent::email().
+        Configure::write('Saito.fullBaseUrlFromRequest', true);
     }
     unset($httpHost, $s);
 }

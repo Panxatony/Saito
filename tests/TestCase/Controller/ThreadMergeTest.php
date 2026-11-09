@@ -57,6 +57,15 @@ class ThreadMergeTest extends IntegrationTestCase
     /** Ulysses, an ordinary member. */
     private const MEMBER_ID = 3;
 
+    public function tearDown(): void
+    {
+        // testAModeratorCannotMergeAcrossACategoryTheyCannotRead() narrows a
+        // category; its permissions must not outlive the fixture in the caches.
+        \Cake\Cache\Cache::clearAll();
+        (new \ReflectionProperty(\App\Model\Table\CategoriesTable::class, '__rememberStatic'))->setValue(null, []);
+        parent::tearDown();
+    }
+
     /**
      * @param int $id posting id
      * @return array{pid: int, tid: int, category_id: int}
@@ -84,6 +93,36 @@ class ThreadMergeTest extends IntegrationTestCase
         $this->configureHtmxRequest();
         $this->mockSecurity();
         $this->post('/entries/htmx-merge/' . $sourceId, ['targetId' => $targetId]);
+    }
+
+    /**
+     * A merge is a category move, and the merge permission is per role. A
+     * moderator must not carry a thread out of a category only admins read —
+     * nor bury a public thread in one.
+     *
+     * @return void
+     */
+    public function testAModeratorCannotMergeAcrossACategoryTheyCannotRead(): void
+    {
+        // Category 1 (thread 6) readable by admins only.
+        TableRegistry::getTableLocator()->get('Categories')
+            ->updateAll(['accession' => 3, 'accession_new_thread' => 3, 'accession_new_posting' => 3], ['id' => 1]);
+        // Category permissions are cached; an earlier test may have built them.
+        // CategoriesTable also keeps them in a static of RememberTrait.
+        \Cake\Cache\Cache::clearAll();
+        (new \ReflectionProperty(\App\Model\Table\CategoriesTable::class, '__rememberStatic'))->setValue(null, []);
+        $this->_loginUser(2);
+
+        try {
+            $this->merge(6, 1);
+        } catch (\Cake\Http\Exception\NotFoundException) {
+            // As for a thread that does not exist.
+        }
+        $this->assertSame(['pid' => 0, 'tid' => 6, 'category_id' => 1], $this->posting(6), 'out of the hidden category');
+
+        $this->merge(10, 6);
+        $this->assertSame(0, $this->posting(10)['pid'], 'into the hidden category');
+        $this->assertSame(2, $this->posting(10)['category_id']);
     }
 
     /**

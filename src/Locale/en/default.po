@@ -2060,3 +2060,15 @@ msgstr "That did not work. Please try again."
 
 msgid "msg.no.connection"
 msgstr "No connection to the forum. Please check your network."
+
+#: templates/Users/htmx_edit.php
+msgid "user.edit.email.password"
+msgstr "Current password"
+
+#: templates/Users/htmx_edit.php
+msgid "user.edit.email.password.help"
+msgstr "Only needed when you change the e-mail address."
+
+#: src/Controller/UsersController.php
+msgid "user.edit.email.password.wrong"
+msgstr "Enter your current password to change the e-mail address."

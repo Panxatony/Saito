@@ -275,7 +275,8 @@ class TwoFactorTrustedDeviceTest extends IntegrationTestCase
         $otherDevice = $this->Devices->issueFor(self::USER_ID);
 
         $this->cookie($this->deviceCookieName(), $cookies[$this->deviceCookieName()]);
-        $this->get('/logout');
+        $this->mockSecurity();
+        $this->post('/logout');
 
         $this->assertFalse($this->Devices->isTrusted(self::USER_ID, $cookies[$this->deviceCookieName()]));
         $this->assertTrue($this->Devices->isTrusted(self::USER_ID, $otherDevice));

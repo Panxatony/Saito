@@ -624,12 +624,28 @@ class EntriesController extends AppController
         if (!$entry || !$entry->isRoot()) {
             throw new NotFoundException();
         }
+        // The merge permission is per role, not per category. Merging moves the
+        // source thread into the target's category, so without these checks a
+        // moderator could carry a thread out of a category only admins read
+        // into a public one — or hide a public thread where they cannot see it.
+        // Both ends must be categories the moderator may read and start
+        // threads in.
+        $Categories = $this->CurrentUser->getCategories();
+        $mayUse = fn(int $categoryId): bool => $Categories->permission('read', $categoryId) === true
+            && $Categories->permission('thread', $categoryId) === true;
+        if (!$mayUse((int)$entry->get('category_id'))) {
+            throw new NotFoundException();
+        }
 
         $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
 
         if ($this->getRequest()->is('post')) {
             $targetId = (int)$this->getRequest()->getData('targetId');
-            if ($targetId > 0 && $this->Entries->threadMerge($sourceId, $targetId)) {
+            $target = $targetId > 0 ? $this->Entries->findById($targetId)->first() : null;
+            if ($target !== null && !$mayUse((int)$target->get('category_id'))) {
+                $target = null;
+            }
+            if ($target !== null && $this->Entries->threadMerge($sourceId, $targetId)) {
                 $threadUrl = \Cake\Routing\Router::url(['action' => 'htmxThread', $sourceId]);
                 if ($isHx) {
                     return $this->response->withHeader('HX-Redirect', $threadUrl);
@@ -1029,6 +1045,9 @@ class EntriesController extends AppController
      */
     public function update()
     {
+        // POST only: as a GET, `[img]/entries/update[/img]` in a posting
+        // reset every reader's unread state.
+        $this->getRequest()->allowMethod('post');
         $this->autoRender = false;
         $this->CurrentUser->getLastRefresh()->set();
 
@@ -1104,6 +1123,8 @@ class EntriesController extends AppController
      */
     public function solve($id)
     {
+        // The island posts here; a GET from an `[img]` must not flip the mark.
+        $this->getRequest()->allowMethod('post');
         $this->autoRender = false;
         try {
             // get() raises RecordNotFoundException for an unknown id; it never
@@ -1340,7 +1361,7 @@ class EntriesController extends AppController
             // nothing to validate and blackholed every attempt — pinning and
             // unpinning a thread simply did nothing, silently, with the failure
             // visible only in the server log.
-            ['solve', 'ajaxToggle', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload',
+            ['solve', 'update', 'ajaxToggle', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload',
                 'htmxBookmark', 'htmxEdit', 'htmxMerge', 'htmxUploadDelete', 'htmxDraft']
         );
         $this->Authentication->allowUnauthenticated(

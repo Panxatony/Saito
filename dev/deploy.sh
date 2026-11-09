@@ -368,6 +368,11 @@ case "$DBOUT" in
         echo "$DBOUT" | sed 's/^/  /'
         ;;
 esac
+# The console ran as the deploying user and has just warmed the model cache
+# (and maybe written a CLI log). Owned by that user, the web server can read
+# those files but not rewrite them: every request then logs "Permission
+# denied" on tmp/cache/models/. Seen on test after 8.4.21 and 8.4.22.
+on_target "chown -R $OWNER tmp logs 2>/dev/null || true"
 
 say "reload"
 on_host "$RELOAD" >/dev/null 2>&1 || true
@@ -398,6 +403,7 @@ on_host "rm -f /tmp/saito-verify.html" || true
 printf '  version on target: '
 on_target "grep -oE \"8[.][0-9]+[.][0-9]+\" src/Lib/version.php | head -1"
 on_target "$DB_ENV php bin/cake.php db_version 2>/dev/null" || true
+on_target "chown -R $OWNER tmp logs 2>/dev/null || true"
 
 if [ "$FAIL" -ne 0 ]; then
     say "SOMETHING IS WRONG"

@@ -36,7 +36,7 @@ $webroot = $this->request->getAttribute('webroot');
         <?= $this->Form->end() ?>
 
         <p class="tos-reconsent-decline">
-            <?= $this->Html->link(h(__('tos.reconsent.decline')), $webroot . 'logout') ?>
+            <?= $this->element('users/logout_button', ['label' => h(__('tos.reconsent.decline')), 'class' => 'btn btn-link p-0']) ?>
         </p>
     </div>
 </div>

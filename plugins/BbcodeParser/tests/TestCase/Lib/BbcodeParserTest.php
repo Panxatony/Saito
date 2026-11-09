@@ -138,11 +138,25 @@ class BbcodeParserTest extends SaitoTestCase
             'quote markup' => '[quote]<img src=x onerror=alert(1)>[/quote]',
             'color breakout' => '[color=red" onmouseover="alert(1)]x[/color]',
             'autolink javascript' => 'see javascript:alert(1) here',
+            // parse_url() returns false for these, which the scheme check used
+            // to read as "relative". The browser decodes %0a to a newline, so
+            // `///` is a comment and alert(1) runs.
+            'url unparseable' => '[url]javascript:///%0aalert(1)[/url]',
+            'url= unparseable' => '[url=javascript://:/%0aalert(1)]x[/url]',
+            'url bad port' => '[url]javascript://x.com:99999/%0aalert(1)[/url]',
+            'link unparseable' => '[link]javascript:///%0aalert(1)[/link]',
+            'img unparseable' => '[img]javascript:///%0aalert(1)[/img]',
+            'autolink unparseable' => 'see javascript:///%0aalert(1) here',
+            'flash allowed host' => '[flash_video]javascript://www.youtube.com/%0aalert(1)|100|100[/flash_video]',
+            'flash width breakout' => '[flash_video]//www.youtube.com/v/x|100;background:red|100[/flash_video]',
         ];
 
         $problems = [];
         foreach ($attempts as $name => $input) {
-            $html = (string)$this->_Parser->parse($input);
+            $html = (string)$this->_Parser->parse($input, ['video_domains_allowed' => 'youtube']);
+            if (str_contains($html, 'background:red')) {
+                $problems[] = "$name let CSS into an attribute";
+            }
 
             $doc = new \DOMDocument();
             @$doc->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NOERROR);
@@ -163,6 +177,23 @@ class BbcodeParserTest extends SaitoTestCase
         }
 
         $this->assertSame([], $problems, "\n" . implode("\n", $problems) . "\n");
+    }
+
+    /**
+     * A tag whose later option starts with `javascript:` sends jbbcode's
+     * option reader into a state that loses the value; the array_combine()
+     * after it threw a ValueError, and the page holding the posting answered
+     * 500 on every render. It must come back as escaped text instead.
+     *
+     * @return void
+     */
+    public function testOptionThatBreaksJbbcodeDoesNotThrow()
+    {
+        foreach (['[b a=1 b=javascript:x]bold[/b]', '[foo a=1 b=javascript:]x', "line\n[b a=1 b=javascript:x]<i>"] as $input) {
+            $html = (string)$this->_Parser->parse($input);
+            $this->assertStringContainsString('javascript:', $html, 'the text is shown, not dropped');
+            $this->assertStringNotContainsString('<i>', $html, 'and it is escaped');
+        }
     }
 
     /**

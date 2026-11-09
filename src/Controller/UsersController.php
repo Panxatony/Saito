@@ -330,24 +330,36 @@ class UsersController extends AppController
     private const LOGIN_THROTTLE_WINDOW = 900;
 
     /**
-     * Cache key for the per-client failed-login counter.
+     * Cache key for a failed-login counter.
      *
+     * The password step counts per client. The second factor counts per
+     * *account* and has a key of its own: the two used to share the client's
+     * counter, and the right password — which is what reaches the code step —
+     * cleared it. Nine wrong codes, the password again, nine more: the
+     * six-digit code could be guessed without ever being throttled. A correct
+     * password now clears only its own counter.
+     *
+     * @param int|null $secondFactorUserId account whose second factor is being tried
      * @return string
      */
-    private function _loginThrottleKey(): string
+    private function _loginThrottleKey(?int $secondFactorUserId = null): string
     {
+        if ($secondFactorUserId !== null) {
+            return 'login-throttle-2fa-' . $secondFactorUserId;
+        }
+
         return 'login-throttle-' . $this->getRequest()->clientIp();
     }
 
     /**
-     * Whether the client has exhausted its failed-login budget for the current
-     * window.
+     * Whether the budget for failed attempts is spent for the current window.
      *
+     * @param int|null $secondFactorUserId see _loginThrottleKey()
      * @return bool
      */
-    private function _isLoginThrottled(): bool
+    private function _isLoginThrottled(?int $secondFactorUserId = null): bool
     {
-        $record = Cache::read($this->_loginThrottleKey());
+        $record = Cache::read($this->_loginThrottleKey($secondFactorUserId));
         if (!is_array($record)) {
             return false;
         }
@@ -359,14 +371,15 @@ class UsersController extends AppController
     }
 
     /**
-     * Records a failed login attempt for the client (starts a fresh window
-     * once the previous one has elapsed).
+     * Records a failed attempt (starts a fresh window once the previous one
+     * has elapsed).
      *
+     * @param int|null $secondFactorUserId see _loginThrottleKey()
      * @return void
      */
-    private function _registerFailedLogin(): void
+    private function _registerFailedLogin(?int $secondFactorUserId = null): void
     {
-        $key = $this->_loginThrottleKey();
+        $key = $this->_loginThrottleKey($secondFactorUserId);
         $record = Cache::read($key);
         if (!is_array($record) || (time() - $record['first']) >= self::LOGIN_THROTTLE_WINDOW) {
             $record = ['count' => 0, 'first' => time()];
@@ -376,13 +389,14 @@ class UsersController extends AppController
     }
 
     /**
-     * Clears the client's failed-login counter after a successful login.
+     * Clears a failed-login counter after the step it guards succeeded.
      *
+     * @param int|null $secondFactorUserId see _loginThrottleKey()
      * @return void
      */
-    private function _clearLoginThrottle(): void
+    private function _clearLoginThrottle(?int $secondFactorUserId = null): void
     {
-        Cache::delete($this->_loginThrottleKey());
+        Cache::delete($this->_loginThrottleKey($secondFactorUserId));
     }
 
     /**
@@ -392,6 +406,10 @@ class UsersController extends AppController
      */
     public function logout()
     {
+        // POST only. As a GET, `[img]/logout[/img]` in any posting logged out
+        // every reader who scrolled past it — and with them their trusted
+        // second-factor device.
+        $this->getRequest()->allowMethod('post');
         $request = $this->getRequest();
         $cookies = $request->getCookieCollection();
         foreach ($cookies as $cookie) {
@@ -1056,7 +1074,19 @@ class UsersController extends AppController
                 unset($data['categories']);
             }
 
+            $previousEmail = (string)$user->get('user_email');
             $patched = $this->Users->patchEntity($user, $data, ['fields' => $allowedFields]);
+            // The address is where a password reset goes. Changed by a session
+            // alone, a borrowed session became the account for good: new
+            // address, "forgot password", new password. So it costs the
+            // password of whoever is acting — the member, or the admin editing
+            // them, as the admin's role and password actions already do.
+            if (
+                strcasecmp(trim((string)$patched->get('user_email')), trim($previousEmail)) !== 0
+                && !$this->verifyCurrentPassword((string)$this->request->getData('password_current'))
+            ) {
+                $patched->setError('password_current', [__('user.edit.email.password.wrong')]);
+            }
             if (!$patched->getErrors() && $this->Users->save($patched)) {
                 $this->Flash->set(__('The user has been saved.'), ['element' => 'success']);
 
@@ -1301,7 +1331,7 @@ class UsersController extends AppController
         // A budget of its own, per client: the password is already spent, so
         // without this the second factor would be a six-digit number somebody
         // could sit and guess.
-        if ($this->_isLoginThrottled()) {
+        if ($this->_isLoginThrottled($userId)) {
             $this->set('errorMessage', __('user.authe.throttled'));
 
             return null;
@@ -1313,7 +1343,7 @@ class UsersController extends AppController
 
         $ok = $Credentials->verifyCode($userId, $code) || $Codes->consume($userId, $code);
         if (!$ok) {
-            $this->_registerFailedLogin();
+            $this->_registerFailedLogin($userId);
             // A credential encrypted under a salt this installation no longer
             // has can never match, however right the code is. Saying "wrong
             // code" to that is a dead end the member cannot reason about, so
@@ -1338,6 +1368,7 @@ class UsersController extends AppController
                 ? $this->response->withHeader('HX-Redirect', $login)
                 : $this->redirect($login);
         }
+        $this->_clearLoginThrottle($userId);
         $this->_clearLoginThrottle();
 
         $session = $this->getRequest()->getSession();
@@ -1372,6 +1403,14 @@ class UsersController extends AppController
         $this->set('recoveryCodes', null);
 
         $action = (string)$this->request->getData('do');
+        // Starting over used to delete *every* credential of the account,
+        // the confirmed one included, and asked for nothing: a borrowed session
+        // could switch the second factor off (the very thing `disable` guards
+        // with the password) and enrol its own. The button only shows while
+        // 2FA is off; the server now holds to that too.
+        if ($this->request->is('post') && $action === 'start' && $Credentials->isEnabledFor($userId)) {
+            $action = '';
+        }
         if ($this->request->is('post') && $action === 'start') {
             // A fresh secret, shown once as a QR code. Any earlier half-finished
             // attempt is replaced, so an abandoned QR cannot be confirmed later.
@@ -1506,6 +1545,13 @@ class UsersController extends AppController
         if ($options === null) {
             return $this->jsonError(__('user.2fa.passkey.expired'), 400);
         }
+        // A passkey completes a login on its own once the password is known.
+        // Added by a session alone, it let a borrowed session plant a second
+        // factor of its own next to the member's — quietly, since nothing of
+        // theirs changes. Like switching 2FA off, it costs the password.
+        if (!$this->verifyCurrentPassword((string)$this->request->getData('password'))) {
+            return $this->jsonError(__('user.2fa.password.wrong'), 403);
+        }
 
         $service = new WebauthnService();
         try {
@@ -1586,7 +1632,7 @@ class UsersController extends AppController
         if ($userId === null) {
             return $this->jsonError(__('user.2fa.passkey.expired'), 400);
         }
-        if ($this->_isLoginThrottled()) {
+        if ($this->_isLoginThrottled($userId)) {
             return $this->jsonError(__('user.authe.throttled'), 429);
         }
 
@@ -1602,7 +1648,7 @@ class UsersController extends AppController
         $json = (string)$this->request->getData('credential');
         $entity = $Passkeys->findForUser($userId, (string)$this->request->getData('credentialId'));
         if ($entity === null) {
-            $this->_registerFailedLogin();
+            $this->_registerFailedLogin($userId);
 
             return $this->jsonError(__('user.2fa.passkey.failed'), 400);
         }
@@ -1611,7 +1657,7 @@ class UsersController extends AppController
         try {
             $record = $service->verifyAssertion($json, $options, $Passkeys->toRecord($entity), $userId);
         } catch (\Throwable $e) {
-            $this->_registerFailedLogin();
+            $this->_registerFailedLogin($userId);
             (new ForbiddenLogger())->write(
                 sprintf('Passkey assertion failed for user id %d: %s', $userId, $e->getMessage()),
             );
@@ -1626,6 +1672,7 @@ class UsersController extends AppController
         if (!$this->AuthUser->completeSecondFactor($userId)) {
             return $this->jsonError(__('user.2fa.passkey.failed'), 400);
         }
+        $this->_clearLoginThrottle($userId);
         $this->_clearLoginThrottle();
 
         $session = $this->getRequest()->getSession();
@@ -2089,6 +2136,9 @@ class UsersController extends AppController
             // tamper with — and CSRF, which is the protection that matters, is
             // middleware and stays on.
             'tosAccept',
+            // Logout is a bare button form (see element/users/logout_button):
+            // no fields to tamper with; CSRF covers it.
+            'logout',
             // The WebAuthn ceremonies. These post JSON from the island, not a
             // rendered form, so there is no `_Token` to emit and none to check;
             // CSRF still covers them through the middleware, and each one is

@@ -43,7 +43,7 @@ $webroot = $this->request->getAttribute('webroot');
         </p>
 
         <p class="exp">
-            <?= $this->Html->link(h(__('user.2fa.required.logout')), $webroot . 'logout') ?>
+            <?= $this->element('users/logout_button', ['label' => h(__('user.2fa.required.logout')), 'class' => 'btn btn-link p-0']) ?>
         </p>
     </div>
 </div>

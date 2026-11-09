@@ -77,6 +77,43 @@ class ChangePasswordTest extends IntegrationTestCase
         );
     }
 
+    /**
+     * Password resets go to this address. A borrowed session that could
+     * change it could reset the password next and keep the account.
+     */
+    public function testChangingTheEmailAddressNeedsThePassword(): void
+    {
+        $Users = TableRegistry::getTableLocator()->get('Users');
+        $before = (string)$Users->get(self::USER_ID)->get('user_email');
+        $this->_loginUser(self::USER_ID);
+
+        $this->mockSecurity();
+        $this->post('/users/htmx-edit', ['user_email' => 'thief@example.com']);
+        $this->assertSame($before, (string)$Users->get(self::USER_ID)->get('user_email'));
+
+        $this->mockSecurity();
+        $this->post('/users/htmx-edit', ['user_email' => 'thief@example.com', 'password_current' => 'wrong']);
+        $this->assertSame($before, (string)$Users->get(self::USER_ID)->get('user_email'));
+
+        $this->mockSecurity();
+        $this->post('/users/htmx-edit', ['user_email' => 'new@example.com', 'password_current' => self::PASSWORD]);
+        $this->assertSame('new@example.com', (string)$Users->get(self::USER_ID)->get('user_email'));
+    }
+
+    /**
+     * Everything else on the form saves as before, without the password.
+     */
+    public function testOtherProfileFieldsDoNotNeedThePassword(): void
+    {
+        $Users = TableRegistry::getTableLocator()->get('Users');
+        $email = (string)$Users->get(self::USER_ID)->get('user_email');
+        $this->_loginUser(self::USER_ID);
+
+        $this->mockSecurity();
+        $this->post('/users/htmx-edit', ['user_email' => $email, 'user_place' => 'Somewhere new']);
+        $this->assertSame('Somewhere new', (string)$Users->get(self::USER_ID)->get('user_place'));
+    }
+
     public function testAMismatchedConfirmationChangesNothing(): void
     {
         $before = $this->storedHash();

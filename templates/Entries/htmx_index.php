@@ -39,10 +39,14 @@ $railMinimised = !empty($widgetCatalogue)
             <?= $this->Layout->textWithIcon(h(__('new_entry_linkname')), 'plus') ?>
         </a>
         <?php // Mark everything read; the 204 + HX-Trigger reloads the list. ?>
-        <a href="<?= $webroot ?>entries/update" class="btn btn-link js-markAllRead"
-           hx-get="<?= $webroot ?>entries/update" hx-swap="none">
-            <?= $this->Layout->textWithIcon(h(__('mark_all_read')), 'check') ?>
-        </a>
+        <?php // POST: as a GET link, `[img]/entries/update[/img]` reset every reader's unread state. ?>
+        <form method="post" action="<?= $webroot ?>entries/update" class="d-inline">
+            <input type="hidden" name="_csrfToken" value="<?= h((string)$this->request->getAttribute('csrfToken')) ?>">
+            <button type="submit" class="btn btn-link js-markAllRead"
+                    hx-post="<?= $webroot ?>entries/update" hx-swap="none">
+                <?= $this->Layout->textWithIcon(h(__('mark_all_read')), 'check') ?>
+            </button>
+        </form>
         <?php
         // Category filter. Several at once, as the retired chooser allowed: a
         // button showing the current selection, opening a list of checkboxes.

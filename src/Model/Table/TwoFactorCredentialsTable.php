@@ -77,7 +77,9 @@ class TwoFactorCredentialsTable extends Table
      */
     public function beginEnrolment(int $userId): string
     {
-        $this->deleteAll(['user_id' => $userId]);
+        // Unconfirmed attempts only: a confirmed factor is switched off by
+        // disableFor(), which the controller guards with the password.
+        $this->deleteAll(['user_id' => $userId, 'confirmed_at IS' => null]);
 
         // 160 bits, the RFC 4226 recommendation: 32 base32 characters, short
         // enough to type by hand when a camera is not an option.
