@@ -121,6 +121,8 @@ if ($provisioningUri !== null) {
             <label class="form-label" for="js-passkeyLabel"><?= h(__('user.2fa.passkey.label')) ?></label>
             <input type="text" id="js-passkeyLabel" class="form-control" maxlength="100"
                    placeholder="<?= h(__('user.2fa.passkey.label.ph')) ?>">
+            <label class="form-label" for="js-passkeyPassword" style="margin-top:0.5rem"><?= h(__('user.edit.email.password')) ?></label>
+            <input type="password" id="js-passkeyPassword" class="form-control" autocomplete="current-password" required>
             <button type="button"
                     class="btn btn-primary"
                     style="margin-top:0.5rem"

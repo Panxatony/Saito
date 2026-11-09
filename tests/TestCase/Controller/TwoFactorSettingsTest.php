@@ -139,6 +139,28 @@ class TwoFactorSettingsTest extends IntegrationTestCase
     }
 
     /**
+     * Starting enrolment again deleted the confirmed factor without asking
+     * for anything — `disable` without the password, and room for a session
+     * thief to enrol a secret of their own.
+     *
+     * @return void
+     */
+    public function testStartingOverDoesNotRemoveAnActiveSecondFactor(): void
+    {
+        $secret = $this->Credentials->beginEnrolment(self::USER_ID);
+        $this->Credentials->confirmEnrolment(self::USER_ID, TOTP::createFromSecret($secret)->now());
+        $this->Codes->issueFor(self::USER_ID);
+        $this->_loginUser(self::USER_ID);
+
+        $this->mockSecurity();
+        $this->post('/users/htmx-two-factor', ['do' => 'start']);
+
+        $this->assertTrue($this->Credentials->isEnabledFor(self::USER_ID));
+        $this->assertNull($this->Credentials->pendingFor(self::USER_ID), 'no second secret to confirm');
+        $this->assertSame(TwoFactorRecoveryCodesTable::CODE_COUNT, $this->Codes->remainingFor(self::USER_ID));
+    }
+
+    /**
      * Fresh recovery codes are new credentials, so they cost the password too.
      *
      * @return void

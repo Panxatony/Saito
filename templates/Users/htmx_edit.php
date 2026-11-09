@@ -55,6 +55,17 @@
             echo $this->Form->create($user, ['url' => ['action' => 'htmxEdit'], 'type' => 'post']);
 
             echo $this->Form->control('user_email', ['class' => 'form-control', 'label' => __('userlist_email')]);
+            // Only checked when the address above changes: password resets go
+            // there, so changing it takes the password of whoever is editing.
+            echo $this->Form->control('password_current', [
+                'class' => 'form-control',
+                'type' => 'password',
+                'value' => '',
+                'required' => false,
+                'autocomplete' => 'current-password',
+                'label' => __('user.edit.email.password'),
+            ]);
+            echo $this->Html->tag('p', h(__('user.edit.email.password.help')), ['class' => 'form-text text-muted']);
             echo $this->Form->control('user_real_name', ['class' => 'form-control', 'label' => __('user_real_name')]);
             echo $this->Form->control('user_hp', ['class' => 'form-control', 'label' => __('user_hp')]);
             echo $this->Form->control('user_place', ['class' => 'form-control', 'label' => __('user_place')]);

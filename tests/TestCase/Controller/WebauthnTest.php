@@ -182,6 +182,29 @@ class WebauthnTest extends IntegrationTestCase
      *
      * @return void
      */
+    /**
+     * A session alone must not plant a second factor next to the member's.
+     *
+     * @return void
+     */
+    public function testRegistrationNeedsThePassword(): void
+    {
+        $this->enrol();
+        $this->_loginUser(self::USER_ID);
+        foreach ([[], ['password' => 'not-my-password']] as $extra) {
+            $this->mockSecurity();
+            $this->get('/users/webauthn-register-options');
+            $this->assertResponseOk();
+
+            $this->session(['Saito' => $_SESSION['Saito'] ?? []]);
+            $this->mockSecurity();
+            $this->post('/users/webauthn-register', ['credential' => '{}', 'label' => 'probe'] + $extra);
+
+            $this->assertResponseCode(403);
+            $this->assertSame(0, $this->Passkeys->find()->count());
+        }
+    }
+
     public function testAnEmptyObjectIsRefusedAsARegistration(): void
     {
         $this->enrol();
@@ -192,7 +215,7 @@ class WebauthnTest extends IntegrationTestCase
 
         $this->session(['Saito' => $_SESSION['Saito'] ?? []]);
         $this->mockSecurity();
-        $this->post('/users/webauthn-register', ['credential' => '{}', 'label' => 'probe']);
+        $this->post('/users/webauthn-register', ['credential' => '{}', 'label' => 'probe', 'password' => self::PASSWORD]);
 
         $this->assertResponseCode(400);
         $this->assertSame(0, $this->Passkeys->find()->count());

@@ -1070,7 +1070,19 @@ class UsersController extends AppController
                 unset($data['categories']);
             }
 
+            $previousEmail = (string)$user->get('user_email');
             $patched = $this->Users->patchEntity($user, $data, ['fields' => $allowedFields]);
+            // The address is where a password reset goes. Changed by a session
+            // alone, a borrowed session became the account for good: new
+            // address, "forgot password", new password. So it costs the
+            // password of whoever is acting — the member, or the admin editing
+            // them, as the admin's role and password actions already do.
+            if (
+                strcasecmp(trim((string)$patched->get('user_email')), trim($previousEmail)) !== 0
+                && !$this->verifyCurrentPassword((string)$this->request->getData('password_current'))
+            ) {
+                $patched->setError('password_current', [__('user.edit.email.password.wrong')]);
+            }
             if (!$patched->getErrors() && $this->Users->save($patched)) {
                 $this->Flash->set(__('The user has been saved.'), ['element' => 'success']);
 
@@ -1387,6 +1399,14 @@ class UsersController extends AppController
         $this->set('recoveryCodes', null);
 
         $action = (string)$this->request->getData('do');
+        // Starting over used to delete *every* credential of the account,
+        // the confirmed one included, and asked for nothing: a borrowed session
+        // could switch the second factor off (the very thing `disable` guards
+        // with the password) and enrol its own. The button only shows while
+        // 2FA is off; the server now holds to that too.
+        if ($this->request->is('post') && $action === 'start' && $Credentials->isEnabledFor($userId)) {
+            $action = '';
+        }
         if ($this->request->is('post') && $action === 'start') {
             // A fresh secret, shown once as a QR code. Any earlier half-finished
             // attempt is replaced, so an abandoned QR cannot be confirmed later.
@@ -1520,6 +1540,13 @@ class UsersController extends AppController
         );
         if ($options === null) {
             return $this->jsonError(__('user.2fa.passkey.expired'), 400);
+        }
+        // A passkey completes a login on its own once the password is known.
+        // Added by a session alone, it let a borrowed session plant a second
+        // factor of its own next to the member's — quietly, since nothing of
+        // theirs changes. Like switching 2FA off, it costs the password.
+        if (!$this->verifyCurrentPassword((string)$this->request->getData('password'))) {
+            return $this->jsonError(__('user.2fa.password.wrong'), 403);
         }
 
         $service = new WebauthnService();

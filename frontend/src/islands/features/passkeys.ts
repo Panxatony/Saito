@@ -194,6 +194,8 @@ async function register(button: HTMLButtonElement): Promise<void> {
 
     await call(url.verify, {
         label: (document.querySelector<HTMLInputElement>('#js-passkeyLabel')?.value ?? '').trim(),
+        // Adding a second factor costs the password, as switching it off does.
+        password: document.querySelector<HTMLInputElement>('#js-passkeyPassword')?.value ?? '',
         credential: JSON.stringify({
             id: credential.id,
             rawId: toBase64Url(credential.rawId),
