@@ -57,6 +57,15 @@ class ThreadMergeTest extends IntegrationTestCase
     /** Ulysses, an ordinary member. */
     private const MEMBER_ID = 3;
 
+    public function tearDown(): void
+    {
+        // testAModeratorCannotMergeAcrossACategoryTheyCannotRead() narrows a
+        // category; its permissions must not outlive the fixture in the caches.
+        \Cake\Cache\Cache::clearAll();
+        (new \ReflectionProperty(\App\Model\Table\CategoriesTable::class, '__rememberStatic'))->setValue(null, []);
+        parent::tearDown();
+    }
+
     /**
      * @param int $id posting id
      * @return array{pid: int, tid: int, category_id: int}
