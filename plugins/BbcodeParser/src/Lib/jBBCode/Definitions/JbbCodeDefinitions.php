@@ -386,7 +386,7 @@ class Flash extends Iframe
     protected function _parse($content, $attributes, \JBBCode\ElementNode $node)
     {
         $match = preg_match(
-            "#(?P<url>.+?)\|(?P<width>.+?)\|(?<height>\d+)#is",
+            "#(?P<url>.+?)\|(?P<width>\d+)\|(?<height>\d+)#is",
             $content,
             $matches
         );
@@ -397,6 +397,12 @@ class Flash extends Iframe
         $height = $matches['height'];
         $url = $matches['url'];
         $width = $matches['width'];
+
+        // The host allow-list alone let `javascript://www.youtube.com/...`
+        // through: the host is fine, the scheme is not.
+        if (!$this->_hasSafeUrlScheme($url)) {
+            return Message::format(__('No Flash detected.'));
+        }
 
         $allowed = $this->_checkHostAllowed($url);
         if ($allowed !== true) {
