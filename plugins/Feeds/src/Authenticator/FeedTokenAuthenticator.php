@@ -58,8 +58,22 @@ class FeedTokenAuthenticator extends AbstractAuthenticator implements StatelessI
      */
     public function authenticate(ServerRequestInterface $request): ResultInterface
     {
+        // The path alone is not enough. The fallback route
+        // `/{controller}/{action}/*` hands extra segments to any action as
+        // arguments, so `/users/export/feeds/f/<token>/postings/new` *ends* like
+        // a feed URL but is routed to the data export — and was authenticated
+        // as the token's owner. Routing has already run (RoutingMiddleware sits
+        // before AuthenticationMiddleware), so ask it what this request really
+        // is, and accept the token only for the two feed actions themselves.
+        $params = $request->getAttribute('params');
+        $isFeedAction = is_array($params)
+            && ($params['plugin'] ?? null) === 'Feeds'
+            && ($params['controller'] ?? null) === 'Postings'
+            && in_array($params['action'] ?? null, ['new', 'threads'], true)
+            && is_string($params['token'] ?? null);
+
         $path = $request->getUri()->getPath();
-        if (!preg_match(self::PATH_PATTERN, $path, $matches)) {
+        if (!$isFeedAction || !preg_match(self::PATH_PATTERN, $path, $matches)) {
             // Not a tokenized feed URL: let the session/cookie authenticators
             // and `allowUnauthenticated` handle it (public feed for anon, or an
             // in-browser logged-in user via their session).

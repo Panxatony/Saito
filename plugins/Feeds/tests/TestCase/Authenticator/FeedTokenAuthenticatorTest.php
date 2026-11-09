@@ -15,6 +15,8 @@ use Authentication\Authenticator\Result;
 use Authentication\Identifier\IdentifierCollection;
 use Cake\Http\ServerRequest;
 use Cake\ORM\TableRegistry;
+use Cake\Routing\Exception\MissingRouteException;
+use Cake\Routing\Router;
 use Cake\TestSuite\TestCase;
 use Cake\Utility\Security;
 use Feeds\Auth\FeedToken;
@@ -31,6 +33,23 @@ class FeedTokenAuthenticatorTest extends TestCase
         parent::setUp();
         Security::setSalt(str_repeat('a', 32));
         $this->auth = new FeedTokenAuthenticator(new IdentifierCollection());
+        $this->loadPlugins(['Feeds']);
+        $this->loadRoutes();
+    }
+
+    /**
+     * A request as AuthenticationMiddleware sees it: already routed.
+     */
+    private function routed(string $url, string $base = ''): ServerRequest
+    {
+        $request = new ServerRequest(['url' => $url, 'base' => $base]);
+        try {
+            $params = Router::parseRequest($request);
+        } catch (MissingRouteException) {
+            $params = [];
+        }
+
+        return $request->withAttribute('params', $params);
     }
 
     private function tokenFor(int $userId): string
@@ -45,7 +64,7 @@ class FeedTokenAuthenticatorTest extends TestCase
     {
         $token = $this->tokenFor(3);
         foreach (["/feeds/f/$token/postings/new.rss", "/feeds/f/$token/postings/threads.rss"] as $url) {
-            $result = $this->auth->authenticate(new ServerRequest(['url' => $url]));
+            $result = $this->auth->authenticate($this->routed($url));
             $this->assertTrue($result->isValid(), "should authenticate: $url");
             $this->assertSame(3, $result->getData()['sub']);
         }
@@ -55,7 +74,7 @@ class FeedTokenAuthenticatorTest extends TestCase
     {
         $token = $this->tokenFor(3);
         $result = $this->auth->authenticate(
-            new ServerRequest(['url' => "/forum/feeds/f/$token/postings/new.rss"]),
+            $this->routed("/feeds/f/$token/postings/new.rss", '/forum'),
         );
         $this->assertTrue($result->isValid());
     }
@@ -74,9 +93,13 @@ class FeedTokenAuthenticatorTest extends TestCase
             "/feeds/f/$token/postings/delete",
             "/feeds/f/$token/admin",
             "/feeds/f/$token/postings/new/extra",
+            // Ends exactly like a feed URL, but the fallback route sends it to
+            // the data export with the rest as arguments.
+            "/users/export/feeds/f/$token/postings/new",
+            "/admin/users/index/feeds/f/$token/postings/new.rss",
         ];
         foreach ($urls as $url) {
-            $result = $this->auth->authenticate(new ServerRequest(['url' => $url]));
+            $result = $this->auth->authenticate($this->routed($url));
             $this->assertFalse($result->isValid(), "must NOT authenticate: $url");
             $this->assertSame(Result::FAILURE_CREDENTIALS_MISSING, $result->getStatus());
         }
@@ -85,7 +108,7 @@ class FeedTokenAuthenticatorTest extends TestCase
     public function testTamperedTokenOnFeedEndpointFails(): void
     {
         $result = $this->auth->authenticate(
-            new ServerRequest(['url' => '/feeds/f/3-' . str_repeat('0', 32) . '/postings/new.rss']),
+            $this->routed('/feeds/f/3-' . str_repeat('0', 32) . '/postings/new.rss'),
         );
         $this->assertFalse($result->isValid());
         $this->assertSame(Result::FAILURE_CREDENTIALS_INVALID, $result->getStatus());

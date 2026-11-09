@@ -115,6 +115,24 @@ class PostingsControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The fallback route `/{controller}/{action}/*` passes extra path segments
+     * to any action as arguments. A path that merely *ends* like a feed URL
+     * must not log the token's owner in to that other action.
+     */
+    public function testFeedTokenDoesNotAuthenticateOtherActions(): void
+    {
+        $token = $this->feedToken(3);
+        foreach (['/users/export', '/users/htmx-edit/3', '/entries/htmx-add'] as $prefix) {
+            $this->get("$prefix/feeds/f/$token/postings/new");
+            $this->assertFalse(
+                $this->_response->getStatusCode() === 200,
+                "$prefix answered 200 with a feed token appended",
+            );
+            $this->assertResponseNotContains('saito-export', "$prefix leaked the data export");
+        }
+    }
+
+    /**
      * Build the personal feed token for a fixture user.
      */
     private function feedToken(int $userId): string
