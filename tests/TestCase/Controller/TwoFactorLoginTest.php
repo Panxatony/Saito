@@ -471,4 +471,28 @@ class TwoFactorLoginTest extends IntegrationTestCase
         $this->post('/users/two-factor', ['code' => $this->currentCode()]);
         $this->assertArrayNotHasKey('Auth', $_SESSION);
     }
+
+    /**
+     * The right password must not refill the second factor's budget. The two
+     * steps shared one counter, and the password step cleared it: nine wrong
+     * codes, the password again, nine more, without end.
+     *
+     * @return void
+     */
+    public function testThePasswordDoesNotResetTheSecondFactorBudget(): void
+    {
+        $this->enrol();
+        for ($round = 0; $round < 2; $round++) {
+            $this->postPassword();
+            $this->carrySession();
+            for ($i = 0; $i < 9; $i++) {
+                $this->mockSecurity();
+                $this->post('/users/two-factor', ['code' => '000000']);
+            }
+        }
+
+        $this->mockSecurity();
+        $this->post('/users/two-factor', ['code' => $this->currentCode()]);
+        $this->assertArrayNotHasKey('Auth', $_SESSION);
+    }
 }
