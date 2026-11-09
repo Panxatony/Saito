@@ -56,6 +56,24 @@ class AppControllerTest extends IntegrationTestCase
         $this->assertEquals('Register – macnemo', $result);
     }
 
+    /**
+     * `?lang=` ends up in filesystem paths; only an installed language may.
+     */
+    public function testLangParameterAcceptsOnlyInstalledLanguages()
+    {
+        $this->_loginUser(3);
+        $before = Configure::read('Saito.language');
+        foreach (['../../config', 'de/../../x', 'xx', 'zz_ZZ'] as $lang) {
+            Configure::write('Saito.language', $before);
+            $this->get('/entries/htmx-index?lang=' . urlencode($lang));
+            $this->assertSame($before, Configure::read('Saito.language'), "accepted ?lang=$lang");
+        }
+
+        $this->get('/entries/htmx-index?lang=de');
+        $this->assertSame('de', Configure::read('Saito.language'));
+        Configure::write('Saito.language', $before);
+    }
+
     public function testForumDisabledUser()
     {
         Configure::write('Saito.Settings.forum_disabled', true);
