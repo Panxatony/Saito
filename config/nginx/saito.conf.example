@@ -46,6 +46,22 @@
 #                       '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
 
 # -------------------------------------------------------------------
+# Unknown host names: refuse them
+# -------------------------------------------------------------------
+# Without a default_server, nginx hands a request for any Host to the
+# first server block that listens on the port — the forum — and the
+# forum then builds absolute links from that Host. Drop such requests.
+# (On 443 this needs a certificate; `ssl_reject_handshake` avoids it.)
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    ssl_reject_handshake on;
+    return 444;
+}
+
+# -------------------------------------------------------------------
 # HTTP -> HTTPS redirect
 # -------------------------------------------------------------------
 server {

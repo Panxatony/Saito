@@ -226,7 +226,7 @@ in the release tarball does not.
 | `APP_DEFAULT_LOCALE` | `en_US` | Drives `intl`: date, time and number *formatting*. Not the UI language. |
 | `APP_DEFAULT_TIMEZONE` | `UTC` | **Leave at `UTC`.** Not the forum's timezone — that is an admin setting, and Saito renders displayed times into it. This tells PHP how to *read* what comes out of the database, and that is UTC: CakePHP pins its own connection to `+00:00` whatever the DSN says. A local zone here makes every timestamp wrong by the offset. |
 | `SAITO_LANGUAGE` | `en` | UI translation bundle: `de` or `en`. |
-| `SAITO_FULL_BASE_URL` | *(derived)* | Absolute base URL (`https://forum.example.org`). Set it when Saito cannot work the URL out itself — behind a proxy, or for links in mail sent from the command line. |
+| `SAITO_FULL_BASE_URL` | *(derived)* | Absolute base URL (`https://forum.example.org`). **Required for mail.** Without it the base comes from the request's `Host` header, which the client chooses, and Saito sends no mail at all — otherwise anyone could request a password reset for somebody else with `Host: attacker.example` and the genuine mail would carry the token there. Pages still work without it. |
 | `INSTALLED` | `false` | `false` routes every request to the installer. The installer sets it. |
 | `UPDATED` | `false` | `false` routes to the updater whenever `db_version` and the code version differ. Set `true` on an install that is deployed by other means and manages its own schema — a beta that is re-cloned nightly, for instance. |
 

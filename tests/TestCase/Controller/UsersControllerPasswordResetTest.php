@@ -99,6 +99,31 @@ class UsersControllerPasswordResetTest extends IntegrationTestCase
     }
 
     /**
+     * Without a configured base URL the links come from the request's Host
+     * header, which the requester chooses: the victim's genuine reset mail
+     * would carry the token to `attacker.example`. Such a mail is not sent —
+     * and the reply still says "sent", so it is no membership oracle either.
+     */
+    public function testNoResetMailWhenItsLinkWouldComeFromTheHostHeader(): void
+    {
+        \Cake\Core\Configure::write('Saito.fullBaseUrlFromRequest', true);
+        \Cake\Core\Configure::write('debug', false);
+        \Cake\Mailer\TransportFactory::drop('saito');
+        \Cake\Mailer\TransportFactory::setConfig('saito', ['className' => \Cake\TestSuite\TestEmailTransport::class]);
+        \Cake\TestSuite\TestEmailTransport::clearMessages();
+        try {
+            $this->post('/users/htmx-forgot-password', ['user_email' => 'alice@example.com']);
+        } finally {
+            \Cake\Core\Configure::delete('Saito.fullBaseUrlFromRequest');
+            \Cake\Core\Configure::write('debug', true);
+        }
+
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('name="user_email"');
+        $this->assertSame([], \Cake\TestSuite\TestEmailTransport::getMessages());
+    }
+
+    /**
      * The heart of it: the reply for a known and an unknown address is
      * byte-for-byte the same, so it cannot be used to probe membership.
      */

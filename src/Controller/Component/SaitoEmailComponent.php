@@ -14,6 +14,7 @@ namespace App\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Core\Configure;
+use Cake\Log\Log;
 use Cake\Log\LogTrait;
 use Cake\Mailer\Mailer;
 use Cake\Mailer\Transport\DebugTransport;
@@ -63,6 +64,21 @@ class SaitoEmailComponent extends Component
      */
     public function email($params = [])
     {
+        // Every mail carries absolute links — the forum's address, and for a
+        // password reset or an activation the link that does it. Without
+        // SAITO_FULL_BASE_URL they were built from the request's Host header:
+        // anyone could ask for a reset of somebody else's account with
+        // `Host: attacker.example`, and the genuine mail sent the victim's
+        // single-use token there. Refuse rather than send such a link.
+        if (Configure::read('Saito.fullBaseUrlFromRequest') && !Configure::read('debug')) {
+            $message = 'Mail not sent: SAITO_FULL_BASE_URL is not set, and links built from the '
+                . 'request\'s Host header must not be mailed. Set it to the forum\'s public address '
+                . '(see docs/configuration.md).';
+            Log::error($message);
+
+            throw new \RuntimeException($message);
+        }
+
         $defaults = [
             'ccsender' => false,
             'message' => '',
