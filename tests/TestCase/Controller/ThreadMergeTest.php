@@ -87,6 +87,32 @@ class ThreadMergeTest extends IntegrationTestCase
     }
 
     /**
+     * A merge is a category move, and the merge permission is per role. A
+     * moderator must not carry a thread out of a category only admins read —
+     * nor bury a public thread in one.
+     *
+     * @return void
+     */
+    public function testAModeratorCannotMergeAcrossACategoryTheyCannotRead(): void
+    {
+        // Category 1 (thread 6) readable by admins only.
+        TableRegistry::getTableLocator()->get('Categories')
+            ->updateAll(['accession' => 3, 'accession_new_thread' => 3, 'accession_new_posting' => 3], ['id' => 1]);
+        $this->_loginUser(2);
+
+        try {
+            $this->merge(6, 1);
+        } catch (\Cake\Http\Exception\NotFoundException) {
+            // As for a thread that does not exist.
+        }
+        $this->assertSame(['pid' => 0, 'tid' => 6, 'category_id' => 1], $this->posting(6), 'out of the hidden category');
+
+        $this->merge(10, 6);
+        $this->assertSame(0, $this->posting(10)['pid'], 'into the hidden category');
+        $this->assertSame(2, $this->posting(10)['category_id']);
+    }
+
+    /**
      * Thread 10 (a root of its own) moved under posting 1, the root of thread 1.
      *
      * @return void

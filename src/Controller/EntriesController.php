@@ -624,12 +624,28 @@ class EntriesController extends AppController
         if (!$entry || !$entry->isRoot()) {
             throw new NotFoundException();
         }
+        // The merge permission is per role, not per category. Merging moves the
+        // source thread into the target's category, so without these checks a
+        // moderator could carry a thread out of a category only admins read
+        // into a public one — or hide a public thread where they cannot see it.
+        // Both ends must be categories the moderator may read and start
+        // threads in.
+        $Categories = $this->CurrentUser->getCategories();
+        $mayUse = fn(int $categoryId): bool => $Categories->permission('read', $categoryId) === true
+            && $Categories->permission('thread', $categoryId) === true;
+        if (!$mayUse((int)$entry->get('category_id'))) {
+            throw new NotFoundException();
+        }
 
         $isHx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
 
         if ($this->getRequest()->is('post')) {
             $targetId = (int)$this->getRequest()->getData('targetId');
-            if ($targetId > 0 && $this->Entries->threadMerge($sourceId, $targetId)) {
+            $target = $targetId > 0 ? $this->Entries->findById($targetId)->first() : null;
+            if ($target !== null && !$mayUse((int)$target->get('category_id'))) {
+                $target = null;
+            }
+            if ($target !== null && $this->Entries->threadMerge($sourceId, $targetId)) {
                 $threadUrl = \Cake\Routing\Router::url(['action' => 'htmxThread', $sourceId]);
                 if ($isHx) {
                     return $this->response->withHeader('HX-Redirect', $threadUrl);
