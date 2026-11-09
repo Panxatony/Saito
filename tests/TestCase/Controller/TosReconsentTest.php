@@ -151,7 +151,8 @@ class TosReconsentTest extends IntegrationTestCase
         $this->termsChangedSince(1);
         $this->_loginUser(1);
 
-        $this->get('/logout');
+        $this->mockSecurity();
+        $this->post('/logout');
 
         // Whatever it answers, it must not be the interstitial.
         $this->assertResponseNotContains('tos-reconsent-form');

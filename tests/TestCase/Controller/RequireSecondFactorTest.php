@@ -259,7 +259,8 @@ class RequireSecondFactorTest extends IntegrationTestCase
     {
         $this->requireFrom('admin');
         $this->_loginUser(self::ADMIN_ID);
-        $this->get('/logout');
+        $this->mockSecurity();
+        $this->post('/logout');
 
         $this->assertNotGated();
         $this->assertRedirect();

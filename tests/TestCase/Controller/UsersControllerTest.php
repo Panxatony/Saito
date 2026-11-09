@@ -886,12 +886,25 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertRedirectLogin($url);
     }
 
+    /**
+     * `[img]/logout[/img]` in a posting logged out everybody who read it.
+     *
+     * @return void
+     */
+    public function testLogoutRejectsGet()
+    {
+        $this->_loginUser(1);
+        $this->expectException(\Cake\Http\Exception\MethodNotAllowedException::class);
+        $this->get('/logout');
+    }
+
     public function testLogoutSuccess()
     {
         $this->_loginUser(1);
         $this->cookie('my_cookie', 'foo');
 
-        $user = $this->get('/logout');
+        $this->mockSecurity();
+        $this->post('/logout');
 
         $this->assertFalse($this->_controller->CurrentUser->isLoggedIn());
 

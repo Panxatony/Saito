@@ -406,6 +406,10 @@ class UsersController extends AppController
      */
     public function logout()
     {
+        // POST only. As a GET, `[img]/logout[/img]` in any posting logged out
+        // every reader who scrolled past it — and with them their trusted
+        // second-factor device.
+        $this->getRequest()->allowMethod('post');
         $request = $this->getRequest();
         $cookies = $request->getCookieCollection();
         foreach ($cookies as $cookie) {
@@ -2132,6 +2136,9 @@ class UsersController extends AppController
             // tamper with — and CSRF, which is the protection that matters, is
             // middleware and stays on.
             'tosAccept',
+            // Logout is a bare button form (see element/users/logout_button):
+            // no fields to tamper with; CSRF covers it.
+            'logout',
             // The WebAuthn ceremonies. These post JSON from the island, not a
             // rendered form, so there is no `_Token` to emit and none to check;
             // CSRF still covers them through the middleware, and each one is

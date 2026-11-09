@@ -1045,6 +1045,9 @@ class EntriesController extends AppController
      */
     public function update()
     {
+        // POST only: as a GET, `[img]/entries/update[/img]` in a posting
+        // reset every reader's unread state.
+        $this->getRequest()->allowMethod('post');
         $this->autoRender = false;
         $this->CurrentUser->getLastRefresh()->set();
 
@@ -1120,6 +1123,8 @@ class EntriesController extends AppController
      */
     public function solve($id)
     {
+        // The island posts here; a GET from an `[img]` must not flip the mark.
+        $this->getRequest()->allowMethod('post');
         $this->autoRender = false;
         try {
             // get() raises RecordNotFoundException for an unknown id; it never
@@ -1356,7 +1361,7 @@ class EntriesController extends AppController
             // nothing to validate and blackholed every attempt — pinning and
             // unpinning a thread simply did nothing, silently, with the failure
             // visible only in the server log.
-            ['solve', 'ajaxToggle', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload',
+            ['solve', 'update', 'ajaxToggle', 'htmxPosting', 'htmxReply', 'htmxAdd', 'htmxPreview', 'htmxUpload',
                 'htmxBookmark', 'htmxEdit', 'htmxMerge', 'htmxUploadDelete', 'htmxDraft']
         );
         $this->Authentication->allowUnauthenticated(
