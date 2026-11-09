@@ -98,6 +98,10 @@ class ThreadMergeTest extends IntegrationTestCase
         // Category 1 (thread 6) readable by admins only.
         TableRegistry::getTableLocator()->get('Categories')
             ->updateAll(['accession' => 3, 'accession_new_thread' => 3, 'accession_new_posting' => 3], ['id' => 1]);
+        // Category permissions are cached; an earlier test may have built them.
+        // CategoriesTable also keeps them in a static of RememberTrait.
+        \Cake\Cache\Cache::clearAll();
+        (new \ReflectionProperty(\App\Model\Table\CategoriesTable::class, '__rememberStatic'))->setValue(null, []);
         $this->_loginUser(2);
 
         try {
