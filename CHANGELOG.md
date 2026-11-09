@@ -5,6 +5,25 @@
 - Δ Changed
 - − Removed
 
+## [8.4.22] - 2026-11-08 "rauchmelder"
+
+**No migration, no configuration change.** A security update of three Symfony
+components after the advisories of 2026-11-04. Saito is not affected by any of
+them; the update is there so that `composer audit` reports nothing again.
+
+- Δ Changed: **`symfony/serializer` 8.1.11, `symfony/config` 7.4.23,
+  `symfony/filesystem` 8.1.11.** They come in through `web-auth/webauthn-lib`
+  (passkeys) and `robmorgan/phinx` (migrations). None of the advisory paths
+  can be reached:
+  - The serializer WebAuthn uses registers neither a `DataUriNormalizer` nor an
+    `UploadedFile` normalizer. Its object normalizer only builds WebAuthn's own
+    value objects, and none of them has an `#[Ignore]` property.
+  - Nothing calls `XmlUtils::parse()`.
+  - `Path` never receives user input.
+
+  The update also brings `symfony/deprecation-contracts` 3.8.1 and
+  `web-auth/cose-lib` 4.8.2.
+
 ## [8.4.21] - 2026-11-02 "ölwechsel"
 
 **No migration, no configuration change.** A maintenance release: five weeks of
