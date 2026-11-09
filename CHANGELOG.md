@@ -5,6 +5,68 @@
 - Δ Changed
 - − Removed
 
+## [8.4.23] - 2026-11-09 "schlüsseldienst"
+
+**A security release. Upgrade soon.** No migration. **One configuration change
+may be needed:** if `config/.env` does not set `SAITO_FULL_BASE_URL`, Saito
+now sends no mail at all — set it to the forum's public address
+(`SAITO_FULL_BASE_URL=https://forum.example.org`) before upgrading. Pages work
+without it. Check your own `config/app.php` too: an older one says
+`'fullBaseUrl' => false,` and ignores the variable — make that line
+`'fullBaseUrl' => env('SAITO_FULL_BASE_URL', false),`. The findings come from an audit of the source; none of them is
+known to have been used.
+
+- ✓ Fixed: **A personal feed link logged its owner in to the whole forum.** The
+  token in `/feeds/f/<token>/postings/new` was accepted for any URL that merely
+  *ended* like that, and the fallback route passes extra path segments to every
+  action. `/users/export/feeds/f/<token>/postings/new` returned the owner's data
+  export, without password or second factor; from the profile form, a new
+  e-mail address and a password reset completed the takeover, and an
+  administrator's token opened the backend. Feed URLs end up in third-party feed
+  readers. The token now works only on the two feed actions themselves. A new
+  token is issued whenever a member changes the password; whoever wants to
+  revoke a link they have given out can do so that way.
+
+- ✓ Fixed: **Stored XSS through `javascript:` links.** For
+  `javascript:///%0aalert(1)` and similar URLs PHP's `parse_url()` gives up,
+  and the scheme check read that as a relative link. `[url]`, `[link]`, `[img]`
+  and bare URLs in postings, signatures and profiles were affected; a reader had
+  to click. A Content-Security-Policy without `'unsafe-inline'` — the
+  recommended one — already blocked it in the browser. The scheme is now read
+  the way browsers read it. `[flash_video]` checked only the host and now
+  checks the scheme too.
+
+- ✓ Fixed: **One posting could take down every page that showed it.** A tag
+  like `[b a=1 b=javascript:x]` made the BBCode library throw; nothing caught
+  it, so the thread, the feeds and — from a signature — every thread of its
+  author answered 500. Such a posting is now shown as plain text.
+
+- ✓ Fixed: **The second-factor code could be guessed without limit.** The code
+  step shared its counter of failed attempts with the password step, and the
+  right password reset it. The second factor now counts per account and only a
+  completed login resets it.
+
+- ✓ Fixed: **A borrowed session could keep the account.** Changing the e-mail
+  address, adding a passkey and restarting two-factor enrolment needed no
+  password; the last one even deleted an active second factor. Now the e-mail
+  address and a new passkey cost the current password — the profile form has a
+  field for it, used only when the address changes — and enrolment cannot be
+  restarted while two-factor authentication is on.
+
+- ✓ Fixed: **Password-reset links could be sent to another host.** Without
+  `SAITO_FULL_BASE_URL` the links in mail were built from the request's `Host`
+  header, which the requester chooses. See the note at the top. The nginx
+  example in `config/nginx/` gains a `default_server` that drops requests for
+  unknown host names.
+
+- ✓ Fixed: **Moderators could merge threads across categories they cannot
+  read**, moving an admin-only thread into a public category or the reverse.
+  Both threads' categories are now checked.
+
+- ✓ Fixed: **Logout, "mark all read" and "solved" answered to GET**, so an
+  `[img]` pointing at them fired for every reader. They are POST-only now; the
+  logout link in the header is a button.
+
 ## [8.4.22] - 2026-11-08 "rauchmelder"
 
 **No migration, no configuration change.** A security update of three Symfony
