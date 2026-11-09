@@ -887,6 +887,31 @@ class UsersControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The CSRF cookie is never read by script (the token comes from the meta
+     * tag), so it is HttpOnly; and Secure once the forum runs on https (#171).
+     *
+     * @return void
+     */
+    public function testTheCsrfCookieIsHttpOnlyAndSecureOnHttps()
+    {
+        $name = \Cake\Core\Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF';
+
+        $this->get('/login');
+        $cookie = $this->_response->getCookieCollection()->get($name);
+        $this->assertTrue($cookie->isHttpOnly());
+        $this->assertFalse($cookie->isSecure(), 'plain http in the test run');
+
+        $this->configRequest(['environment' => ['HTTPS' => 'on']]);
+        $_SERVER['HTTPS'] = 'on';
+        try {
+            $this->get('/login');
+        } finally {
+            unset($_SERVER['HTTPS']);
+        }
+        $this->assertTrue($this->_response->getCookieCollection()->get($name)->isSecure());
+    }
+
+    /**
      * `[img]/logout[/img]` in a posting logged out everybody who read it.
      *
      * @return void

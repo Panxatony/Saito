@@ -54,8 +54,10 @@ $config = [
         'noindex' => filter_var(env('SAITO_NOINDEX', false), FILTER_VALIDATE_BOOLEAN),
 
         /**
-         * Trust a reverse proxy's X-Forwarded-* headers (real client IP + https
-         * scheme). Enable (SAITO_TRUST_PROXY=true) ONLY when the app sits behind
+         * Trust a reverse proxy's X-Forwarded-For header for the real client IP.
+         * It does not decide the Secure flag of cookies — that follows the
+         * server's HTTPS variable (fastcgi_param HTTPS on behind a TLS proxy).
+         * Enable (SAITO_TRUST_PROXY=true) ONLY when the app sits behind
          * a trusted proxy such as the beta edge — a directly-reachable install
          * must leave this off, or clients could spoof their IP (throttle bypass).
          */
