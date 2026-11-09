@@ -204,9 +204,14 @@ class UsersController extends AppController
         // don't autofill password
         $this->setRequest($this->getRequest()->withData('password', ''));
 
+        // The name only when it belongs to an account. What was typed into the
+        // field otherwise is anybody's guess — often enough the password, one
+        // field too early — and does not belong in a log.
         $Logger = new ForbiddenLogger();
         $Logger->write(
-            "Unsuccessful login for user: $username",
+            $User !== null
+                ? sprintf('Unsuccessful login for user: %s (id: %d)', $User->get('username'), $User->get('id'))
+                : 'Unsuccessful login for an unknown username',
             ['msgs' => [$message]],
         );
 
