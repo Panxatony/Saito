@@ -83,6 +83,29 @@ class TwoFactorCredentialsTableTest extends TestCase
     }
 
     /**
+     * A code lets in once. Valid for its step and the steps either side, it
+     * used to work again for up to 90 seconds — for a phishing proxy's second
+     * session, say (#165).
+     *
+     * @return void
+     */
+    public function testACodeIsAcceptedOnlyOnce(): void
+    {
+        $secret = $this->Credentials->beginEnrolment(1);
+        $code = $this->codeFor($secret);
+        $this->Credentials->confirmEnrolment(1, $code);
+
+        $this->assertTrue($this->Credentials->verifyCode(1, $code), 'the enrolment code still logs in once');
+        $this->assertFalse($this->Credentials->verifyCode(1, $code), 'but not twice');
+
+        // An older code than the one spent — the previous step — is refused too.
+        $previous = TOTP::createFromSecret($secret)->at(time() - 30);
+        if ($previous !== $code) {
+            $this->assertFalse($this->Credentials->verifyCode(1, $previous));
+        }
+    }
+
+    /**
      * The reason the column is encrypted: a database read must not yield
      * something an attacker can turn into codes.
      *

@@ -151,7 +151,7 @@ class TwoFactorCredentialsTable extends Table
             return false;
         }
 
-        return $this->verifyAgainst($credential, $code);
+        return $this->verifyAgainst($credential, $code, spend: true);
     }
 
     /**
@@ -240,7 +240,7 @@ class TwoFactorCredentialsTable extends Table
      * @param string $code the six digits
      * @return bool
      */
-    private function verifyAgainst(TwoFactorCredential $credential, string $code): bool
+    private function verifyAgainst(TwoFactorCredential $credential, string $code, bool $spend = false): bool
     {
         $code = trim($code);
         // Authenticator apps and password managers happily paste "123 456".
@@ -254,7 +254,38 @@ class TwoFactorCredentialsTable extends Table
             return false;
         }
 
-        return TOTP::createFromSecret($secret)->verify($code, null, self::LEEWAY_SECONDS);
+        // Which time step the code belongs to, not only whether it is valid:
+        // the same leeway TOTP::verify() allows (one step either side), checked
+        // step by step so the matching one can be recorded. A code whose step
+        // is not later than the last one accepted has been used already — an
+        // observed or relayed code must not work twice (#165).
+        $totp = TOTP::createFromSecret($secret);
+        $period = $totp->getPeriod();
+        $now = time();
+        $step = null;
+        foreach ([$now - self::LEEWAY_SECONDS, $now, $now + self::LEEWAY_SECONDS] as $at) {
+            if (hash_equals($totp->at($at), $code)) {
+                $step = intdiv($at, $period);
+                break;
+            }
+        }
+        if ($step === null) {
+            return false;
+        }
+        if (!$spend) {
+            // Confirming an enrolment proves the app is set up; it lets nobody
+            // in. Spending its step would only make the very next login, often
+            // in the same half minute, refuse the code the member just read.
+            return true;
+        }
+        $last = $credential->get('last_used_step');
+        if ($last !== null && $step <= (int)$last) {
+            return false;
+        }
+        $credential->set('last_used_step', $step);
+        $this->saveOrFail($credential);
+
+        return true;
     }
 
     /**
