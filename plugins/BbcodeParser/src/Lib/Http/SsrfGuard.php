@@ -24,6 +24,20 @@ namespace Plugin\BbcodeParser\src\Lib\Http;
 class SsrfGuard
 {
     /**
+     * IPv4 ranges refused on top of FILTER_FLAG_NO_PRIV_RANGE|NO_RES_RANGE.
+     *
+     * @var list<array{0: string, 1: int}>
+     */
+    private const DENIED_IPV4 = [
+        ['0.0.0.0', 8],
+        ['100.64.0.0', 10],
+        ['192.0.0.0', 24],
+        ['198.18.0.0', 15],
+        ['224.0.0.0', 4],
+        ['240.0.0.0', 4],
+    ];
+
+    /**
      * Is a single IP a routable public address?
      *
      * Pure and deterministic (no DNS) — this is the unit-testable core.
@@ -33,11 +47,33 @@ class SsrfGuard
      */
     public static function isPublicIp(string $ip): bool
     {
-        return filter_var(
-            $ip,
-            FILTER_VALIDATE_IP,
-            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
-        ) !== false;
+        if (
+            filter_var(
+                $ip,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
+            ) === false
+        ) {
+            return false;
+        }
+        // PHP's flags leave out special-purpose ranges that are not the
+        // internet either (#167): CGNAT — also the range Tailscale hands out —,
+        // the benchmarking block, IETF protocol assignments, multicast and the
+        // rest of class E. A forum host that can reach one of them would have
+        // fetched it for an [embed] and shown the result in the card.
+        $long = ip2long($ip);
+        if ($long === false) {
+            // IPv6: multicast is not covered by the flags either.
+            return !str_starts_with(strtolower($ip), 'ff');
+        }
+        foreach (self::DENIED_IPV4 as [$network, $bits]) {
+            $mask = -1 << (32 - $bits);
+            if (($long & $mask) === (ip2long($network) & $mask)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

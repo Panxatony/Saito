@@ -161,7 +161,16 @@ class SsrfGuardedClient implements ClientInterface
 
         curl_exec($connection);
         $status = (int)curl_getinfo($connection, CURLINFO_RESPONSE_CODE);
-        curl_close($connection);
+        // Where curl actually connected. CURLOPT_RESOLVE pins the host as
+        // Laminas parsed it; should curl read the URL's host differently
+        // (backslashes, userinfo), the pin would not apply and it would
+        // resolve on its own. Discard anything not fetched from the pinned
+        // address (#167). (No curl_close(): a no-op since PHP 8.0, deprecated
+        // in 8.5 — the handle goes when it goes out of scope.)
+        $connectedTo = (string)curl_getinfo($connection, CURLINFO_PRIMARY_IP);
+        if ($status >= 100 && $connectedTo !== $pinnedIp) {
+            return [0, [], ''];
+        }
 
         return [$status, $headers, $body];
     }
