@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Plugin\BbcodeParser\src\Lib;
 
 use Cake\Core\Plugin;
+use Cake\Log\Log;
 use Cake\View\Helper;
 use Plugin\BbcodeParser\src\Lib\jBBCode\Definitions;
 use Plugin\BbcodeParser\src\Lib\jBBCode\Visitors;
@@ -250,9 +251,23 @@ class Parser
 
         $this->_initParser($options);
 
+        $original = (string)$string;
         $string = $this->_Preprocessors->process($string);
 
-        $this->_Parser->parse($string);
+        try {
+            $this->_Parser->parse($string);
+        } catch (\Throwable $e) {
+            // jbbcode's option reader loses a value in one state (an option
+            // after the first one that starts with `javascript:`), and the
+            // `array_combine()` after it throws a ValueError on PHP 8 —
+            // `[b a=1 b=javascript:x]` is enough. Parsing happens at render
+            // time, so one such posting took down every page that showed it,
+            // a signature every thread its author had posted in. Show the
+            // text as it was typed instead, escaped.
+            Log::warning(sprintf('BBCode parser gave up (%s): %s', $e::class, $e->getMessage()));
+
+            return nl2br(h($original));
+        }
 
         $this->_Parser->accept(
             new Visitors\JbbCodeNl2BrVisitor($this->_Helper, $this->_cSettings)

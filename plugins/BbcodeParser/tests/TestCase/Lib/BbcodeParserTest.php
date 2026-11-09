@@ -180,6 +180,23 @@ class BbcodeParserTest extends SaitoTestCase
     }
 
     /**
+     * A tag whose later option starts with `javascript:` sends jbbcode's
+     * option reader into a state that loses the value; the array_combine()
+     * after it threw a ValueError, and the page holding the posting answered
+     * 500 on every render. It must come back as escaped text instead.
+     *
+     * @return void
+     */
+    public function testOptionThatBreaksJbbcodeDoesNotThrow()
+    {
+        foreach (['[b a=1 b=javascript:x]bold[/b]', '[foo a=1 b=javascript:]x', "line\n[b a=1 b=javascript:x]<i>"] as $input) {
+            $html = (string)$this->_Parser->parse($input);
+            $this->assertStringContainsString('javascript:', $html, 'the text is shown, not dropped');
+            $this->assertStringNotContainsString('<i>', $html, 'and it is escaped');
+        }
+    }
+
+    /**
      * SECURITY: undoing the first escape must not let markup through.
      *
      * This is the spot the stored XSS of 7.2.5 lived in, so the check is made
