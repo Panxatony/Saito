@@ -35,11 +35,22 @@ class AppController extends Controller
     protected $migrations;
 
     /**
+     * Start every request from empty caches. The installer wants that; the
+     * updater does not — every visitor reaches it while versions differ, and
+     * each hit emptied the caches. It clears them after a successful update.
+     *
+     * @var bool
+     */
+    protected bool $clearCachesOnEveryRequest = true;
+
+    /**
      * {@inheritDoc}
      */
     public function initialize(): void
     {
-        Cache::clear();
+        if ($this->clearCachesOnEveryRequest) {
+            Cache::clear();
+        }
         Cache::disable();
 
         parent::initialize();

@@ -180,6 +180,24 @@ class BbcodeParserTest extends SaitoTestCase
     }
 
     /**
+     * A newline followed by the quote symbol inside an [img] address used to
+     * get a citation span inserted into the src attribute (#173).
+     *
+     * @return void
+     */
+    public function testQuoteMarkupStaysOutOfAttributes()
+    {
+        $html = (string)$this->_Parser->parse("[img]http://example.com/a\n» b.png[/img]\n» quoted");
+        $doc = new \DOMDocument();
+        @$doc->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NOERROR);
+        foreach ((new \DOMXPath($doc))->query('//@href|//@src') as $attr) {
+            $this->assertStringNotContainsString('<span', (string)$attr->nodeValue, $attr->nodeName);
+            $this->assertStringNotContainsString('richtext-citation', (string)$attr->nodeValue, $attr->nodeName);
+        }
+        $this->assertStringContainsString('<span class="richtext-citation">» quoted</span>', $html);
+    }
+
+    /**
      * A tag whose later option starts with `javascript:` sends jbbcode's
      * option reader into a state that loses the value; the array_combine()
      * after it threw a ValueError, and the page holding the posting answered

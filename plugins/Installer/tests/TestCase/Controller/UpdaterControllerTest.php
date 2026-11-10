@@ -36,6 +36,7 @@ class UpdaterControllerTest extends IntegrationTestCase
         $this->tokenPath = CONFIG . 'updater';
         $this->dbVersion = (new DbVersion(TableRegistry::getTableLocator()->get('Settings')));
         Configure::write('Saito.updated', false);
+        @unlink(TMP . 'updater-start-attempts.json');
     }
 
     public function tearDown(): void
@@ -43,6 +44,7 @@ class UpdaterControllerTest extends IntegrationTestCase
         if (file_exists($this->tokenPath)) {
             unlink($this->tokenPath);
         }
+        @unlink(TMP . 'updater-start-attempts.json');
         unset($this->settings, $this->tokenPath);
         parent::tearDown();
     }
@@ -184,6 +186,35 @@ class UpdaterControllerTest extends IntegrationTestCase
 
         $this->assertTrue($this->viewVariable('startAuthError'));
 
+        $status = $migration->status();
+        $this->assertEquals('down', array_pop($status)['status']);
+    }
+
+    /**
+     * Anybody reaches the start form while an update is pending, and it asks
+     * for the database password. After ten wrong tries even the right one is
+     * refused for a while (#170).
+     */
+    public function testUpdaterStartIsThrottled()
+    {
+        $this->dropTables();
+        $migration = new Migrations(['connection' => 'test']);
+        $migration->migrate(['target' => 20180620081553]);
+        $migration->seed(['seed' => 'SettingsSeed']);
+        $this->dbVersion->set('4.10.0');
+        $connection = ConnectionManager::get('test');
+        $connection->execute('DROP TABLE `phinxlog`;');
+        $config = ConnectionManager::get('default')->config();
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->mockSecurity();
+            $this->post('/', ['dbname' => $config['database'], 'dbpassword' => 'guess-' . $i]);
+        }
+        $this->mockSecurity();
+        $this->post('/', ['dbname' => $config['database'], 'dbpassword' => $config['password']]);
+
+        $this->assertEquals('start', $this->_controller->viewBuilder()->getTemplate());
+        $this->assertTrue($this->viewVariable('startAuthError'));
         $status = $migration->status();
         $this->assertEquals('down', array_pop($status)['status']);
     }

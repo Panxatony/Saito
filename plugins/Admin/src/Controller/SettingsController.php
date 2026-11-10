@@ -111,7 +111,10 @@ class SettingsController extends AdminAppController
      */
     public function edit(?string $id = null)
     {
-        if (empty($id)) {
+        // Only what the settings page offers. Any other key — db_version, for
+        // one, which would send every visitor to the updater — is not edited
+        // through a form (#173).
+        if (empty($id) || !array_key_exists($id, $this->settingsShownInAdminIndex)) {
             throw new NotFoundException();
         }
 

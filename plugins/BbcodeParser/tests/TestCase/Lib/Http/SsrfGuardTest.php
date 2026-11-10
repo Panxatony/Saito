@@ -52,6 +52,20 @@ class SsrfGuardTest extends SaitoTestCase
             ['fe80::1', false],
             // unique-local IPv6
             ['fd00::1', false],
+            // special-purpose ranges the PHP flags let through (#167)
+            ['100.64.0.1', false],
+            ['100.127.255.254', false],
+            ['198.18.0.1', false],
+            ['198.19.255.1', false],
+            ['192.0.0.8', false],
+            ['224.0.0.251', false],
+            ['239.255.255.250', false],
+            ['240.0.0.1', false],
+            ['ff02::1', false],
+            // neighbours of those that are public
+            ['100.63.255.255', true],
+            ['100.128.0.1', true],
+            ['198.20.0.1', true],
             // not an IP at all
             ['not-an-ip', false],
             ['', false],

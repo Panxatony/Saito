@@ -184,6 +184,11 @@ Configure::write('Error.errorLevel', Configure::read('Error.errorLevel') & ~E_DE
  * Register application error and exception handlers via Cake 5's
  * ErrorTrap / ExceptionTrap (the old ErrorHandler classes were removed).
  */
+// The anonymising logger before the traps exist: they copy the config when
+// they are built, and Application::bootstrap(), which also sets it, runs only
+// after this file — PHP warnings and fatals went out through Cake's default
+// logger with the full client IP.
+Configure::write('Error.logger', \App\Error\AnonymizingErrorLogger::class);
 (new \Cake\Error\ErrorTrap(Configure::read('Error')))->register();
 (new \Cake\Error\ExceptionTrap(Configure::read('Error')))->register();
 

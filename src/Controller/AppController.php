@@ -452,10 +452,17 @@ class AppController extends Controller
 
 
         //= change language
+        // Only a language that is installed. The value becomes part of
+        // filesystem paths (help pages, overlay help), and `?lang=../../x`
+        // listed the first heading of every *.md in any readable directory.
         $lang = $this->request->getQuery('lang');
-        if (!empty($lang)) {
+        if (
+            is_string($lang)
+            && preg_match('/^[a-z]{2}(_[A-Z]{2})?$/', $lang) === 1
+            && is_dir(APP . 'Locale' . DS . $lang)
+        ) {
             Configure::write('Saito.language', $lang);
-        };
+        }
     }
 
     /**

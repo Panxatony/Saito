@@ -221,6 +221,14 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                     // with, and that is the credential worth protecting.
                     'expiry' => 0,
                     'cookieName' => Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF',
+                    // Nothing in the frontend reads this cookie — the token
+                    // comes from `<meta name="csrf-token">` — so script has no
+                    // business with it. Secure whenever the forum is served
+                    // over https, by the server's own flag or the configured
+                    // base URL (TLS ending at a proxy in front).
+                    'httponly' => true,
+                    'secure' => (bool)env('HTTPS')
+                        || str_starts_with((string)Configure::read('App.fullBaseUrl'), 'https://'),
                 ]))
                     ->skipCheckCallback(function ($request) {
                         // `/api/v2` is exempt, and that is safe rather than an

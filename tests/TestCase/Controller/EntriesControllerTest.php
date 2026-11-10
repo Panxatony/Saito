@@ -420,6 +420,31 @@ class EntriesControllerTest extends IntegrationTestCase
      * PostingComponent::update() (which requires edit permission) and threw a
      * SaitoForbiddenException here.
      */
+    /**
+     * The role may pin; the category must still be readable (#173). Thread 6
+     * sits in category 1, narrowed here to admins.
+     */
+    public function testAjaxToggleRefusesACategoryTheModeratorCannotRead()
+    {
+        TableRegistry::getTableLocator()->get('Categories')
+            ->updateAll(['accession' => 3], ['id' => 1]);
+        \Cake\Cache\Cache::clearAll();
+        (new \ReflectionProperty(\App\Model\Table\CategoriesTable::class, '__rememberStatic'))->setValue(null, []);
+        try {
+            $this->_loginUser(2);
+            $this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+            try {
+                $this->post('/entries/ajaxToggle/6/fixed');
+            } catch (\Cake\Http\Exception\NotFoundException) {
+                $this->addToAssertionCount(1);
+            }
+            $this->assertFalse((bool)$this->Table->get(6)->get('fixed'));
+        } finally {
+            \Cake\Cache\Cache::clearAll();
+            (new \ReflectionProperty(\App\Model\Table\CategoriesTable::class, '__rememberStatic'))->setValue(null, []);
+        }
+    }
+
     public function testAjaxToggleFixedAllowedForModerator()
     {
         $this->Table->updateAll(

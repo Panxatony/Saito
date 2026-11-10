@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Auth\Mlf2PasswordHasher;
 use App\Form\BlockForm;
-use Authentication\PasswordHasher\DefaultPasswordHasher;
 use App\Model\Entity\User;
 use App\Model\Table\WebauthnCredentialsTable;
+use Authentication\PasswordHasher\FallbackPasswordHasher;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
@@ -204,9 +205,14 @@ class UsersController extends AppController
         // don't autofill password
         $this->setRequest($this->getRequest()->withData('password', ''));
 
+        // The name only when it belongs to an account. What was typed into the
+        // field otherwise is anybody's guess — often enough the password, one
+        // field too early — and does not belong in a log.
         $Logger = new ForbiddenLogger();
         $Logger->write(
-            "Unsuccessful login for user: $username",
+            $User !== null
+                ? sprintf('Unsuccessful login for user: %s (id: %d)', $User->get('username'), $User->get('id'))
+                : 'Unsuccessful login for an unknown username',
             ['msgs' => [$message]],
         );
 
@@ -234,7 +240,13 @@ class UsersController extends AppController
 
         // Only accept local paths; reject absolute (https://evil.com) and
         // protocol-relative (//evil.com, /\evil.com) URLs.
-        if ($target !== '' && !preg_match('#^/(?![/\\\\])#', $target)) {
+        // No control characters, spaces or backslashes anywhere: browsers drop
+        // TAB/CR/LF from a URL, so `/<TAB>/evil.com` arrives as `//evil.com`
+        // once it is in an HX-Redirect header or window.location (#166).
+        if (
+            $target !== ''
+            && (!preg_match('#^/(?![/\\\\])#', $target) || preg_match('#[\x00-\x20\x7f\\\\]#', $target))
+        ) {
             $target = '';
         }
 
@@ -263,7 +275,12 @@ class UsersController extends AppController
      */
     private function _failedLoginMessage(?User $User, string $username): string
     {
-        if (empty($User)) {
+        // Whether an account is unactivated or blocked is told only to whoever
+        // knows its password — otherwise a wrong guess learnt it too (#166).
+        if (
+            empty($User)
+            || !$this->passwordMatches((string)$this->request->getData('password'), (string)$User->get('password'))
+        ) {
             return __('user.authe.e.generic');
         }
         if (!$User->isActivated()) {
@@ -507,7 +524,6 @@ class UsersController extends AppController
      */
     public function htmxForgotPassword(): void
     {
-        $this->AuthUser->logout();
         $this->set('status', 'view');
 
         $isHtmx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
@@ -520,6 +536,9 @@ class UsersController extends AppController
         if (!$this->request->is('post')) {
             return;
         }
+        // On the request, not on the page view: as a GET, an [img] pointing
+        // here logged every reader out (#166).
+        $this->AuthUser->logout();
 
         if ($this->isPasswordResetThrottled()) {
             $this->Flash->set(__('user.authe.throttled'), ['element' => 'error']);
@@ -578,7 +597,10 @@ class UsersController extends AppController
      */
     public function htmxResetPassword(): ?Response
     {
-        $this->AuthUser->logout();
+        // Only when a new password is actually posted (#166, as above).
+        if ($this->request->is('post')) {
+            $this->AuthUser->logout();
+        }
 
         $isHtmx = $this->getRequest()->getHeaderLine('HX-Request') === 'true';
         $render = function () use ($isHtmx): void {
@@ -1749,7 +1771,27 @@ class UsersController extends AppController
         }
         $user = $this->Users->get((int)$this->CurrentUser->getId(), fields: ['id', 'password']);
 
-        return (new DefaultPasswordHasher())->check($password, (string)$user->get('password'));
+        return $this->passwordMatches($password, (string)$user->get('password'));
+    }
+
+    /**
+     * The password check the login uses: bcrypt, and the mylittleforum 2.x
+     * format an upgraded forum still carries. bcrypt alone left such an account
+     * unable to do anything that asks for the password again (#166).
+     *
+     * @param string $password as typed
+     * @param string $hash as stored
+     * @return bool
+     */
+    private function passwordMatches(string $password, string $hash): bool
+    {
+        if ($password === '' || $hash === '') {
+            return false;
+        }
+
+        return (new FallbackPasswordHasher([
+            'hashers' => ['Authentication.Default', ['className' => Mlf2PasswordHasher::class]],
+        ]))->check($password, $hash);
     }
 
     /**

@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Installer\Controller;
 
+use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\I18n\I18n;
@@ -33,6 +34,17 @@ class UpdaterController extends AppController
     private $saitoVersion;
 
     /**
+     * Failed start attempts per client and window. Every visitor reaches this
+     * page while the versions differ, and the form asks for the database
+     * password: without a limit it could be guessed for as long as the window
+     * stays open. Kept in a file, because caches are off in here.
+     */
+    private const START_MAX_ATTEMPTS = 10;
+    private const START_WINDOW = 900;
+
+    protected bool $clearCachesOnEveryRequest = false;
+
+    /**
      * {@inheritDoc}
      */
     public function initialize(): void
@@ -40,6 +52,61 @@ class UpdaterController extends AppController
         parent::initialize();
         $this->dbVersion = Configure::read('Saito.Settings.db_version');
         $this->saitoVersion = Configure::read('Saito.v');
+    }
+
+    /**
+     * @return string file holding the failed-attempt counters
+     */
+    private function startAttemptsFile(): string
+    {
+        return TMP . 'updater-start-attempts.json';
+    }
+
+    /**
+     * @return array<string, mixed> decoded from a file: shape not guaranteed
+     */
+    private function readStartAttempts(): array
+    {
+        $raw = @file_get_contents($this->startAttemptsFile());
+        $data = is_string($raw) ? json_decode($raw, true) : null;
+
+        return is_array($data) ? $data : [];
+    }
+
+    /**
+     * @return string the client's key, not the address itself
+     */
+    private function startAttemptsKey(): string
+    {
+        return hash('sha256', (string)$this->getRequest()->clientIp());
+    }
+
+    /**
+     * @return bool whether this client has used up its attempts for now
+     */
+    private function startAttemptsExhausted(): bool
+    {
+        $record = $this->readStartAttempts()[$this->startAttemptsKey()] ?? null;
+
+        return is_array($record)
+            && time() - (int)$record['first'] < self::START_WINDOW
+            && (int)$record['count'] >= self::START_MAX_ATTEMPTS;
+    }
+
+    /**
+     * @return void
+     */
+    private function registerFailedStart(): void
+    {
+        $all = array_filter(
+            $this->readStartAttempts(),
+            fn($r): bool => is_array($r) && time() - (int)($r['first'] ?? 0) < self::START_WINDOW,
+        );
+        $key = $this->startAttemptsKey();
+        $record = $all[$key] ?? ['count' => 0, 'first' => time()];
+        $record['count']++;
+        $all[$key] = $record;
+        file_put_contents($this->startAttemptsFile(), (string)json_encode($all), LOCK_EX);
     }
 
     /**
@@ -91,7 +158,14 @@ class UpdaterController extends AppController
             return;
         }
 
+        if ($this->startAttemptsExhausted()) {
+            $this->set('startAuthError', true);
+
+            return;
+        }
+
         if (!$startForm->execute($this->request->getData())) {
+            $this->registerFailedStart();
             // don't emit errors in frontend in case form is accidental on live-installation
             $startForm->setErrors([]);
             $this->set('startAuthError', true);
@@ -124,6 +198,10 @@ class UpdaterController extends AppController
         if (file_exists($tokenPath)) {
             unlink($tokenPath);
         }
+        // Once, now that the schema and code agree — not on every visit.
+        Cache::enable();
+        Cache::clearAll();
+        Cache::disable();
         $this->viewBuilder()->setTemplate('success');
 
         $this->logCurrentState('Update successfull.');

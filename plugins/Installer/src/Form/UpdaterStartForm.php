@@ -68,7 +68,7 @@ class UpdaterStartForm extends Form
     /**
      * validate database-password
      *
-     * @param string $data database-password
+     * @param mixed $data database-password as posted (a string, unless tampered with)
      * @return bool
      */
     public function validateDbPassword($data): bool
@@ -76,6 +76,9 @@ class UpdaterStartForm extends Form
         $connection = ConnectionManager::get('default');
         $dbConfig = $connection->config();
 
-        return $data === $dbConfig['password'];
+        // Constant time: this compares a secret, on a page anybody can reach
+        // while an update is pending. An empty password still matches only an
+        // empty configured one.
+        return is_string($data) && hash_equals((string)($dbConfig['password'] ?? ''), $data);
     }
 }

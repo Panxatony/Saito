@@ -32,6 +32,20 @@ class AnonymizingErrorLoggerTest extends TestCase
     }
 
     /**
+     * Compressed and IPv4-mapped addresses were passed through whole: the text
+     * was split on `:` without expanding `::` first (#169).
+     *
+     * @return void
+     */
+    public function testAnonymizeIpHandlesCompressedAndMappedAddresses(): void
+    {
+        $this->assertSame('2001:db8:0:0:x', AnonymizingErrorLogger::anonymizeIp('2001:db8::1234'));
+        $this->assertSame('::ffff:203.0.113.x', AnonymizingErrorLogger::anonymizeIp('::ffff:203.0.113.7'));
+        $this->assertSame('fe80:0:0:0:x', AnonymizingErrorLogger::anonymizeIp('fe80::1%eth0'));
+        $this->assertSame('2001:db8:0:0:x', AnonymizingErrorLogger::anonymizeIp('[2001:db8::1]'));
+    }
+
+    /**
      * Anything that is not an address shape we recognise is dropped rather than
      * passed through half-masked.
      *

@@ -19,6 +19,11 @@ use Saito\User\CurrentUser\CurrentUserInterface;
 class ExceptionLogger
 {
 
+    /**
+     * Request fields logged with their value. Everything else is masked.
+     */
+    private const LOGGED_FIELDS = ['do', 'id', 'targetId', 'category_id', 'pid', 'type'];
+
     private $__lines = [];
 
     /**
@@ -125,16 +130,21 @@ class ExceptionLogger
     protected function _filterData($data)
     {
         if (!is_array($data)) {
-            return $data;
+            return '***';
         }
         foreach ($data as $key => $datum) {
             if (is_array($datum)) {
                 $data[$key] = $this->_filterData($datum);
                 continue;
             }
-
-            if (stripos($key, 'password') !== false) {
-                $data[$key] = '***********';
+            // Which fields came, not what was in them. Only "password" used to
+            // be masked, so a failed contact mail logged the sender's address
+            // and the whole message, reset and registration logged addresses,
+            // a failed second factor logged the code. A short list of fields
+            // that say what was attempted without saying anything about anyone
+            // is kept; everything else is masked.
+            if (!in_array((string)$key, self::LOGGED_FIELDS, true)) {
+                $data[$key] = '***';
             }
         }
 

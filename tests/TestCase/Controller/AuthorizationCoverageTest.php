@@ -85,7 +85,6 @@ class AuthorizationCoverageTest extends SaitoTestCase
         'App\\Controller\\UsersController::webauthnRegisterOptions' => 'issues a registration challenge for the current member\'s own account (self-scoped; refuses unless 2FA is already on)',
         'App\\Controller\\UsersController::webauthnRegister' => 'stores a passkey for the current member\'s own account; the challenge is held server-side and spent once (self-scoped)',
         'App\\Controller\\UsersController::tosAccept' => 'records the current user\'s own agreement to the terms; account from the session, version from the setting (nothing to substitute)',
-        'App\\Controller\\EntriesController::htmxBookmark' => 'toggles the current user\'s own bookmark (self-scoped)',
         'App\\Controller\\EntriesController::htmxPreview' => 'renders a BBCode preview of the text the member just submitted (no data access)',
         'App\\Controller\\EntriesController::htmxDraft' => 'stores the current user\'s own unfinished posting; the row is looked up by parent id AND user id (self-scoped)',
     ];

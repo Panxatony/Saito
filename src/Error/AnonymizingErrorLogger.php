@@ -207,20 +207,33 @@ class AnonymizingErrorLogger extends ErrorLogger
      */
     public static function anonymizeIp(string $ip): string
     {
-        if (str_contains($ip, ':')) {
-            $blocks = explode(':', $ip);
-            $kept = array_slice($blocks, 0, 4);
-
-            return implode(':', $kept) . ':x';
-        }
-
-        $octets = explode('.', $ip);
-        if (count($octets) !== 4) {
+        // A zone id (`fe80::1%eth0`) and URL brackets are not part of the
+        // address. Splitting the text on `:` without expanding `::` first kept
+        // compressed addresses whole — `2001:db8::1234` came out unchanged
+        // with `:x` appended. Work on the bytes instead.
+        $ip = trim(preg_replace('/%.*$/', '', $ip) ?? '', '[]');
+        $bin = @inet_pton($ip);
+        if ($bin === false) {
             // Not an address shape we recognise — drop it rather than guess.
             return 'x';
         }
-        $octets[3] = 'x';
+        if (strlen($bin) === 4) {
+            $octets = explode('.', (string)inet_ntop($bin));
+            $octets[3] = 'x';
 
-        return implode('.', $octets);
+            return implode('.', $octets);
+        }
+        // IPv4-mapped (`::ffff:203.0.113.7`): the IPv4 rule, not the /64 one,
+        // which would keep the whole IPv4 address.
+        if (str_starts_with($bin, str_repeat("\0", 10) . "\xff\xff")) {
+            return '::ffff:' . self::anonymizeIp((string)inet_ntop(substr($bin, 12)));
+        }
+        // Keep the /64 network, drop the interface identifier.
+        $groups = array_map(
+            fn(string $pair): string => dechex((int)hexdec(bin2hex($pair))),
+            str_split(substr($bin, 0, 8), 2),
+        );
+
+        return implode(':', $groups) . ':x';
     }
 }

@@ -456,6 +456,39 @@ class UsersControllerTest extends IntegrationTestCase
         $this->assertResponseContains('is not activated yet.');
     }
 
+    /**
+     * With a wrong password the account's state is not given away (#166).
+     *
+     * @return void
+     */
+    public function testAWrongPasswordDoesNotTellTheAccountState()
+    {
+        $this->mockSecurity();
+        $this->post('/login', ['username' => 'Diane', 'password' => 'wrong']);
+        $this->assertResponseNotContains('is not activated yet.');
+
+        $this->mockSecurity();
+        $this->post('/login', ['username' => 'Walt', 'password' => 'wrong']);
+        $this->assertResponseNotContains('is locked.');
+    }
+
+    /**
+     * A login redirect target with a control character or a backslash would
+     * become `//evil.com` once a browser strips it (#166).
+     *
+     * @return void
+     */
+    public function testTheLoginRedirectRefusesControlCharacters()
+    {
+        foreach (["/\t/evil.com", "/\n/evil.com", '/\\evil.com'] as $target) {
+            $this->mockSecurity();
+            $this->post('/login?redirect=' . rawurlencode($target), ['username' => 'Ulysses', 'password' => 'test']);
+            $location = $this->_response->getHeaderLine('Location');
+            $this->assertStringNotContainsString('evil.com', $location, json_encode($target));
+            $this->_session = [];
+        }
+    }
+
     public function testLoginUserLocked()
     {
         $this->mockSecurity();
@@ -884,6 +917,31 @@ class UsersControllerTest extends IntegrationTestCase
         $url = '/users/avatar/3';
         $this->post($url);
         $this->assertRedirectLogin($url);
+    }
+
+    /**
+     * The CSRF cookie is never read by script (the token comes from the meta
+     * tag), so it is HttpOnly; and Secure once the forum runs on https (#171).
+     *
+     * @return void
+     */
+    public function testTheCsrfCookieIsHttpOnlyAndSecureOnHttps()
+    {
+        $name = \Cake\Core\Configure::read('Session.cookie', 'CAKEPHP') . '-CSRF';
+
+        $this->get('/login');
+        $cookie = $this->_response->getCookieCollection()->get($name);
+        $this->assertTrue($cookie->isHttpOnly());
+        $this->assertFalse($cookie->isSecure(), 'plain http in the test run');
+
+        $this->configRequest(['environment' => ['HTTPS' => 'on']]);
+        $_SERVER['HTTPS'] = 'on';
+        try {
+            $this->get('/login');
+        } finally {
+            unset($_SERVER['HTTPS']);
+        }
+        $this->assertTrue($this->_response->getCookieCollection()->get($name)->isSecure());
     }
 
     /**

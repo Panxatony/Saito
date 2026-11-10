@@ -52,6 +52,34 @@ class BookmarksControllerTest extends IntegrationTestCase
         $this->get('api/v2/bookmarks');
     }
 
+    /**
+     * A bearer token without an expiry would never expire; it is refused, and
+     * so is one signed with the cookie key instead of the JWT key (#166).
+     */
+    public function testTokensWithoutExpiryOrWithTheCookieKeyAreRefused()
+    {
+        $this->loginJwt(3);
+        $key = (string)\Cake\Core\Configure::read('Security.jwtSalt');
+        foreach (
+            [
+                \Firebase\JWT\JWT::encode(['sub' => 3], $key, 'HS256'),
+                \Firebase\JWT\JWT::encode(
+                    ['sub' => 3, 'exp' => time() + 3600],
+                    str_repeat('c', 32) . (string)\Cake\Core\Configure::read('Security.cookieSalt'),
+                    'HS256',
+                ),
+            ] as $token
+        ) {
+            $this->configRequest(['headers' => ['Accept' => 'application/json', 'Authorization' => 'bearer ' . $token]]);
+            try {
+                $this->get('api/v2/bookmarks');
+                $this->assertResponseCode(401);
+            } catch (UnauthenticatedException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
     public function testIndexSuccess()
     {
         $userId = 3;

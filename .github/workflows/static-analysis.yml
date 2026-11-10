@@ -32,7 +32,7 @@ jobs:
     env:
       COMPOSER_ALLOW_SUPERUSER: "1"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install system + PHP extensions
         run: |
@@ -42,8 +42,11 @@ jobs:
             libonig-dev
           docker-php-ext-configure gd --with-jpeg --with-webp
           docker-php-ext-install -j"$(nproc)" pdo_mysql gd intl mbstring exif
-          curl -sS https://getcomposer.org/installer | php -- \
-            --install-dir=/usr/local/bin --filename=composer
+          # Composer pinned and checked (#172): this is the job that builds
+          # the release artifact (or one like it). Not `installer | php`.
+          curl -fsSL -o /usr/local/bin/composer https://getcomposer.org/download/2.10.3/composer.phar
+          echo "7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6  /usr/local/bin/composer" | sha256sum -c -
+          chmod +x /usr/local/bin/composer
 
       - name: composer install
         run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
@@ -67,15 +70,15 @@ jobs:
     # in shipped code.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
 
       - name: yarn install
         run: |
-          npm install -g --silent yarn
+          npm install -g --loglevel=error yarn@1.22.22
           yarn install --frozen-lockfile --non-interactive --no-progress
 
       - name: Type-check and lint

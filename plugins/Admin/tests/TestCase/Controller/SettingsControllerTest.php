@@ -35,4 +35,15 @@ class SettingsControllerTest extends IntegrationTestCase
     {
         $this->assertRouteForRole('/admin/settings/index', 'admin');
     }
+
+    /**
+     * Only settings the page offers can be edited; `db_version` would send
+     * every visitor to the updater (#173).
+     */
+    public function testEditRefusesSettingsNotOnThePage()
+    {
+        $this->_loginUser(1);
+        $this->expectException(\Cake\Http\Exception\NotFoundException::class);
+        $this->get('/admin/settings/edit/db_version');
+    }
 }
