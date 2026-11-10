@@ -3,7 +3,7 @@ name: Static Analysis
 on:
   pull_request:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 8.4.x ]
   # A push only gets one chance at creating a run. During the Actions outage on
   # 2026-08-06 two pushes to develop produced no run at all — not queued, not
   # failed, simply absent — and the only ways back were a second push or an

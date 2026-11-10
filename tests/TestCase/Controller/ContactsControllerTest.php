@@ -183,6 +183,32 @@ class ContactsControllerTest extends IntegrationTestCase
     }
 
     /**
+     * The sender field becomes an array key. Posted as `sender_contact[]=…` it
+     * is an array, which PHP refuses as a key with a TypeError — a 500 for
+     * anybody who wants one. It is now read as text, and an array as nothing,
+     * which the form then rejects like an empty field.
+     *
+     * @return void
+     */
+    public function testContactOwnerTreatsAnArraySenderAsMissing()
+    {
+        $this->mockSecurity();
+
+        $this->get('/contacts/htmx-contact-owner');
+        $this->session(['Contact' => ['formLoadTime' => time() - 60]]);
+
+        $this->post('/contacts/htmx-contact-owner', [
+            'subject' => 'Betreff',
+            'text' => 'Nachricht',
+            'sender_contact' => ['mensch@example.com'],
+            'cc' => 0,
+        ]);
+
+        $this->assertResponseOk('the form is shown again, not a server error');
+        $this->assertNoRedirect('nothing may be sent without a usable sender');
+    }
+
+    /**
      * A signed-in member is not subject to the delay — they are already known,
      * and making them wait would be a pointless obstacle.
      *
