@@ -31,7 +31,10 @@ stages:
         default-mysql-client
     - docker-php-ext-configure gd --with-jpeg --with-webp
     - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
-    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    # Composer pinned and checked (#172), not `installer | php`.
+    - curl -fsSL -o /usr/local/bin/composer https://getcomposer.org/download/2.10.3/composer.phar
+    - echo "7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6  /usr/local/bin/composer" | sha256sum -c -
+    - chmod +x /usr/local/bin/composer
     - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
 
 variables:
@@ -107,9 +110,10 @@ test:
 # being made.
 frontend:
   stage: test
-  image: node:20
+  # package.json's engines want >= 22; 20 is end of life. Matches .nvmrc.
+  image: node:24
   before_script:
-    - npm install -g --silent yarn
+    - npm install -g --silent yarn@1.22.21
     - yarn install --frozen-lockfile --non-interactive --no-progress
   script:
     - npm run lint
@@ -118,7 +122,10 @@ security:composer-audit:
   stage: security
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git unzip
-    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    # Composer pinned and checked (#172), not `installer | php`.
+    - curl -fsSL -o /usr/local/bin/composer https://getcomposer.org/download/2.10.3/composer.phar
+    - echo "7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6  /usr/local/bin/composer" | sha256sum -c -
+    - chmod +x /usr/local/bin/composer
   script:
     - composer audit
   rules:
@@ -153,6 +160,10 @@ security:psalm-taint:
 # ----------------------------------------------------------------------
 build:
   stage: build
+  # No shared cache for the job that makes the tarball (#172): the global
+  # cache is keyed on composer.lock for every branch and merge request, so a
+  # tag build would reuse a vendor/ some other pipeline wrote.
+  cache: []
   needs:
     - test
     # Don't ship a build with a known dependency CVE.
@@ -178,7 +189,10 @@ build:
     - docker-php-ext-configure gd --with-jpeg --with-webp
     - docker-php-ext-install -j$(nproc) pdo_mysql gd intl mbstring exif
     # ---- Composer + production-only PHP deps ----
-    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    # Composer pinned and checked (#172), not `installer | php`.
+    - curl -fsSL -o /usr/local/bin/composer https://getcomposer.org/download/2.10.3/composer.phar
+    - echo "7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6  /usr/local/bin/composer" | sha256sum -c -
+    - chmod +x /usr/local/bin/composer
     - composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
     # ---- Node.js + yarn for the frontend build ----
     # Saito's webroot/css/stylesheets and webroot/js (plus several plugin
@@ -186,9 +200,14 @@ build:
     # from SCSS/TS sources. Without this build the tarball would ship
     # without bootstrap.min.css, compiled JS bundles, and theme CSS.
     # NodeSource major matches .nvmrc, which package.json's engines floor tracks.
-    - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+    # The NodeSource apt repository directly, signed-by its key, instead of
+    # piping their setup script into bash (#172): apt then checks every
+    # package against that key, and no remote script runs as root.
+    - curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg
+    - echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+    - apt-get update -qq
     - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs
-    - npm install -g --silent yarn
+    - npm install -g --silent yarn@1.22.21
     - yarn install --frozen-lockfile --non-interactive --no-progress
     # The release chain is package.json scripts now (Sass, PostCSS, purge, the
     # three Vite bundles, asset copy) — no grunt, and Vite needs no OpenSSL
@@ -253,7 +272,7 @@ build:
 # ----------------------------------------------------------------------
 upload:
   stage: upload
-  image: curlimages/curl:latest
+  image: curlimages/curl:8.23.0
   needs:
     - build
   script:
@@ -276,7 +295,7 @@ upload:
 # ----------------------------------------------------------------------
 release:
   stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.24.0
   needs:
     - upload
   script:
