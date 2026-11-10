@@ -34,7 +34,17 @@ class AuthenticationServiceFactory
         // the JWT payload (carrying 'sub' = user-id) be the identity. The
         // controller layer (CurrentUser/AuthUserComponent) hydrates the
         // actual User entity from the database when needed.
-        $service->loadAuthenticator('Authentication.Jwt', [
+        // Its own key or none. The fallback to Security.cookieSalt signed bearer
+        // tokens with the key that also encrypts the cookies (#166). Nothing in
+        // Saito issues tokens today; without a jwtSalt the API accepts none —
+        // a random key nobody holds, since the service needs an authenticator
+        // to answer "unauthenticated" at all.
+        $jwtSalt = (string)Configure::read('Security.jwtSalt');
+        if ($jwtSalt === '' || $jwtSalt === '__SALT__') {
+            $jwtSalt = bin2hex(random_bytes(32));
+        }
+        $service->loadAuthenticator('Jwt', [
+            'className' => ExpiringJwtAuthenticator::class,
             'returnPayload' => true,
             // Do not accept the JWT via a `?token=` query parameter (the Cake
             // default): bearer tokens in URLs leak into access logs, browser
@@ -44,8 +54,7 @@ class AuthenticationServiceFactory
             // cookie, so the `<Session.cookie>-JWT` cookie Saito used to mint
             // was never an authentication path on this side.
             'queryParam' => null,
-            'secretKey' => Configure::read('Security.jwtSalt')
-                ?: Configure::read('Security.cookieSalt'),
+            'secretKey' => $jwtSalt,
         ]);
 
         return $service;
