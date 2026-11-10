@@ -5,6 +5,29 @@
 - Δ Changed
 - − Removed
 
+## [8.4.25] - 2026-11-10 "türkette"
+
+**A small security update for the 8.4.x line. No migration, no configuration
+change.**
+
+From here on there are two lines. **Saito 8.5.x requires PHP 8.5**; the
+**8.4.x line stays on PHP 8.4 and receives security fixes until 30 June
+2027.** Moving PHP first and Saito second is described in `docs/update.md` on
+the develop branch; 8.4.24 and later already run on PHP 8.5.
+
+- ✓ Fixed: **A guest could make the contact form answer HTTP 500** by posting
+  the sender field as a list (`sender_contact[]=…`). Anything but text is now
+  treated as a missing sender, and the form asks for it again.
+
+- Δ Changed: `spomky-labs/otphp`, which checks the second-factor codes, is
+  updated to 11.5.1. It fixes three advisories (GHSA-526c-px8p-72x8,
+  GHSA-4v5c-4hwq-6f6m, GHSA-h38w-h2gf-6qv2), none of them in a path Saito
+  uses — the second factor should still not run on a version with open
+  advisories.
+
+- Δ Changed: a release of the older line is no longer marked "Latest" on
+  GitHub when a newer version is out.
+
 ## [8.4.24] - 2026-11-10 "türspion"
 
 **A security release. Upgrade soon.** **One migration**
