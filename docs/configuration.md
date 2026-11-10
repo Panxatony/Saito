@@ -243,7 +243,7 @@ in the release tarball does not.
 |---|---|---|
 | `SECURITY_SALT` | — | At least 32 random characters. Hashing and encryption key. Required. |
 | `SECURITY_COOKIE_SALT` | — | The same, for cookie encryption. |
-| `SECURITY_JWT_SALT` | *(falls back to the cookie salt)* | Signs the API tokens issued by the JWT path. |
+| `SECURITY_JWT_SALT` | *(empty: no API token is accepted)* | Signs the API tokens issued by the JWT path. |
 | `SAITO_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` for the client's real IP. **Only with a trusted proxy in front.** It does *not* make cookies `Secure`: the session cookie follows the server's `HTTPS` variable, so behind a proxy that ends TLS set `fastcgi_param HTTPS on;` (see `docs/architecture.md`) and `SAITO_FULL_BASE_URL` to the https address. On a directly reachable install a client can then forge its own IP, which defeats every throttle that counts per address. |
 
 ### Requiring a second factor of staff

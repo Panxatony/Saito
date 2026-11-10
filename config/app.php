@@ -98,9 +98,9 @@ return [
         'salt' => env('SECURITY_SALT', '__SALT__'),
         'cookieSalt' => env('SECURITY_COOKIE_SALT', '__SALT__'),
         // Dedicated key for API tokens, so ops can invalidate every issued token
-        // without also logging everyone out. No default on purpose: unset must
-        // stay null so the readers' `?: cookieSalt` fallback engages. A
-        // placeholder string here would be truthy and get used as the key.
+        // without also logging everyone out. No default on purpose: unset, no
+        // API token is accepted at all — there is no fallback to cookieSalt,
+        // the key that encrypts the login cookie (8.4.24).
         'jwtSalt' => env('SECURITY_JWT_SALT'),
         'cookieAuthName' => 'Saito-AU',
     ],
