@@ -97,7 +97,6 @@ class AvatarUploadTest extends IntegrationTestCase
         } else {
             imagejpeg($image, $path);
         }
-        imagedestroy($image);
         $this->tmpFiles[] = $path;
 
         return $path;

@@ -227,7 +227,6 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->file = TMP . 'oversized.png';
         $im = imagecreatetruecolor(10, 10);
         imagepng($im, $this->file);
-        imagedestroy($im);
 
         try {
             $this->expectException(GenericApiException::class);

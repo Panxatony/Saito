@@ -1,4 +1,4 @@
-image: php:8.4-cli
+image: php:8.5-cli
 
 # NOTE: We deliberately do NOT include GitLab's Security/SAST and
 # Security/Dependency-Scanning templates. This is a GitLab Community Edition

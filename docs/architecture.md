@@ -8,7 +8,7 @@ where something is a judgement it says so.
 
 ## 1. The parts
 
-Saito is a **CakePHP 5 application on PHP 8.4**, served by nginx and PHP-FPM,
+Saito is a **CakePHP 5 application on PHP 8.5**, served by nginx and PHP-FPM,
 against MySQL or MariaDB. The forum's own code lives in `src/`; nearly
 everything optional lives in `plugins/`.
 

@@ -36,10 +36,10 @@ target_config() {
             COPY_HOST=""
             ROOT="/var/www/saito"
             OWNER="www-data:www-data"
-            RELOAD="systemctl reload php8.4-fpm"
+            RELOAD="systemctl reload php8.5-fpm"
             # No config/.env here: the connection is an env[] line on the FPM
             # pool, which the web server has and a shell does not.
-            POOL_CONF="/etc/php/8.4/fpm/pool.d/saito.conf"
+            POOL_CONF="/etc/php/8.5/fpm/pool.d/saito.conf"
             VERIFY="https://forum.panxatony.net"
             ;;
         beta)

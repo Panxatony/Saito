@@ -273,13 +273,13 @@ them was introduced before 5.0. Nothing has to be inserted by hand.
 
 | | Saito 5.7 | Saito 8 |
 |---|---|---|
-| PHP | 7.2+ | **8.4** |
+| PHP | 7.2+ | **8.5** (the 8.4.x line: 8.4) |
 | CakePHP | 3.8 | 5 |
 
 Two major PHP versions and two major framework versions. For the application
 that was a large amount of work (releases 6.0.0 and 7.0.0); for you as the
-operator it means one thing: **the server needs PHP 8.4 before Saito 8 will
-run at all.** Everything else in this document is routine.
+operator it means one thing: **the server needs PHP 8.5 — or 8.4 for the
+8.4.x line — before Saito 8 will run at all.** Everything else in this document is routine.
 
 No PHP extension beyond a standard install is required. A typical set:
 `gd`, `intl`, `mbstring`, `mysql`, `xml`, `curl`, `zip`.
@@ -329,7 +329,7 @@ visually unless you ask for it.
 > production install on 2026-08-17; the value was `EMAIL_FROM_NAME=macnemo
 > Forum`, written years earlier and read without complaint ever since.
 
-- [ ] **PHP 8.4 available** on the server (`php -v`). This is the one hard
+- [ ] **PHP 8.5 available** on the server (`php -v`); PHP 8.4 for 8.4.x. This is the one hard
       requirement — check it first, because everything else is reversible and
       this is not something you fix mid-upgrade.
 - [ ] **A database dump you have actually tested**, not just taken. A dump that

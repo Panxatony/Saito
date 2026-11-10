@@ -20,8 +20,8 @@
 /*
  * You can remove this if you are confident that your PHP version is sufficient.
  */
-if (version_compare(PHP_VERSION, '7.2.0') < 0) {
-    trigger_error('Your PHP version must be equal or higher than 7.2.0 to use CakePHP.' . PHP_EOL, E_USER_ERROR);
+if (version_compare(PHP_VERSION, '8.5.0') < 0) {
+    trigger_error('Your PHP version must be 8.5.0 or higher to run this Saito release; Saito 8.4.x runs on PHP 8.4.' . PHP_EOL, E_USER_ERROR);
 }
 
 /*

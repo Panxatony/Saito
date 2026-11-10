@@ -22,8 +22,8 @@ sudo apt update
 sudo apt full-upgrade -y
 sudo apt install -y \
     nginx \
-    php8.4-fpm php8.4-cli \
-    php8.4-gd php8.4-intl php8.4-mbstring php8.4-mysql php8.4-xml php8.4-curl php8.4-zip \
+    php8.5-fpm php8.5-cli \
+    php8.5-gd php8.5-intl php8.5-mbstring php8.5-mysql php8.5-xml php8.5-curl php8.5-zip \
     mariadb-server \
     certbot python3-certbot-nginx \
     unzip curl ca-certificates
@@ -32,7 +32,7 @@ sudo apt install -y \
 ## 2. Enable services and firewall
 
 ```shell
-sudo systemctl enable --now mariadb php8.4-fpm nginx
+sudo systemctl enable --now mariadb php8.5-fpm nginx
 # Optional but recommended: lock the box down to SSH + HTTP(S).
 sudo apt install -y ufw
 sudo ufw allow OpenSSH
@@ -73,9 +73,9 @@ A reference pool config ships with the release at `config/php-fpm/saito.pool.con
 
 ```shell
 sudo cp /var/www/saito/config/php-fpm/saito.pool.conf.example \
-        /etc/php/8.4/fpm/pool.d/saito.conf
-sudo chmod 640 /etc/php/8.4/fpm/pool.d/saito.conf
-sudo nano /etc/php/8.4/fpm/pool.d/saito.conf
+        /etc/php/8.5/fpm/pool.d/saito.conf
+sudo chmod 640 /etc/php/8.5/fpm/pool.d/saito.conf
+sudo nano /etc/php/8.5/fpm/pool.d/saito.conf
 ```
 
 The reference pool already sets sane PHP runtime limits (`memory_limit = 256M`, `upload_max_filesize = 16M`, `post_max_size = 18M`, matching the nginx `client_max_body_size`). `clear_env = yes` ensures the env vars declared in the pool are the only ones Saito sees — they won't leak to the default `www` pool used by other sites.
@@ -83,11 +83,11 @@ The reference pool already sets sane PHP runtime limits (`memory_limit = 256M`, 
 Validate the FPM config and reload:
 
 ```shell
-sudo php-fpm8.4 -t
-sudo systemctl reload php8.4-fpm
+sudo php-fpm8.5 -t
+sudo systemctl reload php8.5-fpm
 ```
 
-`systemctl status php8.4-fpm` should now list both the default `www` pool and the new `saito` pool.
+`systemctl status php8.5-fpm` should now list both the default `www` pool and the new `saito` pool.
 
 ## 5. Deploy the release
 
@@ -150,7 +150,7 @@ The environment still takes precedence, in two ways: if it already sets `APP_NAM
 
 ## 6. nginx vhost
 
-A reference configuration ships with the release at `config/nginx/saito.conf.example`. It already targets the dedicated `php8.4-fpm-saito.sock` from step 4 — change the `fastcgi_pass` to `/run/php/php8.4-fpm.sock` if you skipped the pool step. Adjust `server_name`, `root`, and the certificate paths to match your environment:
+A reference configuration ships with the release at `config/nginx/saito.conf.example`. It already targets the dedicated `php8.5-fpm-saito.sock` from step 4 — change the `fastcgi_pass` to `/run/php/php8.5-fpm.sock` if you skipped the pool step. Adjust `server_name`, `root`, and the certificate paths to match your environment:
 
 ```shell
 sudo cp /var/www/saito/config/nginx/saito.conf.example /etc/nginx/sites-available/saito.conf
@@ -307,7 +307,7 @@ For subsequent releases, drop the new tarball next to the running install, swap 
 Then apply database migrations. Two paths exist depending on your deploy style:
 
 - **Web path (default).** Visit the site once after the swap — Saito's in-app updater detects schema changes and runs the migrations on the first request. Suitable for hands-off deploys where the FPM environment already has all `env[…]` configured (so the web request sees the same DB the migrations need).
-- **CLI path (deploy automation).** Run `bin/cake migrations migrate` as the `www-data` user before re-enabling traffic. Because the cake CLI does not inherit env from the FPM pool, you have to feed `DATABASE_URL` (and the security salts) on the command line — extract them from `/etc/php/8.4/fpm/pool.d/saito.conf` once and pass them through `env`. Use this path when you want a deterministic deploy without a "first request" race, or when you need to surface migration errors in your deploy logs rather than the site's error page.
+- **CLI path (deploy automation).** Run `bin/cake migrations migrate` as the `www-data` user before re-enabling traffic. Because the cake CLI does not inherit env from the FPM pool, you have to feed `DATABASE_URL` (and the security salts) on the command line — extract them from `/etc/php/8.5/fpm/pool.d/saito.conf` once and pass them through `env`. Use this path when you want a deterministic deploy without a "first request" race, or when you need to surface migration errors in your deploy logs rather than the site's error page.
 
 After migrations, visit the site once with a logged-out browser. The boot path exercises the middleware stack and surfaces any per-environment misconfiguration immediately.
 

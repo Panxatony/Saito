@@ -64,7 +64,7 @@ jobs:
   test:
     needs: changelog
     runs-on: ubuntu-latest
-    container: php:8.4-cli-trixie
+    container: php:8.5-cli-trixie
     services:
       mariadb:
         image: mariadb:11
@@ -112,7 +112,7 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    container: php:8.4-cli-trixie
+    container: php:8.5-cli-trixie
     env:
       COMPOSER_ALLOW_SUPERUSER: "1"
     steps:
