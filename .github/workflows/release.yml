@@ -310,9 +310,23 @@ jobs:
           if [ -n "$NAME" ]; then
             TITLE="Saito ${VERSION} \"${NAME}\""
           fi
+          # Two lines are maintained from 8.5.0 on: 8.5.x on develop and 8.4.x,
+          # security fixes only, on its own branch. GitHub marks every new
+          # release "Latest" unless told otherwise, so an 8.4.25 published after
+          # 8.5.1 would push it off the release page and out of
+          # releases/latest. Only a version above the current latest takes it.
+          LATEST=""
+          if [ -z "$PRERELEASE" ]; then
+            CURRENT=$(gh release view --json tagName -q .tagName 2>/dev/null || true)
+            if [ -n "$CURRENT" ] && [ "$CURRENT" != "$VERSION" ] &&
+               [ "$(printf '%s\n%s\n' "$CURRENT" "$VERSION" | sort -V | tail -n 1)" = "$CURRENT" ]; then
+              echo "${VERSION} is older than the latest release ${CURRENT}; not marking it latest."
+              LATEST="--latest=false"
+            fi
+          fi
           gh release create "$VERSION" \
             build/saito-*.tar.gz \
             build/saito-*.tar.gz.sha256 \
             --title "$TITLE" \
             --notes-file release-notes.md \
-            $PRERELEASE
+            $PRERELEASE $LATEST

@@ -144,7 +144,8 @@ Request path on prod: edge nginx (TLS) → jail nginx :80 → Anubis → jail ng
 (internal vhost) → PHP-FPM → Saito. Hosts, addresses and paths:
 `AGENTS.local.md`.
 
-**Code:** CakePHP 5, PHP 8.4, MariaDB/MySQL. Server-rendered pages with htmx +
+**Code:** CakePHP 5, PHP 8.5 (`develop`, 8.5.x; the `8.4.x` branch stays on
+PHP 8.4), MariaDB/MySQL. Server-rendered pages with htmx +
 Alpine "islands" built by Vite (`frontend/src/islands/`); themes as plugins in
 the chain `Bota → Nova → Macnemo/Macfix`. Architecture: `docs/architecture.md`.
 
@@ -194,8 +195,8 @@ locally — check `git merge-base --is-ancestor`.
 
 ### From change to release
 
-1. Commit on `develop` (small) or a feature branch + PR (larger). There are no
-   release or hotfix branches any more.
+1. Commit on `develop` (small) or a feature branch + PR (larger). The one
+   other long-lived branch is `8.4.x` — see *Maintenance line 8.4.x* below.
 2. Push (after approval), wait for the DeepSource scan and read it. A scan of a
    commit that touches no PHP reports nothing for PHP and proves nothing.
 3. Deploy to `test`, let the maintainer check.
@@ -213,6 +214,26 @@ locally — check `git merge-base --is-ancestor`.
    the tag, never a branch).
 8. After the release: update the version sentence on the project page (both
    languages) — see `AGENTS.local.md`.
+
+### Maintenance line 8.4.x
+
+Saito 8.5.x requires PHP 8.5. Installations that cannot move yet stay on
+8.4.x, which receives **security fixes and critical bugs only, until
+2027-06-30** (announce the end in the CHANGELOG beforehand). The branch was
+cut from the tag 8.4.24.
+
+1. Fix on `develop` first, with its test. Then
+   `git switch 8.4.x && git cherry-pick -x <commit>` — back up `config/app.php`
+   and verify the switch first (rule 3). Never merge `develop` into `8.4.x`.
+2. The CHANGELOG on `8.4.x` gets the new 8.4.x section; copy that section into
+   `develop`'s CHANGELOG as well, so the file on `develop` stays the complete
+   history.
+3. Tag on `8.4.x`, as usual. The release pipeline marks an 8.4.x release
+   "Latest" only if no higher version is out.
+4. Dependabot targets `develop` only. Security advisories for `8.4.x` come from
+   the nightly `composer audit`, which checks both branches; update the
+   affected package there by hand (`composer update <package>` under PHP 8.4).
+5. Deploy and `main` as usual — `main` follows whatever production runs.
 
 ### Deploying a release (after approval)
 
