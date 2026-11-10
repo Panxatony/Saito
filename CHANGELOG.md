@@ -5,6 +5,84 @@
 - Δ Changed
 - − Removed
 
+## [8.4.24] - 2026-11-10 "türspion"
+
+**A security release. Upgrade soon.** **One migration**
+(`bin/cake migrations migrate`): `two_factor_credentials` gains a column. No
+configuration change. The remaining findings of the audit behind 8.4.23; none
+of them is known to have been used.
+
+- ✓ Fixed: **A second-factor code worked more than once.** It stayed valid for
+  up to 90 seconds, so a code that was observed or relayed — by a phishing
+  proxy, say — logged in a second time. Each code now lets in once, and no
+  older code is accepted after it.
+
+- ✓ Fixed: **`?lang=` reached the file system.** Any logged-in member could
+  pass a path as the language and have the help page list the first heading of
+  every Markdown file in a directory the web server could read. Only installed
+  languages are accepted now.
+
+- ✓ Fixed: **Logs kept more than they should.** PHP warnings and fatal errors
+  were logged with the full client IP; compressed IPv6 addresses were not
+  shortened at all; failed requests logged their form contents (a contact
+  message, a second-factor code); a failed login logged the username as typed,
+  which is often the password. IPs are now shortened everywhere (IPv6 to /64,
+  IPv4 by the last octet), form values masked, and a username is logged only
+  if the account exists.
+
+- ✓ Fixed: **`[embed]` could reach some internal networks.** CGNAT addresses
+  (100.64.0.0/10, also used by Tailscale), benchmark, multicast and other
+  special ranges were treated as public. They are refused now, and a response
+  is discarded unless curl connected to the address that was checked. A forum
+  that reaches the web only through an HTTP proxy set in the environment now
+  shows plain links instead of embed cards.
+
+- ✓ Fixed: **The updater's password form could be tried without limit**, and
+  every visit to it emptied the caches while an update was pending. Ten failed
+  attempts per client in 15 minutes, a constant-time comparison, and the
+  caches are cleared once, after a successful update.
+
+- ✓ Fixed: **A wrong password told the account's state.** "Not activated" and
+  "blocked" are now shown only after the right password.
+
+- ✓ Fixed: **The forgot-password and reset-password pages logged visitors out
+  on a plain GET**, so an `[img]` pointing there logged out every reader. Only
+  a posted form does now.
+
+- ✓ Fixed: **Members with a password from mylittleforum 2.x could not confirm
+  it** where Saito asks for it again (turning off two-factor authentication,
+  new recovery codes, e-mail address, passkey), although their login worked.
+
+- ✓ Fixed: **API tokens:** without `Security.jwtSalt`, tokens were checked
+  against the cookie key; now none is accepted. Tokens without an expiry are
+  refused. Saito itself issues none at the moment.
+
+- ✓ Fixed: **Moderators could pin and lock threads in categories they cannot
+  read**; a bookmark could be set on such a posting, and the upload usage list
+  showed its subject. All three now check the category.
+
+- ✓ Fixed: **The admin settings form accepted any setting**, including
+  `db_version`, which would have sent every visitor to the updater. Only the
+  settings on the settings page can be changed.
+
+- ✓ Fixed: **A quote symbol at the start of a line inside an `[img]` or
+  `[url]` address** put markup into the attribute. Such lines are left alone.
+
+- ✓ Fixed: Login redirect targets with control characters or a backslash are
+  refused.
+
+- Δ Changed: the CSRF cookie is HttpOnly, and Secure when the forum runs on
+  https. The documentation of `SAITO_TRUST_PROXY` said it covered the https
+  flag; it covers only the client IP — see `docs/configuration.md`.
+
+- Δ Changed: `config/php-fpm/saito.pool.conf.example` set the time zone to
+  Europe/Berlin against the documentation, so timestamps were off by the
+  offset. It says UTC now. Check your own pool file if it was copied from it.
+
+- Δ Changed: CI downloads are pinned: Composer by version and checksum, yarn by
+  version, GitHub actions by commit, Node.js from NodeSource's signed apt
+  repository instead of a piped install script.
+
 ## [8.4.23] - 2026-11-09 "schlüsseldienst"
 
 **A security release. Upgrade soon.** No migration. **One configuration change

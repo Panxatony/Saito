@@ -13,7 +13,7 @@ done, and the mistakes that have already been made once.
   locations, incident history) are in `AGENTS.local.md`, which is deliberately
   *not* committed — this repository is public. If it is missing on your
   machine, you do not have operations access; ask the maintainer.
-- **As of:** 2026-11-09 (Saito 8.4.23 released; deployed: see `AGENTS.local.md`).
+- **As of:** 2026-11-10 (Saito 8.4.24 released; deployed: see `AGENTS.local.md`).
 
 If this file and the actual state of the repository or a system disagree, the
 actual state wins — check, do not assume, and correct this file.
