@@ -24,6 +24,7 @@ use Stopwatch\Lib\Stopwatch;
  *
  * @property FormHelper $Form
  * @property HtmlHelper $Html
+ * @property \MailObfuscator\View\Helper\MailObfuscatorHelper $MailObfuscator
  * @property SaitoHelpHelper $SaitoHelp
  */
 class ParserHelper extends AppHelper

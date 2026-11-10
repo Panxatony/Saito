@@ -146,6 +146,8 @@ hr "5. Composer packages nothing requires"
 # Matched on the namespaces a package actually declares, read from its own
 # composer.json, not on its name: guessing "php-domain-parser" -> "phpdomainparser"
 # reports every correctly-used library as unused, which is worse than no probe.
+# Single quotes on purpose: the `$` belong to PHP, not to the shell.
+# skipcq: SH-2016
 php -r '
 $c = json_decode(file_get_contents("composer.json"), true);
 foreach (["require", "require-dev"] as $section) {
@@ -178,6 +180,7 @@ echo "   namespace — phpstan, psalm and the sniffers all are. Check before rem
 
 # ---------------------------------------------------------------------------
 hr "6. Routes that lead nowhere, controllers nothing routes to"
+# skipcq: SH-2016 — PHP code; its `$` are not for the shell.
 php -r '
 $controllers = [];
 foreach (["src/Controller", "plugins"] as $d) {

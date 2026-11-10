@@ -40,7 +40,7 @@ class UploadsControllerTest extends IntegrationTestCase
     /**
      * @var string path to dummy file
      */
-    private string $file;
+    private string $file = '';
 
     public function setUp(): void
     {

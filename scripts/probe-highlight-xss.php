@@ -22,7 +22,7 @@ $payload = "<img src=x onerror=alert(1)> \"q\" 'a' & <script>x</script> </textar
     . "<svg/onload=1> \u{2776}\u{2777}img src=x onerror=2\u{2778} {+ <b>x</b> +} "
     . "#{\"<i>\"} `<u>` /<a>/ %w(<x>) <div attr={\"<y>\"}>{`<z>`}</div>";
 
-$languages = array_slice($argv, 1) ?: [
+$languages = array_slice($_SERVER['argv'] ?? [], 1) ?: [
     'php', 'html', 'js', 'css', 'sql', 'json', 'yaml', 'xml', 'twig',
     'jsx', 'tsx', 'ruby', 'swift', 'sema', 'python', 'markdown',
     'rust', 'go', 'c', 'cpp', 'java', 'kotlin', 'csharp', 'toml',

@@ -39,7 +39,7 @@ required_dynamic="content-security-policy x-frame-options"
 
 headers_of() {
     # -sS: quiet, but still complain on a connection error.
-    curl -sSI --max-time 20 "$1" 2>/dev/null | tr 'A-Z' 'a-z'
+    curl -sSI --max-time 20 "$1" 2>/dev/null | tr '[:upper:]' '[:lower:]'
 }
 
 check() {

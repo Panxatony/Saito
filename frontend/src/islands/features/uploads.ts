@@ -104,8 +104,7 @@ async function uploadFiles(files: File[]): Promise<void> {
                         'warning',
                     );
                     errs.push(
-                        `${file.name}: `
-                            + serverMessage('msg-session-stale-short', 'page expired — reload'),
+                        `${file.name}: ${serverMessage('msg-session-stale-short', 'page expired — reload')}`,
                     );
                 } else {
                     // The endpoint answers 422 with `{"error": "…"}` naming the

@@ -67,7 +67,9 @@ class UpdaterController extends AppController
      */
     private function readStartAttempts(): array
     {
-        $raw = @file_get_contents($this->startAttemptsFile());
+        $file = $this->startAttemptsFile();
+        // Absent until the first failed attempt.
+        $raw = is_file($file) && is_readable($file) ? file_get_contents($file) : false;
         $data = is_string($raw) ? json_decode($raw, true) : null;
 
         return is_array($data) ? $data : [];

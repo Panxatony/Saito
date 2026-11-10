@@ -13,14 +13,32 @@ declare(strict_types=1);
 namespace Installer\Test\TestCase\Controller;
 
 use Cake\Core\Configure;
+use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
 use Installer\Lib\DbVersion;
 use Installer\Lib\IntegrationTestCase;
+use LogicException;
 use Migrations\Migrations;
 
 class UpdaterControllerTest extends IntegrationTestCase
 {
+
+    /**
+     * The test database as what it is. ConnectionManager::get() is declared
+     * to return the bare interface, which has no execute() or schema access.
+     *
+     * @return \Cake\Database\Connection
+     */
+    private static function testConnection(): Connection
+    {
+        $connection = ConnectionManager::get('test');
+        if (!$connection instanceof Connection) {
+            throw new LogicException('The test connection is not a database connection.');
+        }
+
+        return $connection;
+    }
 
     public array $fixtures = ['app.Setting', 'plugin.Installer.Phinxlog'];
 
@@ -45,7 +63,6 @@ class UpdaterControllerTest extends IntegrationTestCase
             unlink($this->tokenPath);
         }
         @unlink(TMP . 'updater-start-attempts.json');
-        unset($this->settings, $this->tokenPath);
         parent::tearDown();
     }
 
@@ -73,7 +90,7 @@ class UpdaterControllerTest extends IntegrationTestCase
      */
     public static function tearDownAfterClass(): void
     {
-        $connection = ConnectionManager::get('test');
+        $connection = self::testConnection();
         $vorhanden = $connection->getSchemaCollection()->listTables();
         $leer = !in_array('phinxlog', $vorhanden, true);
         if (!$leer) {
@@ -151,7 +168,7 @@ class UpdaterControllerTest extends IntegrationTestCase
         $migration->migrate(['target' => 20180620081553]);
         $migration->seed(['seed' => 'SettingsSeed']);
         $this->dbVersion->set('4.10.0');
-        $connection = ConnectionManager::get('test');
+        $connection = self::testConnection();
         $connection->execute('DROP TABLE `phinxlog`;');
 
         $this->post('/');
@@ -172,7 +189,7 @@ class UpdaterControllerTest extends IntegrationTestCase
         $migration->migrate(['target' => 20180620081553]);
         $migration->seed(['seed' => 'SettingsSeed']);
         $this->dbVersion->set('4.10.0');
-        $connection = ConnectionManager::get('test');
+        $connection = self::testConnection();
         $connection->execute('DROP TABLE `phinxlog`;');
 
         $connection = ConnectionManager::get('default');
@@ -202,7 +219,7 @@ class UpdaterControllerTest extends IntegrationTestCase
         $migration->migrate(['target' => 20180620081553]);
         $migration->seed(['seed' => 'SettingsSeed']);
         $this->dbVersion->set('4.10.0');
-        $connection = ConnectionManager::get('test');
+        $connection = self::testConnection();
         $connection->execute('DROP TABLE `phinxlog`;');
         $config = ConnectionManager::get('default')->config();
 
@@ -226,7 +243,7 @@ class UpdaterControllerTest extends IntegrationTestCase
         $migration->migrate(['target' => 20180620081553]);
         $migration->seed(['seed' => 'SettingsSeed']);
         $this->dbVersion->set('4.10.0');
-        $connection = ConnectionManager::get('test');
+        $connection = self::testConnection();
         $connection->execute('DROP TABLE `phinxlog`;');
 
         $connection = ConnectionManager::get('default');

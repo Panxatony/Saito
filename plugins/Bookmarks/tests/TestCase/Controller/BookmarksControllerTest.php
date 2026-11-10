@@ -65,7 +65,7 @@ class BookmarksControllerTest extends IntegrationTestCase
                 \Firebase\JWT\JWT::encode(['sub' => 3], $key, 'HS256'),
                 \Firebase\JWT\JWT::encode(
                     ['sub' => 3, 'exp' => time() + 3600],
-                    str_repeat('c', 32) . (string)\Cake\Core\Configure::read('Security.cookieSalt'),
+                    str_repeat('c', 32) . \Cake\Core\Configure::read('Security.cookieSalt'),
                     'HS256',
                 ),
             ] as $token
