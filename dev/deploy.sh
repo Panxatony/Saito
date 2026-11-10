@@ -328,6 +328,16 @@ on_target "if [ ! -d vendor.$STAMP ] && [ -d vendor ]; then
 else
     echo 'vendor.$STAMP already exists — keeping the earlier one'
 fi"
+# Keep the two newest backups and no more. Nothing removed them before: by
+# 8.4.25 prod and beta held 13 and 14 vendor copies (~400 MB each install) and
+# 60 key-file copies, test 2.3 GB — all of them older than any state worth going
+# back to. Two cover "the deploy just now" and "the one before"; anything older
+# is in the nightly ZFS replication. Newest by modification time, so the order
+# of creation decides, not how version strings sort.
+on_target "ls -dt vendor.pre-* 2>/dev/null | tail -n +3 | while IFS= read -r d; do rm -rf -- \"\$d\"; done
+for f in src/Lib/version.php config/bootstrap.php config/routes.php composer.lock CHANGELOG.md; do
+    ls -t \"\$f\".pre-* 2>/dev/null | tail -n +3 | while IFS= read -r o; do rm -f -- \"\$o\"; done
+done; echo \"backups kept: \$(ls -d vendor.pre-* 2>/dev/null | tr '\n' ' ')\""
 
 # --- 5. transfer -------------------------------------------------------------
 say "transfer"
