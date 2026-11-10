@@ -43,7 +43,9 @@ pm.max_requests = 500
 php_admin_value[memory_limit] = 256M
 php_admin_value[upload_max_filesize] = 16M
 php_admin_value[post_max_size] = 18M
-php_admin_value[date.timezone] = Europe/Berlin
+; UTC, always — like APP_DEFAULT_TIMEZONE below. The forum's own timezone is
+; an admin setting; this is how PHP reads the database (docs/configuration.md).
+php_admin_value[date.timezone] = UTC
 
 ; Optional: per-app error log instead of the global one.
 ;php_admin_value[error_log] = /var/log/php-fpm/saito-error.log
@@ -57,7 +59,7 @@ php_admin_value[date.timezone] = Europe/Berlin
 clear_env = yes
 env[PATH] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 env[DEBUG] = "false"
-env[APP_DEFAULT_TIMEZONE] = "Europe/Berlin"
+env[APP_DEFAULT_TIMEZONE] = "UTC"
 env[DATABASE_URL] = "mysql://saito:__DB_PASSWORD__@localhost/saito?encoding=utf8mb4"
 env[SECURITY_SALT] = "__SALT__"
 env[SECURITY_COOKIE_SALT] = "__SALT__"

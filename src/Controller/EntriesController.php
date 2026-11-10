@@ -916,7 +916,12 @@ class EntriesController extends AppController
             );
         }
 
+        // Subjects only from categories the viewer may read: an admin looking
+        // at a member's uploads is not thereby entitled to subjects in
+        // categories closed to them (#173).
+        $readable = array_keys($this->CurrentUser->getCategories()->getAll('read'));
         $postings = $this->findPostingsEmbeddingUpload($upload)
+            ->where(['Entries.category_id IN' => $readable ?: [0]])
             ->select(['id', 'subject', 'time'])
             ->orderBy(['Entries.time' => 'DESC'])
             ->limit(50)
@@ -1284,6 +1289,19 @@ class EntriesController extends AppController
             ->where(['user_id' => $userId, 'entry_id' => $entryId])
             ->first();
 
+        // A new bookmark only for a posting this member can read (#173). The
+        // lists filter by category anyway; this keeps the table honest.
+        // Removing an existing one is always allowed.
+        if (!$existing) {
+            $entry = $this->Entries->find()->select(['id', 'category_id'])->where(['id' => $entryId])->first();
+            if (
+                $entry === null
+                || $this->CurrentUser->getCategories()->permission('read', $entry->get('category_id')) !== true
+            ) {
+                throw new NotFoundException();
+            }
+        }
+
         if ($existing) {
             $Bookmarks->delete($existing);
             $bookmarked = false;
@@ -1326,6 +1344,12 @@ class EntriesController extends AppController
         }
 
         $posting = $this->Entries->get($id);
+        // The role may pin and lock; the category must still be one this user
+        // can read — a moderator could otherwise act on threads in categories
+        // that are hidden from them (#173).
+        if ($this->CurrentUser->getCategories()->permission('read', $posting->get('category_id')) !== true) {
+            throw new NotFoundException();
+        }
         // Pinning/locking is authorized via authorizeAction('ajaxToggle',
         // 'saito.core.posting.pinAndLock') above, so set the field directly.
         // Going through PostingComponent::update() would also require edit
