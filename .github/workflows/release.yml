@@ -166,7 +166,7 @@ jobs:
       - name: Build frontend assets (yarn)
         run: |
           node --version
-          npm install -g --silent yarn@1.22.21
+          npm install -g --loglevel=error yarn@1.22.22
           yarn install --frozen-lockfile --non-interactive
           # The release chain is package.json scripts now (no grunt): Sass,
           # PostCSS (autoprefixer + cssnano), purge, the three Vite bundles and

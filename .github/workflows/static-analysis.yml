@@ -78,7 +78,7 @@ jobs:
 
       - name: yarn install
         run: |
-          npm install -g --silent yarn@1.22.21
+          npm install -g --loglevel=error yarn@1.22.22
           yarn install --frozen-lockfile --non-interactive --no-progress
 
       - name: Type-check and lint

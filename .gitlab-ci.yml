@@ -113,7 +113,9 @@ frontend:
   # package.json's engines want >= 22; 20 is end of life. Matches .nvmrc.
   image: node:24
   before_script:
-    - npm install -g --silent yarn@1.22.21
+    # The image ships its own yarn in /usr/local/bin; --force replaces it with
+    # the pinned one instead of failing on EEXIST.
+    - npm install -g --loglevel=error --force yarn@1.22.22
     - yarn install --frozen-lockfile --non-interactive --no-progress
   script:
     - npm run lint
@@ -207,7 +209,7 @@ build:
     - echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
     - apt-get update -qq
     - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends nodejs
-    - npm install -g --silent yarn@1.22.21
+    - npm install -g --loglevel=error yarn@1.22.22
     - yarn install --frozen-lockfile --non-interactive --no-progress
     # The release chain is package.json scripts now (Sass, PostCSS, purge, the
     # three Vite bundles, asset copy) — no grunt, and Vite needs no OpenSSL
