@@ -63,7 +63,7 @@ class UpdaterController extends AppController
     }
 
     /**
-     * @return array<string, array{count: int, first: int}>
+     * @return array<string, mixed> decoded from a file: shape not guaranteed
      */
     private function readStartAttempts(): array
     {

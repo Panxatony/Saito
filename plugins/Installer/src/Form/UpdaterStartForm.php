@@ -68,7 +68,7 @@ class UpdaterStartForm extends Form
     /**
      * validate database-password
      *
-     * @param string $data database-password
+     * @param mixed $data database-password as posted (a string, unless tampered with)
      * @return bool
      */
     public function validateDbPassword($data): bool
