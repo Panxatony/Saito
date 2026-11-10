@@ -112,7 +112,11 @@ class ContactsController extends AppController
             $sender = $this->CurrentUser->getId();
             $this->request = $this->request->withData('sender_contact', $this->CurrentUser->get('user_email'));
         } else {
+            // It becomes an array key below: absent (any GET) it was null, which
+            // PHP 8.5 deprecates as a key, and posted as `sender_contact[]` an
+            // array, which no PHP accepts — a TypeError and a 500.
             $senderContact = $this->request->getData('sender_contact');
+            $senderContact = is_string($senderContact) ? $senderContact : '';
             $sender = [$senderContact => $senderContact];
         }
 
