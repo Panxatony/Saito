@@ -129,7 +129,11 @@ security:composer-audit:
     - echo "7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6  /usr/local/bin/composer" | sha256sum -c -
     - chmod +x /usr/local/bin/composer
   script:
-    - composer audit
+    # --locked: the lock file, which is what a release installs. A bare
+    # `composer audit` reads vendor/, which this job never installs; it found
+    # one only through the cache, and the cache of an unprotected branch
+    # (8.4.x, at first) is empty — "No installed packages found", exit 1.
+    - composer audit --locked
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH
