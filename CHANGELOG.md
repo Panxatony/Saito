@@ -5,6 +5,31 @@
 - Δ Changed
 - − Removed
 
+## [8.4.26] - 2026-11-18 "wegweiser"
+
+**A security update for the 8.4.x line. No migration, no configuration
+change.**
+
+- ✓ Fixed: **Any visitor could make a help address answer HTTP 500.** A topic
+  id may name a plugin (`/help/en/BbcodeParser.1`); one naming a plugin that is
+  not installed (`/help/en/NoSuchPlugin.1`) ended in an error page instead of
+  "not found". It is an unknown topic now, like any other.
+
+- ✓ Fixed: The language in a help address is used as a directory name and was
+  not checked by the help controller itself. Nothing could be read through it
+  from outside — the router takes such addresses apart first — but that was
+  the router's doing, not the controller's. A language now has to look like a
+  language code (`de`, `de_DE`) before anything is looked up on disk.
+
+- ✓ Fixed: The smiley list in the admin area printed smiley codes, icon and
+  image name without escaping them. Only an administrator can set these.
+
+- Δ Changed: `web-auth/webauthn-lib`, which checks passkeys, is updated to
+  5.3.13. It fixes ten advisories. One reaches Saito: with a few crafted bytes
+  sent to the passkey login, a guest could exhaust the memory of that request
+  (GHSA-rxc4-cg58-jrpw). The other nine are in the Symfony bundle or the
+  metadata service, neither of which Saito uses.
+
 ## [8.4.25] - 2026-11-10 "türkette"
 
 **A small security update for the 8.4.x line. No migration, no configuration
