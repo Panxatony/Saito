@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Feeds\Test\TestCase\Authenticator;
 
 use Authentication\Authenticator\Result;
-use Authentication\Identifier\IdentifierCollection;
 use Cake\Http\ServerRequest;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Exception\MissingRouteException;
@@ -32,7 +31,7 @@ class FeedTokenAuthenticatorTest extends TestCase
     {
         parent::setUp();
         Security::setSalt(str_repeat('a', 32));
-        $this->auth = new FeedTokenAuthenticator(new IdentifierCollection());
+        $this->auth = new FeedTokenAuthenticator(null);
         $this->loadPlugins(['Feeds']);
         $this->loadRoutes();
     }
