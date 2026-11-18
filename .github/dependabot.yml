@@ -40,11 +40,12 @@ updates:
         dependency-type: development
         patterns: ["*"]
     ignore:
-      # Held back deliberately, each for a reason recorded in issue #66.
-      # Dependabot would otherwise re-propose them every week.
-      #  - authentication 4 rewrites the identifier configuration
-      #    (250 tests failed when it was tried on 2026-07-30)
+      # Held back deliberately, for a reason recorded in issue #66.
+      # Dependabot would otherwise re-propose it every week.
       #  - migrations 5 stops the Initial migration creating tables
+      #
+      # authentication 4 was listed here until 2026-11-18 (identifier
+      # configuration rewritten; taken with 8.5.1).
       #
       # php_codesniffer used to be listed here too, waiting on
       # cakephp-codesniffer and slevomat, which both required ^3. They moved to
@@ -52,9 +53,6 @@ updates:
       # our own `^3` that made Dependabot refuse cakephp-codesniffer 5.3.2.
       # Taken on 2026-09-03 — a held-back dependency needs re-checking, not just
       # recording.
-      # reviewed: 2026-11-08
-      - dependency-name: cakephp/authentication
-        versions: [">=4"]
       # reviewed: 2026-11-08
       - dependency-name: cakephp/migrations
         versions: [">=5"]

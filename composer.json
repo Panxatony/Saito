@@ -37,7 +37,7 @@
     "claviska/simpleimage": "^4",
     "embed/embed": "^4",
     "jeremykendall/php-domain-parser": "^6.3",
-    "cakephp/authentication": "^3",
+    "cakephp/authentication": "^4",
     "firebase/php-jwt": "^7.0",
     "tempest/highlight": "^2.27",
     "spomky-labs/otphp": "^11.5",
