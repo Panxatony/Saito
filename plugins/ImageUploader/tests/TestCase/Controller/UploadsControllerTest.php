@@ -40,7 +40,7 @@ class UploadsControllerTest extends IntegrationTestCase
     /**
      * @var string path to dummy file
      */
-    private string $file;
+    private string $file = '';
 
     public function setUp(): void
     {
@@ -227,7 +227,6 @@ class UploadsControllerTest extends IntegrationTestCase
         $this->file = TMP . 'oversized.png';
         $im = imagecreatetruecolor(10, 10);
         imagepng($im, $this->file);
-        imagedestroy($im);
 
         try {
             $this->expectException(GenericApiException::class);

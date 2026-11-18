@@ -19,7 +19,7 @@ use Cake\View\View;
 use MailObfuscator\View\Helper\MailObfuscatorHelper;
 use Plugin\BbcodeParser\Lib;
 use Plugin\BbcodeParser\src\Lib\Parser;
-use Saito\Markup\MarkupSettings;
+use BbcodeParser\Test\TestCase\Lib\WritableMarkupSettings;
 use Saito\Test\SaitoTestCase;
 use Saito\User\Userlist;
 use Saito\User\Userlist\UserlistModel;
@@ -32,8 +32,7 @@ class BbcodeParserTest extends SaitoTestCase
      */
     protected $_Parser = null;
 
-    /** @var MarkupSettings */
-    protected $MarkupSettings;
+    protected WritableMarkupSettings $MarkupSettings;
 
     /** @var \App\View\Helper\ParserHelper */
     protected $_Helper;
@@ -677,7 +676,7 @@ class BbcodeParserTest extends SaitoTestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['link'])
             ->getMock();
-        $MO->expects($this->once(4))
+        $MO->expects($this->once())
             ->method('link')
             ->with('mail@tosomeone.com', null);
         $this->_Helper->MailObfuscator = $MO;
@@ -692,7 +691,7 @@ class BbcodeParserTest extends SaitoTestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['link'])
             ->getMock();
-        $MO->expects($this->once(4))
+        $MO->expects($this->once())
             ->method('link')
             ->with('mail@tosomeone.com', 'Mail');
         $this->_Helper->MailObfuscator = $MO;
@@ -707,7 +706,7 @@ class BbcodeParserTest extends SaitoTestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['link'])
             ->getMock();
-        $MO->expects($this->once(4))
+        $MO->expects($this->once())
             ->method('link')
             ->with('mail@tosomeone.com', null);
         $this->_Helper->MailObfuscator = $MO;
@@ -722,7 +721,7 @@ class BbcodeParserTest extends SaitoTestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['link'])
             ->getMock();
-        $MO->expects($this->once(4))
+        $MO->expects($this->once())
             ->method('link')
             ->with('mail@tosomeone.com', 'Mail');
         $this->_Helper->MailObfuscator = $MO;
@@ -1919,13 +1918,7 @@ EOF;
         $Userlist->method('get')->willReturn(['Alice', 'Bobby Junior', 'Dr. No']);
 
         //= ParserHelper
-        $markupSettingsMock = new class extends MarkupSettings {
-            public function setSingle(string $key, $value)
-            {
-                $this->_settings[$key] = $value;
-            }
-        };
-        $this->MarkupSettings = new $markupSettingsMock([
+        $this->MarkupSettings = new WritableMarkupSettings([
             'UserList' => $Userlist,
             'atBaseUrl' => '/at/',
             'autolink' => true,
@@ -1967,6 +1960,6 @@ EOF;
         Configure::write('Saito.Settings.autolink', $this->autolink);
 
         Cache::clear();
-        unset($this->_Parser);
+        $this->_Parser = null;
     }
 }

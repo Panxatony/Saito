@@ -19,7 +19,7 @@ permissions:
 jobs:
   phpstan:
     runs-on: ubuntu-latest
-    container: php:8.4-cli-trixie
+    container: php:8.5-cli-trixie
     # No database here, deliberately. Static analysis has no business touching
     # one, and tests/bootstrap.php — which phpstan.neon loads — now returns
     # before its migration block unless it is genuinely a PHPUnit run.

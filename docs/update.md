@@ -6,6 +6,24 @@ covers the one prerequisite that cannot be fixed halfway through.
 
 ## Before you start
 
+> [!IMPORTANT]
+> **Saito 8.5.x needs PHP 8.5.** Change PHP first, then Saito — not both in
+> one step:
+>
+> 1. Install PHP 8.5 with the same extensions (`php -m` before and after
+>    should list the same modules, plus `lexbor` and `uri`; OPcache is built
+>    into 8.5 and has no package of its own). Carry over your `php.ini` and
+>    FPM pool settings.
+> 2. Point the web server at PHP 8.5 while the installation still runs 8.4.x.
+>    8.4.24 and later run on PHP 8.5, so anything that breaks now is the
+>    runtime, and going back is a matter of the old pool.
+> 3. Only then update to 8.5.x as described below.
+>
+> A release for PHP 8.5 refuses to run on 8.4: every request ends in a fatal
+> error from `vendor/composer/platform_check.php`. **If you cannot move to
+> PHP 8.5 yet, stay on 8.4.x** — that line receives security fixes until
+> 30 June 2027.
+
 > [!WARNING]
 > **Quote `.env` values that contain a space before upgrading to 8.4.10 or
 > later.** The reader introduced in 8.4.10 refuses `NAME=two words` where the

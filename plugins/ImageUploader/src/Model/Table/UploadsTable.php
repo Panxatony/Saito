@@ -356,10 +356,8 @@ class UploadsTable extends AppTable
         if ($source === false) {
             throw new \RuntimeException();
         }
-        $success = imagecopyresampled($destination, $source, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
-        if ($success === false) {
-            throw new \RuntimeException();
-        }
+        // Returns true or throws since PHP 8.5; there is no false to check for.
+        imagecopyresampled($destination, $source, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
 
         $type = mime_content_type($filePath) ?: '';
         switch ($type) {

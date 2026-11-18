@@ -18,10 +18,11 @@ A lot of optimization went into serving long existing, small- to mid-sized commu
 
 ## Requirements
 
-- PHP 8.4.3+ (extensions: gd, exif, intl, mbstring, pdo, simplexml). The floor is
-  a patch release, not just a minor one, because the locked dependency tree asks
-  for it — and because Saito expects to run on a patched host. See
-  [Keeping it patched](#keeping-it-patched) below.
+- PHP 8.5 (extensions: gd, exif, intl, mbstring, pdo, simplexml), from Saito
+  8.5.0 on. The **8.4.x** line runs on PHP 8.4.3+ and receives security fixes
+  until 30 June 2027; moving from one to the other is described in
+  [docs/update.md](docs/update.md). Either way Saito expects a patched host —
+  see [Keeping it patched](#keeping-it-patched) below.
 - Database (MySQL/MariaDB tested, [others untested](https://book.cakephp.org/5/en/orm/database-basics.html#supported-databases)).
   **Transactional tables are required.** Operations that touch several rows at
   once — merging two threads, for one — rely on a transaction to keep them
@@ -40,7 +41,7 @@ the machine underneath it.
 - **Patch the host regularly.** Weekly is a good rhythm: PHP, the database, the
   web server, the OS. Most of what threatens a forum is not a hole in the forum
   software — it is an unpatched runtime below it.
-- **Run a current PHP 8.4.** The minimum above is a floor, not a target. Only the
+- **Run a current PHP 8.5.** The minimum above is a floor, not a target. Only the
   newest patch release of a branch carries the current security fixes.
 - **Follow the releases.** Watch this repository or subscribe to the
   [release feed](https://github.com/Panxatony/Saito/releases.atom); security

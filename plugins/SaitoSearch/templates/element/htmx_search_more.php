@@ -23,14 +23,14 @@ if (!($results instanceof \Cake\Datasource\Paging\PaginatedInterface) || !$resul
     return;
 }
 
-$query = $this->request->getQueryParams();
+$query = $this->getRequest()->getQueryParams();
 $nextPage = $results->currentPage() + 1;
 // Left side wins in a union, so page overrides whatever is in the URL while the
 // search terms ride along — without them page two would be a fresh search.
 $nextUrl = $this->Url->build([
     'plugin' => 'SaitoSearch',
     'controller' => 'Searches',
-    'action' => $this->request->getParam('action'),
+    'action' => $this->getRequest()->getParam('action'),
     '?' => ['page' => $nextPage] + $query,
 ], ['escape' => false]);
 ?>

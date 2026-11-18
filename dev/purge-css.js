@@ -53,9 +53,11 @@ const targets = [
         before += sizeBefore;
         after += sizeAfter;
         const pct = Math.round((1 - sizeAfter / sizeBefore) * 100);
+        // A Node build script: the console is its output. skipcq: JS-0002
         console.log(`  ${rel}: ${Math.round(sizeBefore / 1024)} KB → ${Math.round(sizeAfter / 1024)} KB (−${pct}%)`);
     }
 
+    // skipcq: JS-0002
     console.log(`  gesamt: ${Math.round(before / 1024)} KB → ${Math.round(after / 1024)} KB`);
 
     // A purge that removes nothing means the config stopped matching — a broken

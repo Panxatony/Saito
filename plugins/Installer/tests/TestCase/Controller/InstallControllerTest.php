@@ -13,14 +13,32 @@ declare(strict_types=1);
 namespace Installer\Test\TestCase\Controller;
 
 use Cake\Core\Configure;
+use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
 use Installer\Lib\DbVersion;
 use Installer\Lib\InstallerState;
 use Installer\Lib\IntegrationTestCase;
+use LogicException;
 
 class InstallControllerTest extends IntegrationTestCase
 {
+    /**
+     * The test database as what it is. ConnectionManager::get() is declared
+     * to return the bare interface, which has no execute() or schema access.
+     *
+     * @return \Cake\Database\Connection
+     */
+    private static function testConnection(): Connection
+    {
+        $connection = ConnectionManager::get('test');
+        if (!$connection instanceof Connection) {
+            throw new LogicException('The test connection is not a database connection.');
+        }
+
+        return $connection;
+    }
+
     protected $isUpdated = false;
 
     public function setUp(): void
@@ -115,7 +133,7 @@ class InstallControllerTest extends IntegrationTestCase
 
     private function createSettings()
     {
-        $connection = ConnectionManager::get('test');
+        $connection = self::testConnection();
         $connection->execute('DROP TABLE IF EXISTS `settings`;');
         $connection->execute('CREATE TABLE `settings` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT);');
         $connection->execute('ALTER TABLE settings ADD `name` VARCHAR(100)  NULL  DEFAULT NULL  AFTER `id`;');

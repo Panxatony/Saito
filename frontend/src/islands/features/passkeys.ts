@@ -77,10 +77,10 @@ function fromBase64Url(value: string): Uint8Array {
 function toBase64Url(buffer: ArrayBuffer): string {
     const bytes = new Uint8Array(buffer);
     let binary = '';
-    for (let i = 0; i < bytes.length; i += 1) {
-        binary += String.fromCharCode(bytes[i]);
+    for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
     }
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/[=]+$/, '');
 }
 
 /** A credential descriptor as the server sends it. */
@@ -268,7 +268,7 @@ function attach(button: HTMLButtonElement): void {
     const note = button.dataset.note
         ? document.querySelector<HTMLElement>(button.dataset.note)
         : null;
-    void isAvailable().then((ok) => {
+    isAvailable().then((ok) => {
         button.hidden = !ok;
         if (note) {
             note.hidden = ok;
@@ -282,7 +282,7 @@ function attach(button: HTMLButtonElement): void {
         // try/finally rather than Promise.finally: the build targets ES2017,
         // where that method does not exist, and re-enabling the button matters
         // enough not to lose it to a silent runtime difference.
-        void (async () => {
+        (async () => {
             try {
                 const run = button.dataset.passkey === 'register' ? register : confirmLogin;
                 await run(button);

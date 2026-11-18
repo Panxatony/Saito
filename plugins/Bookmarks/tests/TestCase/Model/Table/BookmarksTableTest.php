@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace Bookmarks\Test\TestCase\Model\Table;
 
+use Bookmarks\Model\Table\BookmarksTable;
+use LogicException;
 use Saito\Test\Model\Table\SaitoTableTestCase;
 
 /**
@@ -21,6 +23,21 @@ class BookmarksTableTest extends SaitoTableTestCase
 {
 
     public $tableClass = 'Bookmarks.Bookmarks';
+
+    /**
+     * The table under test as its own class; the base test case holds it as
+     * a plain Table, which has no createBookmark().
+     *
+     * @return \Bookmarks\Model\Table\BookmarksTable
+     */
+    private function bookmarks(): BookmarksTable
+    {
+        if (!$this->Table instanceof BookmarksTable) {
+            throw new LogicException('Expected the Bookmarks table.');
+        }
+
+        return $this->Table;
+    }
 
     public array $fixtures = [
         'app.Category',
@@ -46,7 +63,7 @@ class BookmarksTableTest extends SaitoTableTestCase
          * combination user_id and entry_id not unique
          */
         $data = ['entry_id' => 1, 'user_id' => 1];
-        $bookmark = $this->Table->createBookmark($data);
+        $bookmark = $this->bookmarks()->createBookmark($data);
         $errors = $bookmark->getErrors();
         $this->assertTrue(isset($errors['entry_id']['unique']));
 
@@ -54,7 +71,7 @@ class BookmarksTableTest extends SaitoTableTestCase
          * entry-ID not set
          */
         $data = ['user_id' => 1];
-        $bookmark = $this->Table->createBookmark($data);
+        $bookmark = $this->bookmarks()->createBookmark($data);
         $errors = $bookmark->getErrors();
         $this->assertTrue(isset($errors['entry_id']));
 
@@ -62,7 +79,7 @@ class BookmarksTableTest extends SaitoTableTestCase
          * user-ID not set
          */
         $data = ['entry_id' => 1];
-        $bookmark = $this->Table->createBookmark($data);
+        $bookmark = $this->bookmarks()->createBookmark($data);
         $errors = $bookmark->getErrors();
         $this->assertTrue(isset($errors['user_id']));
 
@@ -70,7 +87,7 @@ class BookmarksTableTest extends SaitoTableTestCase
          * posting does not exist
          */
         $data = ['entry_id' => 9999, 'user_id' => 1];
-        $bookmark = $this->Table->createBookmark($data);
+        $bookmark = $this->bookmarks()->createBookmark($data);
         $errors = $bookmark->getErrors();
         $this->assertTrue(isset($errors['entry_id']['exists']));
 
@@ -78,7 +95,7 @@ class BookmarksTableTest extends SaitoTableTestCase
          * posting does not exist
          */
         $data = ['entry_id' => 1, 'user_id' => 9999];
-        $bookmark = $this->Table->createBookmark($data);
+        $bookmark = $this->bookmarks()->createBookmark($data);
         $errors = $bookmark->getErrors();
         $this->assertTrue(isset($errors['user_id']['exists']));
 

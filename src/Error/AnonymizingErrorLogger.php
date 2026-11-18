@@ -212,7 +212,9 @@ class AnonymizingErrorLogger extends ErrorLogger
         // compressed addresses whole — `2001:db8::1234` came out unchanged
         // with `:x` appended. Work on the bytes instead.
         $ip = trim(preg_replace('/%.*$/', '', $ip) ?? '', '[]');
-        $bin = @inet_pton($ip);
+        // Validated first: inet_pton() warns on anything that is not an
+        // address, and the logger must not log about logging.
+        $bin = filter_var($ip, FILTER_VALIDATE_IP) !== false ? inet_pton($ip) : false;
         if ($bin === false) {
             // Not an address shape we recognise — drop it rather than guess.
             return 'x';

@@ -20,6 +20,13 @@ use Cake\View\View;
 
 /**
  * App View class
+ *
+ * Helpers that templates use without loading them: the controllers or the
+ * plugins add them at runtime, so they are declared here for static readers.
+ *
+ * @property \App\View\Helper\PermissionsHelper $Permissions
+ * @property \App\View\Helper\PostingHelper $Posting
+ * @property \SaitoHelp\View\Helper\SaitoHelpHelper $SaitoHelp
  */
 #[\AllowDynamicProperties]
 class AppView extends View
