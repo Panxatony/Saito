@@ -11,7 +11,10 @@ declare(strict_types=1);
 
 namespace SaitoHelp\Test\TestCase\Controller;
 
+use ReflectionClass;
+use ReflectionMethod;
 use Saito\Test\IntegrationTestCase;
+use SaitoHelp\Controller\SaitoHelpsController;
 
 class SaitoHelpsControllerTest extends IntegrationTestCase
 {
@@ -124,5 +127,39 @@ class SaitoHelpsControllerTest extends IntegrationTestCase
             unlink($file);
             rmdir($dir);
         }
+    }
+
+    /**
+     * A topic id may name a plugin (`BbcodeParser.1`). One that names a plugin
+     * which is not loaded used to reach Plugin::path(), which throws — a 500
+     * any visitor could trigger. It is an unknown topic, nothing more.
+     *
+     * @return void
+     */
+    public function testATopicOfAnUnknownPluginIsNotFound(): void
+    {
+        $this->get('/help/en/NoSuchPlugin.1');
+
+        $this->assertResponseCode(302);
+        $this->assertRedirect('/');
+    }
+
+    /**
+     * The language is used as a directory name. Whatever the router lets
+     * through, a value that is not a language code must never be looked up
+     * on disk: `..` here would resolve to docs/, where `architecture.md` is.
+     *
+     * @return void
+     */
+    public function testALanguageThatIsNotALanguageCodeIsNotLookedUp(): void
+    {
+        // find() reads nothing from the controller, so it is called on a bare
+        // instance — the router would never hand such a value over today.
+        $controller = (new ReflectionClass(SaitoHelpsController::class))->newInstanceWithoutConstructor();
+        $find = new ReflectionMethod($controller, 'find');
+
+        $this->assertNull($find->invoke($controller, '..', 'architecture'));
+        $this->assertNull($find->invoke($controller, 'en/../..', 'architecture'));
+        $this->assertNotNull($find->invoke($controller, 'en', '1'));
     }
 }
