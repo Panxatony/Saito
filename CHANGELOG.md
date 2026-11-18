@@ -5,6 +5,40 @@
 - Δ Changed
 - − Removed
 
+## [8.5.0] - 2026-11-18 "maschinenwechsel"
+
+**Saito now requires PHP 8.5.** Nothing else about the forum changes: no
+migration, no configuration change, no new feature. The release exists so the
+runtime can move on its own.
+
+**Change PHP first, then Saito.** 8.4.24 and later already run on PHP 8.5, so
+switch the web server to PHP 8.5 while the installation is still on 8.4.x,
+watch it for a few days, and only then install 8.5.0. `docs/update.md` has the
+steps. An installation that cannot move yet stays on the **8.4.x line, which
+receives security fixes until 30 June 2027**.
+
+- Δ Changed: **PHP 8.5.0 or newer is required** (was 8.4.3). On PHP 8.4 the
+  forum stops at start-up with a message that says so. PHP 8.4 leaves active
+  support at the end of 2026, and `endroid/qr-code` 6.2, which draws the QR
+  code for the second factor, already needs 8.5.
+
+- Δ Changed: Things to know when moving PHP: OPcache is built into 8.5 and has
+  no package of its own any more; `php -m` additionally lists `lexbor` and
+  `uri`; carry your `php.ini` and FPM pool settings over, including any
+  `open_basedir` and `disable_functions` lines.
+
+- Δ Changed: Bootstrap is updated to 5.3.9. The compiled themes differ in one
+  selector (the minutes field of a date input in WebKit browsers).
+
+- Δ Changed: Dependencies updated within their current major versions, among
+  them `endroid/qr-code` 6.2.0, `jeremykendall/php-domain-parser` 6.4.1,
+  `laminas/laminas-httphandlerrunner` 2.15.0 and `firebase/php-jwt` 7.2.2.
+
+- ✓ Fixed: Everything in 8.4.25 and 8.4.26 is included.
+
+- − Removed: `dev/gettextExtractor.js`, a leftover of the old frontend build
+  that nothing called.
+
 ## [8.4.26] - 2026-11-18 "wegweiser"
 
 **A security update for the 8.4.x line. No migration, no configuration
