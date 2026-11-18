@@ -150,8 +150,20 @@ class SaitoHelpsController extends AppController
     private function find(string $lang, string $id): ?Entity
     {
         $findFiles = function ($id, $lang) {
+            // Both values come straight from the URL. The language becomes a
+            // directory name, so it has to look like one (`de`, `de_DE`) —
+            // never a path. Today the router happens to split an encoded
+            // slash before this is reached; that is not a guarantee to build on.
+            if (!preg_match('/^[A-Za-z]{2,3}([_-][A-Za-z0-9]{2,8})?$/', (string)$lang)) {
+                return [[], ''];
+            }
             list($plugin, $id) = pluginSplit($id);
             if ($plugin) {
+                // `Nope.1` names a plugin that is not loaded. Plugin::path()
+                // throws for it, which every visitor could turn into a 500.
+                if (!Plugin::isLoaded($plugin)) {
+                    return [[], ''];
+                }
                 $folderPath = Plugin::path($plugin);
             } else {
                 $folderPath = ROOT . DS;

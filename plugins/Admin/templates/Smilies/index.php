@@ -60,10 +60,10 @@ $this->Breadcrumbs->add(__('Smilies'), false);
                 ?>
                 <tr<?php echo $class;?>>
                     <td><?php echo $smiley->get('id'); ?>&nbsp;</td>
-                    <td><code style="font-size: 0.85em;"><?= $codes ?></code></td>
+                    <td><code style="font-size: 0.85em;"><?= h($codes) ?></code></td>
                     <td><?php echo $smiley->get('sort'); ?>&nbsp;</td>
-                    <td><?php echo $smiley->get('icon'); ?>&nbsp;</td>
-                    <td><?php echo $smiley->get('image'); ?>&nbsp;</td>
+                    <td><?= h($smiley->get('icon')) ?>&nbsp;</td>
+                    <td><?= h($smiley->get('image')) ?>&nbsp;</td>
                     <td><?= h($smiley->get('title')) ?>&nbsp;</td>
                     <td><?php echo h(__d('nondynamic', (string)$smiley->get('title'))); ?>
                         &nbsp;</td>
