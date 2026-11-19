@@ -29,6 +29,10 @@ exclude_patterns = [
   # environment and helper scripts. Not worth holding to production lint rules.
   "dev/*",
   "dev/**",
+  # jBBCode 1.4.2, vendored unchanged (see lib/JBBCode/README.md). Third-party
+  # code that is deliberately not modernised; same reason as vendor/**.
+  "lib/*",
+  "lib/**",
   # App config/bootstrap: framework context that uses bootstrap constants
   # (ROOT, DS, APP) defined at runtime, so a standalone analysis reports them
   # as undefined (PHP-W1038). Not app logic. Both `config/*` (direct files

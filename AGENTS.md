@@ -174,8 +174,7 @@ GitLab job `security:psalm-taint` blocks the pipeline. Run it locally with
 follows member input from CakePHP's request object
 (`dev/psalm/taint-sources.phpstub`) into sinks in PHP classes; it does not
 read templates, so escaping in views is not covered by it. A plain
-`vendor/bin/psalm` run is not a gate. The jbbcode deprecation stack traces
-during the test run are vendor noise.
+`vendor/bin/psalm` run is not a gate.
 
 ### Dependabot pull requests
 
@@ -304,6 +303,9 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
 - GitHub issues #68, #69, #74, #79, #94 — all tech debt, none urgent;
   #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7, #74
   for the webhook receiver to migrate.
+- jBBCode 1.4.2, the tokeniser of the posting parser, is vendored in
+  `lib/JBBCode` since 2026-11-19 (#98) — no upstream exists. Fix defects
+  there; do not modernise it. `plugins/BbcodeParser/tests` pins its behaviour.
 - Font Awesome 4.7.0 is vendored in `frontend/vendor/font-awesome` since
   2026-11-19 (#92) and is not edited. Icons of ours are `saito-icon-<name>`
   and listed in `LayoutHelper::OWN_ICONS`; several older classes of ours
