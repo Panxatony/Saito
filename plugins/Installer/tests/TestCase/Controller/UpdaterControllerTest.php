@@ -112,7 +112,7 @@ class UpdaterControllerTest extends IntegrationTestCase
                 'two_factor_credentials', 'two_factor_recovery_codes',
                 'two_factor_trusted_devices', 'uploads', 'webauthn_credentials',
                 'user_blocks', 'user_ignores', 'user_reads', 'useronline', 'users',
-                'esevents', 'esnotifications', 'shouts',
+                'esevents', 'esnotifications', 'shouts', 'cake_seeds',
             ] as $table
         ) {
             $connection->execute(sprintf('DROP TABLE IF EXISTS `%s`', $table));
