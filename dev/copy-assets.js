@@ -6,7 +6,8 @@
  * the stylesheet that references them:
  *
  *  - Bootstrap's minified CSS + source map, for the debug/non-minified mode.
- *  - The Font Awesome web fonts.
+ *  - The Font Awesome web fonts. These come from `frontend/vendor/`, not from
+ *    `node_modules`: Font Awesome 4.7 is vendored (#92).
  *  - The Cabin and Fenix theme fonts, and the SIL Open Font License text the
  *    fonts must be distributed with. `@fontsource` does carry an OFL text of
  *    its own, but one per package and worded for that typeface; `OFL.txt` is
@@ -41,7 +42,7 @@ const jobs = [
         ],
         dest: 'webroot/css/stylesheets/',
     },
-    { cwd: 'node_modules/font-awesome/fonts', src: ['*'], dest: 'webroot/css/stylesheets/fonts/' },
+    { cwd: 'frontend/vendor/font-awesome/fonts', src: ['*'], dest: 'webroot/css/stylesheets/fonts/' },
     { src: ['node_modules/@fontsource/cabin/files/cabin-latin-{400,700}-{normal,italic}.woff*'], dest: 'plugins/Bota/webroot/fonts/' },
     { src: ['node_modules/@fontsource/fenix/files/fenix-latin-400-normal.woff*'], dest: 'plugins/Bota/webroot/fonts/' },
     { src: ['webroot/css/src/fonts/OFL.txt'], dest: 'plugins/Bota/webroot/fonts/' },

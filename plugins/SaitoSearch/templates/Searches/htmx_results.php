@@ -10,4 +10,5 @@
  */
 
 echo $this->element('SaitoSearch.search_result_lines');
+// `$results` is a view variable the controller always sets. skipcq: PHP-W1070
 echo $this->element('SaitoSearch.htmx_search_more', compact('results'));

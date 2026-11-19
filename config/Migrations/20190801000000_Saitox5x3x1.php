@@ -1,6 +1,5 @@
 <?php
 use Migrations\BaseMigration;
-use Phinx\Db\Action\ChangeColumn;
 
 class Saitox5x3x1 extends BaseMigration
 {

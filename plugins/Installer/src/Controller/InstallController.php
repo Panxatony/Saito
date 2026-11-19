@@ -168,8 +168,12 @@ class InstallController extends AppController
             // Initial layout
             $this->migrations->migrate(['target' => 20180620093430]);
             $this->log('Installer starting seed.');
-            // The seed is meant for the initial layout
-            $this->migrations->seed();
+            // The seed is meant for the initial layout. Forced, because
+            // cakephp/migrations 5 remembers in `cake_seeds` which seeds it
+            // has run and skips them the next time: a database whose Saito
+            // tables were dropped for a fresh start would otherwise be
+            // installed without settings, categories and smilies.
+            $this->migrations->seed(['force' => true]);
             $this->log('Installer starting follow-up migrate.');
             // Apply migration changes which applies to DB and seed-data (esp. settings-table)
             $this->migrations->migrate();

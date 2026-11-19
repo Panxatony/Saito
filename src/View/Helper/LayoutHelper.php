@@ -32,15 +32,28 @@ class LayoutHelper extends AppHelper
     ];
 
     /**
+     * Icons that are Saito's own and not Font Awesome's.
+     *
+     * They are drawn with Font Awesome glyphs (or, for the thread bullet,
+     * with none), but their class is `saito-icon-<name>`: a name of ours in
+     * the `fa-` namespace would collide with the next real icon called that.
+     * The rules are in `webroot/css/src/partials/_font-awesome-extend.scss`.
+     *
+     * @var list<string>
+     */
+    public const OWN_ICONS = ['badge-solves', 'mix', 'thread'];
+
+    /**
      * text with icon
      *
      * @param string $text text
-     * @param string $icon icon
+     * @param string $icon icon name without prefix, Font Awesome's or one of {@see self::OWN_ICONS}
      * @return string
      */
     public function textWithIcon($text, $icon): string
     {
-        $html = "<i class=\"saito-icon fa fa-{$icon}\"></i>";
+        $prefix = in_array($icon, self::OWN_ICONS, true) ? 'saito-icon-' : 'fa-';
+        $html = "<i class=\"saito-icon fa {$prefix}{$icon}\"></i>";
         if (!empty($text)) {
                 $html .= '&nbsp;<span class="saito-icon-text">' . $text . '</span>';
         }

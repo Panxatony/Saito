@@ -162,6 +162,11 @@ migrations and records the new version.
 > php bin/cake.php schema_cache clear  # not optional -- see below
 > ```
 >
+> From 8.5.2 on, `migrations status` adds the line *"You are using legacy
+> phinxlog tables. Run `migrations upgrade` …"*. Leave it be: Saito keeps its
+> migration history in `phinxlog` on purpose and will move every installation
+> to the new table together, in a release that says so.
+>
 > **The cache clear belongs to the migration, not after it.** 8.3.0 drops six
 > columns from `users` and 8.3.8 drops `entries.flattr`, and CakePHP keeps each
 > table's column list in `tmp/cache/models`. Until that is cleared, every

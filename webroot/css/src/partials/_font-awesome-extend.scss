@@ -10,11 +10,17 @@
 // must be the first to load it. Sass allows exactly one configuring load.
 @use "font-awesome/scss/font-awesome" as fa;
 
+// Saito's own icons are named `saito-icon-…`, not `fa-…`: three of them used
+// to sit in Font Awesome's namespace (`fa-thread`, `fa-mix`,
+// `fa-badge-solves`), where the next real icon of that name would have
+// collided with them (#92). They are still used together with `.fa`, which
+// supplies the box; `LayoutHelper::OWN_ICONS` knows which names are ours.
+
 /*******************************************************************************
 * Icons for thread buttons
 ******************************************************************************/
 
-.fa-thread {
+.saito-icon-thread {
   font-family: inherit;
   &:before {
     content: "\2022";
@@ -23,11 +29,11 @@
 }
 
 .icon-actthread {
-	@extend .fa-thread;
+	@extend .saito-icon-thread;
 }
 
 .icon-reply {
-	@extend .fa-thread;
+	@extend .saito-icon-thread;
 }
 
 .icon-replynew {
@@ -38,11 +44,11 @@
 	@extend .icon-reply;
 }
 
-.fa-badge-solves {
+.saito-icon-badge-solves {
   @extend .fa-check-square;
 }
 
-.fa-badge-solves-o {
+.saito-icon-badge-solves-o {
   @extend .fa-check-square-o;
 }
 
@@ -54,7 +60,7 @@
   @extend .fa-wrench;
 }
 
-.fa-mix {
+.saito-icon-mix {
   @extend .fa-align-right;
   @extend .fa-flip-horizontal;
   @extend .fa-flip-vertical;

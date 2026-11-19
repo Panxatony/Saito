@@ -22,7 +22,7 @@ import { isModifiedClick, onReady } from '../lib/dom';
  */
 function setIconState(leaf: HTMLElement, open: boolean): void {
     const icon = leaf.querySelector('.btn_show_thread i');
-    icon?.classList.toggle('fa-thread', !open);
+    icon?.classList.toggle('saito-icon-thread', !open);
     icon?.classList.toggle('fa-times', open);
 }
 

@@ -32,7 +32,7 @@ class BbcodeParserTest extends SaitoTestCase
      */
     protected $_Parser = null;
 
-    protected WritableMarkupSettings $MarkupSettings;
+    protected WritableMarkupSettings $MarkupSettings; // assigned in setUp() skipcq: PHP-E1008
 
     /** @var \App\View\Helper\ParserHelper */
     protected $_Helper;
@@ -42,6 +42,57 @@ class BbcodeParserTest extends SaitoTestCase
     protected $server_port;
 
     protected $autolink;
+
+    /**
+     * A closing tag that closes nothing must not cost a walk up every open
+     * element. It did: deeply nested openers followed by unmatched closers
+     * took depth x closers steps, about ten seconds for one posting of the
+     * maximum size, on every page that showed it. The bound is generous on
+     * purpose; the fixed parser needs a tenth of a second.
+     */
+    public function testUnmatchedClosingTagsInADeepNestDoNotCostQuadraticTime()
+    {
+        $n = intdiv(65535, 7);
+        $input = str_repeat('[b]', $n) . str_repeat('[/i]', $n);
+
+        $start = microtime(true);
+        $result = $this->_Parser->parse($input);
+        $seconds = microtime(true) - $start;
+
+        $this->assertLessThan(3.0, $seconds);
+        $this->assertSame($n, substr_count($result, '<strong>'));
+        $this->assertSame($n, substr_count($result, '[/i]'));
+    }
+
+    /**
+     * The same walk, reached by a closing tag whose opener exists far up but
+     * which carries two options and is therefore text.
+     */
+    public function testAClosingTagWithOptionsDoesNotSearchForItsOpener()
+    {
+        $n = intdiv(65535, 15);
+        $input = '[i]' . str_repeat('[b]', $n) . str_repeat('[/i a=1 c=2]', $n);
+
+        $start = microtime(true);
+        $result = $this->_Parser->parse($input);
+        $seconds = microtime(true) - $start;
+
+        $this->assertLessThan(3.0, $seconds);
+        $this->assertSame($n, substr_count($result, '[/i a=1 c=2]'));
+    }
+
+    /**
+     * The tree's root is called "Document" inside the library, and a closing
+     * tag of that name used to close it: the parser was left without a
+     * current element and gave up, so the whole posting came out as plain
+     * text. It is an unknown tag like any other.
+     */
+    public function testAClosingTagNamedAfterTheDocumentRootIsText()
+    {
+        $result = $this->_Parser->parse('a [/document] [b]c[/b] [/Document]');
+
+        $this->assertSame('a [/document] <strong>c</strong> [/Document]', $result);
+    }
 
     public function testBold()
     {

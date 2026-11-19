@@ -7,6 +7,8 @@
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     findUnusedBaselineEntry="false"
     findUnusedCode="false"
+    allFunctionsGlobal="true"
+    allConstantsGlobal="true"
 >
     <projectFiles>
         <directory name="src" />
@@ -15,6 +17,61 @@
             <directory name="vendor" />
             <directory name="tests" />
             <directory name="plugins/*/tests" />
+            <!-- Templates and plugin configuration are included files, not
+                 classes: `$this` and the view variables only exist once the
+                 framework includes them, which Psalm cannot follow. -->
+            <directory name="templates" />
+            <directory name="plugins/*/templates" />
+            <directory name="plugins/*/config" />
         </ignoreFiles>
     </projectFiles>
+
+    <!-- What the framework's bootstrap would define. Without these every
+         `__()`, `h()` and path constant is "undefined", and the taint
+         analysis loses the flow through them. -->
+    <stubs>
+        <file name="vendor/cakephp/cakephp/src/Core/functions_global.php" />
+        <file name="vendor/cakephp/cakephp/src/I18n/functions_global.php" />
+        <file name="src/Lib/BaseFunctions.php" />
+        <file name="dev/psalm/constants.phpstub" />
+        <file name="dev/psalm/taint-sources.phpstub" />
+    </stubs>
+
+    <issueHandlers>
+        <!-- A style rule, not a defect: 238 methods without #[Override]. -->
+        <MissingOverrideAttribute errorLevel="suppress" />
+        <!-- CakePHP declares Helper generic over the view class; our helpers
+             do not say which, and nothing here depends on it. -->
+        <MissingTemplateParam errorLevel="suppress" />
+        <!-- The one place Saito requests a URL a member supplied. The class
+             exists to make that safe (resolved host, public address, pinned
+             connection); the analysis sees the request and not the checks.
+             Limited to this file so any other tainted request is reported. -->
+        <!-- Psalm does not resolve the constant CACHE in a file that also
+             imports the class Cake\Cache\Cache, although it is declared in
+             the stub like the others. PHPStan checks constants everywhere. -->
+        <UndefinedConstant>
+            <errorLevel type="suppress">
+                <file name="plugins/ImageUploader/src/ImageUploaderPlugin.php" />
+                <file name="plugins/Sitemap/src/Lib/SitemapCollection.php" />
+            </errorLevel>
+        </UndefinedConstant>
+        <TaintedSSRF>
+            <errorLevel type="suppress">
+                <file name="plugins/BbcodeParser/src/Lib/Http/SsrfGuardedClient.php" />
+            </errorLevel>
+        </TaintedSSRF>
+        <!-- Same file, a different reason: the request it sends is the one
+             the embed library builds, with that library's own headers. Psalm
+             only sees a PSR request, and the visitor's request (marked as
+             input in dev/psalm/taint-sources.phpstub) implements the same
+             interface, so it assumes the visitor's User-Agent could arrive
+             here. It cannot: the class is only ever handed to the embed
+             library as its HTTP client. -->
+        <TaintedHeader>
+            <errorLevel type="suppress">
+                <file name="plugins/BbcodeParser/src/Lib/Http/SsrfGuardedClient.php" />
+            </errorLevel>
+        </TaintedHeader>
+    </issueHandlers>
 </psalm>

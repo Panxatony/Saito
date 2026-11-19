@@ -121,6 +121,23 @@ try {
     );
 
     Configure::load('email', 'default');
+
+    /**
+     * Keep recording applied migrations in `phinxlog`.
+     *
+     * cakephp/migrations 5 writes to a new table, `cake_migrations`, on a
+     * database that has no `phinxlog` yet, and keeps using `phinxlog` where it
+     * finds one. Left to that, a fresh installation would record its
+     * migrations differently from every grown one, and the test suite, which
+     * always starts on an empty database, would exercise the one path no
+     * existing installation takes. So there is one table everywhere until
+     * Saito moves all installations together. An installation that has moved
+     * on its own (`bin/cake migrations upgrade`) says so with
+     * `Migrations.legacyTables => false` in its own configuration.
+     */
+    if (Configure::read('Migrations.legacyTables') === null) {
+        Configure::write('Migrations.legacyTables', true);
+    }
 } catch (\Exception $e) {
     exit($e->getMessage() . "\n");
 }

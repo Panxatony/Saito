@@ -13,7 +13,7 @@ done, and the mistakes that have already been made once.
   locations, incident history) are in `AGENTS.local.md`, which is deliberately
   *not* committed — this repository is public. If it is missing on your
   machine, you do not have operations access; ask the maintainer.
-- **As of:** 2026-11-18 (Saito 8.5.1 released; deployed: see `AGENTS.local.md`).
+- **As of:** 2026-11-19 (Saito 8.5.2 released; deployed: see `AGENTS.local.md`).
 
 If this file and the actual state of the repository or a system disagree, the
 actual state wins — check, do not assume, and correct this file.
@@ -163,13 +163,18 @@ pass `--repo Panxatony/Saito`.
 ```shell
 sh scripts/test-with-mariadb.sh     # full PHPUnit suite on a throwaway MariaDB (~6 min)
 composer phpstan
+vendor/bin/psalm --taint-analysis --no-progress --no-cache
 yarn lint                           # tsc + eslint
 yarn css && yarn css:postcss && yarn build
 ```
 
-`vendor/bin/psalm` is not a gate (not in CI, ~700 findings from an unbootstrapped
-run); do not read its exit code as a regression. The jbbcode deprecation stack
-traces during the test run are vendor noise.
+Psalm is used for one thing only, the taint analysis, and that is a gate: the
+GitLab job `security:psalm-taint` blocks the pipeline. Run it locally with
+`vendor/bin/psalm --taint-analysis --no-progress --no-cache` (~20 s). It
+follows member input from CakePHP's request object
+(`dev/psalm/taint-sources.phpstub`) into sinks in PHP classes; it does not
+read templates, so escaping in views is not covered by it. A plain
+`vendor/bin/psalm` run is not a gate.
 
 ### Dependabot pull requests
 
@@ -295,14 +300,25 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
 
 ## 6. Open items (not commissioned)
 
-- GitHub issues #66, #68, #69, #74, #79, #92, #94 — all tech debt, none
-  urgent; #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7.
-- No test drives a *successful* passkey (WebAuthn) login; `WebauthnTest` covers
-  the refusal paths only, so the cookies a passkey login sets are untested.
-- Psalm runs unbootstrapped and reports ~700 configuration findings; either
-  configure it properly or remove it from `require-dev`.
-- `cakephp/migrations` stays on 4.x (see #66): under 5 the `Initial` migration
-  no longer creates the tables.
+- GitHub issues #68, #69, #74, #79, #94 — all tech debt, none urgent;
+  #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7, #74
+  for the webhook receiver to migrate.
+- jBBCode 1.4.2, the tokeniser of the posting parser, is vendored in
+  `lib/JBBCode` since 2026-11-19 (#98) — no upstream exists. Fix defects
+  there; do not modernise it. `plugins/BbcodeParser/tests` pins its behaviour.
+- Font Awesome 4.7.0 is vendored in `frontend/vendor/font-awesome` since
+  2026-11-19 (#92) and is not edited. Icons of ours are `saito-icon-<name>`
+  and listed in `LayoutHelper::OWN_ICONS`; several older classes of ours
+  still carry `fa-` (`fa-thread-open`, `fa-mod`, `fa-admin`, …) and were left.
+- Passkey (WebAuthn) *registration* has no test that succeeds; a successful
+  *login* is covered by `WebauthnLoginTest`, which carries a software
+  authenticator (ES256) that a registration test could reuse.
+- `cakephp/migrations` is on 5.x on `develop` since 2026-11-19 (`8.4.x` stays
+  on 4.x). Saito pins the migration log to `phinxlog`
+  (`Migrations.legacyTables`, `config/bootstrap.php`), so `migrations status`
+  prints a hint to run `migrations upgrade` — do not follow it on one
+  installation alone; the move to `cake_migrations` is a release of its own.
+  Seeds are logged in `cake_seeds`; the installer forces them.
 - `cakephp/authentication` is on 4.x on `develop` since 2026-11-18. The
   `8.4.x` branch stays on 3.x until its end: fine while security fixes are
   backported there; the moment a 4.x security fix is *not* backported, 8.4.x

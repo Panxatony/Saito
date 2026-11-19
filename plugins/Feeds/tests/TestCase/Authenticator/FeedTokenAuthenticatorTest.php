@@ -25,7 +25,7 @@ class FeedTokenAuthenticatorTest extends TestCase
 {
     public array $fixtures = ['app.User'];
 
-    private FeedTokenAuthenticator $auth;
+    private FeedTokenAuthenticator $auth; // assigned in setUp() skipcq: PHP-E1008
 
     protected function setUp(): void
     {
