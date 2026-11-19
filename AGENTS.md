@@ -295,10 +295,12 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
 
 ## 6. Open items (not commissioned)
 
-- GitHub issues #66, #68, #69, #74, #79, #92, #94 — all tech debt, none
-  urgent; #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7.
-- No test drives a *successful* passkey (WebAuthn) login; `WebauthnTest` covers
-  the refusal paths only, so the cookies a passkey login sets are untested.
+- GitHub issues #68, #69, #74, #79, #92, #94 — all tech debt, none urgent;
+  #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7, #74
+  for the webhook receiver to migrate.
+- Passkey (WebAuthn) *registration* has no test that succeeds; a successful
+  *login* is covered by `WebauthnLoginTest`, which carries a software
+  authenticator (ES256) that a registration test could reuse.
 - Psalm runs unbootstrapped and reports ~700 configuration findings; either
   configure it properly or remove it from `require-dev`.
 - `cakephp/migrations` is on 5.x on `develop` since 2026-11-19 (`8.4.x` stays
