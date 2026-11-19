@@ -63,6 +63,9 @@ abstract class IntegrationTestCase extends SaitoIntegrationTestCase
         'esevents',
         'esnotifications',
         'shouts',
+        // The seed log of cakephp/migrations 5. It only exists once a seed has
+        // run, so it is dropped with the rest but never truncated.
+        'cake_seeds',
     ];
 
     /** Tracks whether dropTables() was explicitly called during the current test. */

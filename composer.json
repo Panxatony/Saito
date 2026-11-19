@@ -27,7 +27,7 @@
   "require": {
     "php": ">=8.5",
     "cakephp/cakephp": "^5.0",
-    "cakephp/migrations": "^4.0",
+    "cakephp/migrations": "^5.0",
     "cakephp/plugin-installer": "*",
     "aura/di": "^5",
     "jbbcode/jbbcode": "~1.4",

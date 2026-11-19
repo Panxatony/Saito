@@ -301,8 +301,12 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
   the refusal paths only, so the cookies a passkey login sets are untested.
 - Psalm runs unbootstrapped and reports ~700 configuration findings; either
   configure it properly or remove it from `require-dev`.
-- `cakephp/migrations` stays on 4.x (see #66): under 5 the `Initial` migration
-  no longer creates the tables.
+- `cakephp/migrations` is on 5.x on `develop` since 2026-11-19 (`8.4.x` stays
+  on 4.x). Saito pins the migration log to `phinxlog`
+  (`Migrations.legacyTables`, `config/bootstrap.php`), so `migrations status`
+  prints a hint to run `migrations upgrade` — do not follow it on one
+  installation alone; the move to `cake_migrations` is a release of its own.
+  Seeds are logged in `cake_seeds`; the installer forces them.
 - `cakephp/authentication` is on 4.x on `develop` since 2026-11-18. The
   `8.4.x` branch stays on 3.x until its end: fine while security fixes are
   backported there; the moment a 4.x security fix is *not* backported, 8.4.x

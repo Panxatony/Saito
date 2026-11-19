@@ -70,7 +70,9 @@ if (!defined('PHPUNIT_COMPOSER_INSTALL')) {
     ];
     // Legacy Saito 4 tables dropped by migration 5.1.0 — must be dropped
     // before re-running migrations so the initial migration can recreate them.
-    $legacyTables = ['esevents', 'esnotifications', 'shouts'];
+    // `cake_seeds` is the seed log of cakephp/migrations 5, left by an
+    // interrupted Installer test.
+    $legacyTables = ['esevents', 'esnotifications', 'shouts', 'cake_seeds'];
     $connection = ConnectionManager::get('test');
     try {
         $migrations->migrate(['connection' => 'test']);
@@ -144,8 +146,9 @@ Configure::write('Asset.timestamp', false);
 
     $leftovers = [];
     foreach ($schema->listTables() as $table) {
-        // phinxlog is the migration history and is supposed to have rows.
-        if ($table === 'phinxlog') {
+        // phinxlog is the migration history and is supposed to have rows;
+        // cake_seeds is the same for seeds.
+        if ($table === 'phinxlog' || $table === 'cake_seeds') {
             continue;
         }
         $row = $connection->selectQuery(['c' => 'COUNT(*)'], $table)
