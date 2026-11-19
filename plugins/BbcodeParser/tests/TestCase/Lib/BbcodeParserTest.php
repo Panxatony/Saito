@@ -32,7 +32,7 @@ class BbcodeParserTest extends SaitoTestCase
      */
     protected $_Parser = null;
 
-    protected WritableMarkupSettings $MarkupSettings;
+    protected WritableMarkupSettings $MarkupSettings; // assigned in setUp() skipcq: PHP-E1008
 
     /** @var \App\View\Helper\ParserHelper */
     protected $_Helper;

@@ -115,6 +115,7 @@ echo $this->Html->css('SaitoSearch.saitosearch', ['block' => true]);
         // Initial render for a bookmarked URL / no-JS submit with a term.
         if (!empty($searchDefaults['searchTerm'])) {
             echo $this->element('SaitoSearch.search_result_lines');
+            // `$results` is a view variable the controller always sets. skipcq: PHP-W1070
             echo $this->element('SaitoSearch.htmx_search_more', compact('results'));
         }
         ?>

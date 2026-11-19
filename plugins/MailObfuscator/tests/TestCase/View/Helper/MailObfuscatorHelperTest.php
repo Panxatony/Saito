@@ -12,7 +12,7 @@ use MailObfuscator\View\Helper\MailObfuscatorHelper;
  */
 class MailObfuscatorHelperTest extends TestCase
 {
-    private MailObfuscatorHelper $helper;
+    private MailObfuscatorHelper $helper; // assigned in setUp() skipcq: PHP-E1008
 
     public function setUp(): void
     {
