@@ -5,6 +5,15 @@
 - Δ Changed
 - − Removed
 
+## [8.5.1] - 2026-11-18 "pförtner"
+
+No migration, no configuration change. Members stay logged in: the format of
+the "Remember me" cookie is unchanged.
+
+- Δ Changed: `cakephp/authentication` is updated from 3.3 to 4.2, the library
+  behind login, "Remember me", the second factor and passkeys. Nothing changes
+  for members or administrators.
+
 ## [8.5.0] - 2026-11-18 "maschinenwechsel"
 
 **Saito now requires PHP 8.5.** Nothing else about the forum changes: no
