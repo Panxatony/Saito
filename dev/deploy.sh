@@ -346,7 +346,7 @@ echo "done"
 
 # --- 6. settle ---------------------------------------------------------------
 say "ownership, syntax, caches"
-on_target "chown -R $OWNER src plugins templates webroot bin docs vendor config CHANGELOG.md composer.json composer.lock index.php 2>/dev/null || true"
+on_target "chown -R $OWNER src plugins templates webroot bin docs vendor config lib CHANGELOG.md composer.json composer.lock index.php 2>/dev/null || true"
 on_target "php -l config/bootstrap.php && php -l config/routes.php && php -l src/Lib/version.php"
 on_target "find tmp/cache -type f -delete 2>/dev/null || true"
 
