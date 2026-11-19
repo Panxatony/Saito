@@ -38,6 +38,23 @@ class Parser
     protected $bbcodes = array();
 
     /**
+     * How many elements of each tag name are open on the path from the root
+     * to the current position, keyed by lower-case tag name.
+     *
+     * Saito's addition (2026-11). A closing tag used to be answered by walking
+     * every ancestor to look for its opener. For a closing tag that matches
+     * nothing that walk goes all the way to the root, so a posting of deeply
+     * nested openers followed by unmatched closers cost depth x closers steps:
+     * about ten seconds for 64 KB. With the count, "nothing of this name is
+     * open" is known without walking, and a walk only happens when it will
+     * find something, in which case every element it passes is being closed
+     * and is never walked again.
+     *
+     * @var array<string, int>
+     */
+    protected $openTags = array();
+
+    /**
      * Constructs an instance of the BBCode parser
      */
     public function __construct()
@@ -177,6 +194,7 @@ class Parser
                 $parent->getCodeDefinition()->parseContent()) {
                 /* We're inside an element that does not allow its contents to be parseable. */
                 $this->parseAsTextUntilClose($parent, $tokenizer);
+                $this->openTags[strtolower($parent->getTagName())]--;
                 $parent = $parent->getParent();
             }
         }
@@ -208,6 +226,7 @@ class Parser
     {
         // remove any old tree information
         $this->treeRoot = new DocumentElement();
+        $this->openTags = array();
     }
 
     /**
@@ -558,7 +577,13 @@ class Parser
             /* This is attempting to close an open tag. We must verify that there exists an
              * open tag of the same type and that there is no option (options on closing
              * tags don't make any sense). */
-            $elToClose = $parent->closestParentOfType($actualTagName);
+            /* A closing tag with more than one option is text whatever it names, so that is
+             * settled before looking. Otherwise only look for the opener if one is open. The document root is never counted,
+             * so "[/document]" is text like any other unknown closing tag; it used to match
+             * the root and leave the parser without a current element. */
+            $elToClose = (count($options) > 1 || empty($this->openTags[strtolower($actualTagName)]))
+                ? null
+                : $parent->closestParentOfType($actualTagName);
             if (null == $elToClose || count($options) > 1) {
                 /* Closing an unopened tag or has an option. Treat everything as plain text. */
                 $this->createTextNode($parent, '[');
@@ -568,7 +593,11 @@ class Parser
             } else {
                 /* We're closing $elToClose. In order to do that, we just need to return
                  * $elToClose's parent, since that will change our effective parent to be
-                 * elToClose's parent. */
+                 * elToClose's parent. Everything between here and there closes with it. */
+                for ($closing = $parent; $closing !== $elToClose; $closing = $closing->getParent()) {
+                    $this->openTags[strtolower($closing->getTagName())]--;
+                }
+                $this->openTags[strtolower($elToClose->getTagName())]--;
                 return $elToClose->getParent();
             }
         }
@@ -591,6 +620,8 @@ class Parser
             $el->setAttribute($options);
         }
         $parent->addChild($el);
+        $name = strtolower($el->getTagName());
+        $this->openTags[$name] = (isset($this->openTags[$name]) ? $this->openTags[$name] : 0) + 1;
         return $el;
     }
 
