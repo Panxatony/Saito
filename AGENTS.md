@@ -168,8 +168,7 @@ yarn css && yarn css:postcss && yarn build
 ```
 
 `vendor/bin/psalm` is not a gate (not in CI, ~700 findings from an unbootstrapped
-run); do not read its exit code as a regression. The jbbcode deprecation stack
-traces during the test run are vendor noise.
+run); do not read its exit code as a regression.
 
 ### Dependabot pull requests
 
@@ -299,6 +298,9 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
   urgent; #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7.
 - No test drives a *successful* passkey (WebAuthn) login; `WebauthnTest` covers
   the refusal paths only, so the cookies a passkey login sets are untested.
+- jBBCode 1.4.2, the tokeniser of the posting parser, is vendored in
+  `lib/JBBCode` since 2026-11-19 (#98) — no upstream exists. Fix defects
+  there; do not modernise it. `plugins/BbcodeParser/tests` pins its behaviour.
 - Psalm runs unbootstrapped and reports ~700 configuration findings; either
   configure it properly or remove it from `require-dev`.
 - `cakephp/authentication` stays on 3.x (see #66). Still free while security
