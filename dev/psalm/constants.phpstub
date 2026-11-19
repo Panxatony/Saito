@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * Constants Psalm cannot work out for itself.
+ *
+ * The path constants come from config/paths.php, which builds each one from
+ * the one before, and `TIME_START` from CakePHP's bootstrap at run time.
+ * Declared here only so the taint analysis does not stop at them; the values
+ * mean nothing.
+ */
+
+define('ROOT', '/');
+define('APP', '/');
+define('CONFIG', '/');
+define('TMP', '/');
+define('LOGS', '/');
+define('CACHE', '/');
+define('TIME_START', 0.0);

@@ -17,7 +17,11 @@ use Cake\Log\Log;
 class ForbiddenLogger extends ExceptionLogger
 {
     /**
-     * {@inheritDoc}
+     * Write, with "Forbidden" standing in for a missing message.
+     *
+     * @param string|null $message message
+     * @param array|null $data data, see the parent
+     * @return void
      */
     public function write($message = null, $data = null)
     {

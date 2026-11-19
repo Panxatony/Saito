@@ -163,13 +163,19 @@ pass `--repo Panxatony/Saito`.
 ```shell
 sh scripts/test-with-mariadb.sh     # full PHPUnit suite on a throwaway MariaDB (~6 min)
 composer phpstan
+vendor/bin/psalm --taint-analysis --no-progress --no-cache
 yarn lint                           # tsc + eslint
 yarn css && yarn css:postcss && yarn build
 ```
 
-`vendor/bin/psalm` is not a gate (not in CI, ~700 findings from an unbootstrapped
-run); do not read its exit code as a regression. The jbbcode deprecation stack
-traces during the test run are vendor noise.
+Psalm is used for one thing only, the taint analysis, and that is a gate: the
+GitLab job `security:psalm-taint` blocks the pipeline. Run it locally with
+`vendor/bin/psalm --taint-analysis --no-progress --no-cache` (~20 s). It
+follows member input from CakePHP's request object
+(`dev/psalm/taint-sources.phpstub`) into sinks in PHP classes; it does not
+read templates, so escaping in views is not covered by it. A plain
+`vendor/bin/psalm` run is not a gate. The jbbcode deprecation stack traces
+during the test run are vendor noise.
 
 ### Dependabot pull requests
 
@@ -301,8 +307,6 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
 - Passkey (WebAuthn) *registration* has no test that succeeds; a successful
   *login* is covered by `WebauthnLoginTest`, which carries a software
   authenticator (ES256) that a registration test could reuse.
-- Psalm runs unbootstrapped and reports ~700 configuration findings; either
-  configure it properly or remove it from `require-dev`.
 - `cakephp/migrations` is on 5.x on `develop` since 2026-11-19 (`8.4.x` stays
   on 4.x). Saito pins the migration log to `phinxlog`
   (`Migrations.legacyTables`, `config/bootstrap.php`), so `migrations status`

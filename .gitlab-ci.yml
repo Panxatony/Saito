@@ -140,15 +140,18 @@ security:composer-audit:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 # Psalm taint analysis: tracks user input into SQL/HTML/header/file/shell
-# sinks (SQLi, XSS, header injection, …). allow_failure while the scan is
-# young — it reports findings without blocking until a baseline is trusted.
+# sinks (SQLi, XSS, header injection, …). Blocking since 2026-11-19: until
+# then it ran unconfigured, failed on ~720 findings of which one was about
+# taint, and was allowed to. psalm.xml now gives it the framework's functions
+# and constants, and dev/psalm/taint-sources.phpstub tells it where member
+# input enters (CakePHP's request object — without that it had nothing to
+# follow). It does not read templates.
 security:psalm-taint:
   stage: security
   before_script:
     - !reference [.php_setup, before_script]
   script:
     - vendor/bin/psalm --taint-analysis --no-progress --no-cache --output-format=compact
-  allow_failure: true
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH

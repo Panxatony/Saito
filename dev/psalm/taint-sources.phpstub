@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * Where member input enters, for Psalm's taint analysis.
+ *
+ * Psalm knows `$_GET` and `$_POST` as sources of untrusted input, and nothing
+ * in Saito reads those: everything arrives through CakePHP's request object.
+ * Without this file the analysis runs clean because it has nothing to follow.
+ * Measured: a controller that echoes `$request->getQuery('q')` was not
+ * reported before this stub existed and is reported with it.
+ */
+
+namespace Cake\Http;
+
+class ServerRequest
+{
+    /**
+     * @psalm-taint-source input
+     */
+    public function getQuery(?string $name = null, mixed $default = null): mixed
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getQueryParams(): array
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getData(?string $name = null, mixed $default = null): mixed
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getParsedBody(): object|array|null
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getParam(string $name, mixed $default = null): mixed
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getCookie(string $key, array|string|null $default = null): array|string|null
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getCookieParams(): array
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getHeaderLine(string $name): string
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getHeader(string $name): array
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function getEnv(string $key, ?string $default = null): ?string
+    {
+    }
+
+    /**
+     * @psalm-taint-source input
+     */
+    public function referer(bool $local = true): ?string
+    {
+    }
+}
