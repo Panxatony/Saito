@@ -152,7 +152,7 @@ class PostingHelper extends AppHelper
      */
     public function solvedBadge()
     {
-        return '<i class="fa fa-badge-solves solves-isSolved" title="' .
+        return '<i class="fa saito-icon-badge-solves solves-isSolved" title="' .
         __('Helpful entry') . '"></i>';
     }
 

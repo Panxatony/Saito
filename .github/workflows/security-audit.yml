@@ -18,8 +18,11 @@
 #
 #   * PHP production dependencies — this is the code running on the forum's
 #     server. **Fails.**
-#   * JavaScript runtime dependencies — the six packages that end up in the
-#     bundle (alpinejs, htmx.org, bootstrap, font-awesome, the two typefaces).
+#   * JavaScript runtime dependencies — the five packages that end up in the
+#     bundle (alpinejs, htmx.org, bootstrap, the two typefaces). Font Awesome
+#     4.7 was the sixth until 2026-11-19; it is vendored under
+#     frontend/vendor/ now (#92) and no audit will ever speak about it, which
+#     is the price of keeping a finished thing.
 #     **Fails.**
 #   * Everything else, dev and build — printed into the summary so it can be
 #     seen and worked through, but it does not stop anything.
