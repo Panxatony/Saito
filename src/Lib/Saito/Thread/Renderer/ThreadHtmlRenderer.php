@@ -88,7 +88,7 @@ EOF;
 <li class="threadLeaf {$css}" data-id="{$id}" data-leaf='{$jsData}'>
 	<div class="threadLine {$params['css']}" style="{$params['style']}">
 		<button class="btn btn-link btn_show_thread threadLine-pre et">
-			<i class="fa fa-thread"></i>
+			<i class="fa saito-icon-thread"></i>
 		</button>
 		<a href="{$this->_webroot}entries/{$postingAction}/{$id}"
 			class="link_show_thread et threadLine-content">

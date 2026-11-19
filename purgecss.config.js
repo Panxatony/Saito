@@ -64,7 +64,7 @@ module.exports = {
             // would miss tomorrow's third. Icons are a small, bounded set; the
             // saving is not worth a failure mode that only a pixel comparison
             // can catch, and only on a page somebody remembered to compare.
-            /^fa$/, /^fa-/,
+            /^fa$/, /^fa-/, /^saito-icon-/,
             // The collapsed-header state. A plain safelist entry proved not to
             // hold: of five `html.headerClosed …` rules, purging kept three and
             // dropped two — including the one that lets the bar shrink. Greedy

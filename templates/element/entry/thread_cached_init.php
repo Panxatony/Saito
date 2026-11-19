@@ -47,7 +47,7 @@ foreach ($entriesSub as $entrySub) :
                     class="btn btn-link threadBox-tools-btn js-mixToggle"
                     title="<?= $l10nCache['mix'] ?>"
                     rel="nofollow">
-                        <i class="fa fa-fw fa-mix"></i>
+                        <i class="fa fa-fw saito-icon-mix"></i>
                     </a>
             </div>
 
