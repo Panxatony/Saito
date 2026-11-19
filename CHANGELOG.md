@@ -5,6 +5,30 @@
 - Δ Changed
 - − Removed
 
+## [8.4.27] - 2026-11-19 "geduldsfaden"
+
+**A security update for the 8.4.x line. No migration, no configuration
+change.**
+
+- ✓ Fixed: **One posting could make a thread take many seconds to show, for
+  every reader.** Deeply nested BBCode tags followed by closing tags that
+  close nothing sent the parser searching every open tag for each of them:
+  9.4 seconds for a single posting of the maximum size, and a posting is
+  parsed each time it is shown. Any member could write one, and the preview
+  could be used the same way without saving anything. The same posting now
+  takes 0.12 seconds. Checked against the previous parser with 300,000 random
+  inputs: every posting that was parsed before comes out identical.
+
+- ✓ Fixed: A posting containing `[/document]` was shown as plain text, with
+  none of its formatting. The tag is ordinary text now.
+
+- Δ Changed: jBBCode, the library that reads BBCode tags, has had no release
+  since 2020 and no maintainer. Its 19 files now live in the repository
+  (`lib/JBBCode`) instead of being installed as a package, which is what made
+  the fix above possible. If you deploy from the release package, nothing
+  changes for you; if you deploy from a checkout, run `composer install` as
+  usual and the package disappears from `vendor/`.
+
 ## [8.4.26] - 2026-11-18 "wegweiser"
 
 **A security update for the 8.4.x line. No migration, no configuration
