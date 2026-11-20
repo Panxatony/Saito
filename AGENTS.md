@@ -300,7 +300,7 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
 
 ## 6. Open items (not commissioned)
 
-- GitHub issues #68, #69, #74, #79, #94 — all tech debt, none urgent;
+- GitHub issues #68, #69, #74, #94 — all tech debt, none urgent;
   #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7, #74
   for the webhook receiver to migrate.
 - jBBCode 1.4.2, the tokeniser of the posting parser, is vendored in
