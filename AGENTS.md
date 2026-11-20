@@ -308,8 +308,8 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
   there; do not modernise it. `plugins/BbcodeParser/tests` pins its behaviour.
 - Font Awesome 4.7.0 is vendored in `frontend/vendor/font-awesome` since
   2026-11-19 (#92) and is not edited. Icons of ours are `saito-icon-<name>`
-  and listed in `LayoutHelper::OWN_ICONS`; several older classes of ours
-  still carry `fa-` (`fa-thread-open`, `fa-mod`, `fa-admin`, …) and were left.
+  and listed in `LayoutHelper::OWN_ICONS`; nothing of ours carries `fa-` any
+  more (`LayoutHelperTest` holds that for `_font-awesome-extend.scss`).
 - Passkey (WebAuthn) *registration* has no test that succeeds; a successful
   *login* is covered by `WebauthnLoginTest`, which carries a software
   authenticator (ES256) that a registration test could reuse.

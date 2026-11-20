@@ -10,11 +10,12 @@
 // must be the first to load it. Sass allows exactly one configuring load.
 @use "font-awesome/scss/font-awesome" as fa;
 
-// Saito's own icons are named `saito-icon-…`, not `fa-…`: three of them used
-// to sit in Font Awesome's namespace (`fa-thread`, `fa-mix`,
-// `fa-badge-solves`), where the next real icon of that name would have
+// Saito's own icons are named `saito-icon-…`, not `fa-…`: they used to sit in
+// Font Awesome's namespace (`fa-thread`, `fa-mix`, `fa-badge-solves`,
+// `fa-thread-open`), where the next real icon of that name would have
 // collided with them (#92). They are still used together with `.fa`, which
 // supplies the box; `LayoutHelper::OWN_ICONS` knows which names are ours.
+// No rule in this file declares a `.fa-…` selector; a test holds that.
 
 /*******************************************************************************
 * Icons for thread buttons
@@ -52,50 +53,14 @@
   @extend .fa-check-square-o;
 }
 
-.fa-mod {
-  @extend .fa-gavel;
-}
-
-.fa-admin {
-  @extend .fa-wrench;
-}
-
 .saito-icon-mix {
   @extend .fa-align-right;
   @extend .fa-flip-horizontal;
   @extend .fa-flip-vertical;
 }
 
-.fa-multimedia {
-  @extend .fa-clipboard;
-}
-
-.fa-s-code {
-  @extend .fa-terminal;
-}
-
-.fa-close-widget {
-  @extend .fa-times-circle;
-  // @bogus: with it the close buttons do not work
-  position: relative;
-}
-
-.fa-s-smile-o {
-  @extend .fa-smile-o;
-}
-
-.fa-thread-open {
+.saito-icon-thread-open {
   @extend .fa-chevron-down;
-}
-
-.fa-thread-closed {
-  @extend .fa-chevron-right;
-}
-
-.fa-huge {
-  font-size: 2em;
-  vertical-align: bottom;
-  color: #444;
 }
 
 li .#{fa.$fa-css-prefix}-lg {
@@ -103,7 +68,7 @@ li .#{fa.$fa-css-prefix}-lg {
   width: auto;
 }
 
-.fa-s-edit, .richtext-editMark {
+.richtext-editMark {
   @extend .fa;
   @extend .fa-pencil;
 }
