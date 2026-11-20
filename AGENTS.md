@@ -13,7 +13,7 @@ done, and the mistakes that have already been made once.
   locations, incident history) are in `AGENTS.local.md`, which is deliberately
   *not* committed — this repository is public. If it is missing on your
   machine, you do not have operations access; ask the maintainer.
-- **As of:** 2026-11-19 (Saito 8.5.2 released; deployed: see `AGENTS.local.md`).
+- **As of:** 2026-11-20 (Saito 8.5.3 released; deployed: see `AGENTS.local.md`).
 
 If this file and the actual state of the repository or a system disagree, the
 actual state wins — check, do not assume, and correct this file.
@@ -300,7 +300,7 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
 
 ## 6. Open items (not commissioned)
 
-- GitHub issues #68, #69, #74, #79, #94 — all tech debt, none urgent;
+- GitHub issues #68, #69, #74 — all tech debt, none urgent;
   #68 waits for Bootstrap 6, #69 for typescript-eslint support of TS 7, #74
   for the webhook receiver to migrate.
 - jBBCode 1.4.2, the tokeniser of the posting parser, is vendored in
@@ -308,8 +308,8 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
   there; do not modernise it. `plugins/BbcodeParser/tests` pins its behaviour.
 - Font Awesome 4.7.0 is vendored in `frontend/vendor/font-awesome` since
   2026-11-19 (#92) and is not edited. Icons of ours are `saito-icon-<name>`
-  and listed in `LayoutHelper::OWN_ICONS`; several older classes of ours
-  still carry `fa-` (`fa-thread-open`, `fa-mod`, `fa-admin`, …) and were left.
+  and listed in `LayoutHelper::OWN_ICONS`; nothing of ours carries `fa-` any
+  more (`LayoutHelperTest` holds that for `_font-awesome-extend.scss`).
 - Passkey (WebAuthn) *registration* has no test that succeeds; a successful
   *login* is covered by `WebauthnLoginTest`, which carries a software
   authenticator (ES256) that a registration test could reuse.

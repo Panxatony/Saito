@@ -5,6 +5,28 @@
 - Δ Changed
 - − Removed
 
+## [8.5.3] - 2026-11-20 "kehrwoche"
+
+**Housekeeping. Nothing changes for readers; no migration, no configuration
+change.**
+
+- Δ Changed: **The collapse arrow of a thread is now `saito-icon-thread-open`**
+  (was `fa-thread-open`). It was the last icon of Saito's own that used a name
+  in Font Awesome's namespace, where a real icon of that name would have
+  collided with it. A theme of your own that styles `.fa-thread-open` has to
+  follow the new name.
+
+- − Removed: Nine icon classes that nothing in Saito has used since the
+  frontend rewrite: `fa-mod`, `fa-admin`, `fa-multimedia`, `fa-s-code`,
+  `fa-close-widget`, `fa-s-smile-o`, `fa-thread-closed`, `fa-huge` and
+  `fa-s-edit`. A theme or template of your own that still uses one of them
+  has to declare it itself; each was one line that extended a Font Awesome
+  icon.
+
+- Δ Changed: `dev/deploy.sh` hands the new `lib/` directory to the web user
+  like the rest of the installation. 8.5.2 left it owned by the deploying
+  user — readable, so nothing failed.
+
 ## [8.5.2] - 2026-11-19 "umzugskarton"
 
 **A security update, together with the library work that had been waiting. No

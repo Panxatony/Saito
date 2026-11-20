@@ -38,7 +38,7 @@ foreach ($entriesSub as $entrySub) :
                 }
                 ?>
                 <button href="#" class="btn btn-link threadBox-tools-btn <?= $class ?>">
-                    <i class="fa fa-fw fa-thread-open" title="<?= $l10nCache['collapse'] ?>";></i>
+                    <i class="fa fa-fw saito-icon-thread-open" title="<?= $l10nCache['collapse'] ?>";></i>
                 </button>
 
                 <?php // js-mixToggle: the island expands the thread in place instead

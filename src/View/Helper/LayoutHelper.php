@@ -41,7 +41,7 @@ class LayoutHelper extends AppHelper
      *
      * @var list<string>
      */
-    public const OWN_ICONS = ['badge-solves', 'mix', 'thread'];
+    public const OWN_ICONS = ['badge-solves', 'mix', 'thread', 'thread-open'];
 
     /**
      * text with icon

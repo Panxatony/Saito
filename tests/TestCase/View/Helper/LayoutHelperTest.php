@@ -70,4 +70,18 @@ class LayoutHelperTest extends TestCase
             );
         }
     }
+
+    /**
+     * Font Awesome is vendored and not edited; this file is the only place
+     * that could put a name of ours into its namespace.
+     *
+     * @return void
+     */
+    public function testTheStylesheetDeclaresNothingInTheFontAwesomeNamespace(): void
+    {
+        $scss = (string)file_get_contents(WWW_ROOT . 'css/src/partials/_font-awesome-extend.scss');
+        $this->assertNotSame('', $scss);
+
+        $this->assertDoesNotMatchRegularExpression('/^[^\/\n@]*\.fa-[\w-]+[^;\n]*[{,]\s*$/m', $scss);
+    }
 }
