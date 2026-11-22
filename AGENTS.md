@@ -307,6 +307,9 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
 - jBBCode 1.4.2, the tokeniser of the posting parser, is vendored in
   `lib/JBBCode` since 2026-11-19 (#98) — no upstream exists. Fix defects
   there; do not modernise it. `plugins/BbcodeParser/tests` pins its behaviour.
+  DeepSource lists about 22 style findings in it (the `lib/` exclusion in
+  `.deepsource.toml` does not take); they stay, by the maintainer's decision
+  of 2026-11-22 — no `skipcq` marks in the vendored files.
 - Font Awesome 4.7.0 is vendored in `frontend/vendor/font-awesome` since
   2026-11-19 (#92) and is not edited. Icons of ours are `saito-icon-<name>`
   and listed in `LayoutHelper::OWN_ICONS`; nothing of ours carries `fa-` any
