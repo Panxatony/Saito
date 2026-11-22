@@ -29,28 +29,8 @@
   font-size: 110%;
 }
 
-.icon-actthread {
-	@extend .saito-icon-thread;
-}
-
-.icon-reply {
-	@extend .saito-icon-thread;
-}
-
-.icon-replynew {
-	@extend .icon-reply;
-}
-
-.icon-actreply {
-	@extend .icon-reply;
-}
-
 .saito-icon-badge-solves {
   @extend .fa-check-square;
-}
-
-.saito-icon-badge-solves-o {
-  @extend .fa-check-square-o;
 }
 
 .saito-icon-mix {
