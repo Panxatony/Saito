@@ -5,6 +5,12 @@
 - Δ Changed
 - − Removed
 
+> **The 8.4.x line ends on 30 June 2027.** Until then it receives security
+> fixes and fixes for critical bugs, nothing else; after that date there are
+> no further 8.4.x releases. Move to PHP 8.5 and Saito 8.5.x before then:
+> switch PHP first (8.4.24 and later run on PHP 8.5), then Saito.
+> `docs/update.md` on the `develop` branch has the steps.
+
 ## [8.4.27] - 2026-11-19 "geduldsfaden"
 
 **A security update for the 8.4.x line. No migration, no configuration
