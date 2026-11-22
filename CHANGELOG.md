@@ -5,6 +5,12 @@
 - Δ Changed
 - − Removed
 
+> **The 8.4.x line ends on 30 June 2027.** Until then it receives security
+> fixes and fixes for critical bugs, nothing else; after that date there are
+> no further 8.4.x releases. An installation on 8.4.x should move to PHP 8.5
+> and Saito 8.5.x before then: switch PHP first, then Saito. `docs/update.md`
+> has the steps.
+
 ## [8.5.3] - 2026-11-20 "kehrwoche"
 
 **Housekeeping. Nothing changes for readers; no migration, no configuration

@@ -224,7 +224,8 @@ locally — check `git merge-base --is-ancestor`.
 
 Saito 8.5.x requires PHP 8.5. Installations that cannot move yet stay on
 8.4.x, which receives **security fixes and critical bugs only, until
-2027-06-30** (announce the end in the CHANGELOG beforehand). The branch was
+2027-06-30**. The end is announced in a notice at the top of the CHANGELOG on
+both branches; remove it from `develop` once the line has ended. The branch was
 cut from the tag 8.4.24.
 
 1. Fix on `develop` first, with its test. Then
@@ -310,9 +311,9 @@ records what production runs, it moves on deploy, not on tag. Pre-releases
   2026-11-19 (#92) and is not edited. Icons of ours are `saito-icon-<name>`
   and listed in `LayoutHelper::OWN_ICONS`; nothing of ours carries `fa-` any
   more (`LayoutHelperTest` holds that for `_font-awesome-extend.scss`).
-- Passkey (WebAuthn) *registration* has no test that succeeds; a successful
-  *login* is covered by `WebauthnLoginTest`, which carries a software
-  authenticator (ES256) that a registration test could reuse.
+- Passkey (WebAuthn) ceremonies that succeed are tested with a software
+  authenticator (ES256, `SoftwareAuthenticatorTrait`): registration in
+  `WebauthnRegistrationTest`, login in `WebauthnLoginTest`.
 - `cakephp/migrations` is on 5.x on `develop` since 2026-11-19 (`8.4.x` stays
   on 4.x). Saito pins the migration log to `phinxlog`
   (`Migrations.legacyTables`, `config/bootstrap.php`), so `migrations status`
