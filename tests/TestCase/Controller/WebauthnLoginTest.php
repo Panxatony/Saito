@@ -20,7 +20,6 @@ use Cake\Core\Configure;
 use Cake\ORM\TableRegistry;
 use OpenSSLAsymmetricKey;
 use OTPHP\TOTP;
-use RuntimeException;
 use Saito\Test\IntegrationTestCase;
 use Saito\User\Auth\WebauthnService;
 use Symfony\Component\Uid\Uuid;
@@ -37,14 +36,17 @@ use Webauthn\TrustPath\EmptyTrustPath;
  * of that sits behind `verifyAssertion()` returning, and it only returns for a
  * real signature.
  *
- * So this class carries a small software authenticator: an ES256 key pair, the
- * public half stored as the credential, the private half signing the assertion
- * the way a device does. The cryptography is still the library's to verify —
+ * So this class uses a small software authenticator
+ * ({@see SoftwareAuthenticatorTrait}): an ES256 key pair, the public half
+ * stored as the credential, the private half signing the assertion the way a
+ * device does. The cryptography is still the library's to verify —
  * `testASignatureFromAnotherKeyIsRefused` is here to show that it does, and
  * that the tests around it do not pass because nothing is checked.
  */
 class WebauthnLoginTest extends IntegrationTestCase
 {
+    use SoftwareAuthenticatorTrait;
+
     public array $fixtures = [
         'app.Category',
         'app.Entry',
@@ -104,39 +106,16 @@ class WebauthnLoginTest extends IntegrationTestCase
     }
 
     /**
-     * A fresh P-256 key, as a platform authenticator would hold one.
-     *
-     * @return \OpenSSLAsymmetricKey
-     */
-    private function newKey(): OpenSSLAsymmetricKey
-    {
-        $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
-        if ($key === false) {
-            throw new RuntimeException('Could not generate an EC key for the test authenticator.');
-        }
-
-        return $key;
-    }
-
-    /**
      * Register the public half of a key as the member's passkey.
      *
-     * The COSE key is written out by hand: a five-entry CBOR map (kty EC2,
-     * alg ES256, crv P-256, x, y) is nineteen fixed bytes around the two
-     * coordinates, and spelling it out keeps the test from needing the
-     * library's own encoder to agree with the library's own decoder.
+     * Stored directly, without a ceremony: these tests are about the login.
+     * {@see WebauthnRegistrationTest} registers through the ceremony.
      *
      * @param \OpenSSLAsymmetricKey $key the authenticator's key
      * @return \App\Model\Entity\WebauthnCredential
      */
     private function registerPasskey(OpenSSLAsymmetricKey $key): WebauthnCredential
     {
-        $details = openssl_pkey_get_details($key);
-        $this->assertIsArray($details);
-        $x = str_pad($details['ec']['x'], 32, "\0", STR_PAD_LEFT);
-        $y = str_pad($details['ec']['y'], 32, "\0", STR_PAD_LEFT);
-        $cose = "\xA5\x01\x02\x03\x26\x20\x01\x21\x58\x20" . $x . "\x22\x58\x20" . $y;
-
         $record = CredentialRecord::create(
             self::RAW_ID,
             'public-key',
@@ -144,7 +123,7 @@ class WebauthnLoginTest extends IntegrationTestCase
             'none',
             EmptyTrustPath::create(),
             Uuid::fromString('00000000-0000-0000-0000-000000000000'),
-            $cose,
+            $this->coseKey($key),
             (new WebauthnService())->userHandle(self::USER_ID),
             0,
         );
@@ -152,18 +131,8 @@ class WebauthnLoginTest extends IntegrationTestCase
         return $this->Passkeys->store(self::USER_ID, $record, 'Software authenticator');
     }
 
-    private function base64url(string $bytes): string
-    {
-        return rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
-    }
-
     /**
-     * What a device answers a login challenge with.
-     *
-     * Authenticator data is the hash of the relying-party id, a flags byte
-     * (user present and user verified) and the signature counter; the
-     * signature covers that plus the hash of the client data, which is where
-     * the challenge and the origin are.
+     * What this class's authenticator answers a login challenge with.
      *
      * @param \OpenSSLAsymmetricKey $key the key that signs
      * @param string $challenge the challenge as the server sent it (base64url)
@@ -172,35 +141,7 @@ class WebauthnLoginTest extends IntegrationTestCase
      */
     private function assertion(OpenSSLAsymmetricKey $key, string $challenge, int $counter = 1): string
     {
-        $service = new WebauthnService();
-        $clientData = (string)json_encode([
-            'type' => 'webauthn.get',
-            'challenge' => $challenge,
-            'origin' => self::ORIGIN,
-            'crossOrigin' => false,
-        ], JSON_UNESCAPED_SLASHES);
-        $authenticatorData = hash('sha256', $service->relyingPartyId(), true) . "\x05" . pack('N', $counter);
-
-        $signature = '';
-        $signed = openssl_sign(
-            $authenticatorData . hash('sha256', $clientData, true),
-            $signature,
-            $key,
-            OPENSSL_ALGO_SHA256,
-        );
-        $this->assertTrue($signed);
-
-        return (string)json_encode([
-            'id' => $this->base64url(self::RAW_ID),
-            'rawId' => $this->base64url(self::RAW_ID),
-            'type' => 'public-key',
-            'response' => [
-                'clientDataJSON' => $this->base64url($clientData),
-                'authenticatorData' => $this->base64url($authenticatorData),
-                'signature' => $this->base64url($signature),
-                'userHandle' => $this->base64url($service->userHandle(self::USER_ID)),
-            ],
-        ]);
+        return $this->assertionFor($key, $challenge, self::RAW_ID, self::USER_ID, self::ORIGIN, $counter);
     }
 
     /**
