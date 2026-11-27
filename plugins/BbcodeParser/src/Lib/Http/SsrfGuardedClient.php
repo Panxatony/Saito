@@ -60,6 +60,15 @@ class SsrfGuardedClient implements ClientInterface
         $uri = $request->getUri();
 
         for ($hop = 0; $hop <= self::MAX_REDIRECTS; $hop++) {
+            // curl speaks `file:`, `gopher:` and more. It is told below to
+            // use http and https only; say so here as well, before anything
+            // is resolved, so the refusal does not rest on one curl option.
+            if (!in_array(strtolower($uri->getScheme()), ['http', 'https'], true)) {
+                throw new SsrfBlockedException(
+                    $request,
+                    sprintf('Refused embed target "%s": not http or https.', (string)$uri),
+                );
+            }
             $pinnedIp = SsrfGuard::pinnableIpv4($uri->getHost());
             if ($pinnedIp === null) {
                 // Host missing, unresolvable, or resolves to a non-public

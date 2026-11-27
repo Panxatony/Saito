@@ -73,5 +73,15 @@
                 <file name="plugins/BbcodeParser/src/Lib/Http/SsrfGuardedClient.php" />
             </errorLevel>
         </TaintedHeader>
+        <!-- Same file, same call (`curl_init` with the URL), reported under
+             a third name since Psalm 7.12: curl would also read `file:`.
+             The client refuses every scheme but http and https before it
+             resolves a host, and tells curl the same (CURLOPT_PROTOCOLS);
+             SsrfGuardedClientTest holds the first. -->
+        <TaintedFile>
+            <errorLevel type="suppress">
+                <file name="plugins/BbcodeParser/src/Lib/Http/SsrfGuardedClient.php" />
+            </errorLevel>
+        </TaintedFile>
     </issueHandlers>
 </psalm>
